@@ -49,7 +49,9 @@ const labels =
 
   type ThemePreference = "light" | "dark" | "system";
 
-  function isThemePreference(value: string | undefined): value is ThemePreference {
+  function isThemePreference(
+    value: string | null | undefined,
+  ): value is ThemePreference {
     return value === "light" || value === "dark" || value === "system";
   }
 
@@ -116,7 +118,15 @@ const labels =
       });
     });
 
-    const initialPreference = root.dataset.themePreference;
+    let storedPreference: string | null = null;
+    try {
+      storedPreference = localStorage.getItem(storageKey);
+    } catch {
+      storedPreference = null;
+    }
+    const initialPreference = isThemePreference(storedPreference ?? undefined)
+      ? storedPreference
+      : root.dataset.themePreference;
     applyTheme(
       isThemePreference(initialPreference) ? initialPreference : "system",
       false,
@@ -127,6 +137,16 @@ const labels =
     if (root.dataset.themePreference === "system") {
       applyTheme("system", false);
     }
+  });
+
+  document.addEventListener("astro:before-swap", (event) => {
+    const incomingDocument = (event as Event & { newDocument: Document }).newDocument;
+    const incomingRoot = incomingDocument?.documentElement;
+    if (!incomingRoot) return;
+
+    incomingRoot.dataset.theme = root.dataset.theme ?? "light";
+    incomingRoot.dataset.themePreference = root.dataset.themePreference ?? "system";
+    incomingRoot.style.colorScheme = root.style.colorScheme;
   });
 
   document.addEventListener("astro:page-load", initThemeSwitch);

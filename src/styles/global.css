@@ -580,8 +580,14 @@
 
   .scenario-switch button[aria-pressed="true"] {
     border-color: var(--colour-primary);
-    color: var(--colour-primary-strong);
+    background: var(--colour-primary);
+    color: var(--colour-primary-contrast);
     box-shadow: inset 0 0 0 1px var(--colour-primary);
+  }
+
+  .scenario-switch button[aria-pressed="true"]:hover {
+    background: var(--colour-primary-strong);
+    color: var(--colour-primary-contrast);
   }
 
   .network-legend {
