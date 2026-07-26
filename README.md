@@ -2,13 +2,14 @@
 
 [English](README.md) | [中文](README.zh-CN.md)
 
-This repository contains the static Astro foundation for Xintao Liu's
-bilingual portfolio. English is the default language and Simplified Chinese is
-available under `/zh/`.
+This repository contains Xintao Liu's static bilingual business analytics and
+supply chain analytics portfolio. English is the default language and
+Simplified Chinese is available under `/zh/`.
 
-Phase 1 intentionally contains plain, accessible placeholder pages. Branding,
-theme controls, dynamic backgrounds, animation, and supply-chain
-visualisations are not part of this phase.
+The local implementation includes Light/Dark/System themes, configurable Hero
+backgrounds, bilingual Content Collections, shareable project filters, a
+synthetic supply-chain network demonstration, reduced-motion support, SEO
+metadata, and deployment-ready GitHub Pages configuration.
 
 ## Requirements
 
@@ -19,20 +20,22 @@ visualisations are not part of this phase.
 ## Local development
 
 ```powershell
-npm install
+npm ci
 npm run dev
 ```
 
 ## Validation
 
 ```powershell
+npm run format:check
 npm run check
 npm run lint
 npm run test
 npm run build
 ```
 
-The production output is generated in `dist/`.
+`npm run build` also checks the generated site's internal links, core document
+semantics and static assets. The production output is generated in `dist/`.
 
 ## Content
 
@@ -52,8 +55,8 @@ locale: zh
 slug: example-project
 ```
 
-Content marked with `isPlaceholder: true` must not be presented as a completed
-or verified result.
+Content marked with `isPlaceholder: true` or `isDemo: true` must not be
+presented as a completed or verified real-world result.
 
 ## Central configuration
 
@@ -66,6 +69,13 @@ or verified result.
 Do not duplicate account names or complete technical URLs across components and
 content files.
 
+## Background media
+
+The default Hero uses the CSS Aurora mode. Image, Video, Aurora and Network
+modes are selected centrally in `src/config/site.ts`. The current image and
+video poster are replaceable self-created placeholders; no unconfirmed personal
+media is included.
+
 ## Privacy
 
 This repository is designed to be public. Read `SECURITY.md` before adding
@@ -73,6 +83,12 @@ personal, employer, university, or project material. Never commit private
 contact information, secrets, restricted coursework, or unapproved project
 results.
 
-## Deployment status
+## Deployment preparation
 
-No remote repository is configured and no deployment is performed in Phase 1.
+The Pages workflow is prepared in `.github/workflows/deploy.yml`. Activation
+and migration instructions are in
+[`docs/deployment/GITHUB_PAGES.md`](docs/deployment/GITHUB_PAGES.md) and
+[`docs/deployment/STATIC_HOST_MIGRATION.md`](docs/deployment/STATIC_HOST_MIGRATION.md).
+
+No remote repository is configured, and no push, deployment, domain binding or
+paid service operation was performed during local preparation.
