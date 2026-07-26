@@ -1,0 +1,133 @@
+---
+import type { Locale } from "../config/site";
+import Logo from "./Logo.astro";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const copy =
+  locale === "en"
+    ? {
+        logo: "Logo system",
+        colour: "Colour tokens",
+        typography: "Typography",
+        controls: "Buttons, cards, and tags",
+        themes: "Theme comparison",
+        light: "Light",
+        dark: "Dark",
+        system: "System",
+        primary: "Primary action",
+        secondary: "Secondary action",
+        cardTitle: "Analytics card",
+        cardBody:
+          "A restrained surface for project summaries, evidence, and supporting context.",
+      }
+    : {
+        logo: "Logo 系统",
+        colour: "颜色 Token",
+        typography: "字体排版",
+        controls: "按钮、卡片和标签",
+        themes: "主题对照",
+        light: "浅色",
+        dark: "深色",
+        system: "跟随系统",
+        primary: "主要操作",
+        secondary: "次要操作",
+        cardTitle: "分析项目卡片",
+        cardBody: "用于展示项目摘要、证据和背景信息的简洁内容表面。",
+      };
+---
+
+<div class="design-lab-section">
+  <h2>{copy.logo}</h2>
+  <div class="design-lab-grid">
+    <div class="logo-preview logo-preview--dark">
+      <Logo size="lg" />
+    </div>
+    <div class="logo-preview logo-preview--light">
+      <Logo variant="light" size="lg" />
+    </div>
+    <div class="logo-preview logo-preview--dark">
+      <Logo variant="dark" size="lg" />
+    </div>
+    <div class="logo-preview logo-preview--light">
+      <Logo variant="monochrome" size="lg" />
+    </div>
+  </div>
+</div>
+
+<div class="design-lab-section">
+  <h2>{copy.colour}</h2>
+  <div class="design-lab-grid">
+    <div class="swatch" style="--swatch-colour: var(--colour-cyan-700)">
+      Cyan / Primary
+    </div>
+    <div class="swatch" style="--swatch-colour: var(--colour-violet-600)">
+      Violet / Secondary
+    </div>
+    <div
+      class="swatch"
+      style="--swatch-colour: var(--colour-amber-500); --swatch-text: var(--colour-navy-950)"
+    >
+      Amber / Focus
+    </div>
+    <div class="swatch" style="--swatch-colour: var(--colour-navy-950)">
+      Deep navy / Dark
+    </div>
+  </div>
+</div>
+
+<div class="design-lab-section">
+  <h2>{copy.typography}</h2>
+  <div class="ui-card type-sample">
+    <p class="status">Data Aurora</p>
+    <p class="type-display">Xintao Liu</p>
+    <p class="type-heading">Business Analytics & Supply Chain Analytics</p>
+    <p>
+      {
+        locale === "en"
+          ? "Clear bilingual typography for analytical stories and decision support."
+          : "适合分析叙事和决策支持的清晰双语排版。"
+      }
+    </p>
+    <code>Python · R · SQL · DAX</code>
+  </div>
+</div>
+
+<div class="design-lab-section">
+  <h2>{copy.controls}</h2>
+  <div class="cluster">
+    <a class="button" href="#preview-card">{copy.primary}</a>
+    <a class="button button--secondary" href="#preview-card">{copy.secondary}</a>
+  </div>
+  <article class="ui-card" id="preview-card">
+    <p class="status">In development</p>
+    <h3>{copy.cardTitle}</h3>
+    <p>{copy.cardBody}</p>
+    <ul class="tag-list" aria-label={locale === "en" ? "Example tags" : "示例标签"}>
+      <li class="tag">Analytics</li>
+      <li class="tag">Optimisation</li>
+      <li class="tag">SQL</li>
+    </ul>
+  </article>
+</div>
+
+<div class="design-lab-section">
+  <h2>{copy.themes}</h2>
+  <div class="design-lab-grid">
+    <section class="theme-preview" data-preview-theme="light">
+      <h3>{copy.light}</h3>
+      <p>Off-white surface with deep navy text.</p>
+    </section>
+    <section class="theme-preview" data-preview-theme="dark">
+      <h3>{copy.dark}</h3>
+      <p>Deep navy surface with cool high-contrast text.</p>
+    </section>
+    <section class="theme-preview" data-preview-theme="system">
+      <h3>{copy.system}</h3>
+      <p>Uses the current operating-system preference.</p>
+    </section>
+  </div>
+</div>

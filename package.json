@@ -12,6 +12,8 @@
     "start": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "check": "astro check",
     "lint": "eslint .",
     "test": "vitest run",
@@ -25,6 +27,8 @@
     "@astrojs/check": "^0.9.9",
     "@eslint/js": "^10.0.1",
     "eslint": "^10.8.0",
+    "prettier": "^3.9.6",
+    "prettier-plugin-astro": "^0.14.1",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.65.0",
     "vitest": "^4.1.10"

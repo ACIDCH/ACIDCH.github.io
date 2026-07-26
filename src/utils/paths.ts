@@ -10,15 +10,10 @@ function normalisePath(path: string): string {
     return "/";
   }
 
-  return withLeadingSlash.endsWith("/")
-    ? withLeadingSlash
-    : `${withLeadingSlash}/`;
+  return withLeadingSlash.endsWith("/") ? withLeadingSlash : `${withLeadingSlash}/`;
 }
 
-export function withBase(
-  path: string,
-  basePath: string = siteConfig.basePath,
-): string {
+export function withBase(path: string, basePath: string = siteConfig.basePath): string {
   const normalisedPath = normalisePath(path);
   const normalisedBase =
     basePath === "/" ? "/" : `/${basePath.replace(/^\/|\/$/g, "")}/`;

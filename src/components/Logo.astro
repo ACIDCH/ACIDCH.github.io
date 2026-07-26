@@ -1,0 +1,24 @@
+---
+import { siteConfig } from "../config/site";
+import { withBase } from "../utils/paths";
+
+interface Props {
+  variant?: "primary" | "dark" | "light" | "monochrome";
+  size?: "sm" | "md" | "lg";
+  showName?: boolean;
+}
+
+const { variant = "primary", size = "md", showName = true } = Astro.props;
+const fileName = variant === "primary" ? "logo.svg" : `logo-${variant}.svg`;
+---
+
+<span class:list={["brand-lockup", `brand-lockup--${size}`]}>
+  <img
+    class="brand-mark"
+    src={withBase(`/brand/${fileName}`)}
+    width="48"
+    height="48"
+    alt=""
+  />
+  {showName && <span class="brand-name">{siteConfig.publicName}</span>}
+</span>

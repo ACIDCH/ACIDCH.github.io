@@ -11,7 +11,9 @@ import { getGitHubProfileUrl } from "../../utils/urls";
     <li><a href={getGitHubProfileUrl()}>GitHub</a></li>
     {
       profileConfig.linkedInUrl && (
-        <li><a href={profileConfig.linkedInUrl}>LinkedIn</a></li>
+        <li>
+          <a href={profileConfig.linkedInUrl}>LinkedIn</a>
+        </li>
       )
     }
     {

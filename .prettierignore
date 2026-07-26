@@ -1,0 +1,8 @@
+.astro/
+dist/
+node_modules/
+coverage/
+package-lock.json
+PROJECT_BRIEF.md
+PROJECT_PLAN.md
+CODEX_REVIEW_HANDOFF_PROTOCOL.md

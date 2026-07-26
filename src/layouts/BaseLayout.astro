@@ -1,12 +1,13 @@
 ---
 import Footer from "../components/Footer.astro";
 import Header from "../components/Header.astro";
-import LanguageSwitch from "../components/LanguageSwitch.astro";
 import type { Locale } from "../config/site";
 import { siteConfig } from "../config/site";
 import { ui } from "../i18n/ui";
+import "../styles/tokens.css";
 import "../styles/global.css";
 import { getCanonicalUrl } from "../utils/urls";
+import { withBase } from "../utils/paths";
 
 interface Props {
   title: string;
@@ -28,13 +29,44 @@ const fullTitle = `${title} | ${siteConfig.publicName}`;
 ---
 
 <!doctype html>
-<html lang={locale === "en" ? "en" : "zh-CN"}>
+<html
+  lang={locale === "en" ? "en" : "zh-CN"}
+  data-theme="light"
+  data-theme-preference={siteConfig.design.defaultTheme}
+  data-theme-storage-key={siteConfig.design.themeStorageKey}
+>
   <head>
     <meta charset="UTF-8" />
+    <script is:inline>
+      (() => {
+        const root = document.documentElement;
+        const key = root.dataset.themeStorageKey ?? "theme";
+        let stored = null;
+        try {
+          stored = localStorage.getItem(key);
+        } catch {
+          stored = null;
+        }
+        const preference = ["light", "dark", "system"].includes(stored ?? "")
+          ? stored
+          : "system";
+        const resolved =
+          preference === "system"
+            ? window.matchMedia("(prefers-color-scheme: dark)").matches
+              ? "dark"
+              : "light"
+            : preference;
+
+        root.dataset.themePreference = preference;
+        root.dataset.theme = resolved;
+        root.style.colorScheme = resolved;
+      })();
+    </script>
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content={description} />
     {noindex && <meta name="robots" content="noindex" />}
+    <link rel="icon" type="image/svg+xml" href={withBase("/brand/favicon.svg")} />
     <link rel="canonical" href={canonicalUrl} />
     <title>{fullTitle}</title>
   </head>
@@ -42,13 +74,12 @@ const fullTitle = `${title} | ${siteConfig.publicName}`;
     <a class="skip-link" href="#main-content">
       {locale === "en" ? "Skip to content" : "跳到主要内容"}
     </a>
-    <Header locale={locale} />
-    <div class="language-switch">
-      <LanguageSwitch locale={locale} alternatePath={alternatePath} />
-    </div>
-    <main id="main-content">
-      <slot />
+    <Header locale={locale} alternatePath={alternatePath} />
+    <main id="main-content" class="page-shell">
+      <div class="page-container">
+        <slot />
+      </div>
     </main>
-    <Footer />
+    <Footer locale={locale} />
   </body>
 </html>

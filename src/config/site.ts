@@ -11,6 +11,11 @@ export const siteConfig = {
     default: "en",
     supported: ["en", "zh"],
   },
+  design: {
+    direction: "data-aurora",
+    defaultTheme: "system",
+    themeStorageKey: "xintao-theme",
+  },
 } as const;
 
 export type Locale = (typeof siteConfig.language.supported)[number];

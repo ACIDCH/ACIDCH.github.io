@@ -12,4 +12,3 @@ the repository.
 
 Only public, self-created, simulated, licensed, or properly anonymised data may
 be used in demonstrations.
-

@@ -1,0 +1,126 @@
+---
+import type { Locale } from "../config/site";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const labels =
+  locale === "en"
+    ? { group: "Colour theme", light: "Light", dark: "Dark", system: "System" }
+    : { group: "颜色主题", light: "浅色", dark: "深色", system: "跟随系统" };
+---
+
+<div class="theme-switch" role="group" aria-label={labels.group}>
+  <button
+    type="button"
+    data-theme-option="light"
+    aria-label={labels.light}
+    aria-pressed="false"
+  >
+    <span aria-hidden="true">☀</span>
+    <span>{labels.light}</span>
+  </button>
+  <button
+    type="button"
+    data-theme-option="dark"
+    aria-label={labels.dark}
+    aria-pressed="false"
+  >
+    <span aria-hidden="true">◐</span>
+    <span>{labels.dark}</span>
+  </button>
+  <button
+    type="button"
+    data-theme-option="system"
+    aria-label={labels.system}
+    aria-pressed="false"
+  >
+    <span aria-hidden="true">◒</span>
+    <span>{labels.system}</span>
+  </button>
+</div>
+
+<script>
+  const root = document.documentElement;
+  const storageKey = root.dataset.themeStorageKey ?? "theme";
+  const options = Array.from(
+    document.querySelectorAll<HTMLButtonElement>("[data-theme-option]"),
+  );
+  const systemTheme = window.matchMedia("(prefers-color-scheme: dark)");
+
+  type ThemePreference = "light" | "dark" | "system";
+
+  function isThemePreference(value: string | undefined): value is ThemePreference {
+    return value === "light" || value === "dark" || value === "system";
+  }
+
+  function applyTheme(preference: ThemePreference, persist = true) {
+    const resolved =
+      preference === "system" ? (systemTheme.matches ? "dark" : "light") : preference;
+
+    root.dataset.theme = resolved;
+    root.dataset.themePreference = preference;
+    root.style.colorScheme = resolved;
+
+    if (persist) {
+      try {
+        localStorage.setItem(storageKey, preference);
+      } catch {
+        // Theme selection still applies for the current page.
+      }
+    }
+
+    options.forEach((option) => {
+      option.setAttribute(
+        "aria-pressed",
+        String(option.dataset.themeOption === preference),
+      );
+    });
+  }
+
+  options.forEach((option, index) => {
+    if (option.dataset.themeControlReady === "true") {
+      return;
+    }
+
+    option.dataset.themeControlReady = "true";
+    option.addEventListener("click", () => {
+      const preference = option.dataset.themeOption;
+      if (isThemePreference(preference)) {
+        applyTheme(preference);
+      }
+    });
+
+    option.addEventListener("keydown", (event) => {
+      if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) {
+        return;
+      }
+
+      event.preventDefault();
+      const nextIndex =
+        event.key === "Home"
+          ? 0
+          : event.key === "End"
+            ? options.length - 1
+            : (index + (event.key === "ArrowRight" ? 1 : -1) + options.length) %
+              options.length;
+
+      options[nextIndex]?.focus();
+      options[nextIndex]?.click();
+    });
+  });
+
+  systemTheme.addEventListener("change", () => {
+    if (root.dataset.themePreference === "system") {
+      applyTheme("system", false);
+    }
+  });
+
+  const initialPreference = root.dataset.themePreference;
+  applyTheme(
+    isThemePreference(initialPreference) ? initialPreference : "system",
+    false,
+  );
+</script>

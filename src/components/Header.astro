@@ -3,29 +3,121 @@ import { navigationItems } from "../config/navigation";
 import type { Locale } from "../config/site";
 import { siteConfig } from "../config/site";
 import { getLocalizedPath } from "../utils/paths";
+import LanguageSwitch from "./LanguageSwitch.astro";
+import Logo from "./Logo.astro";
+import ThemeSwitch from "./ThemeSwitch.astro";
 
 interface Props {
   locale: Locale;
+  alternatePath?: string;
 }
 
-const { locale } = Astro.props;
+const { locale, alternatePath } = Astro.props;
+const currentPath = Astro.url.pathname;
+
+function isCurrentRoute(path: string): boolean {
+  const localizedPath = getLocalizedPath(path, locale);
+
+  if (path === "/") {
+    return currentPath === localizedPath;
+  }
+
+  return currentPath.startsWith(localizedPath);
+}
 ---
 
-<header class="site-header">
-  <a class="site-name" href={getLocalizedPath("/", locale)}>
-    {siteConfig.publicName}
-  </a>
-  <nav aria-label={locale === "en" ? "Primary navigation" : "主导航"}>
-    <ul>
-      {
-        navigationItems.map((item) => (
-          <li>
-            <a href={getLocalizedPath(item.path, locale)}>
-              {item.label[locale]}
-            </a>
-          </li>
-        ))
-      }
-    </ul>
-  </nav>
+<header class="site-header" data-site-header>
+  <div class="site-header__inner">
+    <a
+      class="site-brand"
+      href={getLocalizedPath("/", locale)}
+      aria-label={`${siteConfig.publicName} — ${locale === "en" ? "Home" : "首页"}`}
+    >
+      <Logo size="sm" />
+    </a>
+
+    <button
+      class="menu-toggle"
+      type="button"
+      aria-expanded="false"
+      aria-controls="primary-navigation"
+      data-menu-toggle
+    >
+      <span class="menu-toggle__icon" aria-hidden="true"></span>
+      <span>{locale === "en" ? "Menu" : "菜单"}</span>
+    </button>
+
+    <div class="header-panel" id="primary-navigation" data-header-panel>
+      <nav
+        class="primary-nav"
+        aria-label={locale === "en" ? "Primary navigation" : "主导航"}
+      >
+        <ul>
+          {
+            navigationItems.map((item) => (
+              <li>
+                <a
+                  href={getLocalizedPath(item.path, locale)}
+                  aria-current={isCurrentRoute(item.path) ? "page" : undefined}
+                >
+                  {item.label[locale]}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+
+      <div class="header-tools">
+        <LanguageSwitch locale={locale} alternatePath={alternatePath} />
+        <ThemeSwitch locale={locale} />
+      </div>
+    </div>
+  </div>
 </header>
+
+<script>
+  const header = document.querySelector<HTMLElement>("[data-site-header]");
+  const toggle = header?.querySelector<HTMLButtonElement>("[data-menu-toggle]");
+  const panel = header?.querySelector<HTMLElement>("[data-header-panel]");
+  const desktop = window.matchMedia("(min-width: 70rem)");
+
+  function setMenu(open: boolean) {
+    if (!header || !toggle) {
+      return;
+    }
+
+    header.dataset.menuOpen = String(open);
+    toggle.setAttribute("aria-expanded", String(open));
+  }
+
+  if (header && toggle && panel) {
+    toggle.addEventListener("click", () => {
+      setMenu(toggle.getAttribute("aria-expanded") !== "true");
+    });
+
+    panel.addEventListener("click", (event) => {
+      if ((event.target as HTMLElement).closest("a")) {
+        setMenu(false);
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && toggle.getAttribute("aria-expanded") === "true") {
+        setMenu(false);
+        toggle.focus();
+      }
+    });
+
+    document.addEventListener("click", (event) => {
+      if (
+        toggle.getAttribute("aria-expanded") === "true" &&
+        !header.contains(event.target as Node)
+      ) {
+        setMenu(false);
+      }
+    });
+
+    desktop.addEventListener("change", () => setMenu(false));
+  }
+</script>

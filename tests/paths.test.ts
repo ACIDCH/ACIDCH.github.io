@@ -1,10 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { siteConfig } from "../src/config/site";
 import { getLocalizedPath, withBase } from "../src/utils/paths";
-import {
-  getCanonicalUrl,
-  getGitHubRepoUrl,
-} from "../src/utils/urls";
+import { getCanonicalUrl, getGitHubRepoUrl } from "../src/utils/urls";
 
 describe("path helpers", () => {
   it("keeps English at the unprefixed root", () => {
@@ -17,9 +14,7 @@ describe("path helpers", () => {
   });
 
   it("applies a project base path without duplication", () => {
-    expect(withBase("/projects/", "/portfolio/")).toBe(
-      "/portfolio/projects/",
-    );
+    expect(withBase("/projects/", "/portfolio/")).toBe("/portfolio/projects/");
     expect(withBase("/portfolio/projects/", "/portfolio/")).toBe(
       "/portfolio/projects/",
     );
@@ -40,8 +35,14 @@ describe("URL helpers", () => {
   });
 
   it("rejects an empty repository slug", () => {
-    expect(() => getGitHubRepoUrl("")).toThrow(
-      "A repository slug is required.",
-    );
+    expect(() => getGitHubRepoUrl("")).toThrow("A repository slug is required.");
+  });
+});
+
+describe("Phase 2 configuration", () => {
+  it("uses the public brand name and a system theme baseline", () => {
+    expect(siteConfig.publicName).toBe("Xintao Liu");
+    expect(siteConfig.design.defaultTheme).toBe("system");
+    expect(siteConfig.design.themeStorageKey).toBe("xintao-theme");
   });
 });

@@ -13,7 +13,9 @@ const { entries, locale } = Astro.props;
 
 {
   entries.length === 0 ? (
-    <p>{locale === "en" ? "No projects are available yet." : "暂时没有可展示的项目。"}</p>
+    <p>
+      {locale === "en" ? "No projects are available yet." : "暂时没有可展示的项目。"}
+    </p>
   ) : (
     <ul class="content-list">
       {entries.map((entry) => (
@@ -27,12 +29,7 @@ const { entries, locale } = Astro.props;
                 : entry.data.status}
             </p>
             <h2>
-              <a
-                href={getLocalizedPath(
-                  `/projects/${entry.data.slug}/`,
-                  locale,
-                )}
-              >
+              <a href={getLocalizedPath(`/projects/${entry.data.slug}/`, locale)}>
                 {entry.data.title}
               </a>
             </h2>
