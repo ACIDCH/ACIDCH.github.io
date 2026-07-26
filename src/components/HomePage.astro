@@ -1,0 +1,132 @@
+---
+import { getCollection } from "astro:content";
+import { profileConfig } from "../config/profile";
+import { toolset } from "../config/skills";
+import type { Locale } from "../config/site";
+import { getLocalizedPath } from "../utils/paths";
+import { getGitHubProfileUrl } from "../utils/urls";
+import NoteList from "./NoteList.astro";
+import ProjectList from "./ProjectList.astro";
+import SkillGrid from "./SkillGrid.astro";
+import Timeline from "./Timeline.astro";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const projects = (await getCollection("projects"))
+  .filter((entry) => entry.data.locale === locale && entry.data.featured)
+  .slice(0, 3);
+const notes = (await getCollection("notes"))
+  .filter((entry) => entry.data.locale === locale)
+  .slice(0, 3);
+
+const copy = {
+  en: {
+    eyebrow: "Business analytics portfolio",
+    title: "Data-driven decisions, grounded in business context.",
+    intro:
+      "I am Xintao Liu, focused on business analytics, supply chain analysis and practical decision support.",
+    projects: "View projects",
+    about: "About me",
+    summary: "Professional summary",
+    capabilities: "Core capabilities",
+    featured: "Featured projects",
+    tools: "Tools",
+    timeline: "Education & experience",
+    notes: "Latest learning notes",
+    contact: "Start a conversation",
+    contactBody:
+      "Only confirmed public channels are shown. Additional professional contact details are pending confirmation.",
+    github: "View GitHub profile",
+  },
+  zh: {
+    eyebrow: "商业分析作品集",
+    title: "用数据支持有业务语境的决策。",
+    intro: "我是 Xintao Liu，专注商业分析、供应链分析与实用的决策支持。",
+    projects: "查看项目",
+    about: "关于我",
+    summary: "个人简介",
+    capabilities: "核心能力",
+    featured: "精选项目",
+    tools: "工具",
+    timeline: "教育与经历",
+    notes: "近期学习笔记",
+    contact: "保持联系",
+    contactBody: "仅展示已确认的公开渠道，其他职业联系信息仍待确认。",
+    github: "查看 GitHub 主页",
+  },
+}[locale];
+---
+
+<section class="home-hero" aria-labelledby="home-title">
+  <p class="status">{copy.eyebrow}</p>
+  <h1 id="home-title">{copy.title}</h1>
+  <p>{copy.intro}</p>
+  <div class="cluster">
+    <a class="button" href={getLocalizedPath("/projects/", locale)}>{copy.projects}</a>
+    <a class="button button--secondary" href={getLocalizedPath("/about/", locale)}>
+      {copy.about}
+    </a>
+  </div>
+</section>
+
+<section class="home-section" aria-labelledby="summary-title">
+  <div class="section-heading">
+    <p class="status">01</p>
+    <h2 id="summary-title">{copy.summary}</h2>
+  </div>
+  <p class="lead-copy">{profileConfig.summary[locale]}</p>
+</section>
+
+<section class="home-section" aria-labelledby="capabilities-title">
+  <div class="section-heading">
+    <p class="status">02</p>
+    <h2 id="capabilities-title">{copy.capabilities}</h2>
+  </div>
+  <SkillGrid locale={locale} />
+</section>
+
+<section class="home-section" aria-labelledby="projects-title">
+  <div class="section-heading">
+    <p class="status">03</p>
+    <h2 id="projects-title">{copy.featured}</h2>
+  </div>
+  <ProjectList entries={projects} locale={locale} />
+</section>
+
+<section class="home-section" aria-labelledby="tools-title">
+  <div class="section-heading">
+    <p class="status">04</p>
+    <h2 id="tools-title">{copy.tools}</h2>
+  </div>
+  <ul class="tool-grid">
+    {toolset.map((tool) => <li>{tool}</li>)}
+  </ul>
+</section>
+
+<section class="home-section" aria-labelledby="timeline-title">
+  <div class="section-heading">
+    <p class="status">05</p>
+    <h2 id="timeline-title">{copy.timeline}</h2>
+  </div>
+  <Timeline locale={locale} />
+</section>
+
+<section class="home-section" aria-labelledby="notes-title">
+  <div class="section-heading">
+    <p class="status">06</p>
+    <h2 id="notes-title">{copy.notes}</h2>
+  </div>
+  <NoteList entries={notes} locale={locale} />
+</section>
+
+<section class="home-section home-contact" aria-labelledby="contact-title">
+  <div>
+    <p class="status">07</p>
+    <h2 id="contact-title">{copy.contact}</h2>
+    <p>{copy.contactBody}</p>
+  </div>
+  <a class="button" href={getGitHubProfileUrl()} rel="me">{copy.github}</a>
+</section>

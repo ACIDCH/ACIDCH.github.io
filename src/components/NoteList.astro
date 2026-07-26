@@ -20,11 +20,13 @@ const { entries, locale } = Astro.props;
         <li>
           <article>
             <p class="status">
-              {entry.data.isPlaceholder
+              {entry.data.draft
                 ? locale === "en"
-                  ? "Placeholder"
-                  : "占位内容"
-                : ""}
+                  ? "Draft"
+                  : "草稿"
+                : locale === "en"
+                  ? "Published"
+                  : "已发布"}
             </p>
             <h2>
               <a href={getLocalizedPath(`/notes/${entry.data.slug}/`, locale)}>
@@ -32,6 +34,9 @@ const { entries, locale } = Astro.props;
               </a>
             </h2>
             <p>{entry.data.summary}</p>
+            {entry.data.isPlaceholder && (
+              <span class="tag">{locale === "en" ? "Placeholder" : "占位内容"}</span>
+            )}
           </article>
         </li>
       ))}

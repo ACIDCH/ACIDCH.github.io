@@ -1,0 +1,54 @@
+---
+import { profileConfig } from "../config/profile";
+import type { Locale } from "../config/site";
+import { getGitHubProfileUrl } from "../utils/urls";
+import PageIntro from "./PageIntro.astro";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const copy = {
+  en: {
+    title: "Contact",
+    intro: "Only confirmed public contact channels are displayed.",
+    github: "GitHub technical profile",
+    pending:
+      "Professional email, LinkedIn and resume links are hidden until they are supplied and confirmed.",
+  },
+  zh: {
+    title: "联系",
+    intro: "这里只展示已经确认的公开联系渠道。",
+    github: "GitHub 技术主页",
+    pending: "职业邮箱、LinkedIn 与简历链接将在提供并确认后显示。",
+  },
+}[locale];
+---
+
+<PageIntro title={copy.title} description={copy.intro} />
+<section class="contact-panel" aria-label={copy.title}>
+  <a class="button" href={getGitHubProfileUrl()} rel="me">{copy.github}</a>
+  {
+    profileConfig.linkedInUrl && (
+      <a class="button button--secondary" href={profileConfig.linkedInUrl}>
+        LinkedIn
+      </a>
+    )
+  }
+  {
+    profileConfig.professionalEmail && (
+      <a
+        class="button button--secondary"
+        href={`mailto:${profileConfig.professionalEmail}`}
+      >
+        Email
+      </a>
+    )
+  }
+  {
+    !profileConfig.linkedInUrl && !profileConfig.professionalEmail && (
+      <p class="status">{copy.pending}</p>
+    )
+  }
+</section>

@@ -1,20 +1,8 @@
 ---
-import PageIntro from "../components/PageIntro.astro";
-import { profileConfig } from "../config/profile";
+import ResumePage from "../components/ResumePage.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 ---
 
 <BaseLayout title="Resume" locale="en">
-  <PageIntro
-    title="Resume"
-    description="The English resume has not been supplied."
-    placeholder
-  />
-  {
-    profileConfig.resume.en ? (
-      <a href={profileConfig.resume.en}>Download resume</a>
-    ) : (
-      <p aria-live="polite">Resume download unavailable.</p>
-    )
-  }
+  <ResumePage locale="en" />
 </BaseLayout>

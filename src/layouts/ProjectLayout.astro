@@ -9,6 +9,11 @@ interface Props {
 
 const { entry, alternatePath } = Astro.props;
 const { Content } = await render(entry);
+const statusLabels = {
+  planned: { en: "Planned", zh: "计划中" },
+  "in-development": { en: "In development", zh: "开发中" },
+  completed: { en: "Completed", zh: "已完成" },
+} as const;
 ---
 
 <BaseLayout
@@ -19,12 +24,20 @@ const { Content } = await render(entry);
   noindex={entry.data.isPlaceholder}
 >
   <article>
-    {entry.data.isPlaceholder && <p class="status">Placeholder / 占位内容</p>}
+    {
+      entry.data.isPlaceholder && (
+        <p class="status">
+          {entry.data.locale === "en"
+            ? "Demo / placeholder content"
+            : "演示 / 占位内容"}
+        </p>
+      )
+    }
     <h1>{entry.data.title}</h1>
     <p>{entry.data.summary}</p>
     <dl>
       <dt>{entry.data.locale === "en" ? "Status" : "状态"}</dt>
-      <dd>{entry.data.status}</dd>
+      <dd>{statusLabels[entry.data.status][entry.data.locale]}</dd>
       <dt>{entry.data.locale === "en" ? "Tools" : "工具"}</dt>
       <dd>{entry.data.tools.join(", ") || "—"}</dd>
     </dl>

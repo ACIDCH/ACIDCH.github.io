@@ -10,6 +10,7 @@ export const siteConfig = {
   language: {
     default: "en",
     supported: ["en", "zh"],
+    storageKey: "xintao-locale",
   },
   design: {
     direction: "data-aurora",

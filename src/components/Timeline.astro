@@ -1,0 +1,24 @@
+---
+import { timelineEntries } from "../config/experience";
+import type { Locale } from "../config/site";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+---
+
+<ol class="timeline">
+  {
+    timelineEntries.map((entry) => (
+      <li class="timeline__item">
+        <p class="status">{entry.kind}</p>
+        <h3>{entry.title[locale]}</h3>
+        <p class="timeline__organisation">{entry.organisation[locale]}</p>
+        <p>{entry.detail[locale]}</p>
+        <p class="timeline__period">{entry.period[locale]}</p>
+      </li>
+    ))
+  }
+</ol>

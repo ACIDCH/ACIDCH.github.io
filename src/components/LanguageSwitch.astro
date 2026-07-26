@@ -1,5 +1,6 @@
 ---
 import type { Locale } from "../config/site";
+import { siteConfig } from "../config/site";
 import { ui } from "../i18n/ui";
 import { getLocalizedPath } from "../utils/paths";
 
@@ -19,7 +20,28 @@ const targetPath = alternatePath ?? getLocalizedPath(Astro.url.pathname, targetL
   lang={targetLocale === "en" ? "en" : "zh-CN"}
   hreflang={targetLocale === "en" ? "en" : "zh-CN"}
   aria-label={locale === "en" ? "切换到简体中文" : "Switch to English"}
+  data-language-switch
+  data-target-locale={targetLocale}
+  data-language-storage-key={siteConfig.language.storageKey}
 >
   <span aria-hidden="true">文</span>
   <span>{ui[locale].languageSwitch}</span>
 </a>
+
+<script>
+  document
+    .querySelectorAll<HTMLAnchorElement>("[data-language-switch]")
+    .forEach((link) => {
+      link.addEventListener("click", () => {
+        const locale = link.dataset.targetLocale;
+        const key = link.dataset.languageStorageKey;
+        if (!locale || !key) return;
+
+        try {
+          localStorage.setItem(key, locale);
+        } catch {
+          // Navigation remains functional when storage is unavailable.
+        }
+      });
+    });
+</script>

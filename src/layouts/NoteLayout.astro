@@ -19,7 +19,13 @@ const { Content } = await render(entry);
   noindex={entry.data.draft || entry.data.isPlaceholder}
 >
   <article>
-    {entry.data.isPlaceholder && <p class="status">Placeholder / 占位内容</p>}
+    {
+      entry.data.isPlaceholder && (
+        <p class="status">
+          {entry.data.locale === "en" ? "Draft placeholder" : "草稿占位内容"}
+        </p>
+      )
+    }
     <h1>{entry.data.title}</h1>
     <p>{entry.data.summary}</p>
     <Content />

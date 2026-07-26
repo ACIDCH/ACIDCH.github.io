@@ -1,0 +1,34 @@
+---
+import { toolset } from "../config/skills";
+import type { Locale } from "../config/site";
+import PageIntro from "./PageIntro.astro";
+import SkillGrid from "./SkillGrid.astro";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const copy = {
+  en: {
+    title: "Skills",
+    intro:
+      "A capability-led overview based only on confirmed learning areas. Proficiency levels and certifications are not claimed.",
+    tools: "Current toolset",
+  },
+  zh: {
+    title: "技能",
+    intro: "以下能力概览仅基于已确认的学习领域，不对熟练度或证书作未经核实的声明。",
+    tools: "当前工具集",
+  },
+}[locale];
+---
+
+<PageIntro title={copy.title} description={copy.intro} />
+<SkillGrid locale={locale} />
+<section class="content-section" aria-labelledby="skill-tools-title">
+  <h2 id="skill-tools-title">{copy.tools}</h2>
+  <ul class="tool-grid">
+    {toolset.map((tool) => <li>{tool}</li>)}
+  </ul>
+</section>

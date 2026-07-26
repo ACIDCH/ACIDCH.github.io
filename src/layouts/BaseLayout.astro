@@ -7,7 +7,7 @@ import { ui } from "../i18n/ui";
 import "../styles/tokens.css";
 import "../styles/global.css";
 import { getCanonicalUrl } from "../utils/urls";
-import { withBase } from "../utils/paths";
+import { getLocalizedPath, withBase } from "../utils/paths";
 
 interface Props {
   title: string;
@@ -26,6 +26,11 @@ const {
 } = Astro.props;
 const canonicalUrl = getCanonicalUrl(Astro.url.pathname);
 const fullTitle = `${title} | ${siteConfig.publicName}`;
+const targetLocale: Locale = locale === "en" ? "zh" : "en";
+const resolvedAlternatePath =
+  alternatePath ?? getLocalizedPath(Astro.url.pathname, targetLocale);
+const englishPath = locale === "en" ? Astro.url.pathname : resolvedAlternatePath;
+const chinesePath = locale === "zh" ? Astro.url.pathname : resolvedAlternatePath;
 ---
 
 <!doctype html>
@@ -68,6 +73,9 @@ const fullTitle = `${title} | ${siteConfig.publicName}`;
     {noindex && <meta name="robots" content="noindex" />}
     <link rel="icon" type="image/svg+xml" href={withBase("/brand/favicon.svg")} />
     <link rel="canonical" href={canonicalUrl} />
+    <link rel="alternate" hreflang="en" href={getCanonicalUrl(englishPath)} />
+    <link rel="alternate" hreflang="zh-CN" href={getCanonicalUrl(chinesePath)} />
+    <link rel="alternate" hreflang="x-default" href={getCanonicalUrl(englishPath)} />
     <title>{fullTitle}</title>
   </head>
   <body>

@@ -1,16 +1,8 @@
 ---
-import PageIntro from "../../components/PageIntro.astro";
-import { profileConfig } from "../../config/profile";
+import ResumePage from "../../components/ResumePage.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 ---
 
 <BaseLayout title="简历" locale="zh">
-  <PageIntro title="简历" description="尚未提供中文简历。" placeholder />
-  {
-    profileConfig.resume.zh ? (
-      <a href={profileConfig.resume.zh}>下载简历</a>
-    ) : (
-      <p aria-live="polite">简历下载暂不可用。</p>
-    )
-  }
+  <ResumePage locale="zh" />
 </BaseLayout>

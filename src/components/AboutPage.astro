@@ -1,0 +1,46 @@
+---
+import { profileConfig } from "../config/profile";
+import type { Locale } from "../config/site";
+import PageIntro from "./PageIntro.astro";
+import Timeline from "./Timeline.astro";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const copy = {
+  en: {
+    title: "About",
+    background: "Background",
+    approach: "Working approach",
+    approachBody:
+      "I focus on defining the decision first, then selecting data and methods that make the result understandable and useful. Exact dates, organisations and outcomes remain unpublished until confirmed.",
+    timeline: "Verified background",
+  },
+  zh: {
+    title: "关于",
+    background: "背景概览",
+    approach: "工作方式",
+    approachBody:
+      "我会先明确需要支持的决策，再选择合适的数据和方法，让结果清晰、可理解、可使用。具体日期、机构与成果只会在确认后发布。",
+    timeline: "已确认背景",
+  },
+}[locale];
+---
+
+<PageIntro title={copy.title} description={profileConfig.summary[locale]} />
+<section class="content-section" aria-labelledby="background-title">
+  <h2 id="background-title">{copy.background}</h2>
+  <ul class="detail-list">
+    {profileConfig.background[locale].map((item) => <li>{item}</li>)}
+  </ul>
+</section>
+<section class="content-section" aria-labelledby="approach-title">
+  <h2 id="approach-title">{copy.approach}</h2>
+  <p>{copy.approachBody}</p>
+</section>
+<section class="content-section" aria-labelledby="about-timeline-title">
+  <h2 id="about-timeline-title">{copy.timeline}</h2>
+  <Timeline locale={locale} />
+</section>

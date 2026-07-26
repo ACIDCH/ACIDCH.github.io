@@ -1,0 +1,32 @@
+---
+import { skillGroups } from "../config/skills";
+import type { Locale } from "../config/site";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+---
+
+<div class="capability-grid">
+  {
+    skillGroups.map((group, index) => (
+      <article class="ui-card capability-card">
+        <span class="capability-card__index" aria-hidden="true">
+          {String(index + 1).padStart(2, "0")}
+        </span>
+        <h3>{group.title[locale]}</h3>
+        <p>{group.description[locale]}</p>
+        <ul
+          class="tag-list"
+          aria-label={locale === "en" ? "Related tools" : "相关工具"}
+        >
+          {group.tools.map((tool) => (
+            <li class="tag">{tool}</li>
+          ))}
+        </ul>
+      </article>
+    ))
+  }
+</div>
