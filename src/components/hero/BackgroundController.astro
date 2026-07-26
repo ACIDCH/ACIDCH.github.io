@@ -1,0 +1,28 @@
+---
+import { siteConfig, type HeroBackgroundMode } from "../../config/site";
+import type { Locale } from "../../config/site";
+import AuroraBackground from "./AuroraBackground.astro";
+import ImageBackground from "./ImageBackground.astro";
+import NetworkBackground from "./NetworkBackground.astro";
+import VideoBackground from "./VideoBackground.astro";
+
+interface Props {
+  locale: Locale;
+  mode?: HeroBackgroundMode;
+}
+
+const { locale, mode = siteConfig.hero.background } = Astro.props;
+const selectedMode =
+  mode === "video" && !siteConfig.hero.videoEnabled
+    ? "aurora"
+    : mode === "network" && !siteConfig.hero.networkEnabled
+      ? "aurora"
+      : mode;
+---
+
+<div class="background-controller" data-background-mode={selectedMode}>
+  {selectedMode === "aurora" && <AuroraBackground />}
+  {selectedMode === "image" && <ImageBackground />}
+  {selectedMode === "video" && <VideoBackground locale={locale} />}
+  {selectedMode === "network" && <NetworkBackground />}
+</div>

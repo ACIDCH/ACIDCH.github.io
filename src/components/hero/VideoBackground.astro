@@ -1,0 +1,124 @@
+---
+import { siteConfig } from "../../config/site";
+import { withBase } from "../../utils/paths";
+
+interface Props {
+  locale: "en" | "zh";
+}
+
+const { locale } = Astro.props;
+const { videoSources } = siteConfig.hero;
+const hasVideo = Boolean(videoSources.webm || videoSources.mp4);
+---
+
+<div class="hero-background hero-video" data-video-background data-has-video={hasVideo}>
+  <img
+    class="hero-video__poster"
+    src={withBase(siteConfig.hero.poster)}
+    alt=""
+    width="1600"
+    height="900"
+    aria-hidden="true"
+  />
+  {
+    hasVideo && (
+      <video
+        muted
+        loop
+        playsinline
+        preload="metadata"
+        poster={withBase(siteConfig.hero.poster)}
+        aria-hidden="true"
+        data-hero-video
+      >
+        {videoSources.webm && (
+          <source src={withBase(videoSources.webm)} type="video/webm" />
+        )}
+        {videoSources.mp4 && (
+          <source src={withBase(videoSources.mp4)} type="video/mp4" />
+        )}
+      </video>
+    )
+  }
+  <span class="hero-background__overlay" aria-hidden="true"></span>
+  {
+    hasVideo && (
+      <button
+        class="video-control"
+        type="button"
+        aria-pressed="false"
+        data-video-control
+      >
+        <span data-video-control-label>
+          {locale === "en" ? "Pause background video" : "暂停背景视频"}
+        </span>
+      </button>
+    )
+  }
+</div>
+
+<script>
+  const container = document.querySelector<HTMLElement>("[data-video-background]");
+  const video = container?.querySelector<HTMLVideoElement>("[data-hero-video]");
+  const control = container?.querySelector<HTMLButtonElement>("[data-video-control]");
+  const label = control?.querySelector<HTMLElement>("[data-video-control-label]");
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const mobileFallback = window.matchMedia("(max-width: 48rem), (pointer: coarse)");
+  let userPaused = false;
+  let inView = true;
+
+  function canPlay() {
+    return (
+      video &&
+      !userPaused &&
+      !reduceMotion.matches &&
+      !mobileFallback.matches &&
+      !document.hidden &&
+      inView
+    );
+  }
+
+  async function syncPlayback() {
+    if (!video || !control || !label) return;
+
+    if (canPlay()) {
+      try {
+        await video.play();
+      } catch {
+        container?.setAttribute("data-video-fallback", "true");
+      }
+    } else {
+      video.pause();
+    }
+
+    const paused = video.paused;
+    control.setAttribute("aria-pressed", String(paused));
+    label.textContent =
+      document.documentElement.lang === "zh-CN"
+        ? paused
+          ? "播放背景视频"
+          : "暂停背景视频"
+        : paused
+          ? "Play background video"
+          : "Pause background video";
+  }
+
+  control?.addEventListener("click", () => {
+    userPaused = !video?.paused;
+    if (video?.paused) userPaused = false;
+    void syncPlayback();
+  });
+  document.addEventListener("visibilitychange", () => void syncPlayback());
+  reduceMotion.addEventListener("change", () => void syncPlayback());
+  mobileFallback.addEventListener("change", () => void syncPlayback());
+
+  if (container) {
+    const observer = new IntersectionObserver(([entry]) => {
+      inView = entry?.isIntersecting ?? false;
+      void syncPlayback();
+    });
+    observer.observe(container);
+  }
+
+  void syncPlayback();
+</script>

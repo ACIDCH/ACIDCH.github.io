@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Abstract data aurora placeholder</title>
+  <desc id="desc">A replaceable abstract gradient with a subtle analytical grid.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#071a2d"/>
+      <stop offset=".55" stop-color="#0a3142"/>
+      <stop offset="1" stop-color="#10243b"/>
+    </linearGradient>
+    <radialGradient id="a" cx=".22" cy=".18" r=".65">
+      <stop offset="0" stop-color="#28d4ca" stop-opacity=".75"/>
+      <stop offset="1" stop-color="#28d4ca" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="b" cx=".8" cy=".75" r=".7">
+      <stop offset="0" stop-color="#3578d4" stop-opacity=".58"/>
+      <stop offset="1" stop-color="#3578d4" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="80" height="80" patternUnits="userSpaceOnUse">
+      <path d="M80 0H0v80" fill="none" stroke="#bceff4" stroke-opacity=".08"/>
+    </pattern>
+  </defs>
+  <rect width="1600" height="900" fill="url(#bg)"/>
+  <rect width="1600" height="900" fill="url(#a)"/>
+  <rect width="1600" height="900" fill="url(#b)"/>
+  <rect width="1600" height="900" fill="url(#grid)"/>
+  <g fill="#72dbe0" fill-opacity=".38">
+    <circle cx="340" cy="610" r="8"/>
+    <circle cx="600" cy="510" r="6"/>
+    <circle cx="920" cy="630" r="7"/>
+    <circle cx="1240" cy="420" r="8"/>
+  </g>
+  <g fill="none" stroke="#72dbe0" stroke-opacity=".22" stroke-width="2">
+    <path d="M340 610 600 510 920 630 1240 420"/>
+    <path d="M600 510 1240 420"/>
+  </g>
+</svg>

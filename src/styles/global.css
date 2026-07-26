@@ -395,11 +395,25 @@
   }
 
   .home-hero {
+    position: relative;
     display: grid;
-    gap: var(--space-6);
     min-height: min(42rem, calc(100vh - var(--header-height) - var(--space-16)));
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--colour-cyan-400) 24%, transparent);
+    border-radius: var(--radius-xl);
+    background: var(--colour-navy-950);
+    box-shadow: var(--shadow-lg);
+    isolation: isolate;
+  }
+
+  .home-hero__content {
+    position: relative;
+    z-index: 2;
+    display: grid;
     align-content: center;
-    padding-block: var(--space-10);
+    gap: var(--space-6);
+    min-height: inherit;
+    padding: clamp(var(--space-8), 7vw, var(--space-16));
   }
 
   .home-hero h1 {
@@ -408,9 +422,131 @@
     line-height: 0.98;
   }
 
-  .home-hero > p:not(.status) {
+  .home-hero h1,
+  .home-hero .status {
+    color: var(--colour-white);
+  }
+
+  .home-hero__content > p:not(.status) {
     max-width: 42rem;
+    color: #c9dbe8;
     font-size: var(--font-size-xl);
+  }
+
+  .home-hero .button--secondary {
+    border-color: rgba(255, 255, 255, 0.38);
+    background: rgba(7, 26, 45, 0.48);
+    color: var(--colour-white);
+    backdrop-filter: blur(0.75rem);
+  }
+
+  .background-controller,
+  .hero-background {
+    position: absolute;
+    inset: 0;
+  }
+
+  .background-controller {
+    z-index: 0;
+    overflow: hidden;
+  }
+
+  .hero-background__overlay {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(90deg, rgba(3, 14, 26, 0.88), rgba(3, 14, 26, 0.3) 70%),
+      linear-gradient(0deg, rgba(3, 14, 26, 0.45), transparent 55%);
+  }
+
+  .hero-aurora {
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(45, 214, 200, 0.3), transparent 38%),
+      radial-gradient(circle at 82% 75%, rgba(57, 118, 219, 0.38), transparent 45%),
+      linear-gradient(135deg, #061827, #0b263c 50%, #071829);
+  }
+
+  .hero-aurora__orb {
+    position: absolute;
+    width: 46rem;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    opacity: 0.34;
+    filter: blur(5rem);
+    animation: aurora-drift 18s ease-in-out infinite alternate;
+  }
+
+  .hero-aurora__orb--one {
+    top: -28rem;
+    left: -12rem;
+    background: var(--colour-cyan-400);
+  }
+
+  .hero-aurora__orb--two {
+    right: -20rem;
+    bottom: -30rem;
+    background: #4b72e5;
+    animation-delay: -9s;
+  }
+
+  .hero-aurora__grid {
+    position: absolute;
+    inset: 0;
+    opacity: 0.16;
+    background-image:
+      linear-gradient(rgba(181, 237, 240, 0.3) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(181, 237, 240, 0.3) 1px, transparent 1px);
+    background-size: 5rem 5rem;
+    mask-image: linear-gradient(to right, transparent, black 38%, transparent);
+  }
+
+  .hero-image img,
+  .hero-video video,
+  .hero-video__poster,
+  .hero-network canvas {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .hero-video video,
+  .hero-video__poster {
+    position: absolute;
+    inset: 0;
+  }
+
+  .hero-video video {
+    z-index: 1;
+  }
+
+  .hero-video .hero-background__overlay {
+    z-index: 2;
+  }
+
+  .video-control {
+    position: absolute;
+    right: var(--space-5);
+    bottom: var(--space-5);
+    z-index: 3;
+    min-height: 2.75rem;
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: var(--radius-pill);
+    background: rgba(3, 14, 26, 0.72);
+    color: var(--colour-white);
+    cursor: pointer;
+    backdrop-filter: blur(0.75rem);
+  }
+
+  .hero-network {
+    background:
+      radial-gradient(circle at 80% 30%, rgba(42, 155, 202, 0.2), transparent 40%),
+      #061827;
+  }
+
+  .hero-network canvas {
+    display: block;
   }
 
   .home-section,
@@ -741,6 +877,16 @@
   }
 }
 
+@keyframes aurora-drift {
+  from {
+    transform: translate3d(-2%, -1%, 0) scale(0.94);
+  }
+
+  to {
+    transform: translate3d(8%, 5%, 0) scale(1.08);
+  }
+}
+
 @layer utilities {
   .cluster {
     display: flex;
@@ -836,6 +982,14 @@
   .page-shell {
     padding-block: var(--space-12) var(--space-16);
   }
+
+  .home-hero {
+    min-height: 38rem;
+  }
+
+  .home-hero__content {
+    padding-inline: var(--space-6);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -848,5 +1002,9 @@
   *::after {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .hero-aurora__orb {
+    animation: none;
   }
 }

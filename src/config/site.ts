@@ -1,3 +1,5 @@
+export type HeroBackgroundMode = "video" | "image" | "aurora" | "network";
+
 export const siteConfig = {
   publicName: "Xintao Liu",
   siteUrl: "https://ACIDCH.github.io",
@@ -16,6 +18,17 @@ export const siteConfig = {
     direction: "data-aurora",
     defaultTheme: "system",
     themeStorageKey: "xintao-theme",
+  },
+  hero: {
+    background: "aurora" as HeroBackgroundMode,
+    image: "/backgrounds/hero-placeholder.svg",
+    poster: "/backgrounds/hero-placeholder.svg",
+    videoSources: {
+      webm: null as string | null,
+      mp4: null as string | null,
+    },
+    videoEnabled: true,
+    networkEnabled: true,
   },
 } as const;
 

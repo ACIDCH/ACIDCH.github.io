@@ -1,0 +1,16 @@
+---
+import { siteConfig } from "../../config/site";
+import { withBase } from "../../utils/paths";
+---
+
+<div class="hero-background hero-image" aria-hidden="true">
+  <img
+    src={withBase(siteConfig.hero.image)}
+    alt=""
+    width="1600"
+    height="900"
+    decoding="async"
+    fetchpriority="high"
+  />
+  <span class="hero-background__overlay"></span>
+</div>

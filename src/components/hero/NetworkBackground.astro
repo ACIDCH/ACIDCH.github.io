@@ -1,0 +1,105 @@
+<div class="hero-background hero-network" data-network-background aria-hidden="true">
+  <canvas data-network-canvas></canvas>
+  <span class="hero-background__overlay"></span>
+</div>
+
+<script>
+  const container = document.querySelector<HTMLElement>("[data-network-background]");
+  const canvas = container?.querySelector<HTMLCanvasElement>("[data-network-canvas]");
+  const context = canvas?.getContext("2d");
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const smallViewport = window.matchMedia("(max-width: 48rem)");
+  let frame = 0;
+  let visible = true;
+  let nodes: Array<{ x: number; y: number; vx: number; vy: number }> = [];
+  const pointer = { x: 0.5, y: 0.5 };
+
+  function seedNodes(width: number, height: number) {
+    const count = smallViewport.matches ? 18 : Math.min(42, Math.floor(width / 30));
+    nodes = Array.from({ length: count }, (_, index) => ({
+      x: ((index * 83) % width) + 1,
+      y: ((index * 47) % height) + 1,
+      vx: ((index % 5) - 2) * 0.035,
+      vy: (((index * 3) % 5) - 2) * 0.03,
+    }));
+  }
+
+  function resize() {
+    if (!canvas || !container || !context) return;
+    const { width, height } = container.getBoundingClientRect();
+    const ratio = Math.min(window.devicePixelRatio || 1, 1.5);
+    canvas.width = Math.max(1, Math.floor(width * ratio));
+    canvas.height = Math.max(1, Math.floor(height * ratio));
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
+    context.setTransform(ratio, 0, 0, ratio, 0, 0);
+    seedNodes(width, height);
+    draw(false);
+  }
+
+  function draw(advance = true) {
+    if (!canvas || !context) return;
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+    context.clearRect(0, 0, width, height);
+    context.strokeStyle = "rgba(53, 195, 220, 0.2)";
+    context.fillStyle = "rgba(53, 195, 220, 0.68)";
+
+    nodes.forEach((node, index) => {
+      if (advance) {
+        node.x += node.vx + (pointer.x - 0.5) * 0.015;
+        node.y += node.vy + (pointer.y - 0.5) * 0.015;
+        if (node.x < 0 || node.x > width) node.vx *= -1;
+        if (node.y < 0 || node.y > height) node.vy *= -1;
+      }
+
+      context.beginPath();
+      context.arc(node.x, node.y, index % 7 === 0 ? 2.2 : 1.4, 0, Math.PI * 2);
+      context.fill();
+
+      for (let otherIndex = index + 1; otherIndex < nodes.length; otherIndex += 1) {
+        const other = nodes[otherIndex];
+        if (!other) continue;
+        const distance = Math.hypot(node.x - other.x, node.y - other.y);
+        if (distance > 135) continue;
+        context.globalAlpha = 1 - distance / 135;
+        context.beginPath();
+        context.moveTo(node.x, node.y);
+        context.lineTo(other.x, other.y);
+        context.stroke();
+      }
+      context.globalAlpha = 1;
+    });
+  }
+
+  function animate() {
+    cancelAnimationFrame(frame);
+    if (!visible || document.hidden || reduceMotion.matches) {
+      draw(false);
+      return;
+    }
+    draw();
+    frame = requestAnimationFrame(animate);
+  }
+
+  container?.addEventListener("pointermove", (event) => {
+    const bounds = container.getBoundingClientRect();
+    pointer.x = (event.clientX - bounds.left) / bounds.width;
+    pointer.y = (event.clientY - bounds.top) / bounds.height;
+  });
+  document.addEventListener("visibilitychange", animate);
+  reduceMotion.addEventListener("change", animate);
+  smallViewport.addEventListener("change", resize);
+  window.addEventListener("resize", resize, { passive: true });
+
+  if (container) {
+    const observer = new IntersectionObserver(([entry]) => {
+      visible = entry?.isIntersecting ?? false;
+      animate();
+    });
+    observer.observe(container);
+  }
+
+  resize();
+  animate();
+</script>

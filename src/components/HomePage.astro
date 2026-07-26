@@ -5,6 +5,7 @@ import { toolset } from "../config/skills";
 import type { Locale } from "../config/site";
 import { getLocalizedPath } from "../utils/paths";
 import { getGitHubProfileUrl } from "../utils/urls";
+import Hero from "./hero/Hero.astro";
 import NoteList from "./NoteList.astro";
 import ProjectList from "./ProjectList.astro";
 import SkillGrid from "./SkillGrid.astro";
@@ -60,7 +61,7 @@ const copy = {
 }[locale];
 ---
 
-<section class="home-hero" aria-labelledby="home-title">
+<Hero locale={locale}>
   <p class="status">{copy.eyebrow}</p>
   <h1 id="home-title">{copy.title}</h1>
   <p>{copy.intro}</p>
@@ -70,7 +71,7 @@ const copy = {
       {copy.about}
     </a>
   </div>
-</section>
+</Hero>
 
 <section class="home-section" aria-labelledby="summary-title">
   <div class="section-heading">

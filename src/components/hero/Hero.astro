@@ -1,0 +1,17 @@
+---
+import type { Locale } from "../../config/site";
+import BackgroundController from "./BackgroundController.astro";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+---
+
+<section class="home-hero" aria-labelledby="home-title">
+  <BackgroundController locale={locale} />
+  <div class="home-hero__content">
+    <slot />
+  </div>
+</section>
