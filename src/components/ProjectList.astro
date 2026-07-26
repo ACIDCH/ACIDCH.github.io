@@ -24,6 +24,7 @@ const { entries, locale } = Astro.props;
           data-project-tools={entry.data.tools.join("|")}
           data-project-topic={entry.data.topic}
           data-project-status={entry.data.status}
+          data-reveal
         >
           <ProjectCard entry={entry} locale={locale} />
         </li>

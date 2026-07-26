@@ -83,58 +83,57 @@ const copy = {
 <script>
   import { matchesProjectFilters } from "../utils/projects";
 
-  const explorer = document.querySelector<HTMLElement>("[data-project-explorer]");
-  const form = explorer?.querySelector<HTMLFormElement>("[data-project-filters]");
-  const cards = [
-    ...(explorer?.querySelectorAll<HTMLElement>("[data-project-card]") ?? []),
-  ];
-  const result = explorer?.querySelector<HTMLElement>("[data-project-count]");
-  const empty = explorer?.querySelector<HTMLElement>("[data-project-empty]");
-  const filterNames = ["tool", "topic", "status"] as const;
+  function initProjectExplorer() {
+    const explorer = document.querySelector<HTMLElement>("[data-project-explorer]");
+    const form = explorer?.querySelector<HTMLFormElement>("[data-project-filters]");
+    if (!explorer || !form || explorer.dataset.explorerReady === "true") return;
+    explorer.dataset.explorerReady = "true";
+    const cards = [...explorer.querySelectorAll<HTMLElement>("[data-project-card]")];
+    const result = explorer.querySelector<HTMLElement>("[data-project-count]");
+    const empty = explorer.querySelector<HTMLElement>("[data-project-empty]");
+    const filterNames = ["tool", "topic", "status"] as const;
 
-  function readFilters() {
-    if (!form) return {};
-    const data = new FormData(form);
-    return Object.fromEntries(
-      filterNames
-        .map((name) => [name, String(data.get(name) ?? "")])
-        .filter(([, value]) => value),
-    );
-  }
-
-  function applyFilters(updateUrl = true) {
-    if (!form || !explorer || !result || !empty) return;
-    const filters = readFilters();
-    let visible = 0;
-
-    cards.forEach((card) => {
-      const matches = matchesProjectFilters(
-        {
-          tools: (card.dataset.projectTools ?? "").split("|").filter(Boolean),
-          topic: card.dataset.projectTopic ?? "",
-          status: card.dataset.projectStatus ?? "",
-        },
-        filters,
+    function readFilters() {
+      const data = new FormData(form!);
+      return Object.fromEntries(
+        filterNames
+          .map((name) => [name, String(data.get(name) ?? "")])
+          .filter(([, value]) => value),
       );
-      card.hidden = !matches;
-      if (matches) visible += 1;
-    });
-
-    result.textContent = `${visible} ${explorer.dataset.resultSuffix ?? ""}`;
-    empty.hidden = visible !== 0;
-
-    if (updateUrl) {
-      const url = new URL(window.location.href);
-      filterNames.forEach((name) => {
-        const value = filters[name];
-        if (value) url.searchParams.set(name, value);
-        else url.searchParams.delete(name);
-      });
-      window.history.replaceState({}, "", url);
     }
-  }
 
-  if (form) {
+    function applyFilters(updateUrl = true) {
+      if (!result || !empty) return;
+      const filters = readFilters();
+      let visible = 0;
+
+      cards.forEach((card) => {
+        const matches = matchesProjectFilters(
+          {
+            tools: (card.dataset.projectTools ?? "").split("|").filter(Boolean),
+            topic: card.dataset.projectTopic ?? "",
+            status: card.dataset.projectStatus ?? "",
+          },
+          filters,
+        );
+        card.hidden = !matches;
+        if (matches) visible += 1;
+      });
+
+      result.textContent = `${visible} ${explorer!.dataset.resultSuffix ?? ""}`;
+      empty.hidden = visible !== 0;
+
+      if (updateUrl) {
+        const url = new URL(window.location.href);
+        filterNames.forEach((name) => {
+          const value = filters[name];
+          if (value) url.searchParams.set(name, value);
+          else url.searchParams.delete(name);
+        });
+        window.history.replaceState({}, "", url);
+      }
+    }
+
     const parameters = new URLSearchParams(window.location.search);
     filterNames.forEach((name) => {
       const field = form.elements.namedItem(name);
@@ -152,4 +151,7 @@ const copy = {
     });
     applyFilters(false);
   }
+
+  document.addEventListener("astro:page-load", initProjectExplorer);
+  initProjectExplorer();
 </script>

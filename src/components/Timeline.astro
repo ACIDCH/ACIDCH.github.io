@@ -12,12 +12,16 @@ const { locale } = Astro.props;
 <ol class="timeline">
   {
     timelineEntries.map((entry) => (
-      <li class="timeline__item">
+      <li class="timeline__item" data-reveal>
         <p class="status">{entry.kind}</p>
-        <h3>{entry.title[locale]}</h3>
-        <p class="timeline__organisation">{entry.organisation[locale]}</p>
-        <p>{entry.detail[locale]}</p>
-        <p class="timeline__period">{entry.period[locale]}</p>
+        <details>
+          <summary>
+            <span class="timeline__title">{entry.title[locale]}</span>
+            <span class="timeline__organisation">{entry.organisation[locale]}</span>
+          </summary>
+          <p>{entry.detail[locale]}</p>
+          <p class="timeline__period">{entry.period[locale]}</p>
+        </details>
       </li>
     ))
   }

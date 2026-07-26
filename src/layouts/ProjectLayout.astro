@@ -1,6 +1,7 @@
 ---
 import { getCollection, render, type CollectionEntry } from "astro:content";
 import RelatedNotes from "../components/RelatedNotes.astro";
+import ProjectCover from "../components/ProjectCover.astro";
 import SupplyChainNetwork from "../components/SupplyChainNetwork.astro";
 import { getGitHubRepoUrl } from "../utils/urls";
 import BaseLayout from "./BaseLayout.astro";
@@ -32,6 +33,7 @@ const statusLabels = {
   noindex={entry.data.isPlaceholder}
 >
   <article>
+    <ProjectCover entry={entry} />
     {
       entry.data.isPlaceholder && (
         <p class="status">

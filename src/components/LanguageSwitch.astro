@@ -29,19 +29,26 @@ const targetPath = alternatePath ?? getLocalizedPath(Astro.url.pathname, targetL
 </a>
 
 <script>
-  document
-    .querySelectorAll<HTMLAnchorElement>("[data-language-switch]")
-    .forEach((link) => {
-      link.addEventListener("click", () => {
-        const locale = link.dataset.targetLocale;
-        const key = link.dataset.languageStorageKey;
-        if (!locale || !key) return;
+  function initLanguageSwitch() {
+    document
+      .querySelectorAll<HTMLAnchorElement>("[data-language-switch]")
+      .forEach((link) => {
+        if (link.dataset.languageReady === "true") return;
+        link.dataset.languageReady = "true";
+        link.addEventListener("click", () => {
+          const locale = link.dataset.targetLocale;
+          const key = link.dataset.languageStorageKey;
+          if (!locale || !key) return;
 
-        try {
-          localStorage.setItem(key, locale);
-        } catch {
-          // Navigation remains functional when storage is unavailable.
-        }
+          try {
+            localStorage.setItem(key, locale);
+          } catch {
+            // Navigation remains functional when storage is unavailable.
+          }
+        });
       });
-    });
+  }
+
+  document.addEventListener("astro:page-load", initLanguageSwitch);
+  initLanguageSwitch();
 </script>

@@ -1,7 +1,7 @@
 ---
 import { getCollection } from "astro:content";
 import { profileConfig } from "../config/profile";
-import { toolset } from "../config/skills";
+import { skillGroups, toolset } from "../config/skills";
 import type { Locale } from "../config/site";
 import { getLocalizedPath } from "../utils/paths";
 import { getGitHubProfileUrl } from "../utils/urls";
@@ -16,9 +16,10 @@ interface Props {
 }
 
 const { locale } = Astro.props;
-const projects = (await getCollection("projects"))
-  .filter((entry) => entry.data.locale === locale && entry.data.featured)
-  .slice(0, 3);
+const allProjects = (await getCollection("projects")).filter(
+  (entry) => entry.data.locale === locale,
+);
+const projects = allProjects.filter((entry) => entry.data.featured).slice(0, 3);
 const notes = (await getCollection("notes"))
   .filter((entry) => entry.data.locale === locale)
   .slice(0, 3);
@@ -41,6 +42,9 @@ const copy = {
     contactBody:
       "Only confirmed public channels are shown. Additional professional contact details are pending confirmation.",
     github: "View GitHub profile",
+    projectCount: "project entries",
+    capabilityCount: "capability areas",
+    noteCount: "learning-note drafts",
   },
   zh: {
     eyebrow: "商业分析作品集",
@@ -57,6 +61,9 @@ const copy = {
     contact: "保持联系",
     contactBody: "仅展示已确认的公开渠道，其他职业联系信息仍待确认。",
     github: "查看 GitHub 主页",
+    projectCount: "个项目条目",
+    capabilityCount: "个能力领域",
+    noteCount: "篇学习笔记草稿",
   },
 }[locale];
 ---
@@ -73,7 +80,22 @@ const copy = {
   </div>
 </Hero>
 
-<section class="home-section" aria-labelledby="summary-title">
+<dl class="portfolio-stats" aria-label={copy.eyebrow} data-reveal>
+  <div>
+    <dt>{copy.projectCount}</dt>
+    <dd data-counter-target={allProjects.length}>{allProjects.length}</dd>
+  </div>
+  <div>
+    <dt>{copy.capabilityCount}</dt>
+    <dd data-counter-target={skillGroups.length}>{skillGroups.length}</dd>
+  </div>
+  <div>
+    <dt>{copy.noteCount}</dt>
+    <dd data-counter-target={notes.length}>{notes.length}</dd>
+  </div>
+</dl>
+
+<section class="home-section" aria-labelledby="summary-title" data-reveal>
   <div class="section-heading">
     <p class="status">01</p>
     <h2 id="summary-title">{copy.summary}</h2>
@@ -81,7 +103,7 @@ const copy = {
   <p class="lead-copy">{profileConfig.summary[locale]}</p>
 </section>
 
-<section class="home-section" aria-labelledby="capabilities-title">
+<section class="home-section" aria-labelledby="capabilities-title" data-reveal>
   <div class="section-heading">
     <p class="status">02</p>
     <h2 id="capabilities-title">{copy.capabilities}</h2>
@@ -89,7 +111,7 @@ const copy = {
   <SkillGrid locale={locale} />
 </section>
 
-<section class="home-section" aria-labelledby="projects-title">
+<section class="home-section" aria-labelledby="projects-title" data-reveal>
   <div class="section-heading">
     <p class="status">03</p>
     <h2 id="projects-title">{copy.featured}</h2>
@@ -97,7 +119,7 @@ const copy = {
   <ProjectList entries={projects} locale={locale} />
 </section>
 
-<section class="home-section" aria-labelledby="tools-title">
+<section class="home-section" aria-labelledby="tools-title" data-reveal>
   <div class="section-heading">
     <p class="status">04</p>
     <h2 id="tools-title">{copy.tools}</h2>
@@ -107,7 +129,7 @@ const copy = {
   </ul>
 </section>
 
-<section class="home-section" aria-labelledby="timeline-title">
+<section class="home-section" aria-labelledby="timeline-title" data-reveal>
   <div class="section-heading">
     <p class="status">05</p>
     <h2 id="timeline-title">{copy.timeline}</h2>
@@ -115,7 +137,7 @@ const copy = {
   <Timeline locale={locale} />
 </section>
 
-<section class="home-section" aria-labelledby="notes-title">
+<section class="home-section" aria-labelledby="notes-title" data-reveal>
   <div class="section-heading">
     <p class="status">06</p>
     <h2 id="notes-title">{copy.notes}</h2>
@@ -123,7 +145,7 @@ const copy = {
   <NoteList entries={notes} locale={locale} />
 </section>
 
-<section class="home-section home-contact" aria-labelledby="contact-title">
+<section class="home-section home-contact" aria-labelledby="contact-title" data-reveal>
   <div>
     <p class="status">07</p>
     <h2 id="contact-title">{copy.contact}</h2>

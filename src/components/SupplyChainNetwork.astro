@@ -220,69 +220,84 @@ const statusLabels = {
     edges: Record<string, { flow: number; status: string }>;
   };
 
-  const network = document.querySelector<HTMLElement>("[data-supply-network]");
-  const scenarios = JSON.parse(network?.dataset.scenarios ?? "[]") as ScenarioPayload[];
-  const statusLabels = JSON.parse(network?.dataset.statusLabels ?? "{}") as Record<
-    string,
-    string
-  >;
-  const detailLabels = JSON.parse(network?.dataset.detailLabels ?? "{}") as Record<
-    string,
-    string
-  >;
-  const detail = network?.querySelector<HTMLElement>("[data-network-detail]");
-  const totalCost = network?.querySelector<HTMLElement>("[data-network-total-cost]");
-  const totalFlow = network?.querySelector<HTMLElement>("[data-network-total-flow]");
+  function initSupplyNetwork() {
+    const network = document.querySelector<HTMLElement>("[data-supply-network]");
+    if (!network || network.dataset.networkReady === "true") return;
+    network.dataset.networkReady = "true";
+    const scenarios = JSON.parse(
+      network?.dataset.scenarios ?? "[]",
+    ) as ScenarioPayload[];
+    const statusLabels = JSON.parse(network?.dataset.statusLabels ?? "{}") as Record<
+      string,
+      string
+    >;
+    const detailLabels = JSON.parse(network?.dataset.detailLabels ?? "{}") as Record<
+      string,
+      string
+    >;
+    const detail = network?.querySelector<HTMLElement>("[data-network-detail]");
+    const totalCost = network?.querySelector<HTMLElement>("[data-network-total-cost]");
+    const totalFlow = network?.querySelector<HTMLElement>("[data-network-total-flow]");
 
-  function describeEdge(edge: HTMLElement) {
-    if (!detail) return;
-    const flow = edge.querySelector("text")?.textContent?.trim() ?? "";
-    const status = statusLabels[edge.dataset.edgeStatus ?? ""] ?? "";
-    detail.textContent = `${edge.dataset.sourceLabel} → ${edge.dataset.targetLabel}: ${detailLabels.cost} ${edge.dataset.cost}, ${detailLabels.capacity} ${edge.dataset.capacity}, ${detailLabels.flow} ${flow}, ${status}.`;
+    function describeEdge(edge: HTMLElement) {
+      if (!detail) return;
+      const flow = edge.querySelector("text")?.textContent?.trim() ?? "";
+      const status = statusLabels[edge.dataset.edgeStatus ?? ""] ?? "";
+      detail.textContent = `${edge.dataset.sourceLabel} → ${edge.dataset.targetLabel}: ${detailLabels.cost} ${edge.dataset.cost}, ${detailLabels.capacity} ${edge.dataset.capacity}, ${detailLabels.flow} ${flow}, ${status}.`;
+    }
+
+    function setScenario(scenarioId: string) {
+      if (!network) return;
+      const scenario = scenarios.find((item) => item.id === scenarioId);
+      if (!scenario) return;
+      let costIndex = 0;
+      let flowIndex = 0;
+
+      network.querySelectorAll<HTMLElement>("[data-edge-id]").forEach((edge) => {
+        const id = edge.dataset.edgeId ?? "";
+        const state = scenario.edges[id];
+        if (!state) return;
+        edge.dataset.edgeStatus = state.status;
+        const label = edge.querySelector<SVGTextElement>("text");
+        const line = edge.querySelector<SVGLineElement>("line");
+        if (label) label.textContent = String(state.flow);
+        if (line) line.style.setProperty("--edge-width", `${2 + state.flow / 28}px`);
+        costIndex += Number(edge.dataset.cost ?? 0) * state.flow;
+        flowIndex += state.flow;
+
+        const row = network.querySelector<HTMLElement>(`[data-edge-row="${id}"]`);
+        const flowCell = row?.querySelector<HTMLElement>("[data-flow]");
+        const statusCell = row?.querySelector<HTMLElement>("[data-status-cell]");
+        if (flowCell) flowCell.textContent = String(state.flow);
+        if (statusCell)
+          statusCell.textContent = statusLabels[state.status] ?? state.status;
+      });
+
+      if (totalCost) totalCost.textContent = String(costIndex);
+      if (totalFlow) totalFlow.textContent = String(flowIndex);
+      network
+        .querySelectorAll<HTMLButtonElement>("[data-scenario]")
+        .forEach((button) => {
+          button.setAttribute(
+            "aria-pressed",
+            String(button.dataset.scenario === scenarioId),
+          );
+        });
+    }
+
+    network?.querySelectorAll<HTMLElement>("[data-edge-id]").forEach((edge) => {
+      edge.addEventListener("focus", () => describeEdge(edge));
+      edge.addEventListener("pointerenter", () => describeEdge(edge));
+    });
+    network
+      ?.querySelectorAll<HTMLButtonElement>("[data-scenario]")
+      .forEach((button) => {
+        button.addEventListener("click", () =>
+          setScenario(button.dataset.scenario ?? ""),
+        );
+      });
   }
 
-  function setScenario(scenarioId: string) {
-    if (!network) return;
-    const scenario = scenarios.find((item) => item.id === scenarioId);
-    if (!scenario) return;
-    let costIndex = 0;
-    let flowIndex = 0;
-
-    network.querySelectorAll<HTMLElement>("[data-edge-id]").forEach((edge) => {
-      const id = edge.dataset.edgeId ?? "";
-      const state = scenario.edges[id];
-      if (!state) return;
-      edge.dataset.edgeStatus = state.status;
-      const label = edge.querySelector<SVGTextElement>("text");
-      const line = edge.querySelector<SVGLineElement>("line");
-      if (label) label.textContent = String(state.flow);
-      if (line) line.style.setProperty("--edge-width", `${2 + state.flow / 28}px`);
-      costIndex += Number(edge.dataset.cost ?? 0) * state.flow;
-      flowIndex += state.flow;
-
-      const row = network.querySelector<HTMLElement>(`[data-edge-row="${id}"]`);
-      const flowCell = row?.querySelector<HTMLElement>("[data-flow]");
-      const statusCell = row?.querySelector<HTMLElement>("[data-status-cell]");
-      if (flowCell) flowCell.textContent = String(state.flow);
-      if (statusCell)
-        statusCell.textContent = statusLabels[state.status] ?? state.status;
-    });
-
-    if (totalCost) totalCost.textContent = String(costIndex);
-    if (totalFlow) totalFlow.textContent = String(flowIndex);
-    network.querySelectorAll<HTMLButtonElement>("[data-scenario]").forEach((button) => {
-      button.setAttribute(
-        "aria-pressed",
-        String(button.dataset.scenario === scenarioId),
-      );
-    });
-  }
-
-  network?.querySelectorAll<HTMLElement>("[data-edge-id]").forEach((edge) => {
-    edge.addEventListener("focus", () => describeEdge(edge));
-    edge.addEventListener("pointerenter", () => describeEdge(edge));
-  });
-  network?.querySelectorAll<HTMLButtonElement>("[data-scenario]").forEach((button) => {
-    button.addEventListener("click", () => setScenario(button.dataset.scenario ?? ""));
-  });
+  document.addEventListener("astro:page-load", initSupplyNetwork);
+  initSupplyNetwork();
 </script>

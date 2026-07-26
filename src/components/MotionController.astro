@@ -1,0 +1,113 @@
+<div class="page-progress" aria-hidden="true" data-page-progress>
+  <span></span>
+</div>
+
+<script>
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
+
+  function initReveal() {
+    const elements = [
+      ...document.querySelectorAll<HTMLElement>("[data-reveal]"),
+    ].filter((element) => element.dataset.revealReady !== "true");
+
+    if (reduceMotion.matches || !("IntersectionObserver" in window)) {
+      elements.forEach((element) => {
+        element.dataset.revealReady = "true";
+        element.dataset.revealed = "true";
+      });
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          (entry.target as HTMLElement).dataset.revealed = "true";
+          observer.unobserve(entry.target);
+        });
+      },
+      { rootMargin: "0px 0px -8% 0px", threshold: 0.08 },
+    );
+
+    elements.forEach((element) => {
+      element.dataset.revealReady = "true";
+      observer.observe(element);
+    });
+  }
+
+  function initCounters() {
+    document
+      .querySelectorAll<HTMLElement>("[data-counter-target]")
+      .forEach((counter) => {
+        if (counter.dataset.counterReady === "true") return;
+        counter.dataset.counterReady = "true";
+        const target = Number(counter.dataset.counterTarget ?? 0);
+
+        if (reduceMotion.matches || target <= 0) {
+          counter.textContent = String(target);
+          return;
+        }
+
+        const observer = new IntersectionObserver(([entry]) => {
+          if (!entry?.isIntersecting) return;
+          observer.disconnect();
+          const startedAt = performance.now();
+          const duration = 520;
+
+          function tick(now: number) {
+            const progress = Math.min(1, (now - startedAt) / duration);
+            const eased = 1 - (1 - progress) ** 3;
+            counter.textContent = String(Math.round(target * eased));
+            if (progress < 1) requestAnimationFrame(tick);
+          }
+
+          requestAnimationFrame(tick);
+        });
+        observer.observe(counter);
+      });
+  }
+
+  function initTilt() {
+    document.querySelectorAll<HTMLElement>("[data-tilt]").forEach((card) => {
+      if (card.dataset.tiltReady === "true") return;
+      card.dataset.tiltReady = "true";
+      if (reduceMotion.matches || !finePointer.matches) return;
+
+      card.addEventListener("pointermove", (event) => {
+        const bounds = card.getBoundingClientRect();
+        const x = (event.clientX - bounds.left) / bounds.width - 0.5;
+        const y = (event.clientY - bounds.top) / bounds.height - 0.5;
+        card.style.setProperty("--tilt-x", `${(-y * 2.4).toFixed(2)}deg`);
+        card.style.setProperty("--tilt-y", `${(x * 2.4).toFixed(2)}deg`);
+      });
+      card.addEventListener("pointerleave", () => {
+        card.style.removeProperty("--tilt-x");
+        card.style.removeProperty("--tilt-y");
+      });
+    });
+  }
+
+  function initMotion() {
+    initReveal();
+    initCounters();
+    initTilt();
+  }
+
+  function setProgress(state: "loading" | "complete") {
+    const progress = document.querySelector<HTMLElement>("[data-page-progress]");
+    if (!progress) return;
+    progress.dataset.state = state;
+    if (state === "complete") {
+      window.setTimeout(() => {
+        progress.removeAttribute("data-state");
+      }, 260);
+    }
+  }
+
+  document.addEventListener("astro:before-preparation", () => setProgress("loading"));
+  document.addEventListener("astro:after-swap", () => setProgress("complete"));
+  document.addEventListener("astro:page-load", initMotion);
+  reduceMotion.addEventListener("change", initMotion);
+  initMotion();
+</script>

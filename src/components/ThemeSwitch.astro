@@ -45,9 +45,6 @@ const labels =
 <script>
   const root = document.documentElement;
   const storageKey = root.dataset.themeStorageKey ?? "theme";
-  const options = Array.from(
-    document.querySelectorAll<HTMLButtonElement>("[data-theme-option]"),
-  );
   const systemTheme = window.matchMedia("(prefers-color-scheme: dark)");
 
   type ThemePreference = "light" | "dark" | "system";
@@ -72,45 +69,59 @@ const labels =
       }
     }
 
-    options.forEach((option) => {
-      option.setAttribute(
-        "aria-pressed",
-        String(option.dataset.themeOption === preference),
-      );
-    });
+    document
+      .querySelectorAll<HTMLButtonElement>("[data-theme-option]")
+      .forEach((option) => {
+        option.setAttribute(
+          "aria-pressed",
+          String(option.dataset.themeOption === preference),
+        );
+      });
   }
 
-  options.forEach((option, index) => {
-    if (option.dataset.themeControlReady === "true") {
-      return;
-    }
+  function initThemeSwitch() {
+    const options = Array.from(
+      document.querySelectorAll<HTMLButtonElement>("[data-theme-option]"),
+    );
 
-    option.dataset.themeControlReady = "true";
-    option.addEventListener("click", () => {
-      const preference = option.dataset.themeOption;
-      if (isThemePreference(preference)) {
-        applyTheme(preference);
-      }
-    });
-
-    option.addEventListener("keydown", (event) => {
-      if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) {
+    options.forEach((option, index) => {
+      if (option.dataset.themeControlReady === "true") {
         return;
       }
 
-      event.preventDefault();
-      const nextIndex =
-        event.key === "Home"
-          ? 0
-          : event.key === "End"
-            ? options.length - 1
-            : (index + (event.key === "ArrowRight" ? 1 : -1) + options.length) %
-              options.length;
+      option.dataset.themeControlReady = "true";
+      option.addEventListener("click", () => {
+        const preference = option.dataset.themeOption;
+        if (isThemePreference(preference)) {
+          applyTheme(preference);
+        }
+      });
 
-      options[nextIndex]?.focus();
-      options[nextIndex]?.click();
+      option.addEventListener("keydown", (event) => {
+        if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) {
+          return;
+        }
+
+        event.preventDefault();
+        const nextIndex =
+          event.key === "Home"
+            ? 0
+            : event.key === "End"
+              ? options.length - 1
+              : (index + (event.key === "ArrowRight" ? 1 : -1) + options.length) %
+                options.length;
+
+        options[nextIndex]?.focus();
+        options[nextIndex]?.click();
+      });
     });
-  });
+
+    const initialPreference = root.dataset.themePreference;
+    applyTheme(
+      isThemePreference(initialPreference) ? initialPreference : "system",
+      false,
+    );
+  }
 
   systemTheme.addEventListener("change", () => {
     if (root.dataset.themePreference === "system") {
@@ -118,9 +129,6 @@ const labels =
     }
   });
 
-  const initialPreference = root.dataset.themePreference;
-  applyTheme(
-    isThemePreference(initialPreference) ? initialPreference : "system",
-    false,
-  );
+  document.addEventListener("astro:page-load", initThemeSwitch);
+  initThemeSwitch();
 </script>

@@ -12,7 +12,7 @@ const { locale } = Astro.props;
 <div class="capability-grid">
   {
     skillGroups.map((group, index) => (
-      <article class="ui-card capability-card">
+      <article class="ui-card capability-card" data-reveal data-tilt>
         <span class="capability-card__index" aria-hidden="true">
           {String(index + 1).padStart(2, "0")}
         </span>

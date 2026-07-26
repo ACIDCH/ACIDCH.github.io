@@ -17,7 +17,7 @@ const { entries, locale } = Astro.props;
   ) : (
     <ul class="content-list">
       {entries.map((entry) => (
-        <li>
+        <li data-reveal>
           <article>
             <p class="status">
               {entry.data.draft

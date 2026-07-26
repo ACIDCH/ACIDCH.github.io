@@ -31,6 +31,7 @@ function isCurrentRoute(path: string): boolean {
     <a
       class="site-brand"
       href={getLocalizedPath("/", locale)}
+      transition:name="site-logo"
       aria-label={`${siteConfig.publicName} — ${locale === "en" ? "Home" : "首页"}`}
     >
       <Logo size="sm" />
@@ -77,21 +78,22 @@ function isCurrentRoute(path: string): boolean {
 </header>
 
 <script>
-  const header = document.querySelector<HTMLElement>("[data-site-header]");
-  const toggle = header?.querySelector<HTMLButtonElement>("[data-menu-toggle]");
-  const panel = header?.querySelector<HTMLElement>("[data-header-panel]");
   const desktop = window.matchMedia("(min-width: 70rem)");
 
-  function setMenu(open: boolean) {
-    if (!header || !toggle) {
+  function initHeader() {
+    const header = document.querySelector<HTMLElement>("[data-site-header]");
+    const toggle = header?.querySelector<HTMLButtonElement>("[data-menu-toggle]");
+    const panel = header?.querySelector<HTMLElement>("[data-header-panel]");
+    if (!header || !toggle || !panel || header.dataset.headerReady === "true") {
       return;
     }
+    header.dataset.headerReady = "true";
 
-    header.dataset.menuOpen = String(open);
-    toggle.setAttribute("aria-expanded", String(open));
-  }
+    function setMenu(open: boolean) {
+      header!.dataset.menuOpen = String(open);
+      toggle!.setAttribute("aria-expanded", String(open));
+    }
 
-  if (header && toggle && panel) {
     toggle.addEventListener("click", () => {
       setMenu(toggle.getAttribute("aria-expanded") !== "true");
     });
@@ -120,4 +122,7 @@ function isCurrentRoute(path: string): boolean {
 
     desktop.addEventListener("change", () => setMenu(false));
   }
+
+  document.addEventListener("astro:page-load", initHeader);
+  initHeader();
 </script>

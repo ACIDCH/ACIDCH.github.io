@@ -1,0 +1,21 @@
+---
+import type { CollectionEntry } from "astro:content";
+
+interface Props {
+  entry: CollectionEntry<"projects">;
+  compact?: boolean;
+}
+
+const { entry, compact = false } = Astro.props;
+const transitionName = `project-cover-${entry.data.translationKey}-${entry.data.locale}`;
+---
+
+<div
+  class:list={["project-cover", compact && "project-cover--compact"]}
+  data-topic={entry.data.topic}
+  aria-hidden="true"
+  transition:name={transitionName}
+>
+  <span class="project-cover__grid"></span>
+  <span class="project-cover__code">{entry.data.topic.slice(0, 3).toUpperCase()}</span>
+</div>
