@@ -30,6 +30,10 @@ export const siteConfig = {
     videoEnabled: true,
     networkEnabled: true,
   },
+  seo: {
+    defaultImage: "/brand/social-card.svg",
+    themeColour: "#0b263c",
+  },
 } as const;
 
 export type Locale = (typeof siteConfig.language.supported)[number];

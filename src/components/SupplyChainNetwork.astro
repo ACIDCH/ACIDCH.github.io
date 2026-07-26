@@ -118,8 +118,8 @@ const statusLabels = {
           view.edges.map((edge) => (
             <g
               class="network-edge"
-              role="button"
               tabindex="0"
+              aria-label={`${edge.sourceNode.label[locale]} → ${edge.targetNode.label[locale]}; ${copy.cost} ${edge.cost}; ${copy.capacity} ${edge.capacity}; ${copy.flow} ${edge.flow}; ${statusLabels[edge.status]}`}
               data-edge-id={edge.id}
               data-edge-status={edge.status}
               data-source-label={edge.sourceNode.label[locale]}

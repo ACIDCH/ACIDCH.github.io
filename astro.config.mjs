@@ -7,7 +7,18 @@ export default defineConfig({
   base: siteConfig.basePath,
   output: "static",
   trailingSlash: "always",
-  integrations: [sitemap()],
+  integrations: [
+    sitemap({
+      filter: (page) => {
+        const { pathname } = new URL(page);
+        return !(
+          /\/404\/?$/.test(pathname) ||
+          /\/design-lab\/?$/.test(pathname) ||
+          /\/(?:projects|notes)\/[^/]+\/?$/.test(pathname)
+        );
+      },
+    }),
+  ],
   i18n: {
     defaultLocale: siteConfig.language.default,
     locales: [...siteConfig.language.supported],

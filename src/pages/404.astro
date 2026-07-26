@@ -4,7 +4,13 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import { withBase } from "../utils/paths";
 ---
 
-<BaseLayout title="Page not found" locale="en" noindex>
+<BaseLayout
+  title="Page not found"
+  locale="en"
+  canonicalPath="/404.html"
+  alternatePath="/zh/404/"
+  noindex
+>
   <PageIntro title="Page not found" description="The requested page does not exist." />
   <p><a href={withBase("/")}>Return home</a></p>
   <p lang="zh-CN"><a href={withBase("/zh/")}>返回中文首页</a></p>

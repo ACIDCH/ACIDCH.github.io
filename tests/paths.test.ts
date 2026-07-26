@@ -19,6 +19,13 @@ describe("path helpers", () => {
       "/portfolio/projects/",
     );
   });
+
+  it("preserves file asset paths without a trailing slash", () => {
+    expect(withBase("/brand/logo.svg")).toBe("/brand/logo.svg");
+    expect(withBase("/images/card.webp", "/portfolio/")).toBe(
+      "/portfolio/images/card.webp",
+    );
+  });
 });
 
 describe("URL helpers", () => {

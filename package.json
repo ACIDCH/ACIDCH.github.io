@@ -11,12 +11,15 @@
     "dev": "astro dev",
     "start": "astro dev",
     "build": "astro build",
+    "postbuild": "node scripts/validate-build.mjs",
     "preview": "astro preview",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check": "astro check",
     "lint": "eslint .",
-    "test": "vitest run",
+    "test": "vitest run && node scripts/scan-sensitive.mjs",
+    "test:site": "node scripts/validate-build.mjs",
+    "security:scan": "node scripts/scan-sensitive.mjs",
     "astro": "astro"
   },
   "dependencies": {

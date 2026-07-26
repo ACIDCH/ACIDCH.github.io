@@ -5,9 +5,15 @@ function normalisePath(path: string): string {
   const withLeadingSlash = withoutQuery.startsWith("/")
     ? withoutQuery
     : `/${withoutQuery}`;
+  const finalSegment = withLeadingSlash.split("/").filter(Boolean).at(-1) ?? "";
+  const isFilePath = /\.[a-z0-9]+$/i.test(finalSegment);
 
   if (withLeadingSlash === "/") {
     return "/";
+  }
+
+  if (isFilePath) {
+    return withLeadingSlash.replace(/\/+$/, "");
   }
 
   return withLeadingSlash.endsWith("/") ? withLeadingSlash : `${withLeadingSlash}/`;

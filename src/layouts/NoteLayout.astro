@@ -1,5 +1,7 @@
 ---
 import { render, type CollectionEntry } from "astro:content";
+import { siteConfig } from "../config/site";
+import { getCanonicalUrl } from "../utils/urls";
 import BaseLayout from "./BaseLayout.astro";
 
 interface Props {
@@ -9,6 +11,19 @@ interface Props {
 
 const { entry, alternatePath } = Astro.props;
 const { Content } = await render(entry);
+const noteStructuredData = {
+  "@type": "Article",
+  "@id": `${getCanonicalUrl(Astro.url.pathname)}#article`,
+  headline: entry.data.title,
+  description: entry.data.summary,
+  url: getCanonicalUrl(Astro.url.pathname),
+  inLanguage: entry.data.locale === "en" ? "en" : "zh-CN",
+  keywords: entry.data.tags,
+  author: { "@id": `${siteConfig.siteUrl}/#person` },
+  isAccessibleForFree: true,
+  datePublished: entry.data.publishedAt?.toISOString(),
+  dateModified: entry.data.updatedAt?.toISOString(),
+};
 ---
 
 <BaseLayout
@@ -17,6 +32,8 @@ const { Content } = await render(entry);
   locale={entry.data.locale}
   alternatePath={alternatePath}
   noindex={entry.data.draft || entry.data.isPlaceholder}
+  pageType="article"
+  structuredData={noteStructuredData}
 >
   <article>
     {

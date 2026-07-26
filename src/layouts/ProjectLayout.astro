@@ -3,6 +3,8 @@ import { getCollection, render, type CollectionEntry } from "astro:content";
 import RelatedNotes from "../components/RelatedNotes.astro";
 import ProjectCover from "../components/ProjectCover.astro";
 import SupplyChainNetwork from "../components/SupplyChainNetwork.astro";
+import { siteConfig } from "../config/site";
+import { getCanonicalUrl } from "../utils/urls";
 import { getGitHubRepoUrl } from "../utils/urls";
 import BaseLayout from "./BaseLayout.astro";
 
@@ -23,6 +25,18 @@ const statusLabels = {
   "in-development": { en: "In development", zh: "开发中" },
   completed: { en: "Completed", zh: "已完成" },
 } as const;
+const projectStructuredData = {
+  "@type": "CreativeWork",
+  "@id": `${getCanonicalUrl(Astro.url.pathname)}#project`,
+  name: entry.data.title,
+  description: entry.data.summary,
+  url: getCanonicalUrl(Astro.url.pathname),
+  inLanguage: entry.data.locale === "en" ? "en" : "zh-CN",
+  keywords: [...entry.data.tools, ...entry.data.tags],
+  author: { "@id": `${siteConfig.siteUrl}/#person` },
+  isAccessibleForFree: true,
+  dateModified: entry.data.updatedAt?.toISOString(),
+};
 ---
 
 <BaseLayout
@@ -31,6 +45,8 @@ const statusLabels = {
   locale={entry.data.locale}
   alternatePath={alternatePath}
   noindex={entry.data.isPlaceholder}
+  pageType="article"
+  structuredData={projectStructuredData}
 >
   <article>
     <ProjectCover entry={entry} />
