@@ -1,0 +1,33 @@
+---
+import PageIntro from "../components/PageIntro.astro";
+import { profileConfig } from "../config/profile";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { getGitHubProfileUrl } from "../utils/urls";
+---
+
+<BaseLayout title="Contact" locale="en">
+  <PageIntro
+    title="Contact"
+    description="Only confirmed public contact channels are shown."
+  />
+  <ul>
+    <li><a href={getGitHubProfileUrl()}>GitHub</a></li>
+    {
+      profileConfig.linkedInUrl && (
+        <li><a href={profileConfig.linkedInUrl}>LinkedIn</a></li>
+      )
+    }
+    {
+      profileConfig.professionalEmail && (
+        <li>
+          <a href={`mailto:${profileConfig.professionalEmail}`}>Email</a>
+        </li>
+      )
+    }
+  </ul>
+  {
+    !profileConfig.linkedInUrl && !profileConfig.professionalEmail && (
+      <p class="status">Additional contact details pending confirmation.</p>
+    )
+  }
+</BaseLayout>

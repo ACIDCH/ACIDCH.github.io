@@ -1,0 +1,15 @@
+---
+interface Props {
+  title: string;
+  description: string;
+  placeholder?: boolean;
+}
+
+const { title, description, placeholder = false } = Astro.props;
+---
+
+<header class="page-intro">
+  {placeholder && <p class="status">Placeholder / 占位内容</p>}
+  <h1>{title}</h1>
+  <p>{description}</p>
+</header>

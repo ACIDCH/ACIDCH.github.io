@@ -1,0 +1,18 @@
+---
+import { getCollection } from "astro:content";
+import NoteList from "../../../components/NoteList.astro";
+import PageIntro from "../../../components/PageIntro.astro";
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+
+const notes = (await getCollection("notes")).filter(
+  (entry) => entry.data.locale === "zh",
+);
+---
+
+<BaseLayout title="学习笔记" locale="zh">
+  <PageIntro
+    title="学习笔记"
+    description="将在不公开受限制课程材料的前提下加入经过核实的学习笔记。"
+  />
+  <NoteList entries={notes} locale="zh" />
+</BaseLayout>

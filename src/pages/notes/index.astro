@@ -1,0 +1,18 @@
+---
+import { getCollection } from "astro:content";
+import NoteList from "../../components/NoteList.astro";
+import PageIntro from "../../components/PageIntro.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const notes = (await getCollection("notes")).filter(
+  (entry) => entry.data.locale === "en",
+);
+---
+
+<BaseLayout title="Learning Notes" locale="en">
+  <PageIntro
+    title="Learning Notes"
+    description="Verified learning notes will be added without publishing restricted course material."
+  />
+  <NoteList entries={notes} locale="en" />
+</BaseLayout>

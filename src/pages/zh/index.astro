@@ -1,0 +1,13 @@
+---
+import PageIntro from "../../components/PageIntro.astro";
+import { profileConfig } from "../../config/profile";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="作品集" locale="zh">
+  <PageIntro
+    title={profileConfig.publicName}
+    description="第一阶段双语作品集基础框架。经确认的职业内容将在后续阶段加入。"
+    placeholder
+  />
+</BaseLayout>

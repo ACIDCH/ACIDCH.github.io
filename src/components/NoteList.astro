@@ -1,0 +1,40 @@
+---
+import type { CollectionEntry } from "astro:content";
+import type { Locale } from "../config/site";
+import { getLocalizedPath } from "../utils/paths";
+
+interface Props {
+  entries: CollectionEntry<"notes">[];
+  locale: Locale;
+}
+
+const { entries, locale } = Astro.props;
+---
+
+{
+  entries.length === 0 ? (
+    <p>{locale === "en" ? "No notes are available yet." : "暂时没有可展示的笔记。"}</p>
+  ) : (
+    <ul class="content-list">
+      {entries.map((entry) => (
+        <li>
+          <article>
+            <p class="status">
+              {entry.data.isPlaceholder
+                ? locale === "en"
+                  ? "Placeholder"
+                  : "占位内容"
+                : ""}
+            </p>
+            <h2>
+              <a href={getLocalizedPath(`/notes/${entry.data.slug}/`, locale)}>
+                {entry.data.title}
+              </a>
+            </h2>
+            <p>{entry.data.summary}</p>
+          </article>
+        </li>
+      ))}
+    </ul>
+  )
+}

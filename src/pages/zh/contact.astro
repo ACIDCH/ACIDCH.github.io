@@ -1,0 +1,30 @@
+---
+import PageIntro from "../../components/PageIntro.astro";
+import { profileConfig } from "../../config/profile";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getGitHubProfileUrl } from "../../utils/urls";
+---
+
+<BaseLayout title="联系" locale="zh">
+  <PageIntro title="联系" description="这里只显示已经确认可公开的联系渠道。" />
+  <ul>
+    <li><a href={getGitHubProfileUrl()}>GitHub</a></li>
+    {
+      profileConfig.linkedInUrl && (
+        <li><a href={profileConfig.linkedInUrl}>LinkedIn</a></li>
+      )
+    }
+    {
+      profileConfig.professionalEmail && (
+        <li>
+          <a href={`mailto:${profileConfig.professionalEmail}`}>电子邮箱</a>
+        </li>
+      )
+    }
+  </ul>
+  {
+    !profileConfig.linkedInUrl && !profileConfig.professionalEmail && (
+      <p class="status">其他联系方式等待确认。</p>
+    )
+  }
+</BaseLayout>

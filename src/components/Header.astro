@@ -1,0 +1,31 @@
+---
+import { navigationItems } from "../config/navigation";
+import type { Locale } from "../config/site";
+import { siteConfig } from "../config/site";
+import { getLocalizedPath } from "../utils/paths";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+---
+
+<header class="site-header">
+  <a class="site-name" href={getLocalizedPath("/", locale)}>
+    {siteConfig.publicName}
+  </a>
+  <nav aria-label={locale === "en" ? "Primary navigation" : "主导航"}>
+    <ul>
+      {
+        navigationItems.map((item) => (
+          <li>
+            <a href={getLocalizedPath(item.path, locale)}>
+              {item.label[locale]}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+</header>

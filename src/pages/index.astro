@@ -1,0 +1,13 @@
+---
+import PageIntro from "../components/PageIntro.astro";
+import { profileConfig } from "../config/profile";
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Portfolio" locale="en">
+  <PageIntro
+    title={profileConfig.publicName}
+    description="Phase 1 bilingual portfolio foundation. Confirmed professional content will be added in a later phase."
+    placeholder
+  />
+</BaseLayout>

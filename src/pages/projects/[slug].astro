@@ -1,0 +1,26 @@
+---
+import { getCollection, type CollectionEntry } from "astro:content";
+import { findTranslation } from "../../i18n/content";
+import ProjectLayout from "../../layouts/ProjectLayout.astro";
+import { getLocalizedPath } from "../../utils/paths";
+
+export async function getStaticPaths() {
+  const entries = await getCollection("projects");
+  return entries
+    .filter((entry) => entry.data.locale === "en")
+    .map((entry) => ({ params: { slug: entry.data.slug }, props: { entry, entries } }));
+}
+
+interface Props {
+  entry: CollectionEntry<"projects">;
+  entries: CollectionEntry<"projects">[];
+}
+
+const { entry, entries } = Astro.props;
+const translation = findTranslation(entries, entry.data.translationKey, "zh");
+const alternatePath = translation
+  ? getLocalizedPath(`/projects/${translation.data.slug}/`, "zh")
+  : getLocalizedPath("/", "zh");
+---
+
+<ProjectLayout entry={entry} alternatePath={alternatePath} />

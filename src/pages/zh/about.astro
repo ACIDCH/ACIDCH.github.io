@@ -1,0 +1,9 @@
+---
+import PageIntro from "../../components/PageIntro.astro";
+import { profileConfig } from "../../config/profile";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="关于" locale="zh">
+  <PageIntro title="关于" description={profileConfig.summary.zh} placeholder />
+</BaseLayout>

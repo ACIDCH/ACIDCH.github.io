@@ -1,0 +1,9 @@
+---
+import PageIntro from "../components/PageIntro.astro";
+import { profileConfig } from "../config/profile";
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="About" locale="en">
+  <PageIntro title="About" description={profileConfig.summary.en} placeholder />
+</BaseLayout>

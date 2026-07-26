@@ -1,0 +1,23 @@
+---
+import type { Locale } from "../config/site";
+import { ui } from "../i18n/ui";
+import { getLocalizedPath } from "../utils/paths";
+
+interface Props {
+  locale: Locale;
+  alternatePath?: string;
+}
+
+const { locale, alternatePath } = Astro.props;
+const targetLocale: Locale = locale === "en" ? "zh" : "en";
+const targetPath =
+  alternatePath ?? getLocalizedPath(Astro.url.pathname, targetLocale);
+---
+
+<a
+  href={targetPath}
+  lang={targetLocale === "en" ? "en" : "zh-CN"}
+  hreflang={targetLocale === "en" ? "en" : "zh-CN"}
+>
+  {ui[locale].languageSwitch}
+</a>

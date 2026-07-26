@@ -1,0 +1,54 @@
+---
+import Footer from "../components/Footer.astro";
+import Header from "../components/Header.astro";
+import LanguageSwitch from "../components/LanguageSwitch.astro";
+import type { Locale } from "../config/site";
+import { siteConfig } from "../config/site";
+import { ui } from "../i18n/ui";
+import "../styles/global.css";
+import { getCanonicalUrl } from "../utils/urls";
+
+interface Props {
+  title: string;
+  description?: string;
+  locale: Locale;
+  alternatePath?: string;
+  noindex?: boolean;
+}
+
+const {
+  title,
+  description = ui[Astro.props.locale].siteDescription,
+  locale,
+  alternatePath,
+  noindex = false,
+} = Astro.props;
+const canonicalUrl = getCanonicalUrl(Astro.url.pathname);
+const fullTitle = `${title} | ${siteConfig.publicName}`;
+---
+
+<!doctype html>
+<html lang={locale === "en" ? "en" : "zh-CN"}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex" />}
+    <link rel="canonical" href={canonicalUrl} />
+    <title>{fullTitle}</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">
+      {locale === "en" ? "Skip to content" : "跳到主要内容"}
+    </a>
+    <Header locale={locale} />
+    <div class="language-switch">
+      <LanguageSwitch locale={locale} alternatePath={alternatePath} />
+    </div>
+    <main id="main-content">
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>
