@@ -1,0 +1,288 @@
+---
+import type { Locale } from "../config/site";
+import { getDemoSupplyChainView } from "../data/supply-chain/adapter";
+import { demoSupplyChainDataset } from "../data/supply-chain/demo";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const view = getDemoSupplyChainView();
+const copy = {
+  en: {
+    eyebrow: "Synthetic demo data",
+    title: "Supply chain network explorer",
+    description:
+      "Compare two illustrative scenarios. Values are synthetic cost, capacity and flow indices—not real project results.",
+    baseline: "Baseline demo",
+    optimised: "Optimised demo",
+    controls: "Network scenario",
+    instruction: "Focus or point to a route to inspect its values.",
+    totalCost: "Synthetic cost index",
+    totalFlow: "Total flow index",
+    route: "Route",
+    cost: "Cost",
+    capacity: "Capacity",
+    flow: "Flow",
+    status: "Status",
+    optimal: "Optimal path",
+    constrained: "Capacity constrained",
+    standard: "Standard path",
+    accessible: "Route data table",
+  },
+  zh: {
+    eyebrow: "合成演示数据",
+    title: "供应链网络浏览器",
+    description:
+      "比较两个示例情景。数值为合成的成本、容量与流量指数，不代表真实项目结果。",
+    baseline: "基准演示",
+    optimised: "优化演示",
+    controls: "网络情景",
+    instruction: "将键盘焦点或指针移动到路径上以查看数值。",
+    totalCost: "合成成本指数",
+    totalFlow: "总流量指数",
+    route: "路径",
+    cost: "成本",
+    capacity: "容量",
+    flow: "流量",
+    status: "状态",
+    optimal: "最优路径",
+    constrained: "容量受限",
+    standard: "普通路径",
+    accessible: "路径数据表",
+  },
+}[locale];
+const statusLabels = {
+  standard: copy.standard,
+  optimal: copy.optimal,
+  constrained: copy.constrained,
+};
+---
+
+<section
+  class="supply-network"
+  aria-labelledby="supply-network-title"
+  data-supply-network
+  data-scenarios={JSON.stringify(demoSupplyChainDataset.scenarios)}
+  data-status-labels={JSON.stringify(statusLabels)}
+  data-detail-labels={JSON.stringify({
+    cost: copy.cost,
+    capacity: copy.capacity,
+    flow: copy.flow,
+  })}
+>
+  <div class="supply-network__header">
+    <div>
+      <p class="status">{copy.eyebrow}</p>
+      <h2 id="supply-network-title">{copy.title}</h2>
+      <p>{copy.description}</p>
+    </div>
+    <div class="scenario-switch" role="group" aria-label={copy.controls}>
+      <button
+        type="button"
+        class="button button--secondary"
+        aria-pressed="true"
+        data-scenario="baseline"
+      >
+        {copy.baseline}
+      </button>
+      <button
+        type="button"
+        class="button button--secondary"
+        aria-pressed="false"
+        data-scenario="optimised"
+      >
+        {copy.optimised}
+      </button>
+    </div>
+  </div>
+
+  <div class="network-legend" aria-label={copy.status}>
+    <span data-status="optimal">{copy.optimal}</span>
+    <span data-status="constrained">{copy.constrained}</span>
+    <span data-status="standard">{copy.standard}</span>
+  </div>
+
+  <div class="network-stage">
+    <svg
+      class="network-diagram"
+      viewBox="0 0 760 360"
+      role="group"
+      aria-labelledby="network-svg-title network-svg-description"
+    >
+      <title id="network-svg-title">{copy.title}</title>
+      <desc id="network-svg-description">{copy.description}</desc>
+      <g class="network-edges">
+        {
+          view.edges.map((edge) => (
+            <g
+              class="network-edge"
+              role="button"
+              tabindex="0"
+              data-edge-id={edge.id}
+              data-edge-status={edge.status}
+              data-source-label={edge.sourceNode.label[locale]}
+              data-target-label={edge.targetNode.label[locale]}
+              data-cost={edge.cost}
+              data-capacity={edge.capacity}
+            >
+              <title>
+                {`${edge.sourceNode.label[locale]} → ${edge.targetNode.label[locale]}; ${copy.cost} ${edge.cost}; ${copy.capacity} ${edge.capacity}; ${copy.flow} ${edge.flow}; ${statusLabels[edge.status]}`}
+              </title>
+              <line
+                x1={edge.sourceNode.x}
+                y1={edge.sourceNode.y}
+                x2={edge.targetNode.x}
+                y2={edge.targetNode.y}
+                style={`--edge-width: ${2 + edge.flow / 28}px`}
+              />
+              <text
+                x={(edge.sourceNode.x + edge.targetNode.x) / 2}
+                y={(edge.sourceNode.y + edge.targetNode.y) / 2 - 8}
+              >
+                {edge.flow}
+              </text>
+            </g>
+          ))
+        }
+      </g>
+      <g class="network-nodes">
+        {
+          view.nodes.map((node) => (
+            <g
+              class="network-node"
+              data-node-kind={node.kind}
+              transform={`translate(${node.x} ${node.y})`}
+            >
+              <circle r="32" />
+              <text y="4">{node.id}</text>
+              <text class="network-node__label" y="52">
+                {node.label[locale]}
+              </text>
+            </g>
+          ))
+        }
+      </g>
+    </svg>
+
+    <aside class="network-inspector">
+      <p data-network-detail aria-live="polite">{copy.instruction}</p>
+      <dl>
+        <div>
+          <dt>{copy.totalCost}</dt>
+          <dd data-network-total-cost>{view.totalCostIndex}</dd>
+        </div>
+        <div>
+          <dt>{copy.totalFlow}</dt>
+          <dd data-network-total-flow>{view.totalFlow}</dd>
+        </div>
+      </dl>
+    </aside>
+  </div>
+
+  <details class="network-table">
+    <summary>{copy.accessible}</summary>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">{copy.route}</th>
+            <th scope="col">{copy.cost}</th>
+            <th scope="col">{copy.capacity}</th>
+            <th scope="col">{copy.flow}</th>
+            <th scope="col">{copy.status}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            view.edges.map((edge) => (
+              <tr data-edge-row={edge.id}>
+                <th scope="row">
+                  {edge.sourceNode.label[locale]} → {edge.targetNode.label[locale]}
+                </th>
+                <td>{edge.cost}</td>
+                <td>{edge.capacity}</td>
+                <td data-flow>{edge.flow}</td>
+                <td data-status-cell>{statusLabels[edge.status]}</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+  </details>
+</section>
+
+<script>
+  type ScenarioPayload = {
+    id: string;
+    edges: Record<string, { flow: number; status: string }>;
+  };
+
+  const network = document.querySelector<HTMLElement>("[data-supply-network]");
+  const scenarios = JSON.parse(network?.dataset.scenarios ?? "[]") as ScenarioPayload[];
+  const statusLabels = JSON.parse(network?.dataset.statusLabels ?? "{}") as Record<
+    string,
+    string
+  >;
+  const detailLabels = JSON.parse(network?.dataset.detailLabels ?? "{}") as Record<
+    string,
+    string
+  >;
+  const detail = network?.querySelector<HTMLElement>("[data-network-detail]");
+  const totalCost = network?.querySelector<HTMLElement>("[data-network-total-cost]");
+  const totalFlow = network?.querySelector<HTMLElement>("[data-network-total-flow]");
+
+  function describeEdge(edge: HTMLElement) {
+    if (!detail) return;
+    const flow = edge.querySelector("text")?.textContent?.trim() ?? "";
+    const status = statusLabels[edge.dataset.edgeStatus ?? ""] ?? "";
+    detail.textContent = `${edge.dataset.sourceLabel} → ${edge.dataset.targetLabel}: ${detailLabels.cost} ${edge.dataset.cost}, ${detailLabels.capacity} ${edge.dataset.capacity}, ${detailLabels.flow} ${flow}, ${status}.`;
+  }
+
+  function setScenario(scenarioId: string) {
+    if (!network) return;
+    const scenario = scenarios.find((item) => item.id === scenarioId);
+    if (!scenario) return;
+    let costIndex = 0;
+    let flowIndex = 0;
+
+    network.querySelectorAll<HTMLElement>("[data-edge-id]").forEach((edge) => {
+      const id = edge.dataset.edgeId ?? "";
+      const state = scenario.edges[id];
+      if (!state) return;
+      edge.dataset.edgeStatus = state.status;
+      const label = edge.querySelector<SVGTextElement>("text");
+      const line = edge.querySelector<SVGLineElement>("line");
+      if (label) label.textContent = String(state.flow);
+      if (line) line.style.setProperty("--edge-width", `${2 + state.flow / 28}px`);
+      costIndex += Number(edge.dataset.cost ?? 0) * state.flow;
+      flowIndex += state.flow;
+
+      const row = network.querySelector<HTMLElement>(`[data-edge-row="${id}"]`);
+      const flowCell = row?.querySelector<HTMLElement>("[data-flow]");
+      const statusCell = row?.querySelector<HTMLElement>("[data-status-cell]");
+      if (flowCell) flowCell.textContent = String(state.flow);
+      if (statusCell)
+        statusCell.textContent = statusLabels[state.status] ?? state.status;
+    });
+
+    if (totalCost) totalCost.textContent = String(costIndex);
+    if (totalFlow) totalFlow.textContent = String(flowIndex);
+    network.querySelectorAll<HTMLButtonElement>("[data-scenario]").forEach((button) => {
+      button.setAttribute(
+        "aria-pressed",
+        String(button.dataset.scenario === scenarioId),
+      );
+    });
+  }
+
+  network?.querySelectorAll<HTMLElement>("[data-edge-id]").forEach((edge) => {
+    edge.addEventListener("focus", () => describeEdge(edge));
+    edge.addEventListener("pointerenter", () => describeEdge(edge));
+  });
+  network?.querySelectorAll<HTMLButtonElement>("[data-scenario]").forEach((button) => {
+    button.addEventListener("click", () => setScenario(button.dataset.scenario ?? ""));
+  });
+</script>

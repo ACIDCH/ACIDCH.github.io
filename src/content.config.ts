@@ -26,6 +26,7 @@ const projects = defineCollection({
     dashboardUrl: z.url().optional(),
     updatedAt: z.coerce.date().optional(),
     isPlaceholder: z.boolean().default(false),
+    isDemo: z.boolean().default(false),
   }),
 });
 
@@ -46,6 +47,7 @@ const notes = defineCollection({
     updatedAt: z.coerce.date().optional(),
     draft: z.boolean().default(true),
     isPlaceholder: z.boolean().default(false),
+    relatedProjects: z.array(z.string()).default([]),
   }),
 });
 

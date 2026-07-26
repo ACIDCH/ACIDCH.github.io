@@ -1,0 +1,29 @@
+---
+import type { CollectionEntry } from "astro:content";
+import type { Locale } from "../config/site";
+import NoteList from "./NoteList.astro";
+
+interface Props {
+  entries: CollectionEntry<"notes">[];
+  locale: Locale;
+}
+
+const { entries, locale } = Astro.props;
+---
+
+<section class="related-notes" aria-labelledby="related-notes-title">
+  <h2 id="related-notes-title">
+    {locale === "en" ? "Related learning notes" : "相关学习笔记"}
+  </h2>
+  {
+    entries.length ? (
+      <NoteList entries={entries} locale={locale} />
+    ) : (
+      <p>
+        {locale === "en"
+          ? "No related notes are available yet."
+          : "暂时没有可用的相关笔记。"}
+      </p>
+    )
+  }
+</section>

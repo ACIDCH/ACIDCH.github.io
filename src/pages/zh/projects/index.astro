@@ -1,7 +1,7 @@
 ---
 import { getCollection } from "astro:content";
 import PageIntro from "../../../components/PageIntro.astro";
-import ProjectList from "../../../components/ProjectList.astro";
+import ProjectExplorer from "../../../components/ProjectExplorer.astro";
 import BaseLayout from "../../../layouts/BaseLayout.astro";
 
 const projects = (await getCollection("projects")).filter(
@@ -14,5 +14,5 @@ const projects = (await getCollection("projects")).filter(
     title="项目"
     description="在项目内容和结果核实前，项目条目保持为明确的占位状态。"
   />
-  <ProjectList entries={projects} locale="zh" />
+  <ProjectExplorer entries={projects} locale="zh" />
 </BaseLayout>

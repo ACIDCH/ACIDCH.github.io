@@ -1,7 +1,7 @@
 ---
 import { getCollection } from "astro:content";
 import PageIntro from "../../components/PageIntro.astro";
-import ProjectList from "../../components/ProjectList.astro";
+import ProjectExplorer from "../../components/ProjectExplorer.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 
 const projects = (await getCollection("projects")).filter(
@@ -14,5 +14,5 @@ const projects = (await getCollection("projects")).filter(
     title="Projects"
     description="Project entries remain placeholders until their content and results are verified."
   />
-  <ProjectList entries={projects} locale="en" />
+  <ProjectExplorer entries={projects} locale="en" />
 </BaseLayout>

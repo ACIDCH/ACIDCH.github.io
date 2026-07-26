@@ -1,0 +1,53 @@
+---
+import type { CollectionEntry } from "astro:content";
+import type { Locale } from "../config/site";
+import { getLocalizedPath } from "../utils/paths";
+
+interface Props {
+  entry: CollectionEntry<"projects">;
+  locale: Locale;
+}
+
+const { entry, locale } = Astro.props;
+const statusLabels = {
+  planned: { en: "Planned", zh: "计划中" },
+  "in-development": { en: "In development", zh: "开发中" },
+  completed: { en: "Completed", zh: "已完成" },
+} as const;
+const topicLabels = {
+  inventory: { en: "Inventory", zh: "库存" },
+  transportation: { en: "Transportation", zh: "运输" },
+  analytics: { en: "Analytics", zh: "分析" },
+} as const;
+---
+
+<article class="project-card">
+  <div class="cluster cluster--compact">
+    <p class="status">{statusLabels[entry.data.status][locale]}</p>
+    <span class="tag">{topicLabels[entry.data.topic][locale]}</span>
+    {
+      entry.data.isPlaceholder && (
+        <span class="tag">
+          {locale === "en" ? "Demo / placeholder" : "演示 / 占位"}
+        </span>
+      )
+    }
+  </div>
+  <h2>
+    <a href={getLocalizedPath(`/projects/${entry.data.slug}/`, locale)}>
+      {entry.data.title}
+    </a>
+  </h2>
+  <p>{entry.data.summary}</p>
+  <ul class="tag-list" aria-label={locale === "en" ? "Tools" : "工具"}>
+    {entry.data.tools.map((tool) => <li class="tag">{tool}</li>)}
+  </ul>
+  <a
+    class="project-card__link"
+    href={getLocalizedPath(`/projects/${entry.data.slug}/`, locale)}
+    aria-label={`${locale === "en" ? "View project" : "查看项目"}: ${entry.data.title}`}
+  >
+    {locale === "en" ? "View case study" : "查看案例"}
+    <span aria-hidden="true">→</span>
+  </a>
+</article>

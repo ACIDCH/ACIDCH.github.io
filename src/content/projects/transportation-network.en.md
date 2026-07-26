@@ -17,6 +17,7 @@ tags:
   - supply-chain
   - optimisation
 isPlaceholder: true
+isDemo: true
 ---
 
 ## Context

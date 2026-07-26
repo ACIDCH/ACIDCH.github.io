@@ -1,7 +1,7 @@
 ---
 import type { CollectionEntry } from "astro:content";
 import type { Locale } from "../config/site";
-import { getLocalizedPath } from "../utils/paths";
+import ProjectCard from "./ProjectCard.astro";
 
 interface Props {
   entries: CollectionEntry<"projects">[];
@@ -9,11 +9,6 @@ interface Props {
 }
 
 const { entries, locale } = Astro.props;
-const statusLabels = {
-  planned: { en: "Planned", zh: "计划中" },
-  "in-development": { en: "In development", zh: "开发中" },
-  completed: { en: "Completed", zh: "已完成" },
-} as const;
 ---
 
 {
@@ -24,28 +19,13 @@ const statusLabels = {
   ) : (
     <ul class="content-list">
       {entries.map((entry) => (
-        <li>
-          <article>
-            <div class="cluster cluster--compact">
-              <p class="status">{statusLabels[entry.data.status][locale]}</p>
-              {entry.data.isPlaceholder && (
-                <span class="tag">
-                  {locale === "en" ? "Demo / placeholder" : "演示 / 占位"}
-                </span>
-              )}
-            </div>
-            <h2>
-              <a href={getLocalizedPath(`/projects/${entry.data.slug}/`, locale)}>
-                {entry.data.title}
-              </a>
-            </h2>
-            <p>{entry.data.summary}</p>
-            <ul class="tag-list" aria-label={locale === "en" ? "Tools" : "工具"}>
-              {entry.data.tools.map((tool) => (
-                <li class="tag">{tool}</li>
-              ))}
-            </ul>
-          </article>
+        <li
+          data-project-card
+          data-project-tools={entry.data.tools.join("|")}
+          data-project-topic={entry.data.topic}
+          data-project-status={entry.data.status}
+        >
+          <ProjectCard entry={entry} locale={locale} />
         </li>
       ))}
     </ul>
