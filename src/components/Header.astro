@@ -88,10 +88,42 @@ function isCurrentRoute(path: string): boolean {
       return;
     }
     header.dataset.headerReady = "true";
+    let lockedScrollPosition = 0;
+
+    function setBackgroundInert(inert: boolean) {
+      document
+        .querySelectorAll<HTMLElement>("body > .skip-link, body > main, body > footer")
+        .forEach((element) => {
+          element.inert = inert;
+        });
+    }
+
+    function lockPage() {
+      lockedScrollPosition = window.scrollY;
+      document.documentElement.dataset.menuLocked = "true";
+      document.body.dataset.menuLocked = "true";
+      setBackgroundInert(true);
+    }
+
+    function unlockPage() {
+      if (document.body.dataset.menuLocked !== "true") return;
+
+      document.documentElement.removeAttribute("data-menu-locked");
+      document.body.removeAttribute("data-menu-locked");
+      setBackgroundInert(false);
+      window.scrollTo(0, lockedScrollPosition);
+    }
 
     function setMenu(open: boolean) {
+      const wasOpen = toggle!.getAttribute("aria-expanded") === "true";
       header!.dataset.menuOpen = String(open);
       toggle!.setAttribute("aria-expanded", String(open));
+
+      if (open && !wasOpen && !desktop.matches) {
+        lockPage();
+      } else if (!open && wasOpen) {
+        unlockPage();
+      }
     }
 
     toggle.addEventListener("click", () => {

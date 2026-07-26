@@ -91,6 +91,7 @@
 
   /* Layout and z-index */
   --container-content: 48rem;
+  --container-project: 66rem;
   --container-wide: 75rem;
   --header-height: 4.75rem;
   --z-base: 0;
