@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 720" role="img" aria-labelledby="title desc">
+  <title id="title">Southern alpine ridge placeholder</title>
+  <desc id="desc">A restrained abstract alpine ridge prepared for replacement by a personal landscape.</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#b8c6c0"/>
+      <stop offset=".55" stop-color="#ded9cd"/>
+      <stop offset="1" stop-color="#eee8dc"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#sky)" d="M0 0h1600v720H0z"/>
+  <path fill="#879088" d="m0 590 280-260 190 150 258-310 224 290 170-138 248 220 230-150v328H0z"/>
+  <path fill="#56635c" d="m0 650 340-205 210 122 260-238 218 198 182-102 390 198v97H0z"/>
+  <path fill="#f1ede4" d="m610 312 118-142 106 137-70-38-38 48-37-40-42 58z" opacity=".88"/>
+</svg>

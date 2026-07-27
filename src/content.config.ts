@@ -43,11 +43,16 @@ const notes = defineCollection({
     title: z.string().min(1),
     summary: z.string().min(1),
     tags: z.array(z.string()).default([]),
+    topics: z.array(z.string()).default([]),
+    tools: z.array(z.string()).default([]),
+    series: z.string().min(1).optional(),
     publishedAt: z.coerce.date().optional(),
     updatedAt: z.coerce.date().optional(),
+    status: z.enum(["draft", "published"]).default("draft"),
     draft: z.boolean().default(true),
     isPlaceholder: z.boolean().default(false),
     relatedProjects: z.array(z.string()).default([]),
+    relatedNotes: z.array(z.string()).default([]),
   }),
 });
 

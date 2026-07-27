@@ -1,155 +1,125 @@
 ---
 import { getCollection } from "astro:content";
-import { profileConfig } from "../config/profile";
-import { skillGroups, toolset } from "../config/skills";
+import { skillGroups } from "../config/skills";
 import type { Locale } from "../config/site";
 import { getLocalizedPath } from "../utils/paths";
-import { getGitHubProfileUrl } from "../utils/urls";
 import Hero from "./hero/Hero.astro";
 import NoteList from "./NoteList.astro";
 import ProjectList from "./ProjectList.astro";
-import SkillGrid from "./SkillGrid.astro";
-import Timeline from "./Timeline.astro";
 
 interface Props {
   locale: Locale;
 }
 
 const { locale } = Astro.props;
-const allProjects = (await getCollection("projects")).filter(
-  (entry) => entry.data.locale === locale,
-);
-const projects = allProjects.filter((entry) => entry.data.featured).slice(0, 3);
+const projects = (await getCollection("projects"))
+  .filter((entry) => entry.data.locale === locale && entry.data.featured)
+  .slice(0, 3);
 const notes = (await getCollection("notes"))
   .filter((entry) => entry.data.locale === locale)
   .slice(0, 3);
 
 const copy = {
   en: {
-    eyebrow: "Business analytics portfolio",
-    title: "Data-driven decisions, grounded in business context.",
-    intro:
-      "I am Xintao Liu, focused on business analytics, supply chain analysis and practical decision support.",
-    projects: "View projects",
-    about: "About me",
-    summary: "Professional summary",
-    capabilities: "Core capabilities",
-    featured: "Featured projects",
-    tools: "Tools",
-    timeline: "Education & experience",
-    notes: "Latest learning notes",
-    contact: "Start a conversation",
-    contactBody:
-      "Only confirmed public channels are shown. Additional professional contact details are pending confirmation.",
-    github: "View GitHub profile",
-    projectCount: "project entries",
-    capabilityCount: "capability areas",
-    noteCount: "learning-note drafts",
+    discipline: "Business Analytics · Supply Chain",
+    statement: "Data, models and decisions in context.",
+    intro: "I turn analytical questions into clear, practical decision support.",
+    projectsAction: "Explore Projects",
+    notesAction: "View Learning Notes",
+    aboutAction: "About Me",
+    featured: "Featured Projects",
+    featuredBody:
+      "Selected work in progress, clearly labelled by status and evidence level.",
+    notes: "Latest Learning Notes",
+    notesBody:
+      "Bilingual working notes on analytics, optimisation and decision support.",
+    themes: "Core Themes",
+    themesBody: "The recurring areas that shape this portfolio.",
+    cta: "Build decisions on clearer evidence.",
+    ctaBody:
+      "Explore the work, follow the learning process, or learn more about my approach.",
   },
   zh: {
-    eyebrow: "商业分析作品集",
-    title: "用数据支持有业务语境的决策。",
-    intro: "我是 Xintao Liu，专注商业分析、供应链分析与实用的决策支持。",
-    projects: "查看项目",
-    about: "关于我",
-    summary: "个人简介",
-    capabilities: "核心能力",
+    discipline: "商业分析 · 供应链",
+    statement: "让数据、模型与决策回到真实语境。",
+    intro: "我将分析问题转化为清晰、实用的决策支持。",
+    projectsAction: "浏览项目",
+    notesAction: "查看学习笔记",
+    aboutAction: "关于我",
     featured: "精选项目",
-    tools: "工具",
-    timeline: "教育与经历",
-    notes: "近期学习笔记",
-    contact: "保持联系",
-    contactBody: "仅展示已确认的公开渠道，其他职业联系信息仍待确认。",
-    github: "查看 GitHub 主页",
-    projectCount: "个项目条目",
-    capabilityCount: "个能力领域",
-    noteCount: "篇学习笔记草稿",
+    featuredBody: "展示当前重点工作，并明确标注状态与证据程度。",
+    notes: "最新学习笔记",
+    notesBody: "围绕分析、优化与决策支持整理的中英双语学习记录。",
+    themes: "核心方向",
+    themesBody: "贯穿本作品集的主要能力与关注领域。",
+    cta: "用更清晰的证据支持决策。",
+    ctaBody: "浏览项目、了解学习过程，或进一步查看我的工作方式。",
   },
 }[locale];
 ---
 
 <Hero locale={locale}>
-  <p class="status">{copy.eyebrow}</p>
-  <h1 id="home-title">{copy.title}</h1>
+  <p class="home-hero__discipline">{copy.discipline}</p>
+  <h1 id="home-title">Xintao Liu</h1>
+  <p class="home-hero__statement">{copy.statement}</p>
   <p>{copy.intro}</p>
   <div class="cluster">
-    <a class="button" href={getLocalizedPath("/projects/", locale)}>{copy.projects}</a>
-    <a class="button button--secondary" href={getLocalizedPath("/about/", locale)}>
-      {copy.about}
+    <a class="button" href={getLocalizedPath("/projects/", locale)}>
+      {copy.projectsAction}
+    </a>
+    <a class="button button--secondary" href={getLocalizedPath("/notes/", locale)}>
+      {copy.notesAction}
+    </a>
+    <a class="button button--ghost-light" href={getLocalizedPath("/about/", locale)}>
+      {copy.aboutAction}
     </a>
   </div>
 </Hero>
 
-<dl class="portfolio-stats" aria-label={copy.eyebrow} data-reveal>
-  <div>
-    <dt>{copy.projectCount}</dt>
-    <dd data-counter-target={allProjects.length}>{allProjects.length}</dd>
-  </div>
-  <div>
-    <dt>{copy.capabilityCount}</dt>
-    <dd data-counter-target={skillGroups.length}>{skillGroups.length}</dd>
-  </div>
-  <div>
-    <dt>{copy.noteCount}</dt>
-    <dd data-counter-target={notes.length}>{notes.length}</dd>
-  </div>
-</dl>
+<div class="home-content">
+  <section class="home-section" aria-labelledby="projects-title" data-reveal>
+    <div class="section-heading section-heading--split">
+      <div>
+        <p class="status">01</p>
+        <h2 id="projects-title">{copy.featured}</h2>
+      </div>
+      <p>{copy.featuredBody}</p>
+    </div>
+    <ProjectList entries={projects} locale={locale} />
+  </section>
 
-<section class="home-section" aria-labelledby="summary-title" data-reveal>
-  <div class="section-heading">
-    <p class="status">01</p>
-    <h2 id="summary-title">{copy.summary}</h2>
-  </div>
-  <p class="lead-copy">{profileConfig.summary[locale]}</p>
-</section>
+  <section class="home-section" aria-labelledby="notes-title" data-reveal>
+    <div class="section-heading section-heading--split">
+      <div>
+        <p class="status">02</p>
+        <h2 id="notes-title">{copy.notes}</h2>
+      </div>
+      <p>{copy.notesBody}</p>
+    </div>
+    <NoteList entries={notes} locale={locale} />
+  </section>
 
-<section class="home-section" aria-labelledby="capabilities-title" data-reveal>
-  <div class="section-heading">
-    <p class="status">02</p>
-    <h2 id="capabilities-title">{copy.capabilities}</h2>
-  </div>
-  <SkillGrid locale={locale} />
-</section>
+  <section class="home-section" aria-labelledby="themes-title" data-reveal>
+    <div class="section-heading section-heading--split">
+      <div>
+        <p class="status">03</p>
+        <h2 id="themes-title">{copy.themes}</h2>
+      </div>
+      <p>{copy.themesBody}</p>
+    </div>
+    <ul class="theme-keywords">
+      {skillGroups.map((group) => <li>{group.title[locale]}</li>)}
+    </ul>
+  </section>
 
-<section class="home-section" aria-labelledby="projects-title" data-reveal>
-  <div class="section-heading">
-    <p class="status">03</p>
-    <h2 id="projects-title">{copy.featured}</h2>
-  </div>
-  <ProjectList entries={projects} locale={locale} />
-</section>
-
-<section class="home-section" aria-labelledby="tools-title" data-reveal>
-  <div class="section-heading">
-    <p class="status">04</p>
-    <h2 id="tools-title">{copy.tools}</h2>
-  </div>
-  <ul class="tool-grid">
-    {toolset.map((tool) => <li>{tool}</li>)}
-  </ul>
-</section>
-
-<section class="home-section" aria-labelledby="timeline-title" data-reveal>
-  <div class="section-heading">
-    <p class="status">05</p>
-    <h2 id="timeline-title">{copy.timeline}</h2>
-  </div>
-  <Timeline locale={locale} />
-</section>
-
-<section class="home-section" aria-labelledby="notes-title" data-reveal>
-  <div class="section-heading">
-    <p class="status">06</p>
-    <h2 id="notes-title">{copy.notes}</h2>
-  </div>
-  <NoteList entries={notes} locale={locale} />
-</section>
-
-<section class="home-section home-contact" aria-labelledby="contact-title" data-reveal>
-  <div>
-    <p class="status">07</p>
-    <h2 id="contact-title">{copy.contact}</h2>
-    <p>{copy.contactBody}</p>
-  </div>
-  <a class="button" href={getGitHubProfileUrl()} rel="me">{copy.github}</a>
-</section>
+  <section class="home-section home-cta" aria-labelledby="cta-title" data-reveal>
+    <div>
+      <p class="status">04</p>
+      <h2 id="cta-title">{copy.cta}</h2>
+      <p>{copy.ctaBody}</p>
+    </div>
+    <a class="button" href={getLocalizedPath("/about/", locale)}>
+      {copy.aboutAction}
+    </a>
+  </section>
+</div>

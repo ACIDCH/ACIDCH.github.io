@@ -63,18 +63,21 @@ presented as a completed or verified real-world result.
 - Site, language, account, and repository-owner settings:
   `src/config/site.ts`
 - Public profile placeholders: `src/config/profile.ts`
+- Media, social, resume, and external-notebook switches:
+  `src/config/portfolio.ts`
 - Navigation: `src/config/navigation.ts`
 - Path and URL builders: `src/utils/paths.ts` and `src/utils/urls.ts`
 
 Do not duplicate account names or complete technical URLs across components and
 content files.
 
-## Background media
+## V2 visual system and media
 
-The default Hero uses the CSS Aurora mode. Image, Video, Aurora and Network
-modes are selected centrally in `src/config/site.ts`. The current image and
-video poster are replaceable self-created placeholders; no unconfirmed personal
-media is included.
+The public Home and About pages use the Southern Alpine Minimal system with
+local, replaceable landscape placeholders. Media paths, availability,
+overlays, and object positions are centralised in `src/config/portfolio.ts`.
+The earlier multi-background components remain available without loading
+unconfirmed personal media.
 
 ## Privacy
 

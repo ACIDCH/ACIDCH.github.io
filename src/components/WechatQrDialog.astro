@@ -1,0 +1,78 @@
+---
+import type { Locale } from "../config/site";
+import { portfolioConfig } from "../config/portfolio";
+import { withBase } from "../utils/paths";
+import Icon from "./Icon.astro";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const { wechat } = portfolioConfig.contact;
+---
+
+{
+  wechat.enabled && wechat.qrAvailable && (
+    <span class="wechat-control" data-wechat-control>
+      <button
+        class="social-icon-button"
+        type="button"
+        aria-label={locale === "en" ? "Open WeChat QR code" : "打开微信二维码"}
+        data-wechat-open
+      >
+        <Icon name="wechat" size={22} />
+        <span>WeChat</span>
+      </button>
+      <dialog class="wechat-dialog" data-wechat-dialog>
+        <div class="wechat-dialog__content">
+          <button
+            class="icon-button wechat-dialog__close"
+            type="button"
+            aria-label={locale === "en" ? "Close WeChat QR code" : "关闭微信二维码"}
+            data-wechat-close
+          >
+            <Icon name="close" />
+          </button>
+          <h2>{locale === "en" ? "Connect on WeChat" : "通过微信联系"}</h2>
+          <img
+            src={withBase(wechat.qrImage)}
+            width="360"
+            height="360"
+            alt={
+              locale === "en" ? "Xintao Liu WeChat QR code" : "Xintao Liu 微信二维码"
+            }
+          />
+          {wechat.id && <p>{wechat.id}</p>}
+          <p>
+            {locale === "en" ? "Scan the code with WeChat." : "请使用微信扫描二维码。"}
+          </p>
+        </div>
+      </dialog>
+    </span>
+  )
+}
+
+<script>
+  function initWechatDialog() {
+    document
+      .querySelectorAll<HTMLElement>("[data-wechat-control]")
+      .forEach((control) => {
+        const dialog = control.querySelector<HTMLDialogElement>("[data-wechat-dialog]");
+        const open = control.querySelector<HTMLButtonElement>("[data-wechat-open]");
+        const close = dialog?.querySelector<HTMLButtonElement>("[data-wechat-close]");
+        if (!dialog || !open || !close || control.dataset.ready === "true") return;
+
+        control.dataset.ready = "true";
+        open.addEventListener("click", () => dialog.showModal());
+        close.addEventListener("click", () => dialog.close());
+        dialog.addEventListener("click", (event) => {
+          if (event.target === dialog) dialog.close();
+        });
+        dialog.addEventListener("close", () => open.focus());
+      });
+  }
+
+  document.addEventListener("astro:page-load", initWechatDialog);
+  initWechatDialog();
+</script>

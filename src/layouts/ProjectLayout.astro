@@ -3,6 +3,7 @@ import { getCollection, render, type CollectionEntry } from "astro:content";
 import RelatedNotes from "../components/RelatedNotes.astro";
 import ProjectCover from "../components/ProjectCover.astro";
 import SupplyChainNetwork from "../components/SupplyChainNetwork.astro";
+import ContextBack from "../components/ContextBack.astro";
 import { siteConfig } from "../config/site";
 import { getCanonicalUrl } from "../utils/urls";
 import { getGitHubRepoUrl } from "../utils/urls";
@@ -49,6 +50,11 @@ const projectStructuredData = {
   structuredData={projectStructuredData}
 >
   <article class="project-detail">
+    <ContextBack
+      locale={entry.data.locale}
+      fallbackPath="/projects/"
+      label={{ en: "Back to Projects", zh: "返回项目列表" }}
+    />
     <ProjectCover entry={entry} />
     {
       entry.data.isPlaceholder && (
@@ -104,5 +110,10 @@ const projectStructuredData = {
       )
     }
     <RelatedNotes entries={relatedNotes} locale={entry.data.locale} />
+    <ContextBack
+      locale={entry.data.locale}
+      fallbackPath="/projects/"
+      label={{ en: "Back to Projects", zh: "返回项目列表" }}
+    />
   </article>
 </BaseLayout>

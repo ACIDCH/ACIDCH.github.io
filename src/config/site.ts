@@ -15,7 +15,7 @@ export const siteConfig = {
     storageKey: "xintao-locale",
   },
   design: {
-    direction: "data-aurora",
+    direction: "southern-alpine-minimal",
     defaultTheme: "system",
     themeStorageKey: "xintao-theme",
   },
@@ -32,7 +32,7 @@ export const siteConfig = {
   },
   seo: {
     defaultImage: "/brand/social-card.svg",
-    themeColour: "#0b263c",
+    themeColour: "#26302c",
   },
 } as const;
 

@@ -7,10 +7,20 @@ summary: Placeholder outline for a future note about transportation-model struct
 tags:
   - transportation
   - optimisation
+topics:
+  - supply chain
+  - optimisation
+tools:
+  - Excel Solver
+  - Python
+series: Supply chain models
+status: draft
 draft: true
 isPlaceholder: true
 relatedProjects:
   - transportation-network
+relatedNotes:
+  - foundation-note
 ---
 
 This note is not yet published. It will not reproduce restricted course

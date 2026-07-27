@@ -53,14 +53,15 @@ slug: example-project
 
 - 站点、语言、技术账号和仓库 owner：`src/config/site.ts`
 - 公开个人资料占位：`src/config/profile.ts`
+- 图片、社交、简历与外部笔记入口开关：`src/config/portfolio.ts`
 - 导航：`src/config/navigation.ts`
 - 路径和 URL helper：`src/utils/paths.ts` 与 `src/utils/urls.ts`
 
 不要在组件和内容文件中重复写入技术账号或完整技术 URL。
 
-## 背景素材
+## V2 视觉系统与背景素材
 
-Hero 默认使用 CSS Aurora 模式。Image、Video、Aurora 与 Network 模式在 `src/config/site.ts` 中集中选择。当前图片与视频 poster 是可替换的自制占位素材，仓库未加入未经确认的个人视觉素材。
+公开 Home 与 About 页面采用 Southern Alpine Minimal 视觉系统，并使用本地、可替换的风景占位素材。素材路径、可用状态、遮罩与 object-position 集中维护在 `src/config/portfolio.ts`。原有多背景组件继续保留，但不会加载未经确认的个人素材。
 
 ## 隐私
 
@@ -72,4 +73,4 @@ GitHub Pages 工作流已准备在 `.github/workflows/deploy.yml`。启用与迁
 [`docs/deployment/GITHUB_PAGES.md`](docs/deployment/GITHUB_PAGES.md) 和
 [`docs/deployment/STATIC_HOST_MIGRATION.md`](docs/deployment/STATIC_HOST_MIGRATION.md)。
 
-当前没有配置 Git remote，也没有执行 push、部署、域名绑定或付费服务操作。
+当前站点通过现有 GitHub Actions 工作流发布至 GitHub Pages；未配置自定义域名或付费服务。

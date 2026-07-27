@@ -1,24 +1,25 @@
 :root {
   /* Colour primitives */
-  --colour-navy-950: #06101f;
-  --colour-navy-900: #0b1729;
-  --colour-navy-800: #14243a;
-  --colour-slate-700: #33445b;
-  --colour-slate-600: #4c6078;
-  --colour-slate-500: #64748b;
-  --colour-slate-300: #c7d2df;
-  --colour-slate-200: #dbe3ec;
-  --colour-slate-100: #edf2f7;
-  --colour-slate-50: #f7f9fc;
-  --colour-white: #ffffff;
-  --colour-cyan-700: #08769a;
-  --colour-cyan-600: #0891b2;
-  --colour-cyan-500: #06b6d4;
-  --colour-cyan-300: #67e8f9;
-  --colour-violet-600: #7c3aed;
-  --colour-violet-500: #8b5cf6;
-  --colour-violet-300: #c4b5fd;
-  --colour-amber-500: #f59e0b;
+  --colour-navy-950: #171b19;
+  --colour-navy-900: #242a26;
+  --colour-navy-800: #303832;
+  --colour-slate-700: #4c534e;
+  --colour-slate-600: #646a65;
+  --colour-slate-500: #7c817c;
+  --colour-slate-300: #c9c6bc;
+  --colour-slate-200: #dedbd1;
+  --colour-slate-100: #ebe8df;
+  --colour-slate-50: #f4f0e7;
+  --colour-white: #fffdf8;
+  --colour-cyan-700: #456d70;
+  --colour-cyan-600: #587f81;
+  --colour-cyan-500: #6f9291;
+  --colour-cyan-400: #8baaa8;
+  --colour-cyan-300: #a9c5c2;
+  --colour-violet-600: #657563;
+  --colour-violet-500: #7d8977;
+  --colour-violet-300: #b9c3b4;
+  --colour-amber-500: #a8824d;
 
   /* Semantic colour tokens: light */
   --colour-page: var(--colour-slate-50);
@@ -30,16 +31,14 @@
   --colour-border: var(--colour-slate-200);
   --colour-border-strong: var(--colour-slate-300);
   --colour-primary: var(--colour-cyan-700);
-  --colour-primary-strong: #045b78;
+  --colour-primary-strong: #31585b;
   --colour-primary-contrast: var(--colour-white);
   --colour-secondary: var(--colour-violet-600);
-  --colour-accent: #b56300;
+  --colour-accent: #8b6b43;
   --colour-focus: var(--colour-amber-500);
-  --colour-header: rgb(247 249 252 / 92%);
-  --colour-selection: rgb(6 182 212 / 24%);
-  --gradient-aurora:
-    radial-gradient(circle at 15% 15%, rgb(6 182 212 / 13%), transparent 34%),
-    radial-gradient(circle at 88% 12%, rgb(139 92 246 / 11%), transparent 30%);
+  --colour-header: rgb(244 240 231 / 94%);
+  --colour-selection: rgb(88 127 129 / 22%);
+  --gradient-aurora: linear-gradient(180deg, #f4f0e7, #efebe2);
 
   /* Typography */
   --font-sans:
@@ -80,14 +79,14 @@
   --radius-sm: 0.5rem;
   --radius-md: 0.75rem;
   --radius-lg: 1rem;
-  --radius-xl: 1.4rem;
+  --radius-xl: 1.15rem;
   --radius-pill: 999px;
 
   /* Shadow */
-  --shadow-sm: 0 1px 2px rgb(6 16 31 / 8%);
-  --shadow-md: 0 12px 32px rgb(6 16 31 / 10%);
-  --shadow-lg: 0 24px 64px rgb(6 16 31 / 14%);
-  --shadow-focus: 0 0 0 3px rgb(245 158 11 / 40%);
+  --shadow-sm: 0 1px 2px rgb(23 27 25 / 7%);
+  --shadow-md: 0 12px 30px rgb(23 27 25 / 9%);
+  --shadow-lg: 0 24px 58px rgb(23 27 25 / 13%);
+  --shadow-focus: 0 0 0 3px rgb(168 130 77 / 35%);
 
   /* Layout and z-index */
   --container-content: 48rem;
@@ -113,21 +112,19 @@
   --colour-page: var(--colour-navy-950);
   --colour-surface: var(--colour-navy-900);
   --colour-surface-raised: var(--colour-navy-800);
-  --colour-surface-subtle: #101f33;
-  --colour-text: #ecf7fb;
-  --colour-text-muted: #a9bbcd;
-  --colour-border: #263b52;
-  --colour-border-strong: #38516c;
+  --colour-surface-subtle: #2a302c;
+  --colour-text: #f2eee5;
+  --colour-text-muted: #b7b9b3;
+  --colour-border: #3c433e;
+  --colour-border-strong: #535c55;
   --colour-primary: var(--colour-cyan-300);
-  --colour-primary-strong: #a5f3fc;
+  --colour-primary-strong: #c0d7d3;
   --colour-primary-contrast: var(--colour-navy-950);
   --colour-secondary: var(--colour-violet-300);
-  --colour-accent: #fbbf24;
-  --colour-header: rgb(6 16 31 / 90%);
-  --colour-selection: rgb(103 232 249 / 24%);
-  --gradient-aurora:
-    radial-gradient(circle at 15% 15%, rgb(6 182 212 / 16%), transparent 34%),
-    radial-gradient(circle at 88% 12%, rgb(139 92 246 / 15%), transparent 30%);
+  --colour-accent: #c3a574;
+  --colour-header: rgb(23 27 25 / 93%);
+  --colour-selection: rgb(169 197 194 / 22%);
+  --gradient-aurora: linear-gradient(180deg, #171b19, #1c211e);
   --shadow-sm: 0 1px 2px rgb(0 0 0 / 22%);
   --shadow-md: 0 14px 36px rgb(0 0 0 / 26%);
   --shadow-lg: 0 28px 70px rgb(0 0 0 / 34%);

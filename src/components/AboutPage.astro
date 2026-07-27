@@ -1,7 +1,12 @@
 ---
+import { portfolioConfig } from "../config/portfolio";
 import { profileConfig } from "../config/profile";
+import { toolset } from "../config/skills";
 import type { Locale } from "../config/site";
-import PageIntro from "./PageIntro.astro";
+import { withBase } from "../utils/paths";
+import ContextBack from "./ContextBack.astro";
+import SkillGrid from "./SkillGrid.astro";
+import SocialLinks from "./SocialLinks.astro";
 import Timeline from "./Timeline.astro";
 
 interface Props {
@@ -9,38 +14,162 @@ interface Props {
 }
 
 const { locale } = Astro.props;
+const { aboutHero, portrait } = portfolioConfig.media;
+const aboutBackground = aboutHero.available ? aboutHero.image : aboutHero.fallback;
+const portraitImage = portrait.available ? portrait.image : portrait.fallback;
 const copy = {
   en: {
-    title: "About",
-    background: "Background",
-    approach: "Working approach",
-    approachBody:
-      "I focus on defining the decision first, then selecting data and methods that make the result understandable and useful. Exact dates, organisations and outcomes remain unpublished until confirmed.",
-    timeline: "Verified background",
+    title: "About Me",
+    heroLine: "Analytics with context, clarity and practical intent.",
+    role: "Business Analytics · Supply Chain · Decision Support",
+    location: "Auckland, New Zealand",
+    nav: "On this page",
+    about: "About",
+    education: "Education",
+    experience: "Experience",
+    skills: "Skills & Tools",
+    resume: "Resume",
+    contact: "Contact",
+    approach:
+      "I start with the decision that needs support, then choose data and methods that keep the result understandable and useful. Unconfirmed dates, organisations and outcomes remain unpublished.",
+    resumeSoon: "Resume coming soon",
+    resumeBody:
+      "A verified public resume has not been supplied yet. This section will enable the download only when the file is available.",
+    contactBody:
+      "Only confirmed public channels are shown. Additional professional contact options will appear when supplied.",
+    back: "Back to About",
   },
   zh: {
-    title: "关于",
-    background: "背景概览",
-    approach: "工作方式",
-    approachBody:
-      "我会先明确需要支持的决策，再选择合适的数据和方法，让结果清晰、可理解、可使用。具体日期、机构与成果只会在确认后发布。",
-    timeline: "已确认背景",
+    title: "关于我",
+    heroLine: "在真实语境中，用清晰分析支持实际决策。",
+    role: "商业分析 · 供应链 · 决策支持",
+    location: "新西兰奥克兰",
+    nav: "本页导航",
+    about: "简介",
+    education: "教育背景",
+    experience: "实践经历",
+    skills: "技能与工具",
+    resume: "简历",
+    contact: "联系",
+    approach:
+      "我会先明确需要支持的决策，再选择合适的数据与方法，让结果清晰、可理解、可使用。未经确认的日期、机构与成果不会发布。",
+    resumeSoon: "简历正在整理中",
+    resumeBody: "目前尚未提供可公开的已核实简历，文件准备完成后才会启用下载入口。",
+    contactBody: "仅展示已确认的公开渠道，其他职业联系入口将在资料提供后显示。",
+    back: "返回关于我",
   },
 }[locale];
+const sections = [
+  ["about-profile", copy.about],
+  ["education", copy.education],
+  ["experience", copy.experience],
+  ["skills", copy.skills],
+  ["resume", copy.resume],
+  ["contact", copy.contact],
+];
 ---
 
-<PageIntro title={copy.title} description={profileConfig.summary[locale]} />
-<section class="content-section" aria-labelledby="background-title">
-  <h2 id="background-title">{copy.background}</h2>
-  <ul class="detail-list">
-    {profileConfig.background[locale].map((item) => <li>{item}</li>)}
-  </ul>
+<section
+  class="about-hero"
+  aria-labelledby="about-title"
+  style={`--about-overlay: ${aboutHero.overlay}; --about-position: ${aboutHero.position};`}
+>
+  <img
+    src={withBase(aboutBackground)}
+    alt=""
+    width="1600"
+    height="720"
+    decoding="async"
+  />
+  <span aria-hidden="true"></span>
+  <div>
+    <p class="status">Xintao Liu</p>
+    <h1 id="about-title">{copy.title}</h1>
+    <p>{copy.heroLine}</p>
+  </div>
 </section>
-<section class="content-section" aria-labelledby="approach-title">
-  <h2 id="approach-title">{copy.approach}</h2>
-  <p>{copy.approachBody}</p>
-</section>
-<section class="content-section" aria-labelledby="about-timeline-title">
-  <h2 id="about-timeline-title">{copy.timeline}</h2>
-  <Timeline locale={locale} />
-</section>
+
+<div class="about-shell">
+  <div class="profile-portrait">
+    <img
+      src={withBase(portraitImage)}
+      alt={portrait.available ? "Xintao Liu" : "XL profile placeholder"}
+      width="240"
+      height="240"
+      style={`object-position: ${portrait.position};`}
+    />
+  </div>
+
+  <article class="profile-card" id="about-profile">
+    <header class="profile-card__header">
+      <p class="status">{copy.role}</p>
+      <h2>Xintao Liu</h2>
+      <p>{copy.location}</p>
+      <p class="profile-card__summary">{profileConfig.summary[locale]}</p>
+      <SocialLinks locale={locale} />
+    </header>
+
+    <nav class="about-nav" aria-label={copy.nav}>
+      {sections.map(([id, label]) => <a href={`#${id}`}>{label}</a>)}
+    </nav>
+
+    <section class="about-section" aria-labelledby="about-section-title">
+      <h2 id="about-section-title">{copy.about}</h2>
+      <p>{copy.approach}</p>
+    </section>
+
+    <section class="about-section" id="education" aria-labelledby="education-title">
+      <h2 id="education-title">{copy.education}</h2>
+      <Timeline locale={locale} kinds={["education"]} />
+      <ContextBack
+        locale={locale}
+        fallbackPath="/about/#about-profile"
+        label={{ en: copy.back, zh: copy.back }}
+      />
+    </section>
+
+    <section class="about-section" id="experience" aria-labelledby="experience-title">
+      <h2 id="experience-title">{copy.experience}</h2>
+      <Timeline locale={locale} kinds={["experience"]} />
+      <ContextBack
+        locale={locale}
+        fallbackPath="/about/#about-profile"
+        label={{ en: copy.back, zh: copy.back }}
+      />
+    </section>
+
+    <section class="about-section" id="skills" aria-labelledby="skills-title">
+      <h2 id="skills-title">{copy.skills}</h2>
+      <SkillGrid locale={locale} />
+      <ul class="tool-grid">
+        {toolset.map((tool) => <li>{tool}</li>)}
+      </ul>
+      <ContextBack
+        locale={locale}
+        fallbackPath="/about/#about-profile"
+        label={{ en: copy.back, zh: copy.back }}
+      />
+    </section>
+
+    <section class="about-section" id="resume" aria-labelledby="resume-title">
+      <h2 id="resume-title">{copy.resumeSoon}</h2>
+      <p>{copy.resumeBody}</p>
+      <ContextBack
+        locale={locale}
+        fallbackPath="/about/#about-profile"
+        label={{ en: copy.back, zh: copy.back }}
+      />
+    </section>
+
+    <section class="about-section" id="contact" aria-labelledby="contact-title">
+      <h2 id="contact-title">{copy.contact}</h2>
+      <p>{copy.contactBody}</p>
+      <SocialLinks locale={locale} />
+      <ContextBack
+        locale={locale}
+        fallbackPath="/about/#about-profile"
+        label={{ en: copy.back, zh: copy.back }}
+      />
+    </section>
+  </article>
+</div>

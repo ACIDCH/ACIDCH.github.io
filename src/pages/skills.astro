@@ -1,8 +1,9 @@
 ---
-import SkillsPage from "../components/SkillsPage.astro";
-import BaseLayout from "../layouts/BaseLayout.astro";
+import LegacyRoute from "../components/LegacyRoute.astro";
 ---
 
-<BaseLayout title="Skills" locale="en">
-  <SkillsPage locale="en" />
-</BaseLayout>
+<LegacyRoute
+  locale="en"
+  target="/about/#skills"
+  section={{ en: "Skills", zh: "技能" }}
+/>

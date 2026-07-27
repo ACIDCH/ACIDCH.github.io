@@ -21,6 +21,7 @@ interface Props {
   noindex?: boolean;
   pageType?: "website" | "article" | "profile";
   structuredData?: Record<string, unknown>;
+  fullWidth?: boolean;
 }
 
 const {
@@ -32,6 +33,7 @@ const {
   noindex = false,
   pageType = "website",
   structuredData,
+  fullWidth = false,
 } = Astro.props;
 const resolvedCanonicalPath = canonicalPath ?? Astro.url.pathname;
 const canonicalUrl = getCanonicalUrl(resolvedCanonicalPath);
@@ -154,8 +156,11 @@ const serialisedJsonLd = JSON.stringify(jsonLd).replace(/</g, "\\u003c");
       {locale === "en" ? "Skip to content" : "跳到主要内容"}
     </a>
     <Header locale={locale} alternatePath={alternatePath} />
-    <main id="main-content" class="page-shell">
-      <div class="page-container">
+    <main
+      id="main-content"
+      class:list={["page-shell", fullWidth && "page-shell--full"]}
+    >
+      <div class:list={["page-container", fullWidth && "page-container--full"]}>
         <slot />
       </div>
     </main>

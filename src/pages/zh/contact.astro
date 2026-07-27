@@ -1,8 +1,9 @@
 ---
-import ContactPage from "../../components/ContactPage.astro";
-import BaseLayout from "../../layouts/BaseLayout.astro";
+import LegacyRoute from "../../components/LegacyRoute.astro";
 ---
 
-<BaseLayout title="联系" locale="zh">
-  <ContactPage locale="zh" />
-</BaseLayout>
+<LegacyRoute
+  locale="zh"
+  target="/zh/about/#contact"
+  section={{ en: "Contact", zh: "联系" }}
+/>

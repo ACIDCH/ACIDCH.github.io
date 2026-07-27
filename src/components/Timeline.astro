@@ -4,14 +4,18 @@ import type { Locale } from "../config/site";
 
 interface Props {
   locale: Locale;
+  kinds?: Array<"education" | "experience" | "learning">;
 }
 
-const { locale } = Astro.props;
+const { locale, kinds } = Astro.props;
+const entries = kinds
+  ? timelineEntries.filter((entry) => kinds.includes(entry.kind))
+  : timelineEntries;
 ---
 
 <ol class="timeline">
   {
-    timelineEntries.map((entry) => (
+    entries.map((entry) => (
       <li class="timeline__item" data-reveal>
         <p class="status">{entry.kind}</p>
         <details>

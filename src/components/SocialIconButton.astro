@@ -1,0 +1,26 @@
+---
+import Icon, { type IconName } from "./Icon.astro";
+
+interface Props {
+  href: string;
+  label: string;
+  icon: IconName;
+  external?: boolean;
+  download?: boolean;
+}
+
+const { href, label, icon, external = false, download = false } = Astro.props;
+---
+
+<a
+  class="social-icon-button"
+  href={href}
+  aria-label={label}
+  title={label}
+  target={external ? "_blank" : undefined}
+  rel={external ? "noopener noreferrer" : undefined}
+  download={download || undefined}
+>
+  <Icon name={icon} size={22} />
+  <span>{label}</span>
+</a>

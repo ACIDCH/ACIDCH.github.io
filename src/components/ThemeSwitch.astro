@@ -1,5 +1,6 @@
 ---
 import type { Locale } from "../config/site";
+import Icon from "./Icon.astro";
 
 interface Props {
   locale: Locale;
@@ -19,7 +20,7 @@ const labels =
     aria-label={labels.light}
     aria-pressed="false"
   >
-    <span aria-hidden="true">☀</span>
+    <Icon name="sun" />
     <span>{labels.light}</span>
   </button>
   <button
@@ -28,7 +29,7 @@ const labels =
     aria-label={labels.dark}
     aria-pressed="false"
   >
-    <span aria-hidden="true">◐</span>
+    <Icon name="moon" />
     <span>{labels.dark}</span>
   </button>
   <button
@@ -37,7 +38,7 @@ const labels =
     aria-label={labels.system}
     aria-pressed="false"
   >
-    <span aria-hidden="true">◒</span>
+    <Icon name="system" />
     <span>{labels.system}</span>
   </button>
 </div>

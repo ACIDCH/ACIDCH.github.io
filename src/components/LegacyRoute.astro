@@ -1,0 +1,36 @@
+---
+import type { Locale } from "../config/site";
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+interface Props {
+  locale: Locale;
+  target: string;
+  section: Record<Locale, string>;
+}
+
+const { locale, target, section } = Astro.props;
+const copy = {
+  en: {
+    title: `${section.en} moved to About Me`,
+    body: "This section is now part of the consolidated About Me page.",
+    action: "Continue to About Me",
+  },
+  zh: {
+    title: `${section.zh}已归入“关于我”`,
+    body: "该内容现已整合到“关于我”页面。",
+    action: "前往关于我",
+  },
+}[locale];
+---
+
+<BaseLayout title={copy.title} locale={locale} canonicalPath={target} noindex>
+  <section class="legacy-route">
+    <h1>{copy.title}</h1>
+    <p>{copy.body}</p>
+    <a class="button" href={target} data-legacy-target>{copy.action}</a>
+  </section>
+</BaseLayout>
+
+<script is:inline define:vars={{ target }} data-astro-rerun>
+  window.location.replace(target);
+</script>

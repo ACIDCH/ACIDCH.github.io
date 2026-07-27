@@ -1,8 +1,9 @@
 ---
-import ResumePage from "../../components/ResumePage.astro";
-import BaseLayout from "../../layouts/BaseLayout.astro";
+import LegacyRoute from "../../components/LegacyRoute.astro";
 ---
 
-<BaseLayout title="简历" locale="zh">
-  <ResumePage locale="zh" />
-</BaseLayout>
+<LegacyRoute
+  locale="zh"
+  target="/zh/about/#resume"
+  section={{ en: "Resume", zh: "简历" }}
+/>

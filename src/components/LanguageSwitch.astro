@@ -3,6 +3,7 @@ import type { Locale } from "../config/site";
 import { siteConfig } from "../config/site";
 import { ui } from "../i18n/ui";
 import { getLocalizedPath } from "../utils/paths";
+import Icon from "./Icon.astro";
 
 interface Props {
   locale: Locale;
@@ -24,7 +25,7 @@ const targetPath = alternatePath ?? getLocalizedPath(Astro.url.pathname, targetL
   data-target-locale={targetLocale}
   data-language-storage-key={siteConfig.language.storageKey}
 >
-  <span aria-hidden="true">文</span>
+  <Icon name="language" />
   <span>{ui[locale].languageSwitch}</span>
 </a>
 

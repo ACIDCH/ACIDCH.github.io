@@ -1,0 +1,18 @@
+---
+import type { Locale } from "../config/site";
+import { getLocalizedPath } from "../utils/paths";
+import Icon from "./Icon.astro";
+
+interface Props {
+  locale: Locale;
+  fallbackPath: string;
+  label: Record<Locale, string>;
+}
+
+const { locale, fallbackPath, label } = Astro.props;
+---
+
+<a class="context-back" href={getLocalizedPath(fallbackPath, locale)}>
+  <Icon name="back" />
+  <span>{label[locale]}</span>
+</a>

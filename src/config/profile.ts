@@ -7,12 +7,6 @@ export const profileConfig = {
     en: "Business Analytics & Supply Chain Analytics",
     zh: "商业分析与供应链分析",
   },
-  professionalEmail: null,
-  linkedInUrl: null,
-  resume: {
-    en: null,
-    zh: null,
-  },
   summary: {
     en: "Master of Business Analytics student at the University of Auckland, specialising in supply chain and building practical decision support with data, optimisation and clear communication.",
     zh: "就读于奥克兰大学商业分析硕士项目，专注供应链方向，关注如何通过数据、优化方法与清晰沟通支持可落地的商业决策。",
@@ -36,9 +30,6 @@ export const profileConfig = {
 } satisfies {
   publicName: string;
   role: Record<Locale, string>;
-  professionalEmail: string | null;
-  linkedInUrl: string | null;
-  resume: Record<Locale, string | null>;
   summary: Record<Locale, string>;
   background: Record<Locale, string[]>;
 };

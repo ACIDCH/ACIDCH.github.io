@@ -26,6 +26,16 @@ describe("path helpers", () => {
       "/portfolio/images/card.webp",
     );
   });
+
+  it("preserves query strings and anchors while localising", () => {
+    expect(getLocalizedPath("/notes/?tag=optimisation", "zh")).toBe(
+      "/zh/notes/?tag=optimisation",
+    );
+    expect(getLocalizedPath("/about/#skills", "zh")).toBe("/zh/about/#skills");
+    expect(withBase("/about/#contact", "/portfolio/")).toBe(
+      "/portfolio/about/#contact",
+    );
+  });
 });
 
 describe("URL helpers", () => {

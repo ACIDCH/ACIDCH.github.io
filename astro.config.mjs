@@ -14,6 +14,7 @@ export default defineConfig({
         return !(
           /\/404\/?$/.test(pathname) ||
           /\/design-lab\/?$/.test(pathname) ||
+          /\/(?:skills|resume|contact)\/?$/.test(pathname) ||
           /\/(?:projects|notes)\/[^/]+\/?$/.test(pathname)
         );
       },

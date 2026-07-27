@@ -4,6 +4,7 @@ import type { Locale } from "../config/site";
 import { siteConfig } from "../config/site";
 import { getLocalizedPath } from "../utils/paths";
 import LanguageSwitch from "./LanguageSwitch.astro";
+import Icon, { type IconName } from "./Icon.astro";
 import Logo from "./Logo.astro";
 import ThemeSwitch from "./ThemeSwitch.astro";
 
@@ -14,6 +15,12 @@ interface Props {
 
 const { locale, alternatePath } = Astro.props;
 const currentPath = Astro.url.pathname;
+const navigationIcons: Record<string, IconName> = {
+  "/": "home",
+  "/projects/": "projects",
+  "/notes/": "notes",
+  "/about/": "about",
+};
 
 function isCurrentRoute(path: string): boolean {
   const localizedPath = getLocalizedPath(path, locale);
@@ -44,9 +51,17 @@ function isCurrentRoute(path: string): boolean {
       aria-controls="primary-navigation"
       data-menu-toggle
     >
-      <span class="menu-toggle__icon" aria-hidden="true"></span>
+      <span class="menu-toggle__open-icon"><Icon name="menu" /></span>
+      <span class="menu-toggle__close-icon"><Icon name="close" /></span>
       <span>{locale === "en" ? "Menu" : "菜单"}</span>
     </button>
+
+    <button
+      class="menu-scrim"
+      type="button"
+      tabindex="-1"
+      aria-label={locale === "en" ? "Close menu" : "关闭菜单"}
+      data-menu-scrim></button>
 
     <div class="header-panel" id="primary-navigation" data-header-panel>
       <nav
@@ -61,6 +76,7 @@ function isCurrentRoute(path: string): boolean {
                   href={getLocalizedPath(item.path, locale)}
                   aria-current={isCurrentRoute(item.path) ? "page" : undefined}
                 >
+                  <Icon name={navigationIcons[item.path] ?? "home"} />
                   {item.label[locale]}
                 </a>
               </li>
@@ -79,40 +95,59 @@ function isCurrentRoute(path: string): boolean {
 
 <script>
   const desktop = window.matchMedia("(min-width: 70rem)");
+  let activeHeaderCleanup: (() => void) | undefined;
+  let lockedScrollPosition: number | undefined;
+
+  function setBackgroundInert(inert: boolean) {
+    document
+      .querySelectorAll<HTMLElement>("body > .skip-link, body > main, body > footer")
+      .forEach((element) => {
+        element.inert = inert;
+      });
+  }
+
+  function lockPage() {
+    if (lockedScrollPosition !== undefined) return;
+
+    lockedScrollPosition = window.scrollY;
+    document.documentElement.dataset.menuLocked = "true";
+    document.body.dataset.menuLocked = "true";
+    document.body.style.setProperty("--menu-lock-offset", `-${lockedScrollPosition}px`);
+    setBackgroundInert(true);
+  }
+
+  function unlockPage({ restoreScroll = true } = {}) {
+    if (lockedScrollPosition === undefined) {
+      document.documentElement.removeAttribute("data-menu-locked");
+      document.body.removeAttribute("data-menu-locked");
+      document.body.style.removeProperty("--menu-lock-offset");
+      setBackgroundInert(false);
+      return;
+    }
+
+    const scrollPosition = lockedScrollPosition;
+    lockedScrollPosition = undefined;
+    document.documentElement.removeAttribute("data-menu-locked");
+    document.body.removeAttribute("data-menu-locked");
+    document.body.style.removeProperty("--menu-lock-offset");
+    setBackgroundInert(false);
+
+    if (restoreScroll) {
+      window.scrollTo(0, scrollPosition);
+    }
+  }
 
   function initHeader() {
+    activeHeaderCleanup?.();
+
     const header = document.querySelector<HTMLElement>("[data-site-header]");
     const toggle = header?.querySelector<HTMLButtonElement>("[data-menu-toggle]");
     const panel = header?.querySelector<HTMLElement>("[data-header-panel]");
-    if (!header || !toggle || !panel || header.dataset.headerReady === "true") {
-      return;
-    }
-    header.dataset.headerReady = "true";
-    let lockedScrollPosition = 0;
+    const scrim = header?.querySelector<HTMLButtonElement>("[data-menu-scrim]");
+    if (!header || !toggle || !panel || !scrim) return;
 
-    function setBackgroundInert(inert: boolean) {
-      document
-        .querySelectorAll<HTMLElement>("body > .skip-link, body > main, body > footer")
-        .forEach((element) => {
-          element.inert = inert;
-        });
-    }
-
-    function lockPage() {
-      lockedScrollPosition = window.scrollY;
-      document.documentElement.dataset.menuLocked = "true";
-      document.body.dataset.menuLocked = "true";
-      setBackgroundInert(true);
-    }
-
-    function unlockPage() {
-      if (document.body.dataset.menuLocked !== "true") return;
-
-      document.documentElement.removeAttribute("data-menu-locked");
-      document.body.removeAttribute("data-menu-locked");
-      setBackgroundInert(false);
-      window.scrollTo(0, lockedScrollPosition);
-    }
+    const controller = new AbortController();
+    const { signal } = controller;
 
     function setMenu(open: boolean) {
       const wasOpen = toggle!.getAttribute("aria-expanded") === "true";
@@ -126,35 +161,52 @@ function isCurrentRoute(path: string): boolean {
       }
     }
 
-    toggle.addEventListener("click", () => {
-      setMenu(toggle.getAttribute("aria-expanded") !== "true");
-    });
+    function closeAndRestoreFocus() {
+      setMenu(false);
+      toggle!.focus();
+    }
 
-    panel.addEventListener("click", (event) => {
-      if ((event.target as HTMLElement).closest("a")) {
-        setMenu(false);
-      }
-    });
+    toggle.addEventListener(
+      "click",
+      () => {
+        setMenu(toggle.getAttribute("aria-expanded") !== "true");
+      },
+      { signal },
+    );
 
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && toggle.getAttribute("aria-expanded") === "true") {
-        setMenu(false);
-        toggle.focus();
-      }
-    });
+    scrim.addEventListener("click", closeAndRestoreFocus, { signal });
 
-    document.addEventListener("click", (event) => {
-      if (
-        toggle.getAttribute("aria-expanded") === "true" &&
-        !header.contains(event.target as Node)
-      ) {
-        setMenu(false);
-      }
-    });
+    panel.addEventListener(
+      "click",
+      (event) => {
+        if ((event.target as HTMLElement).closest("a")) {
+          setMenu(false);
+        }
+      },
+      { signal },
+    );
 
-    desktop.addEventListener("change", () => setMenu(false));
+    document.addEventListener(
+      "keydown",
+      (event) => {
+        if (event.key === "Escape" && toggle.getAttribute("aria-expanded") === "true") {
+          closeAndRestoreFocus();
+        }
+      },
+      { signal },
+    );
+
+    desktop.addEventListener("change", () => setMenu(false), { signal });
+
+    activeHeaderCleanup = () => {
+      controller.abort();
+      header.dataset.menuOpen = "false";
+      toggle.setAttribute("aria-expanded", "false");
+      unlockPage();
+    };
   }
 
+  document.addEventListener("astro:before-swap", () => activeHeaderCleanup?.());
   document.addEventListener("astro:page-load", initHeader);
   initHeader();
 </script>

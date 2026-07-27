@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">Southern alpine landscape placeholder</title>
+  <desc id="desc">A minimal abstract mountain and lake landscape for later image replacement.</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#a8bbb6"/>
+      <stop offset=".6" stop-color="#d9d4c7"/>
+      <stop offset="1" stop-color="#eee7d9"/>
+    </linearGradient>
+    <linearGradient id="lake" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#718f91"/>
+      <stop offset="1" stop-color="#415b5b"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#sky)" d="M0 0h1600v1000H0z"/>
+  <circle cx="1250" cy="210" r="95" fill="#efe4c6" opacity=".72"/>
+  <path fill="#7d847d" d="m0 650 220-270 130 112 190-270 205 287 160-187 250 305 178-214 287 287v300H0z"/>
+  <path fill="#59665f" d="m0 720 300-250 175 153 220-260 260 304 198-155 247 209 200-102v381H0z"/>
+  <path fill="#ebe8df" d="m375 405 165-183 118 165-92-55-30 54-56-31-49 77z" opacity=".9"/>
+  <path fill="url(#lake)" d="M0 705h1600v295H0z"/>
+  <path fill="none" stroke="#d4ded9" stroke-width="8" d="M0 787c298-62 500 35 801-15 289-48 488-12 799 36" opacity=".38"/>
+</svg>

@@ -1,18 +1,34 @@
 ---
 import { getCollection } from "astro:content";
-import NoteList from "../../components/NoteList.astro";
+import NotesExplorer from "../../components/NotesExplorer.astro";
 import PageIntro from "../../components/PageIntro.astro";
+import ProjectList from "../../components/ProjectList.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 
 const notes = (await getCollection("notes")).filter(
   (entry) => entry.data.locale === "en",
+);
+const relatedProjectKeys = new Set(
+  notes.flatMap((entry) => entry.data.relatedProjects),
+);
+const relatedProjects = (await getCollection("projects")).filter(
+  (entry) =>
+    entry.data.locale === "en" && relatedProjectKeys.has(entry.data.translationKey),
 );
 ---
 
 <BaseLayout title="Learning Notes" locale="en">
   <PageIntro
     title="Learning Notes"
-    description="Verified learning notes will be added without publishing restricted course material."
+    description="A bilingual, searchable knowledge base for verified notes on analytics, optimisation and decision support. Drafts never expose restricted course material."
   />
-  <NoteList entries={notes} locale="en" />
+  <NotesExplorer entries={notes} locale="en" />
+  {
+    relatedProjects.length > 0 && (
+      <section class="content-section" aria-labelledby="notes-projects-title">
+        <h2 id="notes-projects-title">Related Projects</h2>
+        <ProjectList entries={relatedProjects} locale="en" />
+      </section>
+    )
+  }
 </BaseLayout>

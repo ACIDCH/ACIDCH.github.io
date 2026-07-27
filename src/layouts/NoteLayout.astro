@@ -1,5 +1,8 @@
 ---
-import { render, type CollectionEntry } from "astro:content";
+import { getCollection, render, type CollectionEntry } from "astro:content";
+import ContextBack from "../components/ContextBack.astro";
+import NoteList from "../components/NoteList.astro";
+import ProjectList from "../components/ProjectList.astro";
 import { siteConfig } from "../config/site";
 import { getCanonicalUrl } from "../utils/urls";
 import BaseLayout from "./BaseLayout.astro";
@@ -11,6 +14,18 @@ interface Props {
 
 const { entry, alternatePath } = Astro.props;
 const { Content } = await render(entry);
+const notes = await getCollection("notes");
+const projects = await getCollection("projects");
+const relatedNotes = notes.filter(
+  (note) =>
+    note.data.locale === entry.data.locale &&
+    entry.data.relatedNotes.includes(note.data.translationKey),
+);
+const relatedProjects = projects.filter(
+  (project) =>
+    project.data.locale === entry.data.locale &&
+    entry.data.relatedProjects.includes(project.data.translationKey),
+);
 const noteStructuredData = {
   "@type": "Article",
   "@id": `${getCanonicalUrl(Astro.url.pathname)}#article`,
@@ -36,6 +51,11 @@ const noteStructuredData = {
   structuredData={noteStructuredData}
 >
   <article>
+    <ContextBack
+      locale={entry.data.locale}
+      fallbackPath="/notes/"
+      label={{ en: "Back to Learning Notes", zh: "返回学习笔记" }}
+    />
     {
       entry.data.isPlaceholder && (
         <p class="status">
@@ -45,6 +65,37 @@ const noteStructuredData = {
     }
     <h1>{entry.data.title}</h1>
     <p>{entry.data.summary}</p>
+    <div class="note-detail__metadata">
+      {entry.data.series && <span class="tag">{entry.data.series}</span>}
+      {entry.data.tags.map((tag) => <span class="tag">{tag}</span>)}
+      {entry.data.topics.map((topic) => <span class="tag">{topic}</span>)}
+      {entry.data.tools.map((tool) => <span class="tag">{tool}</span>)}
+    </div>
     <Content />
+    {
+      relatedNotes.length > 0 && (
+        <section class="related-notes" aria-labelledby="note-related-title">
+          <h2 id="note-related-title">
+            {entry.data.locale === "en" ? "Related Notes" : "相关笔记"}
+          </h2>
+          <NoteList entries={relatedNotes} locale={entry.data.locale} />
+        </section>
+      )
+    }
+    {
+      relatedProjects.length > 0 && (
+        <section class="related-notes" aria-labelledby="project-related-title">
+          <h2 id="project-related-title">
+            {entry.data.locale === "en" ? "Related Projects" : "相关项目"}
+          </h2>
+          <ProjectList entries={relatedProjects} locale={entry.data.locale} />
+        </section>
+      )
+    }
+    <ContextBack
+      locale={entry.data.locale}
+      fallbackPath="/notes/"
+      label={{ en: "Back to Learning Notes", zh: "返回学习笔记" }}
+    />
   </article>
 </BaseLayout>

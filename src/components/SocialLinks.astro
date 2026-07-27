@@ -1,0 +1,60 @@
+---
+import { portfolioConfig } from "../config/portfolio";
+import type { Locale } from "../config/site";
+import { withBase } from "../utils/paths";
+import SocialIconButton from "./SocialIconButton.astro";
+import WechatQrDialog from "./WechatQrDialog.astro";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const { contact } = portfolioConfig;
+const resumePath = contact.resume.paths[locale];
+const resumeAvailable =
+  contact.resume.enabled && contact.resume.available[locale] && resumePath;
+---
+
+<div class="social-links" aria-label={locale === "en" ? "Contact links" : "联系入口"}>
+  {
+    contact.github.enabled && contact.github.url && (
+      <SocialIconButton
+        href={contact.github.url}
+        label="GitHub"
+        icon="github"
+        external
+      />
+    )
+  }
+  {
+    contact.linkedin.enabled && contact.linkedin.url && (
+      <SocialIconButton
+        href={contact.linkedin.url}
+        label="LinkedIn"
+        icon="linkedin"
+        external
+      />
+    )
+  }
+  {
+    contact.email.enabled && contact.email.address && (
+      <SocialIconButton
+        href={`mailto:${contact.email.address}`}
+        label="Email"
+        icon="email"
+      />
+    )
+  }
+  <WechatQrDialog locale={locale} />
+  {
+    resumeAvailable && (
+      <SocialIconButton
+        href={withBase(resumePath)}
+        label={locale === "en" ? "Resume" : "简历"}
+        icon="resume"
+        external
+      />
+    )
+  }
+</div>
