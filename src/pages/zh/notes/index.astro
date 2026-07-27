@@ -4,10 +4,11 @@ import NotesExplorer from "../../../components/NotesExplorer.astro";
 import PageIntro from "../../../components/PageIntro.astro";
 import ProjectList from "../../../components/ProjectList.astro";
 import BaseLayout from "../../../layouts/BaseLayout.astro";
+import { getPaginationPath, getTotalPages } from "../../../utils/pagination";
 
-const notes = (await getCollection("notes")).filter(
-  (entry) => entry.data.locale === "zh",
-);
+const notes = (await getCollection("notes"))
+  .filter((entry) => entry.data.locale === "zh")
+  .sort((left, right) => left.data.title.localeCompare(right.data.title, "zh-CN"));
 const relatedProjectKeys = new Set(
   notes.flatMap((entry) => entry.data.relatedProjects),
 );
@@ -15,14 +16,27 @@ const relatedProjects = (await getCollection("projects")).filter(
   (entry) =>
     entry.data.locale === "zh" && relatedProjectKeys.has(entry.data.translationKey),
 );
+const totalPages = getTotalPages(notes.length, 9);
 ---
 
-<BaseLayout title="学习笔记" locale="zh">
+<BaseLayout
+  title="学习笔记"
+  locale="zh"
+  pagination={{
+    next: totalPages > 1 ? getPaginationPath("/zh/notes/", 2) : undefined,
+  }}
+>
   <PageIntro
     title="学习笔记"
     description="围绕分析、优化与决策支持建立的双语可搜索知识库；草稿不会公开受限制课程材料。"
   />
-  <NotesExplorer entries={notes} locale="zh" />
+  <NotesExplorer
+    entries={notes}
+    locale="zh"
+    currentPage={1}
+    pageSize={9}
+    basePath="/zh/notes/"
+  />
   {
     relatedProjects.length > 0 && (
       <section class="content-section" aria-labelledby="notes-projects-title">

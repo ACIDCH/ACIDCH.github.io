@@ -1,0 +1,61 @@
+---
+import { getCollection, type CollectionEntry } from "astro:content";
+import Pagination from "../../../../components/Pagination.astro";
+import PageIntro from "../../../../components/PageIntro.astro";
+import ProjectList from "../../../../components/ProjectList.astro";
+import BaseLayout from "../../../../layouts/BaseLayout.astro";
+import {
+  getGeneratedPageNumbers,
+  getPaginationPath,
+  paginate,
+} from "../../../../utils/pagination";
+
+export async function getStaticPaths() {
+  const projects = (await getCollection("projects"))
+    .filter((entry) => entry.data.locale === "zh")
+    .sort(
+      (left, right) =>
+        Number(right.data.featured) - Number(left.data.featured) ||
+        left.data.title.localeCompare(right.data.title, "zh-CN"),
+    );
+
+  return getGeneratedPageNumbers(projects.length, 6).map((page) => ({
+    params: { page: String(page) },
+    props: { projects, currentPage: page },
+  }));
+}
+
+interface Props {
+  projects: CollectionEntry<"projects">[];
+  currentPage: number;
+}
+
+const { projects, currentPage } = Astro.props;
+const page = paginate(projects, currentPage, 6);
+const canonicalPath = getPaginationPath("/zh/projects/", currentPage);
+---
+
+<BaseLayout
+  title={`项目 — 第 ${currentPage} 页`}
+  locale="zh"
+  canonicalPath={canonicalPath}
+  pagination={{
+    previous: getPaginationPath("/zh/projects/", currentPage - 1),
+    next:
+      currentPage < page.totalPages
+        ? getPaginationPath("/zh/projects/", currentPage + 1)
+        : undefined,
+  }}
+>
+  <PageIntro
+    title="项目"
+    description={`项目归档，第 ${currentPage} 页，共 ${page.totalPages} 页。`}
+  />
+  <ProjectList entries={page.items} locale="zh" />
+  <Pagination
+    currentPage={currentPage}
+    totalPages={page.totalPages}
+    basePath="/zh/projects/"
+    locale="zh"
+  />
+</BaseLayout>

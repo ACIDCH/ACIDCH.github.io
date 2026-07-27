@@ -1,0 +1,56 @@
+---
+import { getCollection, type CollectionEntry } from "astro:content";
+import NotesExplorer from "../../../components/NotesExplorer.astro";
+import PageIntro from "../../../components/PageIntro.astro";
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import {
+  getGeneratedPageNumbers,
+  getPaginationPath,
+  getTotalPages,
+} from "../../../utils/pagination";
+
+export async function getStaticPaths() {
+  const notes = (await getCollection("notes"))
+    .filter((entry) => entry.data.locale === "en")
+    .sort((left, right) => left.data.title.localeCompare(right.data.title, "en"));
+
+  return getGeneratedPageNumbers(notes.length, 9).map((page) => ({
+    params: { page: String(page) },
+    props: { notes, currentPage: page },
+  }));
+}
+
+interface Props {
+  notes: CollectionEntry<"notes">[];
+  currentPage: number;
+}
+
+const { notes, currentPage } = Astro.props;
+const totalPages = getTotalPages(notes.length, 9);
+const canonicalPath = getPaginationPath("/notes/", currentPage);
+---
+
+<BaseLayout
+  title={`Learning Notes — Page ${currentPage}`}
+  locale="en"
+  canonicalPath={canonicalPath}
+  pagination={{
+    previous: getPaginationPath("/notes/", currentPage - 1),
+    next:
+      currentPage < totalPages
+        ? getPaginationPath("/notes/", currentPage + 1)
+        : undefined,
+  }}
+>
+  <PageIntro
+    title="Learning Notes"
+    description={`Learning notes archive, page ${currentPage} of ${totalPages}.`}
+  />
+  <NotesExplorer
+    entries={notes}
+    locale="en"
+    currentPage={currentPage}
+    pageSize={9}
+    basePath="/notes/"
+  />
+</BaseLayout>

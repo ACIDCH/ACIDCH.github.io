@@ -2,15 +2,27 @@
 import type { CollectionEntry } from "astro:content";
 import { portfolioConfig } from "../config/portfolio";
 import type { Locale } from "../config/site";
+import { getTotalPages } from "../utils/pagination";
 import NoteList from "./NoteList.astro";
+import Pagination from "./Pagination.astro";
 import SocialIconButton from "./SocialIconButton.astro";
 
 interface Props {
   entries: CollectionEntry<"notes">[];
   locale: Locale;
+  currentPage?: number;
+  pageSize?: number;
+  basePath?: string;
 }
 
-const { entries, locale } = Astro.props;
+const {
+  entries,
+  locale,
+  currentPage = 1,
+  pageSize = 9,
+  basePath = locale === "en" ? "/notes/" : "/zh/notes/",
+} = Astro.props;
+const totalPages = getTotalPages(entries.length, pageSize);
 const tagCounts = new Map<string, number>();
 entries
   .flatMap((entry) => entry.data.tags)
@@ -45,7 +57,17 @@ const copy =
 const notebook = portfolioConfig.externalNotebook;
 ---
 
-<section class="notes-explorer" data-notes-explorer data-result-label={copy.result}>
+<section
+  class="notes-explorer"
+  data-notes-explorer
+  data-result-label={copy.result}
+  data-current-page={currentPage}
+  data-page-size={pageSize}
+  data-base-path={basePath}
+  data-page-label={locale === "en" ? "Page" : "第"}
+  data-page-separator={locale === "en" ? "of" : "页，共"}
+  data-page-suffix={locale === "en" ? "" : "页"}
+>
   <section class="tag-cloud-panel" aria-labelledby="tag-cloud-title">
     <div>
       <p class="status">{locale === "en" ? "Knowledge map" : "知识地图"}</p>
@@ -79,6 +101,12 @@ const notebook = portfolioConfig.externalNotebook;
   </div>
   <NoteList entries={entries} locale={locale} />
   <p class="empty-state" data-notes-empty hidden>{copy.empty}</p>
+  <Pagination
+    currentPage={currentPage}
+    totalPages={totalPages}
+    basePath={basePath}
+    locale={locale}
+  />
 
   {
     notebook.enabled && notebook.url && (
@@ -113,28 +141,75 @@ const notebook = portfolioConfig.externalNotebook;
     );
     const result = explorer.querySelector<HTMLElement>("[data-notes-result]");
     const empty = explorer.querySelector<HTMLElement>("[data-notes-empty]");
+    const pagination = explorer.querySelector<HTMLElement>("[data-pagination]");
+    const pageSize = Number(explorer.dataset.pageSize ?? 9);
+    const currentPage = Number(explorer.dataset.currentPage ?? 1);
+    const basePath = explorer.dataset.basePath ?? "/notes/";
     const controller = new AbortController();
 
     function applyTag(tag: string, updateUrl = true) {
-      let visible = 0;
+      const matches = cards.filter(
+        (card) => !tag || (card.dataset.tags ?? "").split("|").includes(tag),
+      );
+      const totalPages = Math.max(1, Math.ceil(matches.length / pageSize));
+      const start = (currentPage - 1) * pageSize;
+      const visibleCards = new Set(matches.slice(start, start + pageSize));
+
       cards.forEach((card) => {
-        const matches = !tag || (card.dataset.tags ?? "").split("|").includes(tag);
-        card.hidden = !matches;
-        if (matches) visible += 1;
+        card.hidden = !visibleCards.has(card);
       });
       buttons.forEach((button) => {
         button.setAttribute("aria-pressed", String(button.dataset.noteTag === tag));
       });
       if (result) {
-        result.textContent = `${visible} ${explorer!.dataset.resultLabel ?? ""}`;
+        result.textContent = `${matches.length} ${explorer!.dataset.resultLabel ?? ""}`;
       }
-      if (empty) empty.hidden = visible !== 0;
+      if (empty) empty.hidden = visibleCards.size !== 0;
+
+      if (pagination) {
+        pagination.hidden = totalPages <= 1;
+        pagination
+          .querySelectorAll<HTMLElement>("[data-pagination-page]")
+          .forEach((link) => {
+            const page = Number(link.dataset.paginationPage);
+            link.closest("li")!.hidden = page > totalPages;
+            const path = page === 1 ? basePath : `${basePath}page/${String(page)}/`;
+            const params = new URLSearchParams();
+            if (tag) params.set("tag", tag);
+            link.setAttribute("href", params.size ? `${path}?${params}` : path);
+          });
+        const status = pagination.querySelector<HTMLElement>(
+          "[data-pagination-status]",
+        );
+        if (status) {
+          status.textContent =
+            explorer!.dataset.pageLabel === "Page"
+              ? `Page ${currentPage} of ${totalPages}`
+              : `第 ${currentPage} 页，共 ${totalPages} 页`;
+        }
+        pagination
+          .querySelector<HTMLAnchorElement>("[data-pagination-previous]")
+          ?.toggleAttribute("hidden", currentPage <= 1);
+        pagination
+          .querySelector<HTMLAnchorElement>("[data-pagination-next]")
+          ?.toggleAttribute("hidden", currentPage >= totalPages);
+        pagination.querySelectorAll<HTMLAnchorElement>("a").forEach((link) => {
+          const url = new URL(link.href);
+          if (tag) url.searchParams.set("tag", tag);
+          else url.searchParams.delete("tag");
+          link.href = `${url.pathname}${url.search}`;
+        });
+      }
 
       if (updateUrl) {
-        const url = new URL(location.href);
-        if (tag) url.searchParams.set("tag", tag);
-        else url.searchParams.delete("tag");
-        history.replaceState(history.state, "", `${url.pathname}${url.search}`);
+        const params = new URLSearchParams();
+        if (tag) params.set("tag", tag);
+        const target = params.size ? `${basePath}?${params}` : basePath;
+        if (currentPage === 1) {
+          history.replaceState(history.state, "", target);
+        } else {
+          location.assign(target);
+        }
       }
     }
 

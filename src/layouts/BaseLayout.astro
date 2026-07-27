@@ -22,6 +22,10 @@ interface Props {
   pageType?: "website" | "article" | "profile";
   structuredData?: Record<string, unknown>;
   fullWidth?: boolean;
+  pagination?: {
+    previous?: string;
+    next?: string;
+  };
 }
 
 const {
@@ -34,6 +38,7 @@ const {
   pageType = "website",
   structuredData,
   fullWidth = false,
+  pagination,
 } = Astro.props;
 const resolvedCanonicalPath = canonicalPath ?? Astro.url.pathname;
 const canonicalUrl = getCanonicalUrl(resolvedCanonicalPath);
@@ -128,6 +133,12 @@ const serialisedJsonLd = JSON.stringify(jsonLd).replace(/</g, "\\u003c");
     <link rel="alternate" hreflang="en" href={getCanonicalUrl(englishPath)} />
     <link rel="alternate" hreflang="zh-CN" href={getCanonicalUrl(chinesePath)} />
     <link rel="alternate" hreflang="x-default" href={getCanonicalUrl(englishPath)} />
+    {
+      pagination?.previous && (
+        <link rel="prev" href={getCanonicalUrl(pagination.previous)} />
+      )
+    }
+    {pagination?.next && <link rel="next" href={getCanonicalUrl(pagination.next)} />}
     <ClientRouter />
     <script is:inline type="application/ld+json" set:html={serialisedJsonLd} />
     <title>{fullTitle}</title>

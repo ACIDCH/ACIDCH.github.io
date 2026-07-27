@@ -4,10 +4,11 @@ import NotesExplorer from "../../components/NotesExplorer.astro";
 import PageIntro from "../../components/PageIntro.astro";
 import ProjectList from "../../components/ProjectList.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getPaginationPath, getTotalPages } from "../../utils/pagination";
 
-const notes = (await getCollection("notes")).filter(
-  (entry) => entry.data.locale === "en",
-);
+const notes = (await getCollection("notes"))
+  .filter((entry) => entry.data.locale === "en")
+  .sort((left, right) => left.data.title.localeCompare(right.data.title, "en"));
 const relatedProjectKeys = new Set(
   notes.flatMap((entry) => entry.data.relatedProjects),
 );
@@ -15,14 +16,27 @@ const relatedProjects = (await getCollection("projects")).filter(
   (entry) =>
     entry.data.locale === "en" && relatedProjectKeys.has(entry.data.translationKey),
 );
+const totalPages = getTotalPages(notes.length, 9);
 ---
 
-<BaseLayout title="Learning Notes" locale="en">
+<BaseLayout
+  title="Learning Notes"
+  locale="en"
+  pagination={{
+    next: totalPages > 1 ? getPaginationPath("/notes/", 2) : undefined,
+  }}
+>
   <PageIntro
     title="Learning Notes"
     description="A bilingual, searchable knowledge base for verified notes on analytics, optimisation and decision support. Drafts never expose restricted course material."
   />
-  <NotesExplorer entries={notes} locale="en" />
+  <NotesExplorer
+    entries={notes}
+    locale="en"
+    currentPage={1}
+    pageSize={9}
+    basePath="/notes/"
+  />
   {
     relatedProjects.length > 0 && (
       <section class="content-section" aria-labelledby="notes-projects-title">

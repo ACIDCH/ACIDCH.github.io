@@ -1,0 +1,56 @@
+---
+import { getCollection, type CollectionEntry } from "astro:content";
+import NotesExplorer from "../../../../components/NotesExplorer.astro";
+import PageIntro from "../../../../components/PageIntro.astro";
+import BaseLayout from "../../../../layouts/BaseLayout.astro";
+import {
+  getGeneratedPageNumbers,
+  getPaginationPath,
+  getTotalPages,
+} from "../../../../utils/pagination";
+
+export async function getStaticPaths() {
+  const notes = (await getCollection("notes"))
+    .filter((entry) => entry.data.locale === "zh")
+    .sort((left, right) => left.data.title.localeCompare(right.data.title, "zh-CN"));
+
+  return getGeneratedPageNumbers(notes.length, 9).map((page) => ({
+    params: { page: String(page) },
+    props: { notes, currentPage: page },
+  }));
+}
+
+interface Props {
+  notes: CollectionEntry<"notes">[];
+  currentPage: number;
+}
+
+const { notes, currentPage } = Astro.props;
+const totalPages = getTotalPages(notes.length, 9);
+const canonicalPath = getPaginationPath("/zh/notes/", currentPage);
+---
+
+<BaseLayout
+  title={`学习笔记 — 第 ${currentPage} 页`}
+  locale="zh"
+  canonicalPath={canonicalPath}
+  pagination={{
+    previous: getPaginationPath("/zh/notes/", currentPage - 1),
+    next:
+      currentPage < totalPages
+        ? getPaginationPath("/zh/notes/", currentPage + 1)
+        : undefined,
+  }}
+>
+  <PageIntro
+    title="学习笔记"
+    description={`学习笔记归档，第 ${currentPage} 页，共 ${totalPages} 页。`}
+  />
+  <NotesExplorer
+    entries={notes}
+    locale="zh"
+    currentPage={currentPage}
+    pageSize={9}
+    basePath="/zh/notes/"
+  />
+</BaseLayout>

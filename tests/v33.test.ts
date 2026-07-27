@@ -50,6 +50,8 @@ describe("V3.3 public controls and content structure", () => {
   const notes = readFileSync("src/components/NotesExplorer.astro", "utf8");
   const projectsPage = readFileSync("src/pages/projects/index.astro", "utf8");
   const about = readFileSync("src/components/AboutPage.astro", "utf8");
+  const globalCss = readFileSync("src/styles/global.css", "utf8");
+  const motion = readFileSync("src/components/MotionController.astro", "utf8");
 
   it("uses icon-only global search, language and theme controls", () => {
     expect(header).toContain("data-search-open");
@@ -62,9 +64,24 @@ describe("V3.3 public controls and content structure", () => {
     expect(search).toContain('"ArrowDown"');
     expect(search).toContain('"Enter"');
     expect(search).toContain('"Escape"');
+    expect(search).toContain('"PageDown"');
+    expect(search).toContain('"End"');
+    expect(search).toContain('scrollIntoView({ block: "nearest" })');
+    expect(search).toContain("unlockSearchPage");
     expect(search).toContain('"astro:page-load"');
-    expect(header).toContain("unlockPage");
+    expect(header).toContain("showModal");
+    expect(header).toContain("unlockMenuPage");
+    expect(header).toContain("finishClose(false, false)");
     expect(header).toContain('"astro:before-swap"');
+  });
+
+  it("uses a constrained scroll region and progressive motion enhancement", () => {
+    expect(globalCss).toContain("height: min(88dvh, 47.5rem)");
+    expect(globalCss).toContain("grid-template-rows: auto auto auto minmax(0, 1fr)");
+    expect(globalCss).toContain("overflow-y: auto");
+    expect(globalCss).toContain('html[data-motion-ready="true"]');
+    expect(motion).toContain("requestAnimationFrame");
+    expect(motion).toContain('"IntersectionObserver" in window');
   });
 
   it("uses URL-addressable tag cloud state and no project filter toolbar", () => {

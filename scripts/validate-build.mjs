@@ -54,6 +54,9 @@ const htmlFiles = await collectHtml(outputRoot);
 for (const file of htmlFiles) {
   const html = await readFile(file, "utf8");
   const route = routeForFile(file);
+  if (/\/page\/1\/$/.test(route)) {
+    failures.push(`${route}: duplicate page-one pagination route`);
+  }
   if (html.includes(forbiddenPublicName)) {
     failures.push(`${route}: contains a forbidden public identity`);
   }

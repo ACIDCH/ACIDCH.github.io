@@ -1,18 +1,37 @@
 ---
 import { getCollection } from "astro:content";
 import PageIntro from "../../../components/PageIntro.astro";
+import Pagination from "../../../components/Pagination.astro";
 import ProjectList from "../../../components/ProjectList.astro";
 import BaseLayout from "../../../layouts/BaseLayout.astro";
+import { getPaginationPath, paginate } from "../../../utils/pagination";
 
 const projects = (await getCollection("projects"))
   .filter((entry) => entry.data.locale === "zh")
-  .sort((left, right) => Number(right.data.featured) - Number(left.data.featured));
+  .sort(
+    (left, right) =>
+      Number(right.data.featured) - Number(left.data.featured) ||
+      left.data.title.localeCompare(right.data.title, "zh-CN"),
+  );
+const page = paginate(projects, 1, 6);
 ---
 
-<BaseLayout title="项目" locale="zh">
+<BaseLayout
+  title="项目"
+  locale="zh"
+  pagination={{
+    next: page.totalPages > 1 ? getPaginationPath("/zh/projects/", 2) : undefined,
+  }}
+>
   <PageIntro
     title="项目"
     description="在项目内容和结果核实前，项目条目保持为明确的占位状态。"
   />
-  <ProjectList entries={projects} locale="zh" />
+  <ProjectList entries={page.items} locale="zh" />
+  <Pagination
+    currentPage={page.currentPage}
+    totalPages={page.totalPages}
+    basePath="/zh/projects/"
+    locale="zh"
+  />
 </BaseLayout>

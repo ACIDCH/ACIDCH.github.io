@@ -191,6 +191,32 @@ const copy =
   import { findSearchResults, splitHighlight, type SearchItem } from "../utils/search";
 
   let activeSearchCleanup: (() => void) | undefined;
+  let lockedSearchScrollPosition: number | undefined;
+
+  function lockSearchPage() {
+    if (lockedSearchScrollPosition !== undefined) return;
+    lockedSearchScrollPosition = window.scrollY;
+    document.documentElement.dataset.searchLocked = "true";
+    document.body.dataset.searchLocked = "true";
+    document.body.style.setProperty(
+      "--search-lock-offset",
+      `-${lockedSearchScrollPosition}px`,
+    );
+  }
+
+  function unlockSearchPage(restoreScroll = true) {
+    const scrollPosition = lockedSearchScrollPosition;
+    lockedSearchScrollPosition = undefined;
+    document.documentElement.removeAttribute("data-search-locked");
+    document.body.removeAttribute("data-search-locked");
+    document.body.style.removeProperty("--search-lock-offset");
+    if (restoreScroll && scrollPosition !== undefined) {
+      const scrollBehavior = document.documentElement.style.scrollBehavior;
+      document.documentElement.style.scrollBehavior = "auto";
+      window.scrollTo(0, scrollPosition);
+      document.documentElement.style.scrollBehavior = scrollBehavior;
+    }
+  }
 
   function appendHighlighted(target: HTMLElement, value: string, query: string) {
     splitHighlight(value, query).forEach((segment) => {
@@ -273,7 +299,10 @@ const copy =
 
     const open = (trigger?: HTMLElement) => {
       opener = trigger ?? (document.activeElement as HTMLElement);
-      if (!dialog.open) dialog.showModal();
+      if (!dialog.open) {
+        lockSearchPage();
+        dialog.showModal();
+      }
       requestAnimationFrame(() => input.focus());
     };
 
@@ -289,7 +318,8 @@ const copy =
         input.value = "";
         results.replaceChildren();
         status.textContent = initialStatus;
-        opener?.focus();
+        unlockSearchPage();
+        opener?.focus({ preventScroll: true });
       },
       { signal },
     );
@@ -300,6 +330,17 @@ const copy =
         if (event.key === "ArrowDown" || event.key === "ArrowUp") {
           event.preventDefault();
           select(selected + (event.key === "ArrowDown" ? 1 : -1));
+        } else if (event.key === "Home" && links.length) {
+          event.preventDefault();
+          select(0);
+        } else if (event.key === "End" && links.length) {
+          event.preventDefault();
+          select(links.length - 1);
+        } else if (event.key === "PageDown" || event.key === "PageUp") {
+          event.preventDefault();
+          results.scrollBy({
+            top: results.clientHeight * (event.key === "PageDown" ? 0.82 : -0.82),
+          });
         } else if (event.key === "Enter" && selected >= 0) {
           event.preventDefault();
           links[selected]?.click();
@@ -307,6 +348,13 @@ const copy =
           event.preventDefault();
           dialog.close();
         }
+      },
+      { signal },
+    );
+    results.addEventListener(
+      "click",
+      (event) => {
+        if ((event.target as HTMLElement).closest("a")) dialog.close();
       },
       { signal },
     );
@@ -329,6 +377,7 @@ const copy =
 
     activeSearchCleanup = () => {
       if (dialog.open) dialog.close();
+      unlockSearchPage(false);
       controller.abort();
     };
   }

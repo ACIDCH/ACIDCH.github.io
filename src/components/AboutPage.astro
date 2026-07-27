@@ -92,7 +92,7 @@ const sections = [
 </section>
 
 <div class="about-shell">
-  <div class="profile-portrait">
+  <div class="profile-portrait" data-reveal>
     <img
       src={withBase(portraitImage)}
       alt={portrait.available
@@ -106,7 +106,7 @@ const sections = [
     />
   </div>
 
-  <article class="profile-card" id="about-profile">
+  <article class="profile-card" id="about-profile" data-reveal>
     <header class="profile-card__header">
       <p class="status">{copy.role}</p>
       <h2>{locale === "en" ? "Business analytics profile" : "商业分析个人概况"}</h2>

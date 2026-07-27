@@ -23,12 +23,9 @@ const navigationIcons: Record<string, IconName> = {
 
 function isCurrentRoute(path: string): boolean {
   const localizedPath = getLocalizedPath(path, locale);
-
-  if (path === "/") {
-    return currentPath === localizedPath;
-  }
-
-  return currentPath.startsWith(localizedPath);
+  return path === "/"
+    ? currentPath === localizedPath
+    : currentPath.startsWith(localizedPath);
 }
 ---
 
@@ -59,23 +56,15 @@ function isCurrentRoute(path: string): boolean {
         class="menu-toggle"
         type="button"
         aria-expanded="false"
-        aria-controls="primary-navigation"
+        aria-controls="mobile-navigation"
         data-menu-toggle
       >
-        <span class="menu-toggle__open-icon"><Icon name="menu" /></span>
-        <span class="menu-toggle__close-icon"><Icon name="close" /></span>
+        <span><Icon name="menu" /></span>
         <span>{locale === "en" ? "Menu" : "菜单"}</span>
       </button>
     </div>
 
-    <button
-      class="menu-scrim"
-      type="button"
-      tabindex="-1"
-      aria-label={locale === "en" ? "Close menu" : "关闭菜单"}
-      data-menu-scrim></button>
-
-    <div class="header-panel" id="primary-navigation" data-header-panel>
+    <div class="header-panel" data-header-panel>
       <nav
         class="primary-nav"
         aria-label={locale === "en" ? "Primary navigation" : "主导航"}
@@ -116,47 +105,77 @@ function isCurrentRoute(path: string): boolean {
   </div>
 </header>
 
+<dialog
+  class="mobile-menu"
+  id="mobile-navigation"
+  aria-label={locale === "en" ? "Mobile navigation" : "移动端导航"}
+  data-mobile-menu
+>
+  <div class="mobile-menu__sheet">
+    <header class="mobile-menu__header">
+      <Logo size="sm" />
+      <button
+        class="menu-toggle"
+        type="button"
+        aria-label={locale === "en" ? "Close menu" : "关闭菜单"}
+        data-menu-close
+      >
+        <Icon name="close" />
+        <span>{locale === "en" ? "Close" : "关闭"}</span>
+      </button>
+    </header>
+    <nav
+      class="mobile-menu__nav primary-nav"
+      aria-label={locale === "en" ? "Mobile navigation" : "移动端导航"}
+    >
+      <ul>
+        {
+          navigationItems.map((item) => (
+            <li>
+              <a
+                href={getLocalizedPath(item.path, locale)}
+                aria-current={isCurrentRoute(item.path) ? "page" : undefined}
+                data-menu-link
+              >
+                <Icon name={navigationIcons[item.path] ?? "home"} />
+                {item.label[locale]}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+    <div class="mobile-menu__tools">
+      <LanguageSwitch locale={locale} alternatePath={alternatePath} />
+      <ThemeSwitch locale={locale} />
+    </div>
+  </div>
+</dialog>
+
 <script>
   const desktop = window.matchMedia("(min-width: 70rem)");
   let activeHeaderCleanup: (() => void) | undefined;
   let lockedScrollPosition: number | undefined;
 
-  function setBackgroundInert(inert: boolean) {
-    document
-      .querySelectorAll<HTMLElement>("body > .skip-link, body > main, body > footer")
-      .forEach((element) => {
-        element.inert = inert;
-      });
-  }
-
-  function lockPage() {
+  function lockMenuPage() {
     if (lockedScrollPosition !== undefined) return;
-
     lockedScrollPosition = window.scrollY;
     document.documentElement.dataset.menuLocked = "true";
     document.body.dataset.menuLocked = "true";
     document.body.style.setProperty("--menu-lock-offset", `-${lockedScrollPosition}px`);
-    setBackgroundInert(true);
   }
 
-  function unlockPage({ restoreScroll = true } = {}) {
-    if (lockedScrollPosition === undefined) {
-      document.documentElement.removeAttribute("data-menu-locked");
-      document.body.removeAttribute("data-menu-locked");
-      document.body.style.removeProperty("--menu-lock-offset");
-      setBackgroundInert(false);
-      return;
-    }
-
+  function unlockMenuPage(restoreScroll = true) {
     const scrollPosition = lockedScrollPosition;
     lockedScrollPosition = undefined;
     document.documentElement.removeAttribute("data-menu-locked");
     document.body.removeAttribute("data-menu-locked");
     document.body.style.removeProperty("--menu-lock-offset");
-    setBackgroundInert(false);
-
-    if (restoreScroll) {
+    if (restoreScroll && scrollPosition !== undefined) {
+      const scrollBehavior = document.documentElement.style.scrollBehavior;
+      document.documentElement.style.scrollBehavior = "auto";
       window.scrollTo(0, scrollPosition);
+      document.documentElement.style.scrollBehavior = scrollBehavior;
     }
   }
 
@@ -165,67 +184,109 @@ function isCurrentRoute(path: string): boolean {
 
     const header = document.querySelector<HTMLElement>("[data-site-header]");
     const toggle = header?.querySelector<HTMLButtonElement>("[data-menu-toggle]");
-    const panel = header?.querySelector<HTMLElement>("[data-header-panel]");
-    const scrim = header?.querySelector<HTMLButtonElement>("[data-menu-scrim]");
-    if (!header || !toggle || !panel || !scrim) return;
+    const dialog = document.querySelector<HTMLDialogElement>("[data-mobile-menu]");
+    const close = dialog?.querySelector<HTMLButtonElement>("[data-menu-close]");
+    const firstLink = dialog?.querySelector<HTMLAnchorElement>("[data-menu-link]");
+    if (!header || !toggle || !dialog || !close || !firstLink) return;
 
     const controller = new AbortController();
     const { signal } = controller;
+    let returnFocus = false;
+    let restoreScrollOnClose = true;
 
-    function setMenu(open: boolean) {
-      const wasOpen = toggle!.getAttribute("aria-expanded") === "true";
-      header!.dataset.menuOpen = String(open);
-      toggle!.setAttribute("aria-expanded", String(open));
-
-      if (open && !wasOpen && !desktop.matches) {
-        lockPage();
-      } else if (!open && wasOpen) {
-        unlockPage();
+    function finishClose(restoreScroll: boolean, restoreFocus: boolean) {
+      header!.dataset.menuOpen = "false";
+      toggle!.setAttribute("aria-expanded", "false");
+      unlockMenuPage(restoreScroll);
+      if (restoreFocus) {
+        requestAnimationFrame(() => toggle!.focus({ preventScroll: true }));
       }
     }
 
-    function closeAndRestoreFocus() {
-      setMenu(false);
-      toggle!.focus();
+    function closeMenu({
+      restoreScroll = true,
+      restoreFocus = true,
+    }: {
+      restoreScroll?: boolean;
+      restoreFocus?: boolean;
+    } = {}) {
+      returnFocus = restoreFocus;
+      restoreScrollOnClose = restoreScroll;
+      if (dialog!.open) {
+        dialog!.close();
+      } else {
+        finishClose(restoreScroll, restoreFocus);
+      }
+    }
+
+    function openMenu() {
+      if (desktop.matches || dialog!.open) return;
+      lockMenuPage();
+      header!.dataset.menuOpen = "true";
+      toggle!.setAttribute("aria-expanded", "true");
+      returnFocus = true;
+      restoreScrollOnClose = true;
+      dialog!.showModal();
+      requestAnimationFrame(() => firstLink!.focus());
     }
 
     toggle.addEventListener(
       "click",
       () => {
-        setMenu(toggle.getAttribute("aria-expanded") !== "true");
+        if (dialog.open) closeMenu();
+        else openMenu();
       },
       { signal },
     );
-
-    scrim.addEventListener("click", closeAndRestoreFocus, { signal });
-
-    panel.addEventListener(
+    close.addEventListener("click", () => closeMenu(), { signal });
+    dialog.addEventListener(
       "click",
       (event) => {
-        if ((event.target as HTMLElement).closest("a")) {
-          setMenu(false);
-        }
+        if (event.target === dialog) closeMenu();
       },
       { signal },
     );
-
-    document.addEventListener(
-      "keydown",
+    dialog.addEventListener(
+      "cancel",
       (event) => {
-        if (event.key === "Escape" && toggle.getAttribute("aria-expanded") === "true") {
-          closeAndRestoreFocus();
+        event.preventDefault();
+        closeMenu();
+      },
+      { signal },
+    );
+    dialog.addEventListener(
+      "close",
+      () => finishClose(restoreScrollOnClose, returnFocus),
+      { signal },
+    );
+    dialog.addEventListener(
+      "click",
+      (event) => {
+        if ((event.target as HTMLElement).closest("[data-menu-link]")) {
+          closeMenu({ restoreFocus: false });
         }
       },
       { signal },
     );
+    desktop.addEventListener("change", () => closeMenu({ restoreFocus: false }), {
+      signal,
+    });
 
-    desktop.addEventListener("change", () => setMenu(false), { signal });
+    const updateHeaderSurface = () => {
+      header.dataset.scrolled = String(window.scrollY > 16);
+    };
+    window.addEventListener("scroll", updateHeaderSurface, {
+      passive: true,
+      signal,
+    });
+    updateHeaderSurface();
 
     activeHeaderCleanup = () => {
+      returnFocus = false;
+      restoreScrollOnClose = false;
+      if (dialog.open) dialog.close();
       controller.abort();
-      header.dataset.menuOpen = "false";
-      toggle.setAttribute("aria-expanded", "false");
-      unlockPage();
+      finishClose(false, false);
     };
   }
 

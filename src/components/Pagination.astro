@@ -1,0 +1,70 @@
+---
+import type { Locale } from "../config/site";
+import { getPaginationPath, withQuery } from "../utils/pagination";
+import { withBase } from "../utils/paths";
+
+interface Props {
+  currentPage: number;
+  totalPages: number;
+  basePath: string;
+  locale: Locale;
+  query?: Record<string, string | undefined>;
+}
+
+const { currentPage, totalPages, basePath, locale, query = {} } = Astro.props;
+const label = locale === "en" ? "Pagination" : "分页";
+const previous = locale === "en" ? "Previous" : "上一页";
+const next = locale === "en" ? "Next" : "下一页";
+const status =
+  locale === "en"
+    ? `Page ${currentPage} of ${totalPages}`
+    : `第 ${currentPage} 页，共 ${totalPages} 页`;
+const hrefFor = (page: number) =>
+  withBase(withQuery(getPaginationPath(basePath, page), query));
+---
+
+{
+  totalPages > 1 && (
+    <nav
+      class="pagination"
+      aria-label={label}
+      data-pagination
+      data-pagination-base={basePath}
+      data-pagination-current={currentPage}
+      data-pagination-total={totalPages}
+    >
+      <p class="pagination__status" data-pagination-status aria-live="polite">
+        {status}
+      </p>
+      <div class="pagination__controls">
+        {currentPage > 1 ? (
+          <a rel="prev" href={hrefFor(currentPage - 1)} data-pagination-previous>
+            {previous}
+          </a>
+        ) : (
+          <span aria-disabled="true">{previous}</span>
+        )}
+        <ol>
+          {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
+            <li>
+              <a
+                href={hrefFor(page)}
+                aria-current={page === currentPage ? "page" : undefined}
+                data-pagination-page={page}
+              >
+                {page}
+              </a>
+            </li>
+          ))}
+        </ol>
+        {currentPage < totalPages ? (
+          <a rel="next" href={hrefFor(currentPage + 1)} data-pagination-next>
+            {next}
+          </a>
+        ) : (
+          <span aria-disabled="true">{next}</span>
+        )}
+      </div>
+    </nav>
+  )
+}

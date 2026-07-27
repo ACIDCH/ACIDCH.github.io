@@ -5,53 +5,62 @@
 <script>
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
+  let activeMotionCleanup: (() => void) | undefined;
 
-  function initReveal() {
-    const elements = [
-      ...document.querySelectorAll<HTMLElement>("[data-reveal]"),
-    ].filter((element) => element.dataset.revealReady !== "true");
+  function initMotion() {
+    activeMotionCleanup?.();
+    const controller = new AbortController();
+    const observers: IntersectionObserver[] = [];
+    const frameIds: number[] = [];
+    const { signal } = controller;
+    const revealElements = Array.from(
+      document.querySelectorAll<HTMLElement>("[data-reveal]"),
+    );
+
+    document.documentElement.dataset.motionReady = "true";
 
     if (reduceMotion.matches || !("IntersectionObserver" in window)) {
-      elements.forEach((element) => {
+      revealElements.forEach((element) => {
         element.dataset.revealReady = "true";
         element.dataset.revealed = "true";
       });
-      return;
+    } else {
+      const revealObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            (entry.target as HTMLElement).dataset.revealed = "true";
+            revealObserver.unobserve(entry.target);
+          });
+        },
+        { rootMargin: "0px 0px -6% 0px", threshold: 0.06 },
+      );
+      observers.push(revealObserver);
+      revealElements.forEach((element) => {
+        element.dataset.revealReady = "true";
+      });
+
+      const firstFrame = requestAnimationFrame(() => {
+        const secondFrame = requestAnimationFrame(() => {
+          revealElements.forEach((element) => revealObserver.observe(element));
+        });
+        frameIds.push(secondFrame);
+      });
+      frameIds.push(firstFrame);
     }
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          (entry.target as HTMLElement).dataset.revealed = "true";
-          observer.unobserve(entry.target);
-        });
-      },
-      { rootMargin: "0px 0px -8% 0px", threshold: 0.08 },
-    );
-
-    elements.forEach((element) => {
-      element.dataset.revealReady = "true";
-      observer.observe(element);
-    });
-  }
-
-  function initCounters() {
     document
       .querySelectorAll<HTMLElement>("[data-counter-target]")
       .forEach((counter) => {
-        if (counter.dataset.counterReady === "true") return;
-        counter.dataset.counterReady = "true";
         const target = Number(counter.dataset.counterTarget ?? 0);
-
         if (reduceMotion.matches || target <= 0) {
           counter.textContent = String(target);
           return;
         }
 
-        const observer = new IntersectionObserver(([entry]) => {
+        const counterObserver = new IntersectionObserver(([entry]) => {
           if (!entry?.isIntersecting) return;
-          observer.disconnect();
+          counterObserver.disconnect();
           const startedAt = performance.now();
           const duration = 520;
 
@@ -59,39 +68,43 @@
             const progress = Math.min(1, (now - startedAt) / duration);
             const eased = 1 - (1 - progress) ** 3;
             counter.textContent = String(Math.round(target * eased));
-            if (progress < 1) requestAnimationFrame(tick);
+            if (progress < 1) frameIds.push(requestAnimationFrame(tick));
           }
 
-          requestAnimationFrame(tick);
+          frameIds.push(requestAnimationFrame(tick));
         });
-        observer.observe(counter);
+        observers.push(counterObserver);
+        counterObserver.observe(counter);
       });
-  }
 
-  function initTilt() {
     document.querySelectorAll<HTMLElement>("[data-tilt]").forEach((card) => {
-      if (card.dataset.tiltReady === "true") return;
-      card.dataset.tiltReady = "true";
       if (reduceMotion.matches || !finePointer.matches) return;
-
-      card.addEventListener("pointermove", (event) => {
-        const bounds = card.getBoundingClientRect();
-        const x = (event.clientX - bounds.left) / bounds.width - 0.5;
-        const y = (event.clientY - bounds.top) / bounds.height - 0.5;
-        card.style.setProperty("--tilt-x", `${(-y * 2.4).toFixed(2)}deg`);
-        card.style.setProperty("--tilt-y", `${(x * 2.4).toFixed(2)}deg`);
-      });
-      card.addEventListener("pointerleave", () => {
-        card.style.removeProperty("--tilt-x");
-        card.style.removeProperty("--tilt-y");
-      });
+      card.addEventListener(
+        "pointermove",
+        (event) => {
+          const bounds = card.getBoundingClientRect();
+          const x = (event.clientX - bounds.left) / bounds.width - 0.5;
+          const y = (event.clientY - bounds.top) / bounds.height - 0.5;
+          card.style.setProperty("--tilt-x", `${(-y * 2.4).toFixed(2)}deg`);
+          card.style.setProperty("--tilt-y", `${(x * 2.4).toFixed(2)}deg`);
+        },
+        { signal },
+      );
+      card.addEventListener(
+        "pointerleave",
+        () => {
+          card.style.removeProperty("--tilt-x");
+          card.style.removeProperty("--tilt-y");
+        },
+        { signal },
+      );
     });
-  }
 
-  function initMotion() {
-    initReveal();
-    initCounters();
-    initTilt();
+    activeMotionCleanup = () => {
+      controller.abort();
+      observers.forEach((observer) => observer.disconnect());
+      frameIds.forEach((frameId) => cancelAnimationFrame(frameId));
+    };
   }
 
   function setProgress(state: "loading" | "complete") {
@@ -106,6 +119,7 @@
   }
 
   document.addEventListener("astro:before-preparation", () => setProgress("loading"));
+  document.addEventListener("astro:before-swap", () => activeMotionCleanup?.());
   document.addEventListener("astro:after-swap", () => setProgress("complete"));
   document.addEventListener("astro:page-load", initMotion);
   reduceMotion.addEventListener("change", initMotion);

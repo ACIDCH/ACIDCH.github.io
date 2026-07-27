@@ -1,18 +1,37 @@
 ---
 import { getCollection } from "astro:content";
 import PageIntro from "../../components/PageIntro.astro";
+import Pagination from "../../components/Pagination.astro";
 import ProjectList from "../../components/ProjectList.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getPaginationPath, paginate } from "../../utils/pagination";
 
 const projects = (await getCollection("projects"))
   .filter((entry) => entry.data.locale === "en")
-  .sort((left, right) => Number(right.data.featured) - Number(left.data.featured));
+  .sort(
+    (left, right) =>
+      Number(right.data.featured) - Number(left.data.featured) ||
+      left.data.title.localeCompare(right.data.title, "en"),
+  );
+const page = paginate(projects, 1, 6);
 ---
 
-<BaseLayout title="Projects" locale="en">
+<BaseLayout
+  title="Projects"
+  locale="en"
+  pagination={{
+    next: page.totalPages > 1 ? getPaginationPath("/projects/", 2) : undefined,
+  }}
+>
   <PageIntro
     title="Projects"
     description="Project entries remain placeholders until their content and results are verified."
   />
-  <ProjectList entries={projects} locale="en" />
+  <ProjectList entries={page.items} locale="en" />
+  <Pagination
+    currentPage={page.currentPage}
+    totalPages={page.totalPages}
+    basePath="/projects/"
+    locale="en"
+  />
 </BaseLayout>
