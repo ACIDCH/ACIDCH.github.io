@@ -1,12 +1,12 @@
 ---
 import { getCollection } from "astro:content";
 import PageIntro from "../../../components/PageIntro.astro";
-import ProjectExplorer from "../../../components/ProjectExplorer.astro";
+import ProjectList from "../../../components/ProjectList.astro";
 import BaseLayout from "../../../layouts/BaseLayout.astro";
 
-const projects = (await getCollection("projects")).filter(
-  (entry) => entry.data.locale === "zh",
-);
+const projects = (await getCollection("projects"))
+  .filter((entry) => entry.data.locale === "zh")
+  .sort((left, right) => Number(right.data.featured) - Number(left.data.featured));
 ---
 
 <BaseLayout title="项目" locale="zh">
@@ -14,5 +14,5 @@ const projects = (await getCollection("projects")).filter(
     title="项目"
     description="在项目内容和结果核实前，项目条目保持为明确的占位状态。"
   />
-  <ProjectExplorer entries={projects} locale="zh" />
+  <ProjectList entries={projects} locale="zh" />
 </BaseLayout>

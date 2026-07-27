@@ -39,9 +39,7 @@ const { wechat } = portfolioConfig.contact;
             src={withBase(wechat.qrImage)}
             width="360"
             height="360"
-            alt={
-              locale === "en" ? "Xintao Liu WeChat QR code" : "Xintao Liu 微信二维码"
-            }
+            alt={locale === "en" ? "Portfolio WeChat QR code" : "作品集微信二维码"}
           />
           {wechat.id && <p>{wechat.id}</p>}
           <p>

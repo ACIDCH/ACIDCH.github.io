@@ -7,41 +7,19 @@ interface Props {
 }
 
 const { locale } = Astro.props;
-const labels =
-  locale === "en"
-    ? { group: "Colour theme", light: "Light", dark: "Dark", system: "System" }
-    : { group: "颜色主题", light: "浅色", dark: "深色", system: "跟随系统" };
+const label = locale === "en" ? "Toggle light or dark theme" : "切换浅色或深色主题";
 ---
 
-<div class="theme-switch" role="group" aria-label={labels.group}>
-  <button
-    type="button"
-    data-theme-option="light"
-    aria-label={labels.light}
-    aria-pressed="false"
-  >
-    <Icon name="sun" />
-    <span>{labels.light}</span>
-  </button>
-  <button
-    type="button"
-    data-theme-option="dark"
-    aria-label={labels.dark}
-    aria-pressed="false"
-  >
-    <Icon name="moon" />
-    <span>{labels.dark}</span>
-  </button>
-  <button
-    type="button"
-    data-theme-option="system"
-    aria-label={labels.system}
-    aria-pressed="false"
-  >
-    <Icon name="system" />
-    <span>{labels.system}</span>
-  </button>
-</div>
+<button
+  class="icon-button theme-toggle"
+  type="button"
+  data-theme-toggle
+  aria-label={label}
+  title={label}
+>
+  <span data-theme-icon="light"><Icon name="sun" /></span>
+  <span data-theme-icon="dark"><Icon name="moon" /></span>
+</button>
 
 <script>
   const root = document.documentElement;
@@ -72,50 +50,18 @@ const labels =
       }
     }
 
-    document
-      .querySelectorAll<HTMLButtonElement>("[data-theme-option]")
-      .forEach((option) => {
-        option.setAttribute(
-          "aria-pressed",
-          String(option.dataset.themeOption === preference),
-        );
-      });
+    document.querySelectorAll<HTMLElement>("[data-theme-icon]").forEach((icon) => {
+      icon.hidden = icon.dataset.themeIcon !== resolved;
+    });
   }
 
   function initThemeSwitch() {
-    const options = Array.from(
-      document.querySelectorAll<HTMLButtonElement>("[data-theme-option]"),
-    );
-
-    options.forEach((option, index) => {
-      if (option.dataset.themeControlReady === "true") {
-        return;
-      }
-
-      option.dataset.themeControlReady = "true";
-      option.addEventListener("click", () => {
-        const preference = option.dataset.themeOption;
-        if (isThemePreference(preference)) {
-          applyTheme(preference);
-        }
-      });
-
-      option.addEventListener("keydown", (event) => {
-        if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) {
-          return;
-        }
-
-        event.preventDefault();
-        const nextIndex =
-          event.key === "Home"
-            ? 0
-            : event.key === "End"
-              ? options.length - 1
-              : (index + (event.key === "ArrowRight" ? 1 : -1) + options.length) %
-                options.length;
-
-        options[nextIndex]?.focus();
-        options[nextIndex]?.click();
+    const toggles = document.querySelectorAll<HTMLButtonElement>("[data-theme-toggle]");
+    toggles.forEach((toggle) => {
+      if (toggle.dataset.themeControlReady === "true") return;
+      toggle.dataset.themeControlReady = "true";
+      toggle.addEventListener("click", () => {
+        applyTheme(root.dataset.theme === "dark" ? "light" : "dark");
       });
     });
 

@@ -4,7 +4,6 @@ import RelatedNotes from "../components/RelatedNotes.astro";
 import ProjectCover from "../components/ProjectCover.astro";
 import SupplyChainNetwork from "../components/SupplyChainNetwork.astro";
 import ContextBack from "../components/ContextBack.astro";
-import { siteConfig } from "../config/site";
 import { getCanonicalUrl } from "../utils/urls";
 import { getGitHubRepoUrl } from "../utils/urls";
 import BaseLayout from "./BaseLayout.astro";
@@ -34,7 +33,6 @@ const projectStructuredData = {
   url: getCanonicalUrl(Astro.url.pathname),
   inLanguage: entry.data.locale === "en" ? "en" : "zh-CN",
   keywords: [...entry.data.tools, ...entry.data.tags],
-  author: { "@id": `${siteConfig.siteUrl}/#person` },
   isAccessibleForFree: true,
   dateModified: entry.data.updatedAt?.toISOString(),
 };

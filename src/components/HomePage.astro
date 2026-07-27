@@ -60,7 +60,9 @@ const copy = {
 
 <Hero locale={locale}>
   <p class="home-hero__discipline">{copy.discipline}</p>
-  <h1 id="home-title">Xintao Liu</h1>
+  <h1 id="home-title">
+    {locale === "en" ? "Business Analytics Portfolio" : "商业分析作品集"}
+  </h1>
   <p class="home-hero__statement">{copy.statement}</p>
   <p>{copy.intro}</p>
   <div class="cluster">

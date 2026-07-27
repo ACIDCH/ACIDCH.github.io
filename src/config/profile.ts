@@ -1,8 +1,6 @@
 import type { Locale } from "./site";
-import { siteConfig } from "./site";
 
 export const profileConfig = {
-  publicName: siteConfig.publicName,
   role: {
     en: "Business Analytics & Supply Chain Analytics",
     zh: "商业分析与供应链分析",
@@ -28,7 +26,6 @@ export const profileConfig = {
     ],
   },
 } satisfies {
-  publicName: string;
   role: Record<Locale, string>;
   summary: Record<Locale, string>;
   background: Record<Locale, string[]>;

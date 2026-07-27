@@ -83,7 +83,9 @@ const sections = [
   />
   <span aria-hidden="true"></span>
   <div>
-    <p class="status">Xintao Liu</p>
+    <p class="status">
+      {locale === "en" ? "Profile & approach" : "个人概况与方法"}
+    </p>
     <h1 id="about-title">{copy.title}</h1>
     <p>{copy.heroLine}</p>
   </div>
@@ -93,9 +95,13 @@ const sections = [
   <div class="profile-portrait">
     <img
       src={withBase(portraitImage)}
-      alt={portrait.available ? "Xintao Liu" : "XL profile placeholder"}
-      width="240"
-      height="240"
+      alt={portrait.available
+        ? locale === "en"
+          ? "Full-body graduation portrait"
+          : "毕业全身照"
+        : "XL profile placeholder"}
+      width="360"
+      height="360"
       style={`object-position: ${portrait.position};`}
     />
   </div>
@@ -103,7 +109,7 @@ const sections = [
   <article class="profile-card" id="about-profile">
     <header class="profile-card__header">
       <p class="status">{copy.role}</p>
-      <h2>Xintao Liu</h2>
+      <h2>{locale === "en" ? "Business analytics profile" : "商业分析个人概况"}</h2>
       <p>{copy.location}</p>
       <p class="profile-card__summary">{profileConfig.summary[locale]}</p>
       <SocialLinks locale={locale} />

@@ -1,6 +1,7 @@
 ---
-import { siteConfig } from "../config/site";
 import type { Locale } from "../config/site";
+import { navigationItems } from "../config/navigation";
+import { getLocalizedPath } from "../utils/paths";
 import Logo from "./Logo.astro";
 
 interface Props {
@@ -22,8 +23,16 @@ const { locale } = Astro.props;
         }
       </p>
     </div>
+    <nav aria-label={locale === "en" ? "Footer navigation" : "页脚导航"}>
+      {
+        navigationItems.map((item) => (
+          <a href={getLocalizedPath(item.path, locale)}>{item.label[locale]}</a>
+        ))
+      }
+    </nav>
     <p class="site-footer__meta">
-      &copy; {new Date().getFullYear()}{" "}{siteConfig.publicName}
+      &copy; {new Date().getFullYear()}{" "}
+      {locale === "en" ? "Business Analytics Portfolio" : "商业分析作品集"}
     </p>
   </div>
 </footer>

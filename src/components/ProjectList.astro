@@ -17,9 +17,10 @@ const { entries, locale } = Astro.props;
       {locale === "en" ? "No projects are available yet." : "暂时没有可展示的项目。"}
     </p>
   ) : (
-    <ul class="content-list">
+    <ul class="content-list project-list">
       {entries.map((entry) => (
         <li
+          class:list={[entry.data.featured && "project-list__featured"]}
           data-project-card
           data-project-tools={entry.data.tools.join("|")}
           data-project-topic={entry.data.topic}

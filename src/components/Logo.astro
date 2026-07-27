@@ -1,5 +1,4 @@
 ---
-import { siteConfig } from "../config/site";
 import { withBase } from "../utils/paths";
 
 interface Props {
@@ -8,7 +7,7 @@ interface Props {
   showName?: boolean;
 }
 
-const { variant = "primary", size = "md", showName = true } = Astro.props;
+const { variant = "primary", size = "md", showName = false } = Astro.props;
 const fileName = variant === "primary" ? "logo.svg" : `logo-${variant}.svg`;
 ---
 
@@ -20,5 +19,5 @@ const fileName = variant === "primary" ? "logo.svg" : `logo-${variant}.svg`;
     height="48"
     alt=""
   />
-  {showName && <span class="brand-name">{siteConfig.publicName}</span>}
+  {showName && <span class="brand-name">XL</span>}
 </span>

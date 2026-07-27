@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title">
   <title id="title">XL mark for dark backgrounds</title>
-  <path d="M23 25 61 64 23 103M63 25 27 64l36 39" fill="none" stroke="#67E8F9" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M73 25v78h34" fill="none" stroke="#F7F9FC" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="107" cy="103" r="6" fill="#F59E0B"/>
+  <path d="M23 25 61 64 23 103M63 25 27 64l36 39" fill="none" stroke="#B8C8C9" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M73 25v78h34" fill="none" stroke="#F3EEE5" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="107" cy="103" r="6" fill="#D5B28C"/>
 </svg>

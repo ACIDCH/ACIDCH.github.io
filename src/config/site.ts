@@ -1,7 +1,8 @@
 export type HeroBackgroundMode = "video" | "image" | "aurora" | "network";
 
 export const siteConfig = {
-  publicName: "Xintao Liu",
+  publicDisplayName: "",
+  siteTitle: "Business Analytics Portfolio",
   siteUrl: "https://ACIDCH.github.io",
   basePath: "/",
   github: {
@@ -12,12 +13,12 @@ export const siteConfig = {
   language: {
     default: "en",
     supported: ["en", "zh"],
-    storageKey: "xintao-locale",
+    storageKey: "portfolio-locale",
   },
   design: {
     direction: "southern-alpine-minimal",
     defaultTheme: "system",
-    themeStorageKey: "xintao-theme",
+    themeStorageKey: "portfolio-theme",
   },
   hero: {
     background: "aurora" as HeroBackgroundMode,

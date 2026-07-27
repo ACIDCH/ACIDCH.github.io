@@ -3,7 +3,6 @@ import { getCollection, render, type CollectionEntry } from "astro:content";
 import ContextBack from "../components/ContextBack.astro";
 import NoteList from "../components/NoteList.astro";
 import ProjectList from "../components/ProjectList.astro";
-import { siteConfig } from "../config/site";
 import { getCanonicalUrl } from "../utils/urls";
 import BaseLayout from "./BaseLayout.astro";
 
@@ -34,7 +33,6 @@ const noteStructuredData = {
   url: getCanonicalUrl(Astro.url.pathname),
   inLanguage: entry.data.locale === "en" ? "en" : "zh-CN",
   keywords: entry.data.tags,
-  author: { "@id": `${siteConfig.siteUrl}/#person` },
   isAccessibleForFree: true,
   datePublished: entry.data.publishedAt?.toISOString(),
   dateModified: entry.data.updatedAt?.toISOString(),

@@ -3,13 +3,13 @@ import { ClientRouter } from "astro:transitions";
 import Footer from "../components/Footer.astro";
 import Header from "../components/Header.astro";
 import MotionController from "../components/MotionController.astro";
+import GlobalSearch from "../components/GlobalSearch.astro";
 import type { Locale } from "../config/site";
 import { siteConfig } from "../config/site";
 import { ui } from "../i18n/ui";
 import "../styles/tokens.css";
 import "../styles/global.css";
 import { getCanonicalUrl } from "../utils/urls";
-import { getGitHubProfileUrl } from "../utils/urls";
 import { getLocalizedPath, withBase } from "../utils/paths";
 
 interface Props {
@@ -37,7 +37,8 @@ const {
 } = Astro.props;
 const resolvedCanonicalPath = canonicalPath ?? Astro.url.pathname;
 const canonicalUrl = getCanonicalUrl(resolvedCanonicalPath);
-const fullTitle = `${title} | ${siteConfig.publicName}`;
+const fullTitle =
+  title === siteConfig.siteTitle ? title : `${title} | ${siteConfig.siteTitle}`;
 const targetLocale: Locale = locale === "en" ? "zh" : "en";
 const resolvedAlternatePath =
   alternatePath ?? getLocalizedPath(Astro.url.pathname, targetLocale);
@@ -50,30 +51,11 @@ const jsonLd = {
   "@context": "https://schema.org",
   "@graph": [
     {
-      "@type": "Person",
-      "@id": `${siteConfig.siteUrl}/#person`,
-      name: siteConfig.publicName,
-      url: siteConfig.siteUrl,
-      description: ui[locale].siteDescription,
-      sameAs: [getGitHubProfileUrl()],
-      affiliation: {
-        "@type": "CollegeOrUniversity",
-        name: "University of Auckland",
-      },
-      knowsAbout: [
-        "Business analytics",
-        "Supply chain analytics",
-        "Data analysis",
-        "Optimisation",
-      ],
-    },
-    {
       "@type": "WebSite",
       "@id": `${siteConfig.siteUrl}/#website`,
-      name: `${siteConfig.publicName} Portfolio`,
+      name: siteConfig.siteTitle,
       url: siteConfig.siteUrl,
       inLanguage: ["en", "zh-CN"],
-      publisher: { "@id": `${siteConfig.siteUrl}/#person` },
     },
     ...(structuredData ? [structuredData] : []),
   ],
@@ -126,14 +108,14 @@ const serialisedJsonLd = JSON.stringify(jsonLd).replace(/</g, "\\u003c");
       content={noindex ? "noindex, follow" : "index, follow, max-image-preview:large"}
     />
     <meta property="og:type" content={pageType} />
-    <meta property="og:site_name" content={`${siteConfig.publicName} Portfolio`} />
+    <meta property="og:site_name" content={siteConfig.siteTitle} />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalUrl} />
     <meta property="og:image" content={socialImageUrl} />
     <meta
       property="og:image:alt"
-      content={`${siteConfig.publicName} business analytics portfolio`}
+      content="Business analytics and supply chain analytics portfolio"
     />
     <meta property="og:locale" content={ogLocale} />
     <meta property="og:locale:alternate" content={alternateOgLocale} />
@@ -156,6 +138,7 @@ const serialisedJsonLd = JSON.stringify(jsonLd).replace(/</g, "\\u003c");
       {locale === "en" ? "Skip to content" : "跳到主要内容"}
     </a>
     <Header locale={locale} alternatePath={alternatePath} />
+    <GlobalSearch locale={locale} />
     <main
       id="main-content"
       class:list={["page-shell", fullWidth && "page-shell--full"]}

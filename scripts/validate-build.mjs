@@ -6,6 +6,7 @@ const projectRoot = process.cwd();
 const outputRoot = path.join(projectRoot, "dist");
 const localOrigin = "https://local.invalid";
 const failures = [];
+const forbiddenPublicName = ["Xintao", "Liu"].join(" ");
 
 async function collectHtml(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -53,6 +54,9 @@ const htmlFiles = await collectHtml(outputRoot);
 for (const file of htmlFiles) {
   const html = await readFile(file, "utf8");
   const route = routeForFile(file);
+  if (html.includes(forbiddenPublicName)) {
+    failures.push(`${route}: contains a forbidden public identity`);
+  }
   const h1Count = (html.match(/<h1\b/gi) ?? []).length;
   if (!/<html\b[^>]*\blang=["'][^"']+["']/i.test(html)) {
     failures.push(`${route}: missing document language`);

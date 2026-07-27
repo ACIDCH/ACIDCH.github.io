@@ -57,9 +57,10 @@ describe("URL helpers", () => {
 });
 
 describe("Phase 2 configuration", () => {
-  it("uses the public brand name and a system theme baseline", () => {
-    expect(siteConfig.publicName).toBe("Xintao Liu");
+  it("uses an anonymous public identity and a system theme baseline", () => {
+    expect(siteConfig.publicDisplayName).toBe("");
+    expect(siteConfig.siteTitle).toBe("Business Analytics Portfolio");
     expect(siteConfig.design.defaultTheme).toBe("system");
-    expect(siteConfig.design.themeStorageKey).toBe("xintao-theme");
+    expect(siteConfig.design.themeStorageKey).toBe("portfolio-theme");
   });
 });

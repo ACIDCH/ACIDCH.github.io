@@ -1,0 +1,339 @@
+---
+import { getCollection } from "astro:content";
+import type { Locale } from "../config/site";
+import type { SearchItem } from "../utils/search";
+import { withBase } from "../utils/paths";
+import Icon from "./Icon.astro";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const projects = await getCollection("projects");
+const notes = await getCollection("notes");
+const pages: SearchItem[] = [
+  {
+    title: "Home",
+    description: "Business analytics, supply chain and decision support.",
+    path: "/",
+    locale: "en",
+    group: "page",
+    searchText: "Home business analytics supply chain decision support portfolio",
+  },
+  {
+    title: "首页",
+    description: "商业分析、供应链与决策支持。",
+    path: "/zh/",
+    locale: "zh",
+    group: "page",
+    searchText: "首页 商业分析 供应链 决策支持 作品集",
+  },
+  {
+    title: "Projects",
+    description: "Analytical projects and clearly labelled demonstrations.",
+    path: "/projects/",
+    locale: "en",
+    group: "page",
+    searchText: "Projects analytics demonstrations",
+  },
+  {
+    title: "项目",
+    description: "分析项目与明确标识的演示内容。",
+    path: "/zh/projects/",
+    locale: "zh",
+    group: "page",
+    searchText: "项目 分析 演示",
+  },
+  {
+    title: "Learning Notes",
+    description: "Bilingual notes on analytics, optimisation and tools.",
+    path: "/notes/",
+    locale: "en",
+    group: "page",
+    searchText: "Learning Notes analytics optimisation tools",
+  },
+  {
+    title: "学习笔记",
+    description: "关于分析、优化与工具的双语笔记。",
+    path: "/zh/notes/",
+    locale: "zh",
+    group: "page",
+    searchText: "学习笔记 分析 优化 工具",
+  },
+  {
+    title: "About Me",
+    description: "Profile, education, experience, skills and contact.",
+    path: "/about/",
+    locale: "en",
+    group: "page",
+    searchText: "About profile education experience skills contact resume",
+  },
+  {
+    title: "关于我",
+    description: "个人概况、教育、经历、技能与联系信息。",
+    path: "/zh/about/",
+    locale: "zh",
+    group: "page",
+    searchText: "关于我 个人概况 教育 经历 技能 联系 简历",
+  },
+];
+
+const index: SearchItem[] = [
+  ...pages,
+  ...projects.map((entry) => ({
+    title: entry.data.title,
+    description: entry.data.summary,
+    path: `${entry.data.locale === "zh" ? "/zh" : ""}/projects/${entry.data.slug}/`,
+    locale: entry.data.locale,
+    group: "project" as const,
+    searchText: [
+      entry.data.title,
+      entry.data.summary,
+      entry.data.topic,
+      entry.data.status,
+      ...entry.data.tools,
+      ...entry.data.tags,
+      "body" in entry ? String(entry.body ?? "") : "",
+    ].join(" "),
+  })),
+  ...notes.map((entry) => ({
+    title: entry.data.title,
+    description: entry.data.summary,
+    path: `${entry.data.locale === "zh" ? "/zh" : ""}/notes/${entry.data.slug}/`,
+    locale: entry.data.locale,
+    group: "note" as const,
+    searchText: [
+      entry.data.title,
+      entry.data.summary,
+      ...entry.data.tags,
+      ...entry.data.topics,
+      ...entry.data.tools,
+      entry.data.series ?? "",
+      "body" in entry ? String(entry.body ?? "") : "",
+    ].join(" "),
+  })),
+].map((item) => ({ ...item, path: withBase(item.path) }));
+const serialisedIndex = JSON.stringify(index).replace(/</g, "\\u003c");
+const copy =
+  locale === "en"
+    ? {
+        title: "Search the portfolio",
+        placeholder: "Search pages, projects and notes",
+        close: "Close search",
+        hint: "Type to search in English or Chinese.",
+        empty: "No matching results.",
+        result: "results",
+        groups: { page: "Pages", project: "Projects", note: "Notes" },
+      }
+    : {
+        title: "搜索作品集",
+        placeholder: "搜索页面、项目和笔记",
+        close: "关闭搜索",
+        hint: "输入英文或中文关键词。",
+        empty: "没有匹配结果。",
+        result: "项结果",
+        groups: { page: "页面", project: "项目", note: "笔记" },
+      };
+---
+
+<dialog class="global-search" data-global-search>
+  <div class="global-search__panel">
+    <header>
+      <div>
+        <p class="status">{locale === "en" ? "Global search" : "全局搜索"}</p>
+        <h2>{copy.title}</h2>
+      </div>
+      <button
+        class="icon-button"
+        type="button"
+        aria-label={copy.close}
+        title={copy.close}
+        data-search-close
+      >
+        <Icon name="close" />
+      </button>
+    </header>
+    <label class="global-search__field">
+      <Icon name="search" />
+      <span class="visually-hidden">{copy.title}</span>
+      <input
+        type="search"
+        placeholder={copy.placeholder}
+        autocomplete="off"
+        data-search-input
+      />
+      <kbd>⌘/Ctrl K</kbd>
+    </label>
+    <p class="global-search__hint" data-search-status aria-live="polite">
+      {copy.hint}
+    </p>
+    <div
+      class="global-search__results"
+      data-search-results
+      data-empty={copy.empty}
+      data-group-page={copy.groups.page}
+      data-group-project={copy.groups.project}
+      data-group-note={copy.groups.note}
+      data-result-label={copy.result}
+    >
+    </div>
+  </div>
+  <script
+    is:inline
+    type="application/json"
+    data-search-index
+    set:html={serialisedIndex}
+  />
+</dialog>
+
+<script>
+  import { findSearchResults, splitHighlight, type SearchItem } from "../utils/search";
+
+  let activeSearchCleanup: (() => void) | undefined;
+
+  function appendHighlighted(target: HTMLElement, value: string, query: string) {
+    splitHighlight(value, query).forEach((segment) => {
+      const node = document.createElement(segment.match ? "mark" : "span");
+      node.textContent = segment.text;
+      target.append(node);
+    });
+  }
+
+  function initGlobalSearch() {
+    activeSearchCleanup?.();
+    const dialog = document.querySelector<HTMLDialogElement>("[data-global-search]");
+    const input = dialog?.querySelector<HTMLInputElement>("[data-search-input]");
+    const results = dialog?.querySelector<HTMLElement>("[data-search-results]");
+    const status = dialog?.querySelector<HTMLElement>("[data-search-status]");
+    const indexNode = dialog?.querySelector<HTMLScriptElement>("[data-search-index]");
+    if (!dialog || !input || !results || !status || !indexNode) return;
+
+    const controller = new AbortController();
+    const { signal } = controller;
+    const index = JSON.parse(indexNode.textContent ?? "[]") as SearchItem[];
+    const initialStatus = status.textContent ?? "";
+    let selected = -1;
+    let links: HTMLAnchorElement[] = [];
+    let opener: HTMLElement | null = null;
+
+    const select = (next: number) => {
+      selected = links.length ? (next + links.length) % links.length : -1;
+      links.forEach((link, position) => {
+        link.setAttribute("aria-selected", String(position === selected));
+      });
+      links[selected]?.scrollIntoView({ block: "nearest" });
+    };
+
+    const render = () => {
+      const query = input.value.trim();
+      const matches = findSearchResults(index, query);
+      results.replaceChildren();
+      selected = -1;
+      links = [];
+      status.textContent = query
+        ? `${matches.length} ${results.dataset.resultLabel ?? ""}`
+        : status.textContent;
+
+      if (query && matches.length === 0) {
+        const empty = document.createElement("p");
+        empty.className = "empty-state";
+        empty.textContent = results.dataset.empty ?? "";
+        results.append(empty);
+        return;
+      }
+
+      (["page", "project", "note"] as const).forEach((group) => {
+        const groupItems = matches.filter((item) => item.group === group);
+        if (!groupItems.length) return;
+        const section = document.createElement("section");
+        const heading = document.createElement("h3");
+        heading.textContent =
+          results.dataset[
+            `group${group[0]!.toUpperCase()}${group.slice(1)}` as keyof DOMStringMap
+          ] ?? group;
+        section.append(heading);
+        groupItems.forEach((item) => {
+          const link = document.createElement("a");
+          link.href = item.path;
+          link.lang = item.locale === "zh" ? "zh-CN" : "en";
+          link.setAttribute("role", "option");
+          link.setAttribute("aria-selected", "false");
+          const title = document.createElement("strong");
+          appendHighlighted(title, item.title, query);
+          const description = document.createElement("span");
+          appendHighlighted(description, item.description, query);
+          link.append(title, description);
+          section.append(link);
+          links.push(link);
+        });
+        results.append(section);
+      });
+    };
+
+    const open = (trigger?: HTMLElement) => {
+      opener = trigger ?? (document.activeElement as HTMLElement);
+      if (!dialog.open) dialog.showModal();
+      requestAnimationFrame(() => input.focus());
+    };
+
+    document.querySelectorAll<HTMLElement>("[data-search-open]").forEach((button) => {
+      button.addEventListener("click", () => open(button), { signal });
+    });
+    dialog
+      .querySelector<HTMLElement>("[data-search-close]")
+      ?.addEventListener("click", () => dialog.close(), { signal });
+    dialog.addEventListener(
+      "close",
+      () => {
+        input.value = "";
+        results.replaceChildren();
+        status.textContent = initialStatus;
+        opener?.focus();
+      },
+      { signal },
+    );
+    input.addEventListener("input", render, { signal });
+    input.addEventListener(
+      "keydown",
+      (event) => {
+        if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+          event.preventDefault();
+          select(selected + (event.key === "ArrowDown" ? 1 : -1));
+        } else if (event.key === "Enter" && selected >= 0) {
+          event.preventDefault();
+          links[selected]?.click();
+        } else if (event.key === "Escape") {
+          event.preventDefault();
+          dialog.close();
+        }
+      },
+      { signal },
+    );
+    document.addEventListener(
+      "keydown",
+      (event) => {
+        const target = event.target as HTMLElement;
+        const editable =
+          target.matches("input, textarea, select") || target.isContentEditable;
+        if (
+          (!editable && event.key === "/") ||
+          ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k")
+        ) {
+          event.preventDefault();
+          open();
+        }
+      },
+      { signal },
+    );
+
+    activeSearchCleanup = () => {
+      if (dialog.open) dialog.close();
+      controller.abort();
+    };
+  }
+
+  document.addEventListener("astro:before-swap", () => activeSearchCleanup?.());
+  document.addEventListener("astro:page-load", initGlobalSearch);
+  initGlobalSearch();
+</script>

@@ -1,8 +1,8 @@
-# Xintao Liu 作品集
+# 商业分析作品集
 
 [English](README.md) | [中文](README.zh-CN.md)
 
-本仓库包含 Xintao Liu 的中英双语商业分析与供应链分析静态作品集。英文是默认语言，简体中文页面位于 `/zh/`。
+本仓库包含中英双语商业分析与供应链分析静态作品集。英文是默认语言，简体中文页面位于 `/zh/`。
 
 本地实现已包括 Light/Dark/System 主题、可配置 Hero 背景、双语 Content Collections、可分享的项目筛选、使用合成数据的供应链网络演示、reduced-motion、SEO 元数据和 GitHub Pages 部署准备文件。
 

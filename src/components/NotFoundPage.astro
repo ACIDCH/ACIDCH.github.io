@@ -1,0 +1,43 @@
+---
+import { portfolioConfig } from "../config/portfolio";
+import type { Locale } from "../config/site";
+import { getLocalizedPath, withBase } from "../utils/paths";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const landscape = portfolioConfig.media.alternateLandscape;
+const copy =
+  locale === "en"
+    ? {
+        eyebrow: "404",
+        title: "Page not found",
+        description: "The requested page does not exist.",
+        action: "Return home",
+      }
+    : {
+        eyebrow: "404",
+        title: "找不到页面",
+        description: "请求的页面不存在。",
+        action: "返回首页",
+      };
+---
+
+<section class="not-found" aria-labelledby="not-found-title">
+  <img
+    src={withBase(landscape.image)}
+    width="1440"
+    height="960"
+    alt=""
+    style={`object-position: ${landscape.position};`}
+  />
+  <span aria-hidden="true"></span>
+  <div>
+    <p class="status">{copy.eyebrow}</p>
+    <h1 id="not-found-title">{copy.title}</h1>
+    <p>{copy.description}</p>
+    <a class="button" href={getLocalizedPath("/", locale)}>{copy.action}</a>
+  </div>
+</section>

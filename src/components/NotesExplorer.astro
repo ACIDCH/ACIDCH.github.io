@@ -2,7 +2,6 @@
 import type { CollectionEntry } from "astro:content";
 import { portfolioConfig } from "../config/portfolio";
 import type { Locale } from "../config/site";
-import Icon from "./Icon.astro";
 import NoteList from "./NoteList.astro";
 import SocialIconButton from "./SocialIconButton.astro";
 
@@ -12,105 +11,64 @@ interface Props {
 }
 
 const { entries, locale } = Astro.props;
-const values = (items: string[]) => [...new Set(items)].sort();
-const tags = values(entries.flatMap((entry) => entry.data.tags));
-const topics = values(entries.flatMap((entry) => entry.data.topics));
-const tools = values(entries.flatMap((entry) => entry.data.tools));
-const series = values(
-  entries.flatMap((entry) => (entry.data.series ? [entry.data.series] : [])),
+const tagCounts = new Map<string, number>();
+entries
+  .flatMap((entry) => entry.data.tags)
+  .forEach((tag) => {
+    tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1);
+  });
+const maxCount = Math.max(1, ...tagCounts.values());
+const tags = [...tagCounts.entries()].sort(([left], [right]) =>
+  left.localeCompare(right, locale === "zh" ? "zh-CN" : "en"),
 );
-const copy = {
-  en: {
-    title: "Explore notes",
-    search: "Search notes",
-    searchPlaceholder: "Search titles, topics, tools…",
-    tag: "Tag",
-    topic: "Topic",
-    tool: "Tool",
-    series: "Series",
-    all: "All",
-    reset: "Reset",
-    result: "notes shown",
-    empty: "No notes match these filters.",
-    latest: "Latest Notes",
-    external: "External Notebook / Cloud Notes",
-  },
-  zh: {
-    title: "筛选笔记",
-    search: "搜索笔记",
-    searchPlaceholder: "搜索标题、主题或工具…",
-    tag: "标签",
-    topic: "主题",
-    tool: "工具",
-    series: "系列",
-    all: "全部",
-    reset: "重置",
-    result: "篇笔记",
-    empty: "没有符合当前条件的笔记。",
-    latest: "最新笔记",
-    external: "外部笔记本 / 云笔记",
-  },
-}[locale];
+const copy =
+  locale === "en"
+    ? {
+        title: "Browse by tag",
+        description:
+          "Choose a topic from the knowledge map. The URL updates so this view can be shared.",
+        all: "All notes",
+        result: "notes shown",
+        empty: "No notes match this tag.",
+        latest: "Learning Notes",
+        external: "External Notebook / Cloud Notes",
+      }
+    : {
+        title: "按标签浏览",
+        description: "从知识地图中选择主题。网址会同步更新，便于分享当前视图。",
+        all: "全部笔记",
+        result: "篇笔记",
+        empty: "没有符合该标签的笔记。",
+        latest: "学习笔记",
+        external: "外部笔记本 / 云笔记",
+      };
 const notebook = portfolioConfig.externalNotebook;
 ---
 
 <section class="notes-explorer" data-notes-explorer data-result-label={copy.result}>
-  <form class="notes-filter" data-notes-filter aria-label={copy.title}>
-    <label class="notes-filter__search">
-      <span><Icon name="search" />{copy.search}</span>
-      <input
-        type="search"
-        name="query"
-        placeholder={copy.searchPlaceholder}
-        autocomplete="off"
-      />
-    </label>
-    <label>
-      <span><Icon name="tag" />{copy.tag}</span>
-      <select name="tag">
-        <option value="">{copy.all}</option>
-        {
-          tags.map((value) => (
-            <option value={value.toLocaleLowerCase()}>{value}</option>
-          ))
-        }
-      </select>
-    </label>
-    <label>
-      <span><Icon name="topic" />{copy.topic}</span>
-      <select name="topic">
-        <option value="">{copy.all}</option>
-        {
-          topics.map((value) => (
-            <option value={value.toLocaleLowerCase()}>{value}</option>
-          ))
-        }
-      </select>
-    </label>
-    <label>
-      <span><Icon name="tool" />{copy.tool}</span>
-      <select name="tool">
-        <option value="">{copy.all}</option>
-        {
-          tools.map((value) => (
-            <option value={value.toLocaleLowerCase()}>{value}</option>
-          ))
-        }
-      </select>
-    </label>
-    <label>
-      <span><Icon name="notes" />{copy.series}</span>
-      <select name="series">
-        <option value="">{copy.all}</option>
-        {
-          series.map((value) => (
-            <option value={value.toLocaleLowerCase()}>{value}</option>
-          ))
-        }
-      </select>
-    </label>
-    <button class="button button--secondary" type="reset">{copy.reset}</button>
-  </form>
+  <section class="tag-cloud-panel" aria-labelledby="tag-cloud-title">
+    <div>
+      <p class="status">{locale === "en" ? "Knowledge map" : "知识地图"}</p>
+      <h2 id="tag-cloud-title">{copy.title}</h2>
+      <p>{copy.description}</p>
+    </div>
+    <div class="tag-cloud" role="group" aria-label={copy.title}>
+      <button type="button" data-note-tag="" aria-pressed="true">{copy.all}</button>
+      {
+        tags.map(([tag, count]) => (
+          <button
+            type="button"
+            data-note-tag={tag.toLocaleLowerCase()}
+            aria-pressed="false"
+            style={`--tag-weight: ${0.82 + (count / maxCount) * 0.6}rem`}
+          >
+            {tag}
+            <span aria-label={`${count} ${copy.result}`}>{count}</span>
+          </button>
+        ))
+      }
+    </div>
+  </section>
 
   <div class="notes-results-heading">
     <h2>{copy.latest}</h2>
@@ -141,76 +99,58 @@ const notebook = portfolioConfig.externalNotebook;
 </section>
 
 <script>
-  function initNotesExplorer() {
-    const explorer = document.querySelector<HTMLElement>("[data-notes-explorer]");
-    const form = explorer?.querySelector<HTMLFormElement>("[data-notes-filter]");
-    if (!explorer || !form || form.dataset.ready === "true") return;
-    form.dataset.ready = "true";
+  let activeNotesCleanup: (() => void) | undefined;
 
+  function initNotesExplorer() {
+    activeNotesCleanup?.();
+    const explorer = document.querySelector<HTMLElement>("[data-notes-explorer]");
+    if (!explorer) return;
+    const buttons = Array.from(
+      explorer.querySelectorAll<HTMLButtonElement>("[data-note-tag]"),
+    );
     const cards = Array.from(
       explorer.querySelectorAll<HTMLElement>("[data-note-card]"),
     );
     const result = explorer.querySelector<HTMLElement>("[data-notes-result]");
     const empty = explorer.querySelector<HTMLElement>("[data-notes-empty]");
-    const controls = Array.from(
-      form.querySelectorAll<HTMLInputElement | HTMLSelectElement>("input, select"),
-    );
+    const controller = new AbortController();
 
-    function applyFilters(updateUrl = true) {
-      const data = new FormData(form!);
-      const query = String(data.get("query") ?? "")
-        .trim()
-        .toLocaleLowerCase();
-      const filters = ["tag", "topic", "tool", "series"] as const;
+    function applyTag(tag: string, updateUrl = true) {
       let visible = 0;
-
       cards.forEach((card) => {
-        const matchesSearch = !query || card.dataset.search?.includes(query);
-        const matchesFilters = filters.every((filter) => {
-          const value = String(data.get(filter) ?? "").toLocaleLowerCase();
-          if (!value) return true;
-          const key = `${filter}${filter === "series" ? "" : "s"}` as
-            "tags" | "topics" | "tools" | "series";
-          return (card.dataset[key] ?? "").split("|").includes(value);
-        });
-        const matches = Boolean(matchesSearch && matchesFilters);
+        const matches = !tag || (card.dataset.tags ?? "").split("|").includes(tag);
         card.hidden = !matches;
         if (matches) visible += 1;
       });
-
+      buttons.forEach((button) => {
+        button.setAttribute("aria-pressed", String(button.dataset.noteTag === tag));
+      });
       if (result) {
         result.textContent = `${visible} ${explorer!.dataset.resultLabel ?? ""}`;
       }
       if (empty) empty.hidden = visible !== 0;
 
       if (updateUrl) {
-        const params = new URLSearchParams();
-        controls.forEach((control) => {
-          if (control.value) params.set(control.name, control.value);
-        });
-        const suffix = params.size ? `?${params.toString()}` : location.pathname;
-        history.replaceState(
-          history.state,
-          "",
-          params.size ? suffix : location.pathname,
-        );
+        const url = new URL(location.href);
+        if (tag) url.searchParams.set("tag", tag);
+        else url.searchParams.delete("tag");
+        history.replaceState(history.state, "", `${url.pathname}${url.search}`);
       }
     }
 
-    const initial = new URLSearchParams(location.search);
-    controls.forEach((control) => {
-      const value = initial.get(control.name);
-      if (value !== null) control.value = value;
+    buttons.forEach((button) => {
+      button.addEventListener("click", () => applyTag(button.dataset.noteTag ?? ""), {
+        signal: controller.signal,
+      });
     });
-
-    form.addEventListener("input", () => applyFilters());
-    form.addEventListener("change", () => applyFilters());
-    form.addEventListener("reset", () => {
-      requestAnimationFrame(() => applyFilters());
-    });
-    applyFilters(false);
+    applyTag(
+      new URLSearchParams(location.search).get("tag")?.toLocaleLowerCase() ?? "",
+      false,
+    );
+    activeNotesCleanup = () => controller.abort();
   }
 
+  document.addEventListener("astro:before-swap", () => activeNotesCleanup?.());
   document.addEventListener("astro:page-load", initNotesExplorer);
   initNotesExplorer();
 </script>

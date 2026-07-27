@@ -50,3 +50,5 @@ restricted/
 references-private/
 *.local
 
+# User-supplied V3.3 source package (working originals, never published)
+/PORTFOLIO_V3_3_FINAL_PACKAGE/

@@ -1,25 +1,25 @@
 :root {
   /* Colour primitives */
-  --colour-navy-950: #171b19;
-  --colour-navy-900: #242a26;
-  --colour-navy-800: #303832;
-  --colour-slate-700: #4c534e;
-  --colour-slate-600: #646a65;
-  --colour-slate-500: #7c817c;
-  --colour-slate-300: #c9c6bc;
-  --colour-slate-200: #dedbd1;
-  --colour-slate-100: #ebe8df;
-  --colour-slate-50: #f4f0e7;
+  --colour-navy-950: #1c2426;
+  --colour-navy-900: #27343b;
+  --colour-navy-800: #354247;
+  --colour-slate-700: #535b59;
+  --colour-slate-600: #6d716d;
+  --colour-slate-500: #858782;
+  --colour-slate-300: #c9c1b6;
+  --colour-slate-200: #ddd6cc;
+  --colour-slate-100: #eae4db;
+  --colour-slate-50: #f3eee5;
   --colour-white: #fffdf8;
-  --colour-cyan-700: #456d70;
-  --colour-cyan-600: #587f81;
-  --colour-cyan-500: #6f9291;
-  --colour-cyan-400: #8baaa8;
-  --colour-cyan-300: #a9c5c2;
-  --colour-violet-600: #657563;
-  --colour-violet-500: #7d8977;
-  --colour-violet-300: #b9c3b4;
-  --colour-amber-500: #a8824d;
+  --colour-cyan-700: #466b72;
+  --colour-cyan-600: #5d7f87;
+  --colour-cyan-500: #76939a;
+  --colour-cyan-400: #96abb0;
+  --colour-cyan-300: #b8c8c9;
+  --colour-violet-600: #536b57;
+  --colour-violet-500: #70816f;
+  --colour-violet-300: #bdc8ba;
+  --colour-amber-500: #a4744f;
 
   /* Semantic colour tokens: light */
   --colour-page: var(--colour-slate-50);
@@ -31,19 +31,19 @@
   --colour-border: var(--colour-slate-200);
   --colour-border-strong: var(--colour-slate-300);
   --colour-primary: var(--colour-cyan-700);
-  --colour-primary-strong: #31585b;
+  --colour-primary-strong: #31565d;
   --colour-primary-contrast: var(--colour-white);
   --colour-secondary: var(--colour-violet-600);
-  --colour-accent: #8b6b43;
+  --colour-accent: #96684a;
   --colour-focus: var(--colour-amber-500);
-  --colour-header: rgb(244 240 231 / 94%);
+  --colour-header: rgb(243 238 229 / 96%);
   --colour-selection: rgb(88 127 129 / 22%);
   --gradient-aurora: linear-gradient(180deg, #f4f0e7, #efebe2);
 
   /* Typography */
   --font-sans:
-    Inter, "Aptos", "Noto Sans", "Noto Sans SC", "Microsoft YaHei", system-ui,
-    sans-serif;
+    "Aptos", "Segoe UI Variable", "Noto Sans SC", "Microsoft YaHei", "PingFang SC",
+    system-ui, sans-serif;
   --font-mono: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
   --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;
@@ -51,14 +51,14 @@
   --font-size-lg: 1.125rem;
   --font-size-xl: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
   --font-size-2xl: clamp(1.75rem, 1.35rem + 1.5vw, 2.5rem);
-  --font-size-3xl: clamp(2.25rem, 1.55rem + 2.8vw, 4rem);
+  --font-size-3xl: clamp(2.15rem, 1.58rem + 2.35vw, 3.6rem);
   --font-weight-regular: 400;
   --font-weight-medium: 550;
   --font-weight-semibold: 650;
   --font-weight-bold: 750;
   --line-height-tight: 1.15;
   --line-height-body: 1.65;
-  --letter-spacing-tight: -0.025em;
+  --letter-spacing-tight: -0.018em;
   --letter-spacing-label: 0.075em;
 
   /* Spacing */
@@ -89,10 +89,10 @@
   --shadow-focus: 0 0 0 3px rgb(168 130 77 / 35%);
 
   /* Layout and z-index */
-  --container-content: 48rem;
-  --container-project: 66rem;
-  --container-wide: 75rem;
-  --header-height: 4.75rem;
+  --container-content: 70ch;
+  --container-project: 72rem;
+  --container-wide: 82rem;
+  --header-height: 4.25rem;
   --z-base: 0;
   --z-raised: 10;
   --z-header: 100;
@@ -101,9 +101,9 @@
 
   /* Motion */
   --duration-instant: 80ms;
-  --duration-fast: 160ms;
-  --duration-normal: 240ms;
-  --duration-slow: 360ms;
+  --duration-fast: 140ms;
+  --duration-normal: 220ms;
+  --duration-slow: 320ms;
   --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 

@@ -1,8 +1,8 @@
-# Xintao Liu Portfolio
+# Business Analytics Portfolio
 
 [English](README.md) | [中文](README.zh-CN.md)
 
-This repository contains Xintao Liu's static bilingual business analytics and
+This repository contains a static bilingual business analytics and
 supply chain analytics portfolio. English is the default language and
 Simplified Chinese is available under `/zh/`.
 

@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title">
   <title id="title">XL mark for light backgrounds</title>
-  <path d="M23 25 61 64 23 103M63 25 27 64l36 39" fill="none" stroke="#08769A" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M73 25v78h34" fill="none" stroke="#0B1729" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="107" cy="103" r="6" fill="#B56300"/>
+  <path d="M23 25 61 64 23 103M63 25 27 64l36 39" fill="none" stroke="#466B72" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M73 25v78h34" fill="none" stroke="#27343B" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="107" cy="103" r="6" fill="#96684A"/>
 </svg>

@@ -9,24 +9,29 @@ export const portfolioConfig = {
       desktop: "/backgrounds/home-hero-desktop.webp",
       mobile: "/backgrounds/home-hero-mobile.webp",
       fallback: "/backgrounds/southern-alpine-placeholder.svg",
-      available: false,
-      overlay: 0.48,
+      available: true,
+      overlay: 0.52,
       position: {
-        desktop: "center 52%",
-        mobile: "58% center",
+        desktop: "center 43%",
+        mobile: "16% center",
       },
     },
     aboutHero: {
       image: "/backgrounds/about-hero.webp",
       fallback: "/backgrounds/southern-alpine-about-placeholder.svg",
-      available: false,
-      overlay: 0.4,
-      position: "center 48%",
+      available: true,
+      overlay: 0.42,
+      position: "center 51%",
+    },
+    alternateLandscape: {
+      image: "/backgrounds/wanaka-alternate.webp",
+      available: true,
+      position: "center 54%",
     },
     portrait: {
       image: "/profile/portrait.webp",
       fallback: "/brand/logo-monochrome.svg",
-      available: false,
+      available: true,
       position: "center",
     },
   },
@@ -52,8 +57,8 @@ export const portfolioConfig = {
     resume: {
       enabled: false,
       paths: {
-        en: "/resume/xintao-liu-resume-en.pdf",
-        zh: "/resume/xintao-liu-resume-zh.pdf",
+        en: "/resume/resume-en.pdf",
+        zh: "/resume/resume-zh.pdf",
       },
       available: {
         en: false,

@@ -1,12 +1,12 @@
 ---
 import { getCollection } from "astro:content";
 import PageIntro from "../../components/PageIntro.astro";
-import ProjectExplorer from "../../components/ProjectExplorer.astro";
+import ProjectList from "../../components/ProjectList.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 
-const projects = (await getCollection("projects")).filter(
-  (entry) => entry.data.locale === "en",
-);
+const projects = (await getCollection("projects"))
+  .filter((entry) => entry.data.locale === "en")
+  .sort((left, right) => Number(right.data.featured) - Number(left.data.featured));
 ---
 
 <BaseLayout title="Projects" locale="en">
@@ -14,5 +14,5 @@ const projects = (await getCollection("projects")).filter(
     title="Projects"
     description="Project entries remain placeholders until their content and results are verified."
   />
-  <ProjectExplorer entries={projects} locale="en" />
+  <ProjectList entries={projects} locale="en" />
 </BaseLayout>

@@ -1,7 +1,6 @@
 ---
 import { navigationItems } from "../config/navigation";
 import type { Locale } from "../config/site";
-import { siteConfig } from "../config/site";
 import { getLocalizedPath } from "../utils/paths";
 import LanguageSwitch from "./LanguageSwitch.astro";
 import Icon, { type IconName } from "./Icon.astro";
@@ -39,22 +38,35 @@ function isCurrentRoute(path: string): boolean {
       class="site-brand"
       href={getLocalizedPath("/", locale)}
       transition:name="site-logo"
-      aria-label={`${siteConfig.publicName} — ${locale === "en" ? "Home" : "首页"}`}
+      aria-label={locale === "en" ? "Portfolio home" : "作品集首页"}
     >
       <Logo size="sm" />
     </a>
 
-    <button
-      class="menu-toggle"
-      type="button"
-      aria-expanded="false"
-      aria-controls="primary-navigation"
-      data-menu-toggle
-    >
-      <span class="menu-toggle__open-icon"><Icon name="menu" /></span>
-      <span class="menu-toggle__close-icon"><Icon name="close" /></span>
-      <span>{locale === "en" ? "Menu" : "菜单"}</span>
-    </button>
+    <div class="header-mobile-tools">
+      <button
+        class="icon-button search-trigger search-trigger--mobile"
+        type="button"
+        aria-label={locale === "en" ? "Search" : "搜索"}
+        title={locale === "en"
+          ? "Search (Ctrl/Command + K)"
+          : "搜索（Ctrl/Command + K）"}
+        data-search-open
+      >
+        <Icon name="search" />
+      </button>
+      <button
+        class="menu-toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="primary-navigation"
+        data-menu-toggle
+      >
+        <span class="menu-toggle__open-icon"><Icon name="menu" /></span>
+        <span class="menu-toggle__close-icon"><Icon name="close" /></span>
+        <span>{locale === "en" ? "Menu" : "菜单"}</span>
+      </button>
+    </div>
 
     <button
       class="menu-scrim"
@@ -86,6 +98,17 @@ function isCurrentRoute(path: string): boolean {
       </nav>
 
       <div class="header-tools">
+        <button
+          class="icon-button search-trigger search-trigger--desktop"
+          type="button"
+          aria-label={locale === "en" ? "Search" : "搜索"}
+          title={locale === "en"
+            ? "Search (Ctrl/Command + K)"
+            : "搜索（Ctrl/Command + K）"}
+          data-search-open
+        >
+          <Icon name="search" />
+        </button>
         <LanguageSwitch locale={locale} alternatePath={alternatePath} />
         <ThemeSwitch locale={locale} />
       </div>

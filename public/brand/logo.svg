@@ -1,14 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title">
-  <title id="title">XL mark for Xintao Liu</title>
+  <title id="title">XL portfolio mark</title>
   <defs>
     <linearGradient id="aurora" x1="18" y1="20" x2="110" y2="108" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#67E8F9"/>
-      <stop offset=".52" stop-color="#06B6D4"/>
-      <stop offset="1" stop-color="#8B5CF6"/>
+      <stop stop-color="#B8C8C9"/>
+      <stop offset=".52" stop-color="#76939A"/>
+      <stop offset="1" stop-color="#70816F"/>
     </linearGradient>
   </defs>
-  <rect width="128" height="128" rx="30" fill="#0B1729"/>
+  <rect width="128" height="128" rx="30" fill="#27343B"/>
   <path d="M27 30 61 64 27 98M63 30 31 64 63 98" fill="none" stroke="url(#aurora)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M72 30v68h31" fill="none" stroke="#F7F9FC" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="103" cy="98" r="6" fill="#F59E0B"/>
+  <path d="M72 30v68h31" fill="none" stroke="#F3EEE5" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="103" cy="98" r="6" fill="#D5B28C"/>
 </svg>
