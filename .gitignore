@@ -50,5 +50,18 @@ restricted/
 references-private/
 *.local
 
+# Private local instructions
+/local-instructions.local/
+
+# Private course materials and knowledge
+/Businfo/
+/codex-knowledge.local/
+/content-staging.local/
+
+# Local-only indexes and briefs
+*.local.md
+*.local.json
+/COURSE_KNOWLEDGE_AND_PROJECT_MASTER.md
+
 # User-supplied V3.3 source package (working originals, never published)
 /PORTFOLIO_V3_3_FINAL_PACKAGE/

@@ -7,16 +7,43 @@ const outputRoot = path.join(projectRoot, "dist");
 const localOrigin = "https://local.invalid";
 const failures = [];
 const forbiddenPublicName = ["Xintao", "Liu"].join(" ");
+const forbiddenPublicTerms = [
+  /(?<![A-Za-z])AI(?![A-Za-z])/,
+  /Artificial Intelligence/i,
+  /Generative AI/i,
+  /ChatGPT/i,
+  /OpenAI/i,
+  /(?<![A-Za-z])LLMs?(?![A-Za-z])/,
+  /人工智能/,
+  /生成式人工智能/,
+  /大语言模型|大模型/,
+  /机器生成/,
+  /AI[\s-]*(?:生成|辅助|assisted)/i,
+  /machine-generated/i,
+];
+const forbiddenFirstPersonTerms = [
+  /\b(?:I|Me|me|My|my|Mine|mine|We|we|Our|our|Ours|ours)\b/,
+  /我|我们|本人|作者|笔者/,
+];
+const publicTextExtensions = new Set([
+  ".html",
+  ".json",
+  ".js",
+  ".svg",
+  ".txt",
+  ".xml",
+  ".webmanifest",
+]);
 
-async function collectHtml(directory) {
+async function collectFiles(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
   const files = await Promise.all(
     entries.map(async (entry) => {
       const target = path.join(directory, entry.name);
-      return entry.isDirectory() ? collectHtml(target) : [target];
+      return entry.isDirectory() ? collectFiles(target) : [target];
     }),
   );
-  return files.flat().filter((file) => file.endsWith(".html"));
+  return files.flat();
 }
 
 function routeForFile(file) {
@@ -50,7 +77,8 @@ async function resolvesToBuildFile(pathname) {
   return (await Promise.all(candidates.map(exists))).some(Boolean);
 }
 
-const htmlFiles = await collectHtml(outputRoot);
+const outputFiles = await collectFiles(outputRoot);
+const htmlFiles = outputFiles.filter((file) => file.endsWith(".html"));
 for (const file of htmlFiles) {
   const html = await readFile(file, "utf8");
   const route = routeForFile(file);
@@ -59,6 +87,12 @@ for (const file of htmlFiles) {
   }
   if (html.includes(forbiddenPublicName)) {
     failures.push(`${route}: contains a forbidden public identity`);
+  }
+  if (forbiddenPublicTerms.some((pattern) => pattern.test(html))) {
+    failures.push(`${route}: contains restricted public terminology`);
+  }
+  if (forbiddenFirstPersonTerms.some((pattern) => pattern.test(html))) {
+    failures.push(`${route}: contains first-person public wording`);
   }
   const h1Count = (html.match(/<h1\b/gi) ?? []).length;
   if (!/<html\b[^>]*\blang=["'][^"']+["']/i.test(html)) {
@@ -91,6 +125,18 @@ for (const file of htmlFiles) {
     if (!(await resolvesToBuildFile(resolved.pathname))) {
       failures.push(`${route}: missing ${resolved.pathname}`);
     }
+  }
+}
+
+for (const file of outputFiles) {
+  if (file.endsWith(".html") || !publicTextExtensions.has(path.extname(file))) continue;
+  const content = await readFile(file, "utf8");
+  const relative = path.relative(outputRoot, file).replaceAll(path.sep, "/");
+  if (content.includes(forbiddenPublicName)) {
+    failures.push(`${relative}: contains a forbidden public identity`);
+  }
+  if (forbiddenPublicTerms.some((pattern) => pattern.test(content))) {
+    failures.push(`${relative}: contains restricted public terminology`);
   }
 }
 
