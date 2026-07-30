@@ -19,7 +19,6 @@ tags:
   - superannuation
   - scenario analysis
 updatedAt: 2026-07-30
-noindex: true
 ---
 
-该条目由经过脱敏的模型事实驱动。完整课程报告、原始工作簿和课程材料不对外提供。
+以工资、缴费、组合收益和通胀假设建立 25 年退休储蓄路径，并通过情景分析比较参数变化对结果分布的影响。

@@ -32,7 +32,7 @@ describe("retirement Monte Carlo project", () => {
     expect(result.successRate).toBe(0);
   });
 
-  it("keeps the pilot Chinese-only, noindex and source-disciplined", () => {
+  it("publishes the Chinese project with production copy and search terms", () => {
     const entry = readFileSync(
       "src/content/projects/retirement-monte-carlo.zh.md",
       "utf8",
@@ -42,16 +42,21 @@ describe("retirement Monte Carlo project", () => {
       "utf8",
     );
     const route = readFileSync("src/pages/zh/projects/[slug].astro", "utf8");
+    const card = readFileSync("src/components/ProjectCard.astro", "utf8");
 
-    expect(entry).toContain("noindex: true");
+    expect(entry).not.toContain("noindex: true");
     expect(entry).toContain("Monte Carlo");
     expect(entry).toContain("蒙特卡洛");
     expect(entry).toContain("敏感性分析");
     expect(route).toContain('getLocalizedPath("/projects/", "en")');
     expect(page).toContain("data-retirement-lab");
     expect(page).toContain("随机种子");
-    expect(page).toContain("无脚本时");
-    expect(page).toContain("不等同于课程报告中的固定结果");
+    expect(page).toContain("模型结果");
+    expect(page).toContain("随机模拟逻辑");
+    expect(card).toContain('entry.data.translationKey !== "retirement-monte-carlo"');
+    expect(page).not.toMatch(
+      /Task [1-4]|Client data|课程项目|中文样板页|暂不索引|局限与下一步|来源与口径|6\.1625%|10\.5%/,
+    );
     expect(page).not.toMatch(/人工智能|ChatGPT|OpenAI|大语言模型|机器生成/);
     expect(page).not.toMatch(/我|我们|本人|作者|笔者/);
   });

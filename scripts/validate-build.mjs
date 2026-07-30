@@ -128,18 +128,24 @@ for (const file of htmlFiles) {
   }
 
   if (route === "/zh/projects/retirement-monte-carlo/") {
+    const pageContent = html.match(/<main\b[\s\S]*?<\/main>/i)?.[0] ?? html;
     if (
-      !/<meta\b[^>]*\bname=["']robots["'][^>]*\bcontent=["']noindex, follow["']/i.test(
-        html,
-      )
+      /<meta\b[^>]*\bname=["']robots["'][^>]*\bcontent=["'][^"']*noindex/i.test(html)
     ) {
-      failures.push(`${route}: pilot page must remain noindex`);
+      failures.push(`${route}: production page must be indexable`);
     }
     if (!html.includes('href="/projects/"')) {
       failures.push(`${route}: missing English Projects fallback`);
     }
     if (/(?:[A-Z]:\\|Businfo\\|\.xlsx\b|\.docx\b|Daniel|Group 14)/i.test(html)) {
       failures.push(`${route}: contains a private source reference`);
+    }
+    if (
+      /Task [1-4]|Client data|课程项目|课程报告|课程材料|30 秒速览|6\.1625%|10\.5%|局限与下一步|来源与口径|中文样板页|暂不索引|浏览器本地计算|不会上传课程数据/.test(
+        pageContent,
+      )
+    ) {
+      failures.push(`${route}: contains retired pilot or internal wording`);
     }
   }
 }

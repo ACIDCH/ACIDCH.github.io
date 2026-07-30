@@ -4,9 +4,10 @@ import type { CollectionEntry } from "astro:content";
 interface Props {
   entry: CollectionEntry<"projects">;
   compact?: boolean;
+  showCode?: boolean;
 }
 
-const { entry, compact = false } = Astro.props;
+const { entry, compact = false, showCode = true } = Astro.props;
 const transitionName = `project-cover-${entry.data.translationKey}-${entry.data.locale}`;
 ---
 
@@ -17,5 +18,11 @@ const transitionName = `project-cover-${entry.data.translationKey}-${entry.data.
   transition:name={transitionName}
 >
   <span class="project-cover__grid"></span>
-  <span class="project-cover__code">{entry.data.topic.slice(0, 3).toUpperCase()}</span>
+  {
+    showCode && (
+      <span class="project-cover__code">
+        {entry.data.topic.slice(0, 3).toUpperCase()}
+      </span>
+    )
+  }
 </div>

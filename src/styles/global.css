@@ -3434,3 +3434,7 @@ html[data-motion-ready="true"]
   min-height: 0;
   aspect-ratio: auto;
 }
+
+.retirement-hero.retirement-hero--text {
+  grid-template-columns: minmax(0, 1fr);
+}

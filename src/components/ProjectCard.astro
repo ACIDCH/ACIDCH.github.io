@@ -23,7 +23,11 @@ const topicLabels = {
 ---
 
 <article class="project-card" data-tilt>
-  <ProjectCover entry={entry} compact />
+  <ProjectCover
+    entry={entry}
+    compact
+    showCode={entry.data.translationKey !== "retirement-monte-carlo"}
+  />
   <div class="cluster cluster--compact">
     <p class="status">{statusLabels[entry.data.status][locale]}</p>
     <span class="tag">{topicLabels[entry.data.topic][locale]}</span>

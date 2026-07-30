@@ -3,7 +3,6 @@ import { getCollection, type CollectionEntry } from "astro:content";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import ContextBack from "./ContextBack.astro";
 import ProjectCard from "./ProjectCard.astro";
-import ProjectCover from "./ProjectCover.astro";
 
 interface Props {
   entry: CollectionEntry<"projects">;
@@ -42,7 +41,6 @@ const structuredData = {
   description={entry.data.summary}
   locale="zh"
   alternatePath={alternatePath}
-  noindex
   pageType="article"
   structuredData={structuredData}
 >
@@ -53,15 +51,12 @@ const structuredData = {
       label={{ en: "Back to Projects", zh: "返回项目列表" }}
     />
 
-    <header class="retirement-hero" data-reveal>
-      <ProjectCover entry={entry} />
+    <header class="retirement-hero retirement-hero--text" data-reveal>
       <div class="retirement-hero__copy">
-        <p class="status">已完成课程项目 · 中文样板页 · 暂不索引</p>
         <h1>{entry.data.title}</h1>
         <p>
-          这套 Excel 模型把工资增长、年度缴费、组合收益和通胀放进同一条 25
-          年时间线，再用 5,000
-          次模拟观察退休余额的分布。页面保留原始模型的数字和公式，同时把身份、课程材料与源文件留在本地。
+          以工资增长、年度缴费、组合收益和通胀建立 25 年时间线，通过 5,000
+          次模拟观察退休余额分布与目标达成概率。
         </p>
         <ul class="tag-list" aria-label="项目方法">
           {entry.data.tools.map((tool) => <li class="tag">{tool}</li>)}
@@ -70,15 +65,14 @@ const structuredData = {
     </header>
 
     <nav class="project-toc" aria-label="项目页章节">
-      <a href="#overview">30 秒速览</a>
+      <a href="#overview">速览</a>
       <a href="#model">模型结构</a>
       <a href="#interactive">互动分析</a>
-      <a href="#original-results">原始结果</a>
-      <a href="#limitations">局限</a>
+      <a href="#model-results">模型结果</a>
     </nav>
 
     <section id="overview" class="project-section" data-reveal>
-      <p class="status">30 秒速览</p>
+      <p class="status">速览</p>
       <h2>当前缴费路径离目标仍有明显距离</h2>
       <div class="project-facts">
         <div>
@@ -93,14 +87,10 @@ const structuredData = {
           <span>原始输出</span>
           <strong>平均名义余额 NZD 552,671</strong>
         </div>
-        <div>
-          <span>状态</span>
-          <strong>独立完成的课程项目</strong>
-        </div>
       </div>
       <p>
-        工作簿中的基准参数为初始工资 NZD 95,000、总缴费率 7.5%、工资增长均值
-        2.8%、组合收益均值 6.12%、收益波动率 10% 和通胀率
+        基准参数为初始工资 NZD 95,000、总缴费率 7.5%、工资增长均值 2.8%、组合收益均值
+        6.12%、收益波动率 10% 和通胀率
         2%。模型从零起始余额出发，每年先更新工资，再计算缴费与投资余额；退休时用 4%
         提取率与通胀后的年度目标比较。
       </p>
@@ -122,7 +112,7 @@ const structuredData = {
 
     <section class="project-section" data-reveal>
       <p class="status">数据与假设</p>
-      <h2>输入来自工作簿的 Client data 与 Task 3</h2>
+      <h2>客户数据</h2>
       <div class="table-scroll" tabindex="0" aria-label="模型输入假设表">
         <table>
           <thead>
@@ -162,7 +152,7 @@ const structuredData = {
         </table>
       </div>
       <p class="source-note">
-        页面控件的上下限只是输入校验范围，不是工作簿给出的置信区间。源模型未加入税费、管理费、职业中断和退休后的逐年现金流。
+        控件上下限用于输入校验，不代表置信区间。模型未计入税费、管理费、职业中断和退休后的逐年现金流。
       </p>
     </section>
 
@@ -212,15 +202,10 @@ const structuredData = {
 
     <section class="project-section" data-reveal>
       <p class="status">分析过程</p>
-      <h2>先核对公式，再分开保存随机结果与情景结果</h2>
+      <h2>随机结果与情景结果</h2>
       <p>
-        工作簿先计算三类基金的加权收益，再建立工资和缴费时间线。模拟区为每次试验生成新的工资增长与组合收益序列，统计名义余额、实际余额、均值、标准差、偏度和
+        模型先计算三类基金的加权收益，再建立工资和缴费时间线。每次试验生成新的工资增长与组合收益序列，统计名义余额、实际余额、均值、标准差、偏度和
         95% 区间。最后用四组固定参数比较基础、收益提高、缴费提高和下行情景。
-      </p>
-      <p>
-        核对时发现，加权收益表计算为 6.1625%，后续模拟输入写为
-        6.12%；客户数据页的组合波动率为 10.5%，模拟页使用
-        10%。互动面板遵循模拟页输入，同时在来源说明中保留差异。
       </p>
     </section>
 
@@ -233,11 +218,9 @@ const structuredData = {
       <div class="retirement-lab__heading">
         <div>
           <p class="status">互动分析面板</p>
-          <h2>调整五项输入，重跑同一套模型</h2>
+          <h2>调整参数并比较不同情景</h2>
         </div>
-        <p>
-          当前结果由浏览器本地计算。相同参数和随机种子会得到相同结果，不会上传课程数据。
-        </p>
+        <p>调整参数后可重新计算，并将当前情景与基准情景进行比较。</p>
       </div>
 
       <form class="retirement-controls" data-model-form>
@@ -327,19 +310,17 @@ const structuredData = {
       </form>
 
       <div class="retirement-results" aria-live="polite" aria-busy="false">
-        <p class="calculation-status" data-model-status>
-          基准场景待载入；无脚本时保留下方工作簿摘要。
-        </p>
+        <p class="calculation-status" data-model-status>基准场景结果如下。</p>
         <div class="metric-grid">
           <div class="metric-card">
             <span>平均名义余额</span>
             <strong data-output="meanNominal">NZD 552,671</strong>
-            <small data-change="meanNominal">原始工作簿摘要</small>
+            <small data-change="meanNominal">基准模拟结果</small>
           </div>
           <div class="metric-card">
             <span>平均实际余额</span>
             <strong data-output="meanReal">NZD 336,870</strong>
-            <small data-change="meanReal">原始工作簿摘要</small>
+            <small data-change="meanReal">基准模拟结果</small>
           </div>
           <div class="metric-card">
             <span>名义余额 95% 区间</span>
@@ -394,18 +375,17 @@ const structuredData = {
         <div class="no-script-summary">
           <h3>基准摘要</h3>
           <p>
-            原始工作簿的 5,000 次试验得到平均名义余额 NZD 552,670.63、平均实际余额 NZD
-            336,869.81，名义余额 95% 区间为 NZD 294,058.79 至 NZD
-            967,300.62。启用脚本后可调整参数并重跑可复现的本地模拟。
+            5,000 次试验得到平均名义余额 NZD 552,670.63、平均实际余额 NZD
+            336,869.81，名义余额 95% 区间为 NZD 294,058.79 至 NZD 967,300.62。
           </p>
         </div>
       </noscript>
     </section>
 
-    <section id="original-results" class="project-section" data-reveal>
-      <p class="status">原始课程项目结果</p>
-      <h2>固定结果来自最终工作簿已保存的计算值</h2>
-      <div class="table-scroll" tabindex="0" aria-label="原始模拟结果表">
+    <section id="model-results" class="project-section" data-reveal>
+      <p class="status">模型结果</p>
+      <h2>基准模拟结果</h2>
+      <div class="table-scroll" tabindex="0" aria-label="基准模拟结果表">
         <table>
           <thead><tr><th>指标</th><th>名义口径</th><th>实际口径</th></tr></thead>
           <tbody>
@@ -420,25 +400,21 @@ const structuredData = {
           </tbody>
         </table>
       </div>
-      <p>
-        同一工作簿中的首年退休收入模拟均值为 NZD 10,120.09，保存时的目标达成概率为
-        0%。Excel 使用 <code>RAND()</code
-        >，重新计算会改变这些随机结果。页面没有把它们改写成互动面板的输出。
-      </p>
+      <p>基准模拟的首年退休收入均值为 NZD 10,120.09，目标达成概率为 0%。</p>
       <aside class="source-note">
-        互动面板基于原模型逻辑制作。即时结果随输入参数和随机种子变化，不等同于课程报告中的固定结果。
+        下表为基准模拟结果；互动面板中的结果会随参数和随机种子变化。
       </aside>
     </section>
 
     <section class="project-section project-section--wide" data-reveal>
       <p class="status">敏感性分析</p>
       <h2>缴费率是四组情景中最直接的可控变量</h2>
-      <div class="table-scroll" tabindex="0" aria-label="原始情景分析结果表">
+      <div class="table-scroll" tabindex="0" aria-label="情景分析结果表">
         <table>
           <thead>
             <tr
               ><th>情景</th><th>收益率</th><th>缴费率</th><th>工资增长</th><th
-                >工作簿列示余额</th
+                >情景余额</th
               ><th>4% 提取额</th></tr
             >
           </thead>
@@ -467,41 +443,45 @@ const structuredData = {
         </table>
       </div>
       <p>
-        原表中，提高缴费情景把缴费率由 7.5% 提到 15%，列示余额由 NZD 1.6 million 增至
-        NZD 2.9 million；提高收益情景把收益率调到 7.3%，列示余额为 NZD 2.2
+        提高缴费情景把缴费率由 7.5% 提到 15%，余额由 NZD 1.6 million 增至 NZD 2.9
+        million；提高收益情景把收益率调到 7.3%，列示余额为 NZD 2.2
         million。四个情景都低于约 NZD 5.13 million 的目标资本。
       </p>
     </section>
 
     <section class="project-section project-section--wide" data-reveal>
       <p class="status">Excel 模型查看</p>
-      <h2>公开版保留结构，不嵌入完整工作簿</h2>
+      <h2>五个部分连接输入、计算与结果</h2>
       <div class="workbook-map">
         <div>
-          <strong>Client data</strong><span>年龄、工资、缴费、基金和支出假设</span>
+          <strong>客户数据</strong><span>年龄、工资、缴费、基金配置和支出假设</span>
         </div>
-        <div><strong>Task 1</strong><span>三类基金的加权收益</span></div>
-        <div><strong>Task 2</strong><span>缴费路径、退休收入和目标判断</span></div>
-        <div><strong>Task 3</strong><span>名义与实际余额的 5,000 次模拟</span></div>
-        <div><strong>Task 4</strong><span>四组固定参数情景</span></div>
+        <div>
+          <strong>投资组合收益</strong><span>不同基金配置下的组合收益参数</span>
+        </div>
+        <div>
+          <strong>缴费路径与退休目标</strong><span
+            >工资增长、年度缴费、退休收入和目标比较</span
+          >
+        </div>
+        <div>
+          <strong>蒙特卡洛模拟</strong><span>名义余额与实际余额的 5,000 次模拟</span>
+        </div>
+        <div>
+          <strong>情景分析</strong><span>不同收益、缴费和工资增长参数的结果比较</span>
+        </div>
       </div>
-      <p class="source-note">
-        未发现可匿名访问且已确认安全的 Excel Online、OneDrive 或 SharePoint
-        链接，因此没有加载
-        iframe。完整工作簿含身份属性与课程结构，第一版不提供下载；页面图表均由核实后的数值重新绘制。
-      </p>
     </section>
 
     <section class="project-section" data-reveal>
       <p class="status">关键公式与技术细节</p>
-      <h2>页面与工作簿的随机机制不同，年度逻辑相同</h2>
+      <h2>随机模拟逻辑</h2>
       <p>
-        Excel 用 <code>NORM.INV(RAND(), μ, σ)</code>
-        生成年度工资增长率和组合收益率。网页用固定种子的伪随机数与 Box–Muller 变换生成正态分布抽样，使同一场景可复现。每次运行仍计算
-        5,000 条路径，未调用外部接口。
+        年度工资增长率和组合收益率采用正态分布抽样，每次计算 5,000
+        条路径。第一年的余额由当年缴费形成；后续年度先计算收益，再加入当年缴费。
       </p>
       <p>
-        工作簿的第一年余额等于当年缴费；从第二年起，已有余额先按当年收益滚动，再加入当年缴费。通胀指数为
+        通胀指数为
         <code>(1 + 2%)²⁵</code>，实际余额由名义余额除以该指数得到。
       </p>
     </section>
@@ -511,10 +491,10 @@ const structuredData = {
       <h2>结果分布右偏，均值不能替代区间</h2>
       <ul class="observation-list">
         <li>
-          原始名义余额的 95% 结果区间约为 NZD 294,059 至 NZD
+          基准名义余额的 95% 结果区间约为 NZD 294,059 至 NZD
           967,301，跨度远大于单个均值。
         </li>
-        <li>工作簿保存的名义余额偏度为 1.0208，少量较高结果会把平均值拉高。</li>
+        <li>名义余额偏度为 1.0208，少量较高结果会把平均值拉高。</li>
         <li>
           四组固定情景均未达到目标资本；把缴费率提高至 15% 的列示改善大于收益率提高至
           7.3% 的情景。
@@ -525,43 +505,11 @@ const structuredData = {
       </ul>
     </section>
 
-    <section id="limitations" class="project-section" data-reveal>
-      <p class="status">局限与下一步</p>
-      <h2>模型适合比较路径，不适合直接制定退休方案</h2>
-      <ul class="observation-list">
-        <li>
-          税费、管理费、职业中断、缴费规则变化和退休后的逐年现金流未进入已核实公式。
-        </li>
-        <li>工资增长和组合收益使用正态分布，不能完整描述厚尾、相关性和制度变化。</li>
-        <li>
-          Task 4
-          的情景余额为工作簿列示值，与同页确定性滚动表的计算值并不相同，因此只按原表口径呈现。
-        </li>
-        <li>
-          下一步应统一 6.1625% 与 6.12%、10.5% 与 10%
-          的输入口径，再加入费用、税务与退休后现金流。
-        </li>
-      </ul>
-    </section>
-
-    <section class="project-section" data-reveal>
-      <p class="status">来源与口径</p>
-      <h2>公开内容只使用脱敏后的衍生事实</h2>
-      <p>
-        数字来自最终报告与最终 Excel 工作簿中的 Client data、Task 1、Task 2、Task 3 和
-        Task
-        4。源文件仅用于本地核实，没有复制到公开目录。个人标识、联系方式、文档属性、本地路径、课程题目与教师材料均未进入页面。
-      </p>
-      <p>
-        工作簿没有隐藏工作表、外部工作簿链接、批注、嵌入文件或宏，但核心文档属性包含身份字段。原始文件的公开许可未确认，因此不提供下载，也不复用原始截图与图表。
-      </p>
-    </section>
-
     <section class="project-section project-section--wide related-content" data-reveal>
-      <p class="status">相关 Notes 和 Projects</p>
-      <h2>继续查看分析方法与其他项目</h2>
+      <p class="status">相关内容</p>
+      <h2>继续查看其他分析项目</h2>
       {
-        relatedNotes.length ? (
+        relatedNotes.length > 0 ? (
           <ul class="related-link-list">
             {relatedNotes.map((note) => (
               <li>
@@ -570,9 +518,7 @@ const structuredData = {
               </li>
             ))}
           </ul>
-        ) : (
-          <p>暂时没有与该模型直接配对的已发布中文笔记。</p>
-        )
+        ) : null
       }
       <ul class="content-list project-list">
         {
@@ -835,7 +781,7 @@ const structuredData = {
         results.setAttribute("aria-busy", "false");
         status.textContent = reset
           ? "基准值已恢复。结果使用随机种子 7052025。"
-          : `计算完成。结果使用随机种子 ${inputs.seed}，可重复运行核对。`;
+          : `计算完成。结果使用随机种子 ${inputs.seed}，可重复运行比较。`;
       });
     };
 
