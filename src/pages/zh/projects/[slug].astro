@@ -5,6 +5,7 @@ import ProjectLayout from "../../../layouts/ProjectLayout.astro";
 import RetirementMonteCarloProject from "../../../components/RetirementMonteCarloProject.astro";
 import PowerBIDashboardProject from "../../../components/PowerBIDashboardProject.astro";
 import PythonAnalysisProject from "../../../components/PythonAnalysisProject.astro";
+import SqlDatabaseProject from "../../../components/SqlDatabaseProject.astro";
 import { getLocalizedPath } from "../../../utils/paths";
 
 export async function getStaticPaths() {
@@ -33,6 +34,8 @@ const alternatePath = translation
     <PowerBIDashboardProject entry={entry} alternatePath={alternatePath} />
   ) : entry.data.translationKey === "grammy-spotify-analysis" ? (
     <PythonAnalysisProject entry={entry} alternatePath={alternatePath} />
+  ) : entry.data.translationKey === "sales-profitability-warehouse" ? (
+    <SqlDatabaseProject entry={entry} alternatePath={alternatePath} />
   ) : (
     <ProjectLayout entry={entry} alternatePath={alternatePath} />
   )

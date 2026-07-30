@@ -38,6 +38,7 @@ const canonicalPath = getPaginationPath("/zh/projects/", currentPage);
 <BaseLayout
   title={`项目 — 第 ${currentPage} 页`}
   locale="zh"
+  alternatePath="/projects/"
   canonicalPath={canonicalPath}
   pagination={{
     previous: getPaginationPath("/zh/projects/", currentPage - 1),

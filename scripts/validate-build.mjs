@@ -204,6 +204,41 @@ for (const file of htmlFiles) {
       failures.push(`${route}: contains a private or internal source reference`);
     }
   }
+
+  if (route === "/zh/projects/sales-profitability-warehouse/") {
+    const pageContent = html.match(/<main\b[\s\S]*?<\/main>/i)?.[0] ?? html;
+    if (
+      /<meta\b[^>]*\bname=["']robots["'][^>]*\bcontent=["'][^"']*noindex/i.test(html)
+    ) {
+      failures.push(`${route}: production page must be indexable`);
+    }
+    if (!html.includes('href="/projects/"')) {
+      failures.push(`${route}: missing English Projects fallback`);
+    }
+    if (
+      !pageContent.includes("schema-diagram") ||
+      (pageContent.match(/<details\b[^>]*\bclass=["'][^"']*sql-showcase/g) ?? [])
+        .length < 4 ||
+      (pageContent.match(/\brole=["']tab["']/g) ?? []).length < 4 ||
+      (pageContent.match(/\brole=["']tabpanel["']/g) ?? []).length < 4
+    ) {
+      failures.push(`${route}: missing schema, SQL, or result viewer content`);
+    }
+    if (
+      /BUSINFO702|\b(?:Assignment|Task|Submission|Lab|Solution)\b|课程项目|样板页|试点页|\.(?:sql|pdf)(?:["'<\s]|$)|[A-Z]:\\/i.test(
+        pageContent,
+      )
+    ) {
+      failures.push(`${route}: contains a private or internal source reference`);
+    }
+    if (
+      /(?:Server|Data Source|User ID|Password|Pwd)\s*=|database\.windows\.net/i.test(
+        pageContent,
+      )
+    ) {
+      failures.push(`${route}: contains a database connection detail`);
+    }
+  }
 }
 
 if (
@@ -226,6 +261,16 @@ if (
 ) {
   failures.push(
     "/projects/european-property-market-dashboard/: unexpected English detail page",
+  );
+}
+
+if (
+  await exists(
+    path.join(outputRoot, "projects", "sales-profitability-warehouse", "index.html"),
+  )
+) {
+  failures.push(
+    "/projects/sales-profitability-warehouse/: unexpected English detail page",
   );
 }
 

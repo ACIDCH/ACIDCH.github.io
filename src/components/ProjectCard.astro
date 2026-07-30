@@ -31,7 +31,9 @@ const topicLabels = {
       ? "PBI"
       : entry.data.translationKey === "grammy-spotify-analysis"
         ? "PY"
-        : undefined}
+        : entry.data.translationKey === "sales-profitability-warehouse"
+          ? "SQL"
+          : undefined}
   />
   <div class="cluster cluster--compact">
     <p class="status">{statusLabels[entry.data.status][locale]}</p>

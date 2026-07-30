@@ -1,0 +1,1140 @@
+---
+import { getCollection, type CollectionEntry } from "astro:content";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import ContextBack from "./ContextBack.astro";
+import ProjectCard from "./ProjectCard.astro";
+import SqlShowcase from "./SqlShowcase.astro";
+
+interface Props {
+  entry: CollectionEntry<"projects">;
+  alternatePath: string;
+}
+
+const { entry, alternatePath } = Astro.props;
+const relatedProjects = (await getCollection("projects"))
+  .filter(
+    (project) =>
+      project.data.locale === "zh" &&
+      project.data.translationKey !== entry.data.translationKey,
+  )
+  .sort(
+    (left, right) =>
+      Number(right.data.featured) - Number(left.data.featured) ||
+      left.data.title.localeCompare(right.data.title, "zh-CN"),
+  )
+  .slice(0, 2);
+const structuredData = {
+  "@type": "CreativeWork",
+  name: entry.data.title,
+  description: entry.data.summary,
+  inLanguage: "zh-CN",
+  keywords: [...entry.data.tools, ...entry.data.tags],
+  isAccessibleForFree: true,
+  dateModified: entry.data.updatedAt?.toISOString(),
+};
+const queries = [
+  {
+    id: "concentration",
+    shortLabel: "客户集中度",
+    title: "前 10% 客户贡献了多少销售额与毛利润？",
+    purpose:
+      "按客户汇总最近三个销售年份，再按销售额选取前 10%，比较销售额和毛利润贡献。",
+    code: `WITH CustomerSales AS (
+    SELECT
+        fs.CustomerKey,
+        SUM(fs.LineTotal) AS CustomerRevenue,
+        SUM(fs.GrossProfit) AS CustomerProfit
+    FROM dbo.FactSales AS fs
+    JOIN dbo.DimDate AS dd
+        ON fs.OrderDateKey = dd.DateKey
+    WHERE dd.Year >= 2012
+    GROUP BY fs.CustomerKey
+),
+TopCustomers AS (
+    SELECT TOP 10 PERCENT
+        CustomerRevenue,
+        CustomerProfit
+    FROM CustomerSales
+    ORDER BY CustomerRevenue DESC
+)
+SELECT
+    100.0 * SUM(CustomerRevenue)
+        / NULLIF((SELECT SUM(CustomerRevenue) FROM CustomerSales), 0)
+        AS RevenueContributionPct,
+    100.0 * SUM(CustomerProfit)
+        / NULLIF((SELECT SUM(CustomerProfit) FROM CustomerSales), 0)
+        AS ProfitContributionPct
+FROM TopCustomers;`,
+    columns: ["指标", "查询结果"],
+    rows: [
+      ["前 10% 客户销售额贡献", "82.39%"],
+      ["前 10% 客户毛利润贡献", "14.60%"],
+      ["前 10% 客户利润率", "1.41%"],
+      ["其余客户利润率", "38.65%"],
+    ],
+    interpretation:
+      "销售额高度集中，但毛利润没有同步集中。高销售额客户组的利润率明显低于其余客户，不能只按收入判断客户价值。",
+  },
+  {
+    id: "channel-margin",
+    shortLabel: "渠道毛利",
+    title: "线上与非线上渠道中，哪些品类的毛利率更高？",
+    purpose: "把订单按渠道和产品类别分组，用销售额与毛利润计算各组合的毛利率。",
+    code: `WITH CategoryMargin AS (
+    SELECT
+        CASE
+            WHEN fs.OnlineOrderFlag = 1 THEN 'Online'
+            ELSE 'Non-Online'
+        END AS SalesChannel,
+        dp.CategoryName,
+        SUM(fs.LineTotal) AS TotalRevenue,
+        SUM(fs.GrossProfit) AS TotalGrossProfit
+    FROM dbo.FactSales AS fs
+    JOIN dbo.DimProduct AS dp
+        ON fs.ProductKey = dp.ProductKey
+    GROUP BY
+        CASE
+            WHEN fs.OnlineOrderFlag = 1 THEN 'Online'
+            ELSE 'Non-Online'
+        END,
+        dp.CategoryName
+)
+SELECT
+    SalesChannel,
+    CategoryName,
+    100.0 * TotalGrossProfit
+        / NULLIF(TotalRevenue, 0) AS GrossMarginPct
+FROM CategoryMargin
+ORDER BY SalesChannel, GrossMarginPct DESC;`,
+    columns: ["产品类别", "线上", "非线上"],
+    rows: [
+      ["Accessories", "62.60%", "34.61%"],
+      ["Clothing", "40.15%", "9.69%"],
+      ["Bikes", "39.24%", "-4.79%"],
+    ],
+    interpretation:
+      "三个品类的线上毛利率都高于非线上渠道。非线上 Bikes 为负值，渠道比较需要同时保留品类条件。",
+  },
+  {
+    id: "discount-band",
+    shortLabel: "折扣档位",
+    title: "低、中、高折扣档位的毛利率如何变化？",
+    purpose: "连接促销维度后按 DiscountBand 汇总数量、销售额与毛利润，再计算毛利率。",
+    code: `WITH BandSummary AS (
+    SELECT
+        dp.DiscountBand,
+        SUM(fs.OrderQty) AS TotalQty,
+        SUM(fs.LineTotal) AS TotalRevenue,
+        SUM(fs.GrossProfit) AS TotalGrossProfit
+    FROM dbo.FactSales AS fs
+    JOIN dbo.DimPromotion AS dp
+        ON fs.PromotionKey = dp.PromotionKey
+    GROUP BY dp.DiscountBand
+)
+SELECT
+    DiscountBand,
+    TotalQty,
+    TotalRevenue,
+    TotalGrossProfit,
+    100.0 * TotalGrossProfit
+        / NULLIF(TotalRevenue, 0) AS GrossMarginPct
+FROM BandSummary
+ORDER BY
+    CASE DiscountBand
+        WHEN 'Low' THEN 1
+        WHEN 'Medium' THEN 2
+        ELSE 3
+    END;`,
+    columns: ["折扣档位", "毛利率", "数量观察"],
+    rows: [
+      ["Low", "10.16%", "主要订单量集中于此档"],
+      ["Medium", "-48.58%", "订单量明显较低"],
+      ["High", "-143.06%", "订单量最低"],
+    ],
+    interpretation:
+      "只有低折扣档保持正毛利率。中、高折扣档的订单量较少，毛利率仍转为负值，不能把折扣幅度直接解释为销量增长。",
+  },
+  {
+    id: "seasonality",
+    shortLabel: "季度变化",
+    title: "销售额与毛利润是否呈现稳定的季度规律？",
+    purpose: "按日期维度汇总完整季度，分别保留销售额和毛利润，避免只用收入判断季节性。",
+    code: `SELECT
+    dd.Year AS SalesYear,
+    dd.Quarter AS QuarterNum,
+    dd.QuarterName,
+    SUM(fs.LineTotal) AS TotalRevenue,
+    SUM(fs.GrossProfit) AS TotalGrossProfit
+FROM dbo.FactSales AS fs
+JOIN dbo.DimDate AS dd
+    ON fs.OrderDateKey = dd.DateKey
+WHERE
+    (dd.Year = 2011 AND dd.Quarter IN (3, 4))
+    OR dd.Year IN (2012, 2013)
+    OR (dd.Year = 2014 AND dd.Quarter IN (1, 2))
+GROUP BY
+    dd.Year,
+    dd.Quarter,
+    dd.QuarterName
+ORDER BY SalesYear, QuarterNum;`,
+    columns: ["观察", "查询结果"],
+    rows: [
+      ["时间范围", "2011 Q3–2014 Q2，共 12 个季度"],
+      ["销售高点", "Q3"],
+      ["第二高点", "Q4"],
+      ["毛利润异常", "2012 Q2 约 -274K"],
+    ],
+    interpretation:
+      "销售额在 Q3 和 Q4 较高，但毛利润并不稳定。2012 Q2 在销售额仍为正时出现负毛利润，季度规划需要同时检查利润。",
+  },
+];
+---
+
+<BaseLayout
+  title={entry.data.title}
+  description={entry.data.summary}
+  locale="zh"
+  alternatePath={alternatePath}
+  pageType="article"
+  structuredData={structuredData}
+>
+  <article class="project-detail sql-project">
+    <ContextBack
+      locale="zh"
+      fallbackPath="/zh/projects/"
+      label={{ en: "Back to Projects", zh: "返回项目列表" }}
+    />
+
+    <header class="sql-hero" data-reveal>
+      <p class="status">SQL 数据仓库</p>
+      <h1>{entry.data.title}</h1>
+      <p class="sql-hero__lede">
+        把分散的销售、客户、产品、区域、促销和日期字段整理为统一分析模型，再用相同口径比较销售额与毛利润。
+      </p>
+      <ul class="tag-list" aria-label="项目工具">
+        {entry.data.tools.map((tool) => <li class="tag">{tool}</li>)}
+      </ul>
+      <dl class="hero-metrics">
+        <div><dt>事实表</dt><dd>1 张</dd></div>
+        <div><dt>维度表</dt><dd>5 张</dd></div>
+        <div><dt>外键关系</dt><dd>5 条</dd></div>
+        <div><dt>分析查询</dt><dd>4 组</dd></div>
+      </dl>
+    </header>
+
+    <nav class="project-toc" aria-label="页面目录" data-reveal>
+      <a href="#overview">速览</a>
+      <a href="#data">问题与数据</a>
+      <a href="#design">数据库设计</a>
+      <a href="#schema">模型结构</a>
+      <a href="#loading">数据加载</a>
+      <a href="#queries">查询结果</a>
+    </nav>
+
+    <section id="overview" class="project-section" data-reveal>
+      <p class="eyebrow">速览</p>
+      <h2>统一销售分析的表关系和计算口径</h2>
+      <div class="overview-grid">
+        <div class="card">
+          <h3>分析场景</h3><p>客户集中度、渠道毛利、折扣效果和季度变化。</p>
+        </div>
+        <div class="card">
+          <h3>数据结构</h3><p>订单行事实表连接客户、产品、区域、促销与日期维度。</p>
+        </div>
+        <div class="card">
+          <h3>处理方法</h3><p>
+            抽取源表、派生字段、维度查找、代理键装载和 T-SQL 汇总。
+          </p>
+        </div>
+        <div class="card">
+          <h3>主要输出</h3><p>一套星型模型、四组查询以及对应的静态结果表。</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="data" class="project-section" data-reveal>
+      <p class="eyebrow">问题与数据</p>
+      <h2>同一笔销售需要同时回答收入和利润问题</h2>
+      <div class="content-split">
+        <div>
+          <p>
+            数据来自 Adventure Works
+            示例销售库。订单头、订单明细、产品、客户、区域和促销信息原本分布在不同关系表中，直接查询容易重复连接和重复定义指标。
+          </p>
+          <p>
+            分析以订单明细为粒度，结果窗口覆盖 2011 Q3 至 2014 Q2 的 12
+            个季度。公开页面只保留表结构、脱敏查询和聚合结果，不提供源数据。
+          </p>
+        </div>
+        <dl class="data-facts card">
+          <div><dt>核心度量</dt><dd>数量、销售额、标准成本、毛利润</dd></div>
+          <div><dt>切分字段</dt><dd>客户、产品、渠道、区域、促销、日期</dd></div>
+          <div><dt>事实粒度</dt><dd>一条销售订单明细</dd></div>
+          <div><dt>时间边界</dt><dd>2011 Q3–2014 Q2</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <section id="design" class="project-section" data-reveal>
+      <p class="eyebrow">数据库设计</p>
+      <h2>事实表保存交易度量，维度表承担筛选</h2>
+      <div class="design-principles">
+        <div class="card">
+          <span class="step-number">01</span>
+          <h3>固定粒度</h3>
+          <p>
+            <code>SalesOrderID</code> 与 <code>SalesOrderDetailID</code> 组成复合主键，避免把订单头误当成交易明细。
+          </p>
+        </div>
+        <div class="card">
+          <span class="step-number">02</span>
+          <h3>拆分维度</h3>
+          <p>
+            客户、产品、区域、促销和日期分别保存描述字段，事实表只保留外键和交易度量。
+          </p>
+        </div>
+        <div class="card">
+          <span class="step-number">03</span>
+          <h3>统一派生值</h3>
+          <p>
+            <code>GrossProfit</code> 在装载时按销售额减标准成本计算，<code
+              >DiscountBand</code
+            > 在促销维度中统一分档。
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="schema" class="project-section schema-section" data-reveal>
+      <p class="eyebrow">模型结构图</p>
+      <h2>一张事实表连接五张维度表</h2>
+      <p>箭头由事实表外键指向维度表主键。图表可在窄屏中横向滚动。</p>
+      <div
+        class="schema-scroll"
+        tabindex="0"
+        aria-label="销售数据仓库星型模型，可横向滚动"
+      >
+        <svg
+          class="schema-diagram"
+          viewBox="0 0 1120 720"
+          role="img"
+          aria-labelledby="schema-title schema-description"
+        >
+          <title id="schema-title">销售数据仓库星型模型</title>
+          <desc id="schema-description">
+            FactSales 位于中央，通过五个外键分别连接
+            DimCustomer、DimProduct、DimTerritory、DimPromotion 和 DimDate。
+          </desc>
+          <defs>
+            <marker
+              id="relation-arrow"
+              viewBox="0 0 10 10"
+              refX="8"
+              refY="5"
+              markerWidth="7"
+              markerHeight="7"
+              orient="auto-start-reverse"
+            >
+              <path d="M 0 0 L 10 5 L 0 10 z"></path>
+            </marker>
+          </defs>
+
+          <g class="relations" aria-hidden="true">
+            <path d="M 440 285 C 355 285, 355 165, 300 165"></path>
+            <path d="M 440 335 C 350 335, 350 560, 300 560"></path>
+            <path d="M 680 285 C 760 285, 760 150, 820 150"></path>
+            <path d="M 680 335 C 760 335, 760 365, 820 365"></path>
+            <path d="M 680 385 C 760 385, 760 590, 820 590"></path>
+          </g>
+
+          <g class="schema-table" transform="translate(40 75)">
+            <rect width="260" height="180" rx="14"></rect>
+            <text class="table-title" x="18" y="32">DimCustomer</text>
+            <text x="18" y="62"><tspan class="key">PK</tspan> CustomerKey</text>
+            <text x="18" y="88">CustomerID</text>
+            <text x="18" y="114">AccountNumber</text>
+            <text x="18" y="140">CountryRegion</text>
+            <text x="18" y="166">StateProvince · City</text>
+          </g>
+
+          <g class="schema-table" transform="translate(40 475)">
+            <rect width="260" height="170" rx="14"></rect>
+            <text class="table-title" x="18" y="32">DimTerritory</text>
+            <text x="18" y="62"><tspan class="key">PK</tspan> TerritoryKey</text>
+            <text x="18" y="88">TerritoryID</text>
+            <text x="18" y="114">TerritoryName</text>
+            <text x="18" y="140">CountryRegionCode</text>
+            <text x="18" y="164">TerritoryGroup</text>
+          </g>
+
+          <g class="schema-table schema-table--fact" transform="translate(440 185)">
+            <rect width="240" height="350" rx="14"></rect>
+            <text class="table-title" x="18" y="32">FactSales</text>
+            <text x="18" y="62"><tspan class="key">PK</tspan> SalesOrderID</text>
+            <text x="18" y="88"><tspan class="key">PK</tspan> SalesOrderDetailID</text>
+            <text x="18" y="120"
+              ><tspan class="foreign-key">FK</tspan> OrderDateKey</text
+            >
+            <text x="18" y="146"><tspan class="foreign-key">FK</tspan> CustomerKey</text
+            >
+            <text x="18" y="172"><tspan class="foreign-key">FK</tspan> ProductKey</text>
+            <text x="18" y="198"
+              ><tspan class="foreign-key">FK</tspan> TerritoryKey</text
+            >
+            <text x="18" y="224"
+              ><tspan class="foreign-key">FK</tspan> PromotionKey</text
+            >
+            <text x="18" y="256">OnlineOrderFlag · OrderQty</text>
+            <text x="18" y="282">UnitPrice · UnitPriceDiscount</text>
+            <text x="18" y="308">LineTotal · StandardCost</text>
+            <text x="18" y="334">GrossProfit</text>
+          </g>
+
+          <g class="schema-table" transform="translate(820 55)">
+            <rect width="260" height="190" rx="14"></rect>
+            <text class="table-title" x="18" y="32">DimDate</text>
+            <text x="18" y="62"><tspan class="key">PK</tspan> DateKey</text>
+            <text x="18" y="88">FullDate · Year</text>
+            <text x="18" y="114">Quarter · QuarterName</text>
+            <text x="18" y="140">Month · MonthName</text>
+          </g>
+
+          <g class="schema-table" transform="translate(820 270)">
+            <rect width="260" height="205" rx="14"></rect>
+            <text class="table-title" x="18" y="32">DimProduct</text>
+            <text x="18" y="62"><tspan class="key">PK</tspan> ProductKey</text>
+            <text x="18" y="88">ProductID · ProductName</text>
+            <text x="18" y="114">ProductNumber</text>
+            <text x="18" y="140">CategoryName</text>
+            <text x="18" y="166">SubCategoryName</text>
+            <text x="18" y="192">StandardCost · ListPrice</text>
+          </g>
+
+          <g class="schema-table" transform="translate(820 500)">
+            <rect width="260" height="185" rx="14"></rect>
+            <text class="table-title" x="18" y="32">DimPromotion</text>
+            <text x="18" y="62"><tspan class="key">PK</tspan> PromotionKey</text>
+            <text x="18" y="88">SpecialOfferID</text>
+            <text x="18" y="114">DiscountPct · DiscountBand</text>
+            <text x="18" y="140">Type · Category</text>
+            <text x="18" y="166">StartDate · EndDate</text>
+          </g>
+        </svg>
+      </div>
+      <div class="relation-grid" aria-label="模型关系">
+        <div>
+          <code>FactSales.CustomerKey</code><span>→</span><code
+            >DimCustomer.CustomerKey</code
+          >
+        </div>
+        <div>
+          <code>FactSales.ProductKey</code><span>→</span><code
+            >DimProduct.ProductKey</code
+          >
+        </div>
+        <div>
+          <code>FactSales.TerritoryKey</code><span>→</span><code
+            >DimTerritory.TerritoryKey</code
+          >
+        </div>
+        <div>
+          <code>FactSales.PromotionKey</code><span>→</span><code
+            >DimPromotion.PromotionKey</code
+          >
+        </div>
+        <div>
+          <code>FactSales.OrderDateKey</code><span>→</span><code>DimDate.DateKey</code>
+        </div>
+      </div>
+    </section>
+
+    <section id="loading" class="project-section" data-reveal>
+      <p class="eyebrow">数据准备与加载</p>
+      <h2>先装载维度，再解析事实表外键</h2>
+      <ol class="process-flow">
+        <li>
+          <strong>抽取源表</strong><span
+            >读取销售明细及客户、产品、区域、促销数据，并单独导入日期键。</span
+          >
+        </li>
+        <li>
+          <strong>整理维度</strong><span
+            >产品维度合并类别与子类别；日期维度生成季度名称。</span
+          >
+        </li>
+        <li>
+          <strong>派生字段</strong><span
+            >促销折扣转换为 Low、Medium、High，事实流计算日期键与毛利润。</span
+          >
+        </li>
+        <li>
+          <strong>查找代理键</strong><span
+            >交易记录依次匹配五张维度表，取得仓库外键。</span
+          >
+        </li>
+        <li>
+          <strong>装载事实表</strong><span
+            >写入订单明细标识、五个外键、渠道标记和交易度量。</span
+          >
+        </li>
+        <li>
+          <strong>核对查询</strong><span
+            >源库与仓库分别运行同口径查询，检查聚合逻辑。</span
+          >
+        </li>
+      </ol>
+      <p class="note">
+        云数据库和数据流只属于当时的实现环境。公开页面不连接数据库，也不包含服务器、账号或连接参数。
+      </p>
+    </section>
+
+    <section id="queries" class="project-section query-section" data-reveal>
+      <p class="eyebrow">关键 SQL 与查询结果</p>
+      <h2>四个查询案例使用同一套仓库口径</h2>
+      <p>
+        下方模块切换已经核实的静态查询与结果，不接收任意 SQL，也不会连接远程数据库。
+      </p>
+      <div class="query-viewer" data-query-viewer>
+        <div class="query-tabs" role="tablist" aria-label="查询案例">
+          {
+            queries.map((query, index) => (
+              <button
+                type="button"
+                role="tab"
+                id={`query-tab-${query.id}`}
+                aria-controls={`query-panel-${query.id}`}
+                aria-selected={index === 0 ? "true" : "false"}
+                tabindex={index === 0 ? "0" : "-1"}
+                data-query-tab={query.id}
+              >
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                {query.shortLabel}
+              </button>
+            ))
+          }
+        </div>
+        <div class="query-panels">
+          {
+            queries.map((query, index) => (
+              <section
+                class="query-panel"
+                role="tabpanel"
+                id={`query-panel-${query.id}`}
+                aria-labelledby={`query-tab-${query.id}`}
+                data-query-panel={query.id}
+                data-default-panel={index === 0 ? "true" : undefined}
+              >
+                <p class="status">查询 {String(index + 1).padStart(2, "0")}</p>
+                <h3>{query.title}</h3>
+                <p>{query.purpose}</p>
+                <SqlShowcase
+                  title={`${query.shortLabel}查询`}
+                  code={query.code}
+                  open={index === 0}
+                />
+                <div
+                  class="result-table-scroll"
+                  tabindex="0"
+                  aria-label={`${query.shortLabel}查询结果`}
+                >
+                  <table>
+                    <thead>
+                      <tr>
+                        {query.columns.map((column) => (
+                          <th scope="col">{column}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {query.rows.map((row) => (
+                        <tr>
+                          {row.map((cell) => (
+                            <td>{cell}</td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <p class="query-interpretation">{query.interpretation}</p>
+              </section>
+            ))
+          }
+        </div>
+        <noscript>
+          <p class="note">未启用 JavaScript 时，四个查询案例会按顺序完整显示。</p>
+        </noscript>
+      </div>
+    </section>
+
+    <section class="project-section" data-reveal>
+      <p class="eyebrow">主要结果</p>
+      <h2>收入增长与利润表现需要分开判断</h2>
+      <div class="finding-grid">
+        <div class="card">
+          <strong>82.39% / 14.60%</strong><p>
+            前 10% 客户的销售额贡献远高于毛利润贡献，客户排序依赖所选指标。
+          </p>
+        </div>
+        <div class="card">
+          <strong>62.60%</strong><p>
+            Accessories 在线毛利率最高；同一品类的非线上结果为 34.61%。
+          </p>
+        </div>
+        <div class="card">
+          <strong>10.16% → -143.06%</strong><p>
+            折扣档位从 Low 增至 High 时，毛利率从正值降至大幅负值。
+          </p>
+        </div>
+        <div class="card">
+          <strong>2012 Q2</strong><p>
+            销售额仍为正，但毛利润约为 -274K；收入季节性不能替代利润检查。
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="project-section technical-section" data-reveal>
+      <p class="eyebrow">技术细节</p>
+      <h2>结构、约束和查询边界</h2>
+      <div class="technical-grid">
+        <details open>
+          <summary>键与关系</summary>
+          <p>
+            事实表使用订单编号和明细编号组成复合主键。五个维度键形成多对一关系，维度表主键保持唯一。
+          </p>
+        </details>
+        <details>
+          <summary>字段类型</summary>
+          <p>
+            键字段使用整数；日期维度保留 date
+            与整数日期键；价格、成本和利润使用货币或定点数值字段。
+          </p>
+        </details>
+        <details>
+          <summary>查询逻辑</summary>
+          <p>
+            查询使用 CTE、JOIN、CASE、GROUP BY、排序与安全除法。<code>NULLIF</code> 避免分母为零。
+          </p>
+        </details>
+        <details>
+          <summary>结果边界</summary>
+          <p>
+            结果来自示例销售数据和当时的仓库快照，不代表生产系统表现，也不外推为真实企业收益。
+          </p>
+        </details>
+      </div>
+    </section>
+
+    {
+      relatedProjects.length > 0 && (
+        <section class="project-section related-projects" data-reveal>
+          <p class="eyebrow">相关项目</p>
+          <h2>继续查看</h2>
+          <div class="project-grid">
+            {relatedProjects.map((project) => (
+              <ProjectCard entry={project} locale="zh" />
+            ))}
+          </div>
+        </section>
+      )
+    }
+
+    <ContextBack
+      locale="zh"
+      fallbackPath="/zh/projects/"
+      label={{ en: "Back to Projects", zh: "返回项目列表" }}
+    />
+  </article>
+</BaseLayout>
+
+<script>
+  const initialiseQueryViewer = () => {
+    document.querySelectorAll<HTMLElement>("[data-query-viewer]").forEach((viewer) => {
+      if (viewer.dataset.ready === "true") return;
+      viewer.dataset.ready = "true";
+      const tabs = [...viewer.querySelectorAll<HTMLButtonElement>("[data-query-tab]")];
+      const panels = [...viewer.querySelectorAll<HTMLElement>("[data-query-panel]")];
+
+      const selectQuery = (id: string, focus = false) => {
+        tabs.forEach((tab) => {
+          const active = tab.dataset.queryTab === id;
+          tab.setAttribute("aria-selected", String(active));
+          tab.tabIndex = active ? 0 : -1;
+          if (active && focus) tab.focus();
+        });
+        panels.forEach((panel) => {
+          panel.hidden = panel.dataset.queryPanel !== id;
+        });
+      };
+
+      tabs.forEach((tab, index) => {
+        tab.addEventListener("click", () => selectQuery(tab.dataset.queryTab ?? ""));
+        tab.addEventListener("keydown", (event) => {
+          let nextIndex = index;
+          if (event.key === "ArrowRight") nextIndex = (index + 1) % tabs.length;
+          else if (event.key === "ArrowLeft")
+            nextIndex = (index - 1 + tabs.length) % tabs.length;
+          else if (event.key === "Home") nextIndex = 0;
+          else if (event.key === "End") nextIndex = tabs.length - 1;
+          else return;
+          event.preventDefault();
+          selectQuery(tabs[nextIndex]?.dataset.queryTab ?? "", true);
+        });
+      });
+
+      selectQuery(tabs[0]?.dataset.queryTab ?? "");
+    });
+  };
+
+  initialiseQueryViewer();
+  document.addEventListener("astro:page-load", initialiseQueryViewer);
+</script>
+
+<style>
+  .sql-project {
+    width: min(100%, var(--container-project));
+    min-width: 0;
+    margin-inline: auto;
+  }
+
+  .sql-project > *,
+  .sql-project :is(.project-section, .query-panels, .query-panel) {
+    min-width: 0;
+  }
+
+  .sql-hero,
+  .project-section {
+    margin-block: var(--space-16);
+  }
+
+  .sql-hero {
+    padding: clamp(1.5rem, 4vw, 4rem);
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-xl);
+    background:
+      linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--colour-secondary) 14%, transparent),
+        transparent 56%
+      ),
+      var(--colour-surface);
+  }
+
+  .sql-hero h1 {
+    max-width: 18ch;
+    margin-block: var(--space-3);
+  }
+
+  .sql-hero__lede {
+    max-width: 66ch;
+    font-size: var(--font-size-xl);
+  }
+
+  .hero-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-3);
+    margin-top: var(--space-8);
+  }
+
+  .hero-metrics div {
+    display: grid;
+    gap: var(--space-1);
+    padding: var(--space-4);
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--colour-surface) 88%, transparent);
+  }
+
+  .hero-metrics dt {
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-sm);
+  }
+
+  .hero-metrics dd {
+    margin: 0;
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .project-toc {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    padding: var(--space-3);
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-lg);
+    background: var(--colour-surface);
+  }
+
+  .project-toc a {
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-pill);
+    color: var(--colour-text-muted);
+    text-decoration: none;
+  }
+
+  .project-toc a:hover {
+    color: var(--colour-primary-strong);
+    background: var(--colour-surface-subtle);
+  }
+
+  .project-section {
+    width: 100%;
+    max-width: 100%;
+    scroll-margin-top: calc(var(--header-height) + var(--space-6));
+  }
+
+  .project-section > h2 {
+    max-width: 25ch;
+  }
+
+  .eyebrow {
+    color: var(--colour-primary-strong);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: var(--letter-spacing-label);
+    text-transform: uppercase;
+  }
+
+  .overview-grid,
+  .finding-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
+
+  .card {
+    padding: var(--space-5);
+  }
+
+  .content-split {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(18rem, 0.85fr);
+    gap: var(--space-6);
+    align-items: start;
+  }
+
+  .data-facts {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .data-facts div {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .data-facts dt {
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-sm);
+  }
+
+  .data-facts dd {
+    margin: 0;
+  }
+
+  .design-principles {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
+
+  .step-number {
+    color: var(--colour-primary);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-sm);
+  }
+
+  .schema-scroll {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-xl);
+    background: var(--colour-surface);
+    contain: inline-size;
+  }
+
+  .schema-scroll:focus-visible {
+    outline: 2px solid var(--colour-focus);
+    outline-offset: 3px;
+  }
+
+  .schema-diagram {
+    display: block;
+    width: max(100%, 66rem);
+    height: auto;
+    color: var(--colour-text);
+  }
+
+  .schema-table rect {
+    fill: var(--colour-surface-raised);
+    stroke: var(--colour-border-strong);
+    stroke-width: 2;
+  }
+
+  .schema-table--fact rect {
+    fill: color-mix(in srgb, var(--colour-primary) 10%, var(--colour-surface-raised));
+    stroke: var(--colour-primary);
+  }
+
+  .schema-table text {
+    fill: var(--colour-text-muted);
+    font-family: var(--font-mono);
+    font-size: 15px;
+  }
+
+  .schema-table .table-title {
+    fill: var(--colour-text);
+    font-family: var(--font-sans);
+    font-size: 20px;
+    font-weight: var(--font-weight-bold);
+  }
+
+  .schema-table .key {
+    fill: var(--colour-primary);
+    font-weight: var(--font-weight-bold);
+  }
+
+  .schema-table .foreign-key {
+    fill: var(--colour-accent);
+    font-weight: var(--font-weight-bold);
+  }
+
+  .relations path {
+    fill: none;
+    stroke: var(--colour-primary);
+    stroke-width: 2.5;
+    marker-end: url("#relation-arrow");
+  }
+
+  .relations marker path {
+    fill: var(--colour-primary);
+  }
+
+  .relation-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+  }
+
+  .relation-grid div {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-width: 0;
+    padding: var(--space-3);
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-md);
+    background: var(--colour-surface);
+  }
+
+  .relation-grid code {
+    overflow-wrap: anywhere;
+  }
+
+  .process-flow {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-4);
+    padding: 0;
+    list-style: none;
+    counter-reset: flow;
+  }
+
+  .process-flow li {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-5);
+    border-top: 2px solid var(--colour-primary);
+    background: var(--colour-surface);
+    counter-increment: flow;
+  }
+
+  .process-flow strong::before {
+    content: "0" counter(flow) " · ";
+    color: var(--colour-primary);
+  }
+
+  .note {
+    padding: var(--space-4);
+    border-left: 3px solid var(--colour-primary);
+    background: var(--colour-surface-subtle);
+  }
+
+  .query-viewer {
+    display: grid;
+    grid-template-columns: minmax(12rem, 0.28fr) minmax(0, 1fr);
+    gap: var(--space-5);
+    margin-top: var(--space-6);
+  }
+
+  .query-tabs {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    align-self: start;
+    padding: var(--space-2);
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-lg);
+    background: var(--colour-surface);
+  }
+
+  .query-tabs button {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    width: 100%;
+    padding: var(--space-3);
+    border: 0;
+    border-radius: var(--radius-md);
+    color: var(--colour-text-muted);
+    background: transparent;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .query-tabs button span {
+    color: var(--colour-primary);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-sm);
+  }
+
+  .query-tabs button[aria-selected="true"] {
+    color: var(--colour-text);
+    background: var(--colour-surface-subtle);
+    box-shadow: inset 3px 0 0 var(--colour-primary);
+  }
+
+  .query-panel {
+    display: grid;
+    gap: var(--space-4);
+    min-width: 0;
+    padding: clamp(1rem, 3vw, 2rem);
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-xl);
+    background: var(--colour-surface);
+  }
+
+  .query-viewer:not([data-ready="true"]) .query-panel + .query-panel {
+    margin-top: var(--space-5);
+  }
+
+  .query-viewer[data-ready="true"] .query-panel[hidden] {
+    display: none;
+  }
+
+  .result-table-scroll {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-lg);
+    contain: inline-size;
+  }
+
+  .result-table-scroll table {
+    width: 100%;
+    min-width: 32rem;
+    border-collapse: collapse;
+  }
+
+  .result-table-scroll th,
+  .result-table-scroll td {
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--colour-border);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .result-table-scroll th {
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-sm);
+  }
+
+  .query-interpretation {
+    padding: var(--space-4);
+    border-left: 3px solid var(--colour-accent);
+    background: var(--colour-surface-subtle);
+  }
+
+  .finding-grid strong {
+    display: block;
+    color: var(--colour-primary-strong);
+    font-size: var(--font-size-xl);
+  }
+
+  .technical-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
+
+  .technical-grid details {
+    padding: var(--space-4);
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-lg);
+    background: var(--colour-surface);
+  }
+
+  .technical-grid summary {
+    cursor: pointer;
+    font-weight: var(--font-weight-semibold);
+  }
+
+  :global(.sql-project .related-projects .project-cover--compact) {
+    width: 100%;
+    margin-inline: 0;
+  }
+
+  @media (max-width: 64rem) {
+    .overview-grid,
+    .finding-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .content-split,
+    .query-viewer {
+      grid-template-columns: 1fr;
+    }
+
+    .query-tabs {
+      flex-direction: row;
+      overflow-x: auto;
+    }
+
+    .query-tabs button {
+      min-width: max-content;
+    }
+  }
+
+  @media (max-width: 52rem) {
+    .hero-metrics,
+    .design-principles,
+    .process-flow,
+    .relation-grid,
+    .technical-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 34rem) {
+    .sql-hero,
+    .project-section {
+      margin-block: var(--space-10);
+    }
+
+    .hero-metrics,
+    .overview-grid,
+    .finding-grid,
+    .design-principles,
+    .process-flow,
+    .relation-grid,
+    .technical-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
