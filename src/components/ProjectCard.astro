@@ -27,6 +27,9 @@ const topicLabels = {
     entry={entry}
     compact
     showCode={entry.data.translationKey !== "retirement-monte-carlo"}
+    code={entry.data.translationKey === "european-property-market-dashboard"
+      ? "PBI"
+      : undefined}
   />
   <div class="cluster cluster--compact">
     <p class="status">{statusLabels[entry.data.status][locale]}</p>

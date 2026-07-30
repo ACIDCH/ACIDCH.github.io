@@ -1,0 +1,536 @@
+---
+import { getCollection, type CollectionEntry } from "astro:content";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import ContextBack from "./ContextBack.astro";
+import ProjectCard from "./ProjectCard.astro";
+
+interface Props {
+  entry: CollectionEntry<"projects">;
+  alternatePath: string;
+}
+
+const { entry, alternatePath } = Astro.props;
+const relatedProjects = (await getCollection("projects"))
+  .filter(
+    (project) =>
+      project.data.locale === "zh" &&
+      project.data.translationKey !== entry.data.translationKey,
+  )
+  .sort(
+    (left, right) =>
+      Number(right.data.featured) - Number(left.data.featured) ||
+      left.data.title.localeCompare(right.data.title, "zh-CN"),
+  )
+  .slice(0, 2);
+const structuredData = {
+  "@type": "CreativeWork",
+  name: entry.data.title,
+  description: entry.data.summary,
+  inLanguage: "zh-CN",
+  keywords: [...entry.data.tools, ...entry.data.tags],
+  isAccessibleForFree: true,
+  dateModified: entry.data.updatedAt?.toISOString(),
+};
+const daxMeasures = [
+  {
+    name: "房价相对 2015 年增幅",
+    sourceName: "House Price Growth vs 2015 %",
+    code: `VAR BaseValue =
+    CALCULATE(
+        [House Price Index],
+        FILTER(ALL(Dim_Year), Dim_Year[Year] = 2015)
+    )
+RETURN
+    DIVIDE([House Price Index] - BaseValue, BaseValue)`,
+  },
+  {
+    name: "近三年平均房价增速",
+    sourceName: "House Price 3Y Avg Growth",
+    code: `VAR CurrentYear = MAX(Dim_Year[Year])
+RETURN
+    AVERAGEX(
+        FILTER(
+            ALL(Dim_Year),
+            Dim_Year[Year] >= CurrentYear - 2
+                && Dim_Year[Year] <= CurrentYear
+        ),
+        [House Price YoY %]
+    )`,
+  },
+  {
+    name: "2024 年可负担性差距",
+    sourceName: "Affordability Gap 2024",
+    code: `[House Price Growth 2024 vs 2015]
+    - [Wage Growth 2024 vs 2015]`,
+  },
+  {
+    name: "开发综合得分",
+    sourceName: "Total Development Score",
+    code: `[Market Growth Score]
+    + [Recent Momentum Score]
+    + [Wage Support Score]
+    + [Affordability Score]
+    + [Cost Risk Score]`,
+  },
+];
+---
+
+<BaseLayout
+  title={entry.data.title}
+  description={entry.data.summary}
+  locale="zh"
+  alternatePath={alternatePath}
+  pageType="article"
+  structuredData={structuredData}
+>
+  <article class="project-detail power-bi-project">
+    <ContextBack
+      locale="zh"
+      fallbackPath="/zh/projects/"
+      label={{ en: "Back to Projects", zh: "返回项目列表" }}
+    />
+
+    <header class="power-bi-hero" data-reveal>
+      <div>
+        <p class="status">市场分析 Dashboard</p>
+        <h1>{entry.data.title}</h1>
+        <p class="power-bi-hero__lede">
+          结合房价、工资与通胀指标，比较八个欧洲市场的增长、可负担性与开发优先级。
+        </p>
+        <ul class="tag-list" aria-label="项目工具">
+          {entry.data.tools.map((tool) => <li class="tag">{tool}</li>)}
+        </ul>
+      </div>
+      <div class="power-bi-hero__signal" aria-hidden="true">
+        <span>2015</span>
+        <i></i>
+        <strong>2024</strong>
+      </div>
+    </header>
+
+    <nav class="project-toc" aria-label="项目页章节">
+      <a href="#overview">速览</a>
+      <a href="#model">数据模型</a>
+      <a href="#dashboard">Dashboard</a>
+      <a href="#dax">DAX</a>
+      <a href="#results">结果</a>
+    </nav>
+
+    <section id="overview" class="project-section" data-reveal>
+      <p class="status">速览</p>
+      <h2>把增长机会与成本压力放在同一套比较框架中</h2>
+      <div class="project-facts power-bi-facts">
+        <div><span>市场范围</span><strong>8 个欧洲国家</strong></div>
+        <div><span>分析期间</span><strong>2015–2024</strong></div>
+        <div><span>报表结构</span><strong>4 个分析页面</strong></div>
+        <div><span>评分方法</span><strong>5 项等权排名</strong></div>
+      </div>
+      <p>
+        Dashboard
+        回答一个实际选址问题：房价增长较快的市场，是否同时具备工资支撑，且没有过高的通胀与可负担性压力。分析覆盖丹麦、法国、德国、爱尔兰、荷兰、波兰、葡萄牙和西班牙。
+      </p>
+    </section>
+
+    <section class="project-section" data-reveal>
+      <p class="status">分析问题</p>
+      <h2>单看房价涨幅会遗漏需求承受力</h2>
+      <p>
+        市场增长页先比较长期房价变化和近三年动量；买方可负担性页再把房价指数、工资指数与
+        HICP
+        放到同一时间轴。最终优先级页将长期增长、近期动量、工资支撑、可负担性风险和通胀风险转换为等权排名。
+      </p>
+    </section>
+
+    <section class="project-section project-section--wide" data-reveal>
+      <p class="status">数据准备</p>
+      <h2>三套年度数据经过统一筛选和字段整理</h2>
+      <div class="data-pipeline" aria-label="数据准备流程">
+        <div>
+          <span>01</span><strong>房价</strong><p>
+            年度住宅房价指数，保留国家层级与全部住宅。
+          </p>
+        </div>
+        <div>
+          <span>02</span><strong>工资</strong><p>
+            年度平均工资，以不变价美元 PPP 口径比较。
+          </p>
+        </div>
+        <div>
+          <span>03</span><strong>通胀</strong><p>
+            年度 HICP 指数，保留总支出与未季调序列。
+          </p>
+        </div>
+        <div>
+          <span>04</span><strong>Power Query</strong><p>
+            筛选八个市场和 2015–2024 年，移除缺失值并统一字段。
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="model" class="project-section project-section--wide" data-reveal>
+      <p class="status">数据模型</p>
+      <h2>国家和年份维度连接三张事实表</h2>
+      <div class="model-canvas" role="img" aria-label="Power BI 星型数据模型">
+        <div class="model-table model-table--dimension">
+          <span>维度</span><strong>Dim_Country</strong><small
+            >CountryCode · Country</small
+          >
+        </div>
+        <div class="model-table model-table--dimension">
+          <span>维度</span><strong>Dim_Year</strong><small>Year</small>
+        </div>
+        <div class="model-connector" aria-hidden="true"></div>
+        <div class="model-facts">
+          <div class="model-table">
+            <span>事实</span><strong>Fact_HousePrices</strong><small
+              >HousePrice_Index</small
+            >
+          </div>
+          <div class="model-table">
+            <span>事实</span><strong>Fact_Wages</strong><small
+              >Wage_USD_PPP_Constant</small
+            >
+          </div>
+          <div class="model-table">
+            <span>事实</span><strong>Fact_HICP</strong><small>HICP_Index</small>
+          </div>
+        </div>
+      </div>
+      <p class="source-note">
+        六条关系均为启用状态的多对一、单向筛选关系：三张事实表分别通过 CountryCode 和
+        Year
+        连接两张维度表。度量值集中在独立度量表中，评分雷达图使用计算表整理五项排名。
+      </p>
+    </section>
+
+    <section id="dashboard" class="project-section project-section--wide" data-reveal>
+      <div class="dashboard-heading">
+        <div>
+          <p class="status">Dashboard 展示</p>
+          <h2>四个页面逐步收窄市场判断</h2>
+        </div>
+        <p>选择页签查看报表结构与源模型中的关键结果。</p>
+      </div>
+
+      <div class="dashboard-shell" data-dashboard-gallery>
+        <div class="dashboard-tabs" role="tablist" aria-label="Dashboard 页面">
+          <button
+            type="button"
+            role="tab"
+            id="dashboard-tab-summary"
+            aria-controls="dashboard-panel-summary"
+            aria-selected="true"
+            tabindex="0"
+            data-dashboard-tab="summary">总览</button
+          >
+          <button
+            type="button"
+            role="tab"
+            id="dashboard-tab-growth"
+            aria-controls="dashboard-panel-growth"
+            aria-selected="false"
+            tabindex="-1"
+            data-dashboard-tab="growth">市场增长</button
+          >
+          <button
+            type="button"
+            role="tab"
+            id="dashboard-tab-affordability"
+            aria-controls="dashboard-panel-affordability"
+            aria-selected="false"
+            tabindex="-1"
+            data-dashboard-tab="affordability">买方可负担性</button
+          >
+          <button
+            type="button"
+            role="tab"
+            id="dashboard-tab-priority"
+            aria-controls="dashboard-panel-priority"
+            aria-selected="false"
+            tabindex="-1"
+            data-dashboard-tab="priority">最终优先级</button
+          >
+        </div>
+
+        <div class="dashboard-stage">
+          <section
+            role="tabpanel"
+            id="dashboard-panel-summary"
+            aria-labelledby="dashboard-tab-summary"
+            data-dashboard-panel="summary"
+          >
+            <div class="dashboard-page-title">
+              <span>Summary</span><strong>欧洲市场开发位置比较</strong>
+            </div>
+            <div class="dashboard-metric-grid">
+              <article>
+                <span>长期增长领先</span><strong>葡萄牙</strong><small
+                  >2015 年以来房价增长 124.4%</small
+                >
+              </article>
+              <article>
+                <span>近期动量领先</span><strong>波兰</strong><small
+                  >2022–2024 年平均年增速 11.86%</small
+                >
+              </article>
+              <article>
+                <span>评估范围</span><strong>8 个市场</strong><small
+                  >增长、工资、可负担性与通胀</small
+                >
+              </article>
+            </div>
+            <div class="dashboard-summary-flow" aria-label="分析路径">
+              <span>增长</span><i></i><span>承受力</span><i></i><span>风险</span><i
+              ></i><strong>优先级</strong>
+            </div>
+          </section>
+
+          <section
+            role="tabpanel"
+            id="dashboard-panel-growth"
+            aria-labelledby="dashboard-tab-growth"
+            data-dashboard-panel="growth"
+            hidden
+          >
+            <div class="dashboard-page-title">
+              <span>Market Growth</span><strong>长期增长与近期动量</strong>
+            </div>
+            <div class="dashboard-bar-chart" aria-label="房价长期增长比较">
+              <div>
+                <span>葡萄牙</span><i style="--bar: 100%"></i><strong>124.4%</strong>
+              </div>
+              <div>
+                <span>八国平均</span><i style="--bar: 59.2%"></i><strong>73.69%</strong>
+              </div>
+            </div>
+            <p class="dashboard-callout">
+              <strong>波兰</strong><span
+                >2022–2024 年平均房价年增速 11.86%，近期动量最高。</span
+              >
+            </p>
+          </section>
+
+          <section
+            role="tabpanel"
+            id="dashboard-panel-affordability"
+            aria-labelledby="dashboard-tab-affordability"
+            data-dashboard-panel="affordability"
+            hidden
+          >
+            <div class="dashboard-page-title">
+              <span>Buyer Affordability</span><strong>工资支撑与成本压力</strong>
+            </div>
+            <div class="dashboard-risk-grid">
+              <article>
+                <span>葡萄牙</span><strong>约 111 个百分点</strong><small
+                  >2024 年房价增幅与工资增幅之差</small
+                >
+              </article>
+              <article>
+                <span>波兰</span><strong>约 49%</strong><small
+                  >2015–2024 年 HICP 增幅</small
+                >
+              </article>
+            </div>
+            <div class="dashboard-index-key">
+              <span><i class="index-house"></i>房价指数</span>
+              <span><i class="index-wage"></i>工资指数</span>
+              <span><i class="index-hicp"></i>HICP</span>
+            </div>
+          </section>
+
+          <section
+            role="tabpanel"
+            id="dashboard-panel-priority"
+            aria-labelledby="dashboard-tab-priority"
+            data-dashboard-panel="priority"
+            hidden
+          >
+            <div class="dashboard-page-title">
+              <span>Final Priority</span><strong>五项等权市场排名</strong>
+            </div>
+            <div class="score-wheel" aria-label="开发综合得分的五个维度">
+              <span>长期增长</span><span>近期动量</span><span>工资支撑</span><span
+                >可负担性</span
+              ><span>成本风险</span>
+            </div>
+            <div class="priority-grid">
+              <article>
+                <span>高增长机会</span><strong>葡萄牙</strong><p>
+                  长期房价增幅领先，同时需要正视可负担性差距。
+                </p>
+              </article>
+              <article>
+                <span>均衡优先市场</span><strong>波兰</strong><p>
+                  近期增长动量较强，综合排名形成更均衡的优先选择。
+                </p>
+              </article>
+            </div>
+          </section>
+        </div>
+        <noscript
+          ><p class="source-note">
+            总览：葡萄牙长期房价增幅领先；波兰近期动量领先。完整的四页摘要已在本页后续章节列出。
+          </p></noscript
+        >
+      </div>
+    </section>
+
+    <section class="project-section" data-reveal>
+      <p class="status">报表页面导览</p>
+      <h2>每页保留一个明确的判断任务</h2>
+      <ol class="report-guide">
+        <li>
+          <span>01</span><div>
+            <strong>Summary</strong><p>汇总长期增长、近期动量和市场选择问题。</p>
+          </div>
+        </li>
+        <li>
+          <span>02</span><div>
+            <strong>Market Growth</strong><p>
+              查看 2015 年以来的房价变化、年度趋势和近三年增速。
+            </p>
+          </div>
+        </li>
+        <li>
+          <span>03</span><div>
+            <strong>Buyer Affordability</strong><p>
+              按国家比较房价、工资和通胀指数，并计算可负担性差距。
+            </p>
+          </div>
+        </li>
+        <li>
+          <span>04</span><div>
+            <strong>Final Priority</strong><p>
+              汇总五项排名，比较综合得分和市场风险结构。
+            </p>
+          </div>
+        </li>
+      </ol>
+    </section>
+
+    <section id="dax" class="project-section project-section--wide" data-reveal>
+      <p class="status">关键 DAX</p>
+      <h2>指标从基准变化、滚动动量和风险排名逐层构建</h2>
+      <div class="dax-grid">
+        {
+          daxMeasures.map((measure) => (
+            <article class="dax-card">
+              <h3>{measure.name}</h3>
+              <p>{measure.sourceName}</p>
+              <pre tabindex="0">
+                <code>{measure.code}</code>
+              </pre>
+            </article>
+          ))
+        }
+      </div>
+    </section>
+
+    <section id="results" class="project-section" data-reveal>
+      <p class="status">主要结果</p>
+      <h2>葡萄牙与波兰代表两种不同的市场选择</h2>
+      <div class="result-list">
+        <article>
+          <strong>葡萄牙</strong><p>
+            2015 年以来房价增长 124.4%，约为八个市场平均水平的 1.7
+            倍；同期房价与工资增幅差距约 111 个百分点。
+          </p>
+        </article>
+        <article>
+          <strong>波兰</strong><p>
+            2022–2024 年平均房价年增速为 11.86%，近期动量领先；2015 年以来 HICP 增幅约
+            49%，成本压力需要与增长机会同时评估。
+          </p>
+        </article>
+      </div>
+      <p>
+        最终排名将葡萄牙识别为高增长机会，将波兰识别为更均衡的优先市场。排名用于筛选候选市场，不替代土地、融资、规划许可和项目级需求调查。
+      </p>
+    </section>
+
+    <section class="project-section" data-reveal>
+      <p class="status">模型与报表细节</p>
+      <h2>报表筛选上下文贯穿全部指标</h2>
+      <p>
+        国家和年份切片器通过公共维度表传递到三张事实表。长期指标固定比较 2015 与
+        2024；近期动量按当前年份回看三年；风险得分采用反向排名，使较小的可负担性差距和通胀增幅获得更高名次。
+      </p>
+    </section>
+
+    {
+      relatedProjects.length > 0 && (
+        <section class="project-section project-section--wide" data-reveal>
+          <p class="status">相关项目</p>
+          <h2>继续查看分析项目</h2>
+          <ul class="content-list project-list project-list--related">
+            {relatedProjects.map((project) => (
+              <li data-project-card>
+                <ProjectCard entry={project} locale="zh" />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+
+    <ContextBack
+      locale="zh"
+      fallbackPath="/zh/projects/"
+      label={{ en: "Back to Projects", zh: "返回项目列表" }}
+    />
+  </article>
+</BaseLayout>
+
+<script>
+  function initialiseDashboardGalleries() {
+    document
+      .querySelectorAll<HTMLElement>("[data-dashboard-gallery]")
+      .forEach((gallery) => {
+        if (gallery.dataset.initialised === "true") return;
+        gallery.dataset.initialised = "true";
+
+        const tabs = Array.from(
+          gallery.querySelectorAll<HTMLButtonElement>("[data-dashboard-tab]"),
+        );
+        const panels = Array.from(
+          gallery.querySelectorAll<HTMLElement>("[data-dashboard-panel]"),
+        );
+
+        const activate = (tab: HTMLButtonElement, focus = false) => {
+          const target = tab.dataset.dashboardTab;
+          tabs.forEach((item) => {
+            const selected = item === tab;
+            item.setAttribute("aria-selected", String(selected));
+            item.tabIndex = selected ? 0 : -1;
+          });
+          panels.forEach((panel) => {
+            panel.hidden = panel.dataset.dashboardPanel !== target;
+          });
+          if (focus) tab.focus();
+        };
+
+        tabs.forEach((tab, index) => {
+          tab.addEventListener("click", () => activate(tab));
+          tab.addEventListener("keydown", (event) => {
+            if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+            event.preventDefault();
+            const nextIndex =
+              event.key === "Home"
+                ? 0
+                : event.key === "End"
+                  ? tabs.length - 1
+                  : event.key === "ArrowRight"
+                    ? (index + 1) % tabs.length
+                    : (index - 1 + tabs.length) % tabs.length;
+            const next = tabs[nextIndex];
+            if (next) activate(next, true);
+          });
+        });
+      });
+  }
+
+  initialiseDashboardGalleries();
+  document.addEventListener("astro:page-load", initialiseDashboardGalleries);
+</script>

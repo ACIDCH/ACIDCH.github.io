@@ -148,6 +148,35 @@ for (const file of htmlFiles) {
       failures.push(`${route}: contains retired pilot or internal wording`);
     }
   }
+
+  if (route === "/zh/projects/european-property-market-dashboard/") {
+    const pageContent = html.match(/<main\b[\s\S]*?<\/main>/i)?.[0] ?? html;
+    if (
+      /<meta\b[^>]*\bname=["']robots["'][^>]*\bcontent=["'][^"']*noindex/i.test(html)
+    ) {
+      failures.push(`${route}: production page must be indexable`);
+    }
+    if (!html.includes('href="/projects/"')) {
+      failures.push(`${route}: missing English Projects fallback`);
+    }
+    if (
+      !pageContent.includes("data-dashboard-gallery") ||
+      !pageContent.includes("Dim_Country") ||
+      !pageContent.includes("DAX")
+    ) {
+      failures.push(`${route}: missing dashboard, model, or DAX content`);
+    }
+    if (
+      /BUSINFO703|703AA|Group23|Submission|Assignment|课程项目|小组项目|组员|Task|\.pbix\b|\.csv\b|\.pdf\b|[A-Z]:\\/i.test(
+        pageContent,
+      )
+    ) {
+      failures.push(`${route}: contains a private or internal source reference`);
+    }
+    if (/<iframe\b|app\.powerbi\.com|ctid=/i.test(pageContent)) {
+      failures.push(`${route}: contains a non-public embed`);
+    }
+  }
 }
 
 if (
@@ -156,6 +185,21 @@ if (
   )
 ) {
   failures.push("/projects/retirement-monte-carlo/: unexpected English detail page");
+}
+
+if (
+  await exists(
+    path.join(
+      outputRoot,
+      "projects",
+      "european-property-market-dashboard",
+      "index.html",
+    ),
+  )
+) {
+  failures.push(
+    "/projects/european-property-market-dashboard/: unexpected English detail page",
+  );
 }
 
 for (const file of outputFiles) {

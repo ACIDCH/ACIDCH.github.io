@@ -25,6 +25,7 @@ test-results/
 .cache/
 .parcel-cache/
 .turbo/
+/tmp/
 
 # Debug logs
 npm-debug.log*

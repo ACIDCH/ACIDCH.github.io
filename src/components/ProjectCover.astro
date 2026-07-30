@@ -5,9 +5,10 @@ interface Props {
   entry: CollectionEntry<"projects">;
   compact?: boolean;
   showCode?: boolean;
+  code?: string;
 }
 
-const { entry, compact = false, showCode = true } = Astro.props;
+const { entry, compact = false, showCode = true, code } = Astro.props;
 const transitionName = `project-cover-${entry.data.translationKey}-${entry.data.locale}`;
 ---
 
@@ -21,7 +22,7 @@ const transitionName = `project-cover-${entry.data.translationKey}-${entry.data.
   {
     showCode && (
       <span class="project-cover__code">
-        {entry.data.topic.slice(0, 3).toUpperCase()}
+        {code ?? entry.data.topic.slice(0, 3).toUpperCase()}
       </span>
     )
   }
