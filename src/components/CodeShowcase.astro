@@ -1,0 +1,150 @@
+---
+interface Props {
+  title: string;
+  code: string;
+  open?: boolean;
+}
+
+const { title, code, open = false } = Astro.props;
+const escapeHtml = (value: string) =>
+  value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+const highlighted = escapeHtml(code)
+  .replace(
+    /(&quot;.*?&quot;|&#39;.*?&#39;|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')/g,
+    '<span class="code-string">$1</span>',
+  )
+  .replace(
+    /\b(def|return|if|else|for|in|not|and|or|True|False|None|import|from|as|lambda)\b/g,
+    '<span class="code-keyword">$1</span>',
+  )
+  .replace(
+    /\b(pd|np|stats|process|fuzz|sqlite3|re|unicodedata)\b/g,
+    '<span class="code-module">$1</span>',
+  );
+---
+
+<details class="code-showcase" open={open}>
+  <summary>
+    <span>{title}</span>
+    <span class="code-showcase__hint">展开代码</span>
+  </summary>
+  <div class="code-showcase__toolbar">
+    <span>Python</span>
+    <button
+      class="icon-button code-copy"
+      type="button"
+      data-copy-code
+      aria-label={`复制${title}`}
+    >
+      复制
+    </button>
+  </div>
+  <pre tabindex="0"><code set:html={highlighted} /></pre>
+</details>
+
+<script>
+  const initialiseCodeCopy = () => {
+    document
+      .querySelectorAll<HTMLButtonElement>("[data-copy-code]")
+      .forEach((button) => {
+        if (button.dataset.ready === "true") return;
+        button.dataset.ready = "true";
+        button.addEventListener("click", async () => {
+          const code =
+            button.closest(".code-showcase")?.querySelector("code")?.textContent ?? "";
+          try {
+            await navigator.clipboard.writeText(code);
+            button.textContent = "已复制";
+            window.setTimeout(() => (button.textContent = "复制"), 1400);
+          } catch {
+            button.textContent = "复制失败";
+          }
+        });
+      });
+  };
+
+  initialiseCodeCopy();
+  document.addEventListener("astro:page-load", initialiseCodeCopy);
+</script>
+
+<style>
+  .code-showcase {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow: clip;
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-lg);
+    background: var(--colour-surface);
+  }
+
+  summary,
+  .code-showcase__toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+
+  summary {
+    padding: var(--space-4) var(--space-5);
+    cursor: pointer;
+    font-weight: 650;
+  }
+
+  .code-showcase__hint,
+  .code-showcase__toolbar {
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-sm);
+  }
+
+  .code-showcase__toolbar {
+    padding: var(--space-2) var(--space-4);
+    border-top: 1px solid var(--colour-border);
+    border-bottom: 1px solid var(--colour-border);
+    background: var(--colour-surface-raised);
+  }
+
+  .code-copy {
+    width: auto;
+    min-width: 4.6rem;
+    padding-inline: var(--space-3);
+  }
+
+  pre {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    margin: 0;
+    padding: var(--space-5);
+    overflow-x: auto;
+    color: var(--colour-text);
+    background: color-mix(
+      in srgb,
+      var(--colour-surface) 82%,
+      var(--colour-navy-950) 18%
+    );
+    font-size: 0.86rem;
+    line-height: 1.65;
+    tab-size: 4;
+  }
+
+  pre:focus-visible {
+    outline: 2px solid var(--colour-accent);
+    outline-offset: -3px;
+  }
+
+  :global(.code-keyword) {
+    color: var(--colour-accent);
+    font-weight: 700;
+  }
+
+  :global(.code-string) {
+    color: var(--colour-secondary);
+  }
+
+  :global(.code-module) {
+    color: var(--colour-primary);
+    font-weight: 650;
+  }
+</style>

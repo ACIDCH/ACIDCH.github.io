@@ -177,6 +177,33 @@ for (const file of htmlFiles) {
       failures.push(`${route}: contains a non-public embed`);
     }
   }
+
+  if (route === "/zh/projects/grammy-spotify-analysis/") {
+    const pageContent = html.match(/<main\b[\s\S]*?<\/main>/i)?.[0] ?? html;
+    if (
+      /<meta\b[^>]*\bname=["']robots["'][^>]*\bcontent=["'][^"']*noindex/i.test(html)
+    ) {
+      failures.push(`${route}: production page must be indexable`);
+    }
+    if (!html.includes('href="/projects/"')) {
+      failures.push(`${route}: missing English Projects fallback`);
+    }
+    if (
+      !pageContent.includes("data-threshold-lab") ||
+      (pageContent.match(/<details\b[^>]*\bclass=["'][^"']*code-showcase/g) ?? [])
+        .length < 6 ||
+      (pageContent.match(/projects\/grammy-spotify\/[^"']+\.webp/g) ?? []).length < 5
+    ) {
+      failures.push(`${route}: missing code, chart, or threshold content`);
+    }
+    if (
+      /BUSINFO701|701new|Assignment|Submission|Task|课程项目|作业|样板页|试点页|预览版|草稿|\.ipynb\b|\.pdf\b|\.csv\b|\.json\b|[A-Z]:\\/i.test(
+        pageContent,
+      )
+    ) {
+      failures.push(`${route}: contains a private or internal source reference`);
+    }
+  }
 }
 
 if (
@@ -200,6 +227,14 @@ if (
   failures.push(
     "/projects/european-property-market-dashboard/: unexpected English detail page",
   );
+}
+
+if (
+  await exists(
+    path.join(outputRoot, "projects", "grammy-spotify-analysis", "index.html"),
+  )
+) {
+  failures.push("/projects/grammy-spotify-analysis/: unexpected English detail page");
 }
 
 for (const file of outputFiles) {

@@ -29,7 +29,9 @@ const topicLabels = {
     showCode={entry.data.translationKey !== "retirement-monte-carlo"}
     code={entry.data.translationKey === "european-property-market-dashboard"
       ? "PBI"
-      : undefined}
+      : entry.data.translationKey === "grammy-spotify-analysis"
+        ? "PY"
+        : undefined}
   />
   <div class="cluster cluster--compact">
     <p class="status">{statusLabels[entry.data.status][locale]}</p>

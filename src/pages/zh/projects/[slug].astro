@@ -4,6 +4,7 @@ import { findTranslation } from "../../../i18n/content";
 import ProjectLayout from "../../../layouts/ProjectLayout.astro";
 import RetirementMonteCarloProject from "../../../components/RetirementMonteCarloProject.astro";
 import PowerBIDashboardProject from "../../../components/PowerBIDashboardProject.astro";
+import PythonAnalysisProject from "../../../components/PythonAnalysisProject.astro";
 import { getLocalizedPath } from "../../../utils/paths";
 
 export async function getStaticPaths() {
@@ -30,6 +31,8 @@ const alternatePath = translation
     <RetirementMonteCarloProject entry={entry} alternatePath={alternatePath} />
   ) : entry.data.translationKey === "european-property-market-dashboard" ? (
     <PowerBIDashboardProject entry={entry} alternatePath={alternatePath} />
+  ) : entry.data.translationKey === "grammy-spotify-analysis" ? (
+    <PythonAnalysisProject entry={entry} alternatePath={alternatePath} />
   ) : (
     <ProjectLayout entry={entry} alternatePath={alternatePath} />
   )
