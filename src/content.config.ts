@@ -27,6 +27,7 @@ const projects = defineCollection({
     updatedAt: z.coerce.date().optional(),
     isPlaceholder: z.boolean().default(false),
     isDemo: z.boolean().default(false),
+    noindex: z.boolean().default(false),
   }),
 });
 

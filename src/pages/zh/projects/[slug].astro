@@ -2,6 +2,7 @@
 import { getCollection, type CollectionEntry } from "astro:content";
 import { findTranslation } from "../../../i18n/content";
 import ProjectLayout from "../../../layouts/ProjectLayout.astro";
+import RetirementMonteCarloProject from "../../../components/RetirementMonteCarloProject.astro";
 import { getLocalizedPath } from "../../../utils/paths";
 
 export async function getStaticPaths() {
@@ -20,7 +21,13 @@ const { entry, entries } = Astro.props;
 const translation = findTranslation(entries, entry.data.translationKey, "en");
 const alternatePath = translation
   ? getLocalizedPath(`/projects/${translation.data.slug}/`, "en")
-  : getLocalizedPath("/", "en");
+  : getLocalizedPath("/projects/", "en");
 ---
 
-<ProjectLayout entry={entry} alternatePath={alternatePath} />
+{
+  entry.data.translationKey === "retirement-monte-carlo" ? (
+    <RetirementMonteCarloProject entry={entry} alternatePath={alternatePath} />
+  ) : (
+    <ProjectLayout entry={entry} alternatePath={alternatePath} />
+  )
+}

@@ -1,0 +1,865 @@
+---
+import { getCollection, type CollectionEntry } from "astro:content";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import ContextBack from "./ContextBack.astro";
+import ProjectCard from "./ProjectCard.astro";
+import ProjectCover from "./ProjectCover.astro";
+
+interface Props {
+  entry: CollectionEntry<"projects">;
+  alternatePath: string;
+}
+
+const { entry, alternatePath } = Astro.props;
+const relatedProjects = (await getCollection("projects"))
+  .filter(
+    (project) =>
+      project.data.locale === "zh" &&
+      project.data.translationKey !== entry.data.translationKey,
+  )
+  .sort(
+    (left, right) =>
+      Number(right.data.featured) - Number(left.data.featured) ||
+      left.data.title.localeCompare(right.data.title, "zh-CN"),
+  )
+  .slice(0, 2);
+const relatedNotes = (await getCollection("notes"))
+  .filter((note) => note.data.locale === "zh" && note.data.status === "published")
+  .slice(0, 2);
+const structuredData = {
+  "@type": "CreativeWork",
+  name: entry.data.title,
+  description: entry.data.summary,
+  inLanguage: "zh-CN",
+  keywords: [...entry.data.tools, ...entry.data.tags],
+  isAccessibleForFree: true,
+  dateModified: entry.data.updatedAt?.toISOString(),
+};
+---
+
+<BaseLayout
+  title={entry.data.title}
+  description={entry.data.summary}
+  locale="zh"
+  alternatePath={alternatePath}
+  noindex
+  pageType="article"
+  structuredData={structuredData}
+>
+  <article class="project-detail retirement-project">
+    <ContextBack
+      locale="zh"
+      fallbackPath="/zh/projects/"
+      label={{ en: "Back to Projects", zh: "返回项目列表" }}
+    />
+
+    <header class="retirement-hero" data-reveal>
+      <ProjectCover entry={entry} />
+      <div class="retirement-hero__copy">
+        <p class="status">已完成课程项目 · 中文样板页 · 暂不索引</p>
+        <h1>{entry.data.title}</h1>
+        <p>
+          这套 Excel 模型把工资增长、年度缴费、组合收益和通胀放进同一条 25
+          年时间线，再用 5,000
+          次模拟观察退休余额的分布。页面保留原始模型的数字和公式，同时把身份、课程材料与源文件留在本地。
+        </p>
+        <ul class="tag-list" aria-label="项目方法">
+          {entry.data.tools.map((tool) => <li class="tag">{tool}</li>)}
+        </ul>
+      </div>
+    </header>
+
+    <nav class="project-toc" aria-label="项目页章节">
+      <a href="#overview">30 秒速览</a>
+      <a href="#model">模型结构</a>
+      <a href="#interactive">互动分析</a>
+      <a href="#original-results">原始结果</a>
+      <a href="#limitations">局限</a>
+    </nav>
+
+    <section id="overview" class="project-section" data-reveal>
+      <p class="status">30 秒速览</p>
+      <h2>当前缴费路径离目标仍有明显距离</h2>
+      <div class="project-facts">
+        <div>
+          <span>场景</span>
+          <strong>40 岁至 65 岁退休储蓄</strong>
+        </div>
+        <div>
+          <span>方法</span>
+          <strong>5,000 次蒙特卡洛模拟</strong>
+        </div>
+        <div>
+          <span>原始输出</span>
+          <strong>平均名义余额 NZD 552,671</strong>
+        </div>
+        <div>
+          <span>状态</span>
+          <strong>独立完成的课程项目</strong>
+        </div>
+      </div>
+      <p>
+        工作簿中的基准参数为初始工资 NZD 95,000、总缴费率 7.5%、工资增长均值
+        2.8%、组合收益均值 6.12%、收益波动率 10% 和通胀率
+        2%。模型从零起始余额出发，每年先更新工资，再计算缴费与投资余额；退休时用 4%
+        提取率与通胀后的年度目标比较。
+      </p>
+    </section>
+
+    <section class="project-section" data-reveal>
+      <p class="status">问题与场景</p>
+      <h2>固定预测无法回答路径风险</h2>
+      <p>
+        目标是在 65
+        岁时支持按通胀调整后的年度支出。工资和市场回报每年都会变化，单一复利结果无法反映差路径与好路径之间的跨度。模型因此分别抽取年度工资增长率和组合收益率，记录每条路径的退休余额、实际购买力余额、首年可提取金额及目标是否达成。
+      </p>
+      <p>
+        当前支出目标为每年 NZD 125,000。按 2% 通胀延伸 25 年后，退休首年的名义目标为 NZD
+        205,075.75；按 4% 提取率换算，需要约 NZD 5.13 million
+        的退休余额。该目标只用于模型比较，不构成理财建议。
+      </p>
+    </section>
+
+    <section class="project-section" data-reveal>
+      <p class="status">数据与假设</p>
+      <h2>输入来自工作簿的 Client data 与 Task 3</h2>
+      <div class="table-scroll" tabindex="0" aria-label="模型输入假设表">
+        <table>
+          <thead>
+            <tr>
+              <th>变量</th>
+              <th>基准值</th>
+              <th>单位 / 分布</th>
+              <th>用途</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              ><td>初始工资</td><td>95,000</td><td>NZD / 年</td><td>首年缴费基数</td
+              ></tr
+            >
+            <tr
+              ><td>工资增长</td><td>2.8%，标准差 0.5%</td><td>正态分布 / 年</td><td
+                >逐年更新工资</td
+              ></tr
+            >
+            <tr
+              ><td>总缴费率</td><td>7.5%</td><td>工资比例 / 年</td><td
+                >5% 个人加 2.5% 雇主</td
+              ></tr
+            >
+            <tr
+              ><td>组合收益</td><td>6.12%，标准差 10%</td><td>正态分布 / 年</td><td
+                >更新已有余额</td
+              ></tr
+            >
+            <tr
+              ><td>通胀率</td><td>2%</td><td>固定 / 年</td><td>换算实际余额与目标</td
+              ></tr
+            >
+            <tr><td>试验次数</td><td>5,000</td><td>条路径</td><td>形成结果分布</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="source-note">
+        页面控件的上下限只是输入校验范围，不是工作簿给出的置信区间。源模型未加入税费、管理费、职业中断和退休后的逐年现金流。
+      </p>
+    </section>
+
+    <section id="model" class="project-section project-section--wide" data-reveal>
+      <p class="status">模型结构</p>
+      <h2>一条路径由 25 次年度滚动组成</h2>
+      <ol class="model-flow">
+        <li>
+          <span>01</span><strong>工资</strong><p>
+            首年使用 NZD 95,000，之后按随机工资增长率更新。
+          </p>
+        </li>
+        <li>
+          <span>02</span><strong>缴费</strong><p>
+            当年工资乘以总缴费率，首年至第 25 年各计一次。
+          </p>
+        </li>
+        <li>
+          <span>03</span><strong>余额</strong><p>
+            上年余额乘以当年收益率后，加上当年缴费。
+          </p>
+        </li>
+        <li>
+          <span>04</span><strong>比较</strong><p>
+            名义余额折算为实际余额，并用 4% 提取额与目标比较。
+          </p>
+        </li>
+      </ol>
+      <div class="formula-grid">
+        <div class="ui-card">
+          <h3>年度工资</h3>
+          <code>Salaryₜ = Salaryₜ₋₁ × (1 + gₜ)</code>
+          <p><code>gₜ</code> 来自均值 2.8%、标准差 0.5% 的正态分布。</p>
+        </div>
+        <div class="ui-card">
+          <h3>名义余额</h3>
+          <code>Balanceₜ = Balanceₜ₋₁ × (1 + rₜ) + Contributionₜ</code>
+          <p><code>rₜ</code> 来自均值 6.12%、标准差 10% 的正态分布。</p>
+        </div>
+        <div class="ui-card">
+          <h3>实际余额</h3>
+          <code>Real balance = Nominal balance ÷ 1.02²⁵</code>
+          <p>该换算把退休时余额表达为当前购买力口径。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="project-section" data-reveal>
+      <p class="status">分析过程</p>
+      <h2>先核对公式，再分开保存随机结果与情景结果</h2>
+      <p>
+        工作簿先计算三类基金的加权收益，再建立工资和缴费时间线。模拟区为每次试验生成新的工资增长与组合收益序列，统计名义余额、实际余额、均值、标准差、偏度和
+        95% 区间。最后用四组固定参数比较基础、收益提高、缴费提高和下行情景。
+      </p>
+      <p>
+        核对时发现，加权收益表计算为 6.1625%，后续模拟输入写为
+        6.12%；客户数据页的组合波动率为 10.5%，模拟页使用
+        10%。互动面板遵循模拟页输入，同时在来源说明中保留差异。
+      </p>
+    </section>
+
+    <section
+      id="interactive"
+      class="project-section project-section--wide retirement-lab"
+      data-retirement-lab
+      data-reveal
+    >
+      <div class="retirement-lab__heading">
+        <div>
+          <p class="status">互动分析面板</p>
+          <h2>调整五项输入，重跑同一套模型</h2>
+        </div>
+        <p>
+          当前结果由浏览器本地计算。相同参数和随机种子会得到相同结果，不会上传课程数据。
+        </p>
+      </div>
+
+      <form class="retirement-controls" data-model-form>
+        <label>
+          <span>初始工资 <small>NZD / 年</small></span>
+          <input
+            name="initialSalary"
+            type="number"
+            min="50000"
+            max="200000"
+            step="1000"
+            value="95000"
+            required
+          />
+          <small>页面范围：50,000–200,000；基准 95,000</small>
+        </label>
+        <label>
+          <span>工资增长均值 <small>% / 年</small></span>
+          <input
+            name="salaryGrowthMean"
+            type="number"
+            min="0"
+            max="6"
+            step="0.1"
+            value="2.8"
+            required
+          />
+          <small>页面范围：0%–6%；标准差固定 0.5%</small>
+        </label>
+        <label>
+          <span>总缴费率 <small>% / 年</small></span>
+          <input
+            name="contributionRate"
+            type="number"
+            min="0"
+            max="25"
+            step="0.5"
+            value="7.5"
+            required
+          />
+          <small>页面范围：0%–25%；基准 7.5%</small>
+        </label>
+        <label>
+          <span>组合收益均值 <small>% / 年</small></span>
+          <input
+            name="returnMean"
+            type="number"
+            min="-5"
+            max="15"
+            step="0.01"
+            value="6.12"
+            required
+          />
+          <small>页面范围：−5%–15%；基准 6.12%</small>
+        </label>
+        <label>
+          <span>组合收益波动率 <small>% / 年</small></span>
+          <input
+            name="returnVolatility"
+            type="number"
+            min="0"
+            max="30"
+            step="0.5"
+            value="10"
+            required
+          />
+          <small>页面范围：0%–30%；基准 10%</small>
+        </label>
+        <label>
+          <span>随机种子 <small>整数</small></span>
+          <input
+            name="seed"
+            type="number"
+            min="1"
+            max="999999999"
+            step="1"
+            value="7052025"
+            required
+          />
+          <small>相同种子用于复现相同路径</small>
+        </label>
+        <div class="retirement-controls__actions">
+          <button class="button" type="submit">运行 5,000 次模拟</button>
+          <button class="button button--secondary" type="reset">恢复基准值</button>
+        </div>
+        <p class="form-error" data-model-error role="alert" hidden></p>
+      </form>
+
+      <div class="retirement-results" aria-live="polite" aria-busy="false">
+        <p class="calculation-status" data-model-status>
+          基准场景待载入；无脚本时保留下方工作簿摘要。
+        </p>
+        <div class="metric-grid">
+          <div class="metric-card">
+            <span>平均名义余额</span>
+            <strong data-output="meanNominal">NZD 552,671</strong>
+            <small data-change="meanNominal">原始工作簿摘要</small>
+          </div>
+          <div class="metric-card">
+            <span>平均实际余额</span>
+            <strong data-output="meanReal">NZD 336,870</strong>
+            <small data-change="meanReal">原始工作簿摘要</small>
+          </div>
+          <div class="metric-card">
+            <span>名义余额 95% 区间</span>
+            <strong data-output="interval">NZD 294,059–967,301</strong>
+            <small>2.5%–97.5% 分位数</small>
+          </div>
+          <div class="metric-card">
+            <span>目标达成概率</span>
+            <strong data-output="successRate">0.0%</strong>
+            <small data-output="withdrawalComparison">首年目标 NZD 205,076</small>
+          </div>
+        </div>
+
+        <div class="chart-grid">
+          <figure class="model-chart">
+            <figcaption>
+              <strong>退休名义余额分布</strong>
+              <span>当前场景的 5,000 条路径</span>
+            </figcaption>
+            <svg
+              data-chart="distribution"
+              viewBox="0 0 640 280"
+              role="img"
+              aria-label="当前场景退休名义余额分布图"></svg>
+          </figure>
+          <figure class="model-chart">
+            <figcaption>
+              <strong>平均余额路径</strong>
+              <span>基准场景与当前场景</span>
+            </figcaption>
+            <svg
+              data-chart="progression"
+              viewBox="0 0 640 280"
+              role="img"
+              aria-label="二十五年平均余额路径对比图"></svg>
+          </figure>
+          <figure class="model-chart">
+            <figcaption>
+              <strong>退休余额对比</strong>
+              <span>名义与实际口径</span>
+            </figcaption>
+            <svg
+              data-chart="comparison"
+              viewBox="0 0 640 280"
+              role="img"
+              aria-label="基准场景与当前场景退休余额对比图"></svg>
+          </figure>
+        </div>
+      </div>
+
+      <noscript>
+        <div class="no-script-summary">
+          <h3>基准摘要</h3>
+          <p>
+            原始工作簿的 5,000 次试验得到平均名义余额 NZD 552,670.63、平均实际余额 NZD
+            336,869.81，名义余额 95% 区间为 NZD 294,058.79 至 NZD
+            967,300.62。启用脚本后可调整参数并重跑可复现的本地模拟。
+          </p>
+        </div>
+      </noscript>
+    </section>
+
+    <section id="original-results" class="project-section" data-reveal>
+      <p class="status">原始课程项目结果</p>
+      <h2>固定结果来自最终工作簿已保存的计算值</h2>
+      <div class="table-scroll" tabindex="0" aria-label="原始模拟结果表">
+        <table>
+          <thead><tr><th>指标</th><th>名义口径</th><th>实际口径</th></tr></thead>
+          <tbody>
+            <tr><td>平均退休余额</td><td>NZD 552,670.63</td><td>NZD 336,869.81</td></tr>
+            <tr><td>标准差</td><td>NZD 173,071.19</td><td>NZD 105,492.23</td></tr>
+            <tr
+              ><td>95% 结果区间</td><td>NZD 294,058.79–967,300.62</td><td
+                >NZD 179,237.91–589,599.59</td
+              ></tr
+            >
+            <tr><td>偏度</td><td>1.0208</td><td>1.0208</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        同一工作簿中的首年退休收入模拟均值为 NZD 10,120.09，保存时的目标达成概率为
+        0%。Excel 使用 <code>RAND()</code
+        >，重新计算会改变这些随机结果。页面没有把它们改写成互动面板的输出。
+      </p>
+      <aside class="source-note">
+        互动面板基于原模型逻辑制作。即时结果随输入参数和随机种子变化，不等同于课程报告中的固定结果。
+      </aside>
+    </section>
+
+    <section class="project-section project-section--wide" data-reveal>
+      <p class="status">敏感性分析</p>
+      <h2>缴费率是四组情景中最直接的可控变量</h2>
+      <div class="table-scroll" tabindex="0" aria-label="原始情景分析结果表">
+        <table>
+          <thead>
+            <tr
+              ><th>情景</th><th>收益率</th><th>缴费率</th><th>工资增长</th><th
+                >工作簿列示余额</th
+              ><th>4% 提取额</th></tr
+            >
+          </thead>
+          <tbody>
+            <tr
+              ><td>基础</td><td>6.12%</td><td>7.5%</td><td>2.8%</td><td
+                >NZD 1,600,000</td
+              ><td>NZD 64,000</td></tr
+            >
+            <tr
+              ><td>提高收益</td><td>7.3%</td><td>7.5%</td><td>2.8%</td><td
+                >NZD 2,200,000</td
+              ><td>NZD 88,000</td></tr
+            >
+            <tr
+              ><td>提高缴费</td><td>6.12%</td><td>15%</td><td>2.8%</td><td
+                >NZD 2,900,000</td
+              ><td>NZD 116,000</td></tr
+            >
+            <tr
+              ><td>下行</td><td>5%</td><td>7.5%</td><td>2%</td><td>NZD 1,100,000</td><td
+                >NZD 44,000</td
+              ></tr
+            >
+          </tbody>
+        </table>
+      </div>
+      <p>
+        原表中，提高缴费情景把缴费率由 7.5% 提到 15%，列示余额由 NZD 1.6 million 增至
+        NZD 2.9 million；提高收益情景把收益率调到 7.3%，列示余额为 NZD 2.2
+        million。四个情景都低于约 NZD 5.13 million 的目标资本。
+      </p>
+    </section>
+
+    <section class="project-section project-section--wide" data-reveal>
+      <p class="status">Excel 模型查看</p>
+      <h2>公开版保留结构，不嵌入完整工作簿</h2>
+      <div class="workbook-map">
+        <div>
+          <strong>Client data</strong><span>年龄、工资、缴费、基金和支出假设</span>
+        </div>
+        <div><strong>Task 1</strong><span>三类基金的加权收益</span></div>
+        <div><strong>Task 2</strong><span>缴费路径、退休收入和目标判断</span></div>
+        <div><strong>Task 3</strong><span>名义与实际余额的 5,000 次模拟</span></div>
+        <div><strong>Task 4</strong><span>四组固定参数情景</span></div>
+      </div>
+      <p class="source-note">
+        未发现可匿名访问且已确认安全的 Excel Online、OneDrive 或 SharePoint
+        链接，因此没有加载
+        iframe。完整工作簿含身份属性与课程结构，第一版不提供下载；页面图表均由核实后的数值重新绘制。
+      </p>
+    </section>
+
+    <section class="project-section" data-reveal>
+      <p class="status">关键公式与技术细节</p>
+      <h2>页面与工作簿的随机机制不同，年度逻辑相同</h2>
+      <p>
+        Excel 用 <code>NORM.INV(RAND(), μ, σ)</code>
+        生成年度工资增长率和组合收益率。网页用固定种子的伪随机数与 Box–Muller 变换生成正态分布抽样，使同一场景可复现。每次运行仍计算
+        5,000 条路径，未调用外部接口。
+      </p>
+      <p>
+        工作簿的第一年余额等于当年缴费；从第二年起，已有余额先按当年收益滚动，再加入当年缴费。通胀指数为
+        <code>(1 + 2%)²⁵</code>，实际余额由名义余额除以该指数得到。
+      </p>
+    </section>
+
+    <section class="project-section" data-reveal>
+      <p class="status">主要观察</p>
+      <h2>结果分布右偏，均值不能替代区间</h2>
+      <ul class="observation-list">
+        <li>
+          原始名义余额的 95% 结果区间约为 NZD 294,059 至 NZD
+          967,301，跨度远大于单个均值。
+        </li>
+        <li>工作簿保存的名义余额偏度为 1.0208，少量较高结果会把平均值拉高。</li>
+        <li>
+          四组固定情景均未达到目标资本；把缴费率提高至 15% 的列示改善大于收益率提高至
+          7.3% 的情景。
+        </li>
+        <li>
+          工资增长、市场回报和通胀会在 25 年中累积，输入差异不能只按单年幅度判断。
+        </li>
+      </ul>
+    </section>
+
+    <section id="limitations" class="project-section" data-reveal>
+      <p class="status">局限与下一步</p>
+      <h2>模型适合比较路径，不适合直接制定退休方案</h2>
+      <ul class="observation-list">
+        <li>
+          税费、管理费、职业中断、缴费规则变化和退休后的逐年现金流未进入已核实公式。
+        </li>
+        <li>工资增长和组合收益使用正态分布，不能完整描述厚尾、相关性和制度变化。</li>
+        <li>
+          Task 4
+          的情景余额为工作簿列示值，与同页确定性滚动表的计算值并不相同，因此只按原表口径呈现。
+        </li>
+        <li>
+          下一步应统一 6.1625% 与 6.12%、10.5% 与 10%
+          的输入口径，再加入费用、税务与退休后现金流。
+        </li>
+      </ul>
+    </section>
+
+    <section class="project-section" data-reveal>
+      <p class="status">来源与口径</p>
+      <h2>公开内容只使用脱敏后的衍生事实</h2>
+      <p>
+        数字来自最终报告与最终 Excel 工作簿中的 Client data、Task 1、Task 2、Task 3 和
+        Task
+        4。源文件仅用于本地核实，没有复制到公开目录。个人标识、联系方式、文档属性、本地路径、课程题目与教师材料均未进入页面。
+      </p>
+      <p>
+        工作簿没有隐藏工作表、外部工作簿链接、批注、嵌入文件或宏，但核心文档属性包含身份字段。原始文件的公开许可未确认，因此不提供下载，也不复用原始截图与图表。
+      </p>
+    </section>
+
+    <section class="project-section project-section--wide related-content" data-reveal>
+      <p class="status">相关 Notes 和 Projects</p>
+      <h2>继续查看分析方法与其他项目</h2>
+      {
+        relatedNotes.length ? (
+          <ul class="related-link-list">
+            {relatedNotes.map((note) => (
+              <li>
+                <a href={`/zh/notes/${note.data.slug}/`}>{note.data.title}</a>
+                <p>{note.data.summary}</p>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>暂时没有与该模型直接配对的已发布中文笔记。</p>
+        )
+      }
+      <ul class="content-list project-list">
+        {
+          relatedProjects.map((project) => (
+            <li>
+              <ProjectCard entry={project} locale="zh" />
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <ContextBack
+      locale="zh"
+      fallbackPath="/zh/projects/"
+      label={{ en: "Back to Projects", zh: "返回项目列表" }}
+    />
+  </article>
+</BaseLayout>
+
+<script>
+  import {
+    retirementModelBaseline,
+    runRetirementModel,
+    type RetirementModelInputs,
+    type RetirementModelResult,
+  } from "../data/retirement-model";
+
+  let retirementLabCleanup: (() => void) | undefined;
+  const svgNamespace = "http://www.w3.org/2000/svg";
+  const currency = new Intl.NumberFormat("zh-CN", {
+    style: "currency",
+    currency: "NZD",
+    maximumFractionDigits: 0,
+  });
+  const percent = new Intl.NumberFormat("zh-CN", {
+    style: "percent",
+    maximumFractionDigits: 1,
+  });
+
+  function svgNode<K extends keyof SVGElementTagNameMap>(
+    name: K,
+    attributes: Record<string, string | number> = {},
+  ) {
+    const node = document.createElementNS(svgNamespace, name);
+    Object.entries(attributes).forEach(([key, value]) =>
+      node.setAttribute(key, String(value)),
+    );
+    return node;
+  }
+
+  function addChartLabel(
+    svg: SVGSVGElement,
+    text: string,
+    x: number,
+    y: number,
+    anchor: "start" | "middle" | "end" = "start",
+  ) {
+    const label = svgNode("text", { x, y, "text-anchor": anchor });
+    label.textContent = text;
+    svg.append(label);
+  }
+
+  function renderDistribution(svg: SVGSVGElement, result: RetirementModelResult) {
+    svg.replaceChildren();
+    const chart = { left: 54, top: 22, width: 560, height: 205 };
+    const maxCount = Math.max(...result.distribution.map((bin) => bin.count), 1);
+    const barWidth = chart.width / result.distribution.length;
+    result.distribution.forEach((bin, index) => {
+      const height = (bin.count / maxCount) * chart.height;
+      svg.append(
+        svgNode("rect", {
+          x: chart.left + index * barWidth + 2,
+          y: chart.top + chart.height - height,
+          width: Math.max(barWidth - 4, 1),
+          height,
+          rx: 3,
+          class: "chart-current",
+        }),
+      );
+    });
+    svg.append(
+      svgNode("line", {
+        x1: chart.left,
+        y1: chart.top + chart.height,
+        x2: chart.left + chart.width,
+        y2: chart.top + chart.height,
+        class: "chart-axis",
+      }),
+    );
+    addChartLabel(
+      svg,
+      currency.format(result.distribution[0]?.lower ?? 0),
+      chart.left,
+      252,
+    );
+    addChartLabel(
+      svg,
+      currency.format(result.distribution.at(-1)?.upper ?? 0),
+      chart.left + chart.width,
+      252,
+      "end",
+    );
+  }
+
+  function linePoints(values: number[], maximum: number, chartHeight: number) {
+    return values
+      .map((value, index) => {
+        const x = 54 + (index / Math.max(values.length - 1, 1)) * 560;
+        const y = 22 + chartHeight - (value / maximum) * chartHeight;
+        return `${x},${y}`;
+      })
+      .join(" ");
+  }
+
+  function renderProgression(
+    svg: SVGSVGElement,
+    baseline: RetirementModelResult,
+    current: RetirementModelResult,
+  ) {
+    svg.replaceChildren();
+    const maximum = Math.max(...baseline.yearlyMean, ...current.yearlyMean, 1);
+    svg.append(
+      svgNode("polyline", {
+        points: linePoints(baseline.yearlyMean, maximum, 205),
+        class: "chart-baseline chart-line",
+      }),
+      svgNode("polyline", {
+        points: linePoints(current.yearlyMean, maximum, 205),
+        class: "chart-current chart-line",
+      }),
+      svgNode("line", {
+        x1: 54,
+        y1: 227,
+        x2: 614,
+        y2: 227,
+        class: "chart-axis",
+      }),
+    );
+    addChartLabel(svg, "40 岁", 54, 252);
+    addChartLabel(svg, "64 岁", 614, 252, "end");
+    addChartLabel(svg, "基准", 470, 18, "end");
+    addChartLabel(svg, "当前", 614, 18, "end");
+  }
+
+  function renderComparison(
+    svg: SVGSVGElement,
+    baseline: RetirementModelResult,
+    current: RetirementModelResult,
+  ) {
+    svg.replaceChildren();
+    const bars = [
+      { label: "基准名义", value: baseline.meanNominal, className: "chart-baseline" },
+      { label: "当前名义", value: current.meanNominal, className: "chart-current" },
+      { label: "基准实际", value: baseline.meanReal, className: "chart-baseline" },
+      { label: "当前实际", value: current.meanReal, className: "chart-current" },
+    ];
+    const maximum = Math.max(...bars.map((bar) => bar.value), 1);
+    bars.forEach((bar, index) => {
+      const width = (bar.value / maximum) * 390;
+      const y = 30 + index * 56;
+      addChartLabel(svg, bar.label, 54, y + 18);
+      svg.append(
+        svgNode("rect", {
+          x: 150,
+          y,
+          width,
+          height: 22,
+          rx: 5,
+          class: bar.className,
+        }),
+      );
+      addChartLabel(svg, currency.format(bar.value), 158 + width, y + 17);
+    });
+  }
+
+  function readInputs(form: HTMLFormElement): RetirementModelInputs {
+    const data = new FormData(form);
+    return {
+      initialSalary: Number(data.get("initialSalary")),
+      salaryGrowthMean: Number(data.get("salaryGrowthMean")) / 100,
+      contributionRate: Number(data.get("contributionRate")) / 100,
+      returnMean: Number(data.get("returnMean")) / 100,
+      returnVolatility: Number(data.get("returnVolatility")) / 100,
+      seed: Number(data.get("seed")),
+    };
+  }
+
+  function initRetirementLab() {
+    retirementLabCleanup?.();
+    const lab = document.querySelector<HTMLElement>("[data-retirement-lab]");
+    const form = lab?.querySelector<HTMLFormElement>("[data-model-form]");
+    const results = lab?.querySelector<HTMLElement>(".retirement-results");
+    const status = lab?.querySelector<HTMLElement>("[data-model-status]");
+    const error = lab?.querySelector<HTMLElement>("[data-model-error]");
+    if (!lab || !form || !results || !status || !error) return;
+
+    const controller = new AbortController();
+    const { signal } = controller;
+    const baseline = runRetirementModel(retirementModelBaseline);
+
+    const update = (inputs: RetirementModelInputs, reset = false) => {
+      if (!form.reportValidity()) {
+        error.textContent = "请检查输入范围后再运行。";
+        error.hidden = false;
+        return;
+      }
+      error.hidden = true;
+      results.setAttribute("aria-busy", "true");
+      status.textContent = "正在计算 5,000 条路径…";
+
+      requestAnimationFrame(() => {
+        const current = runRetirementModel(inputs);
+        const setText = (selector: string, value: string) => {
+          const node = lab.querySelector<HTMLElement>(selector);
+          if (node) node.textContent = value;
+        };
+        const change = (currentValue: number, baselineValue: number) =>
+          `${currentValue >= baselineValue ? "+" : ""}${percent.format(
+            currentValue / baselineValue - 1,
+          )} 对比基准`;
+
+        setText('[data-output="meanNominal"]', currency.format(current.meanNominal));
+        setText('[data-output="meanReal"]', currency.format(current.meanReal));
+        setText(
+          '[data-output="interval"]',
+          `${currency.format(current.lowerNominal)}–${currency.format(
+            current.upperNominal,
+          )}`,
+        );
+        setText('[data-output="successRate"]', percent.format(current.successRate));
+        setText(
+          '[data-output="withdrawalComparison"]',
+          `平均首年提取 ${currency.format(
+            current.meanWithdrawal,
+          )}；目标 ${currency.format(current.targetIncome)}`,
+        );
+        setText(
+          '[data-change="meanNominal"]',
+          change(current.meanNominal, baseline.meanNominal),
+        );
+        setText(
+          '[data-change="meanReal"]',
+          change(current.meanReal, baseline.meanReal),
+        );
+
+        const distribution = lab.querySelector<SVGSVGElement>(
+          '[data-chart="distribution"]',
+        );
+        const progression = lab.querySelector<SVGSVGElement>(
+          '[data-chart="progression"]',
+        );
+        const comparison = lab.querySelector<SVGSVGElement>(
+          '[data-chart="comparison"]',
+        );
+        if (distribution) renderDistribution(distribution, current);
+        if (progression) renderProgression(progression, baseline, current);
+        if (comparison) renderComparison(comparison, baseline, current);
+
+        results.setAttribute("aria-busy", "false");
+        status.textContent = reset
+          ? "基准值已恢复。结果使用随机种子 7052025。"
+          : `计算完成。结果使用随机种子 ${inputs.seed}，可重复运行核对。`;
+      });
+    };
+
+    form.addEventListener(
+      "submit",
+      (event) => {
+        event.preventDefault();
+        update(readInputs(form));
+      },
+      { signal },
+    );
+    form.addEventListener(
+      "reset",
+      () => {
+        requestAnimationFrame(() => update(retirementModelBaseline, true));
+      },
+      { signal },
+    );
+
+    update(retirementModelBaseline, true);
+    retirementLabCleanup = () => controller.abort();
+  }
+
+  document.addEventListener("astro:before-swap", () => retirementLabCleanup?.());
+  document.addEventListener("astro:page-load", initRetirementLab);
+  initRetirementLab();
+</script>

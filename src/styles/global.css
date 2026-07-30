@@ -1586,6 +1586,492 @@
   }
 }
 
+@layer components {
+  .retirement-project {
+    gap: var(--space-12);
+  }
+
+  .retirement-hero,
+  .project-section {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .retirement-hero > .project-cover {
+    height: clamp(16rem, 38vw, 30rem);
+    min-height: 0;
+    aspect-ratio: auto;
+  }
+
+  .retirement-hero__copy {
+    display: grid;
+    gap: var(--space-4);
+    width: min(100%, var(--container-content));
+  }
+
+  .retirement-hero__copy > p:not(.status) {
+    font-size: var(--font-size-lg);
+  }
+
+  .project-toc {
+    position: sticky;
+    top: calc(var(--header-height) + var(--space-3));
+    z-index: var(--z-raised);
+    display: flex;
+    width: fit-content;
+    max-width: 100%;
+    gap: var(--space-2);
+    overflow-x: auto;
+    padding: var(--space-2);
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-pill);
+    background: color-mix(in srgb, var(--colour-surface) 94%, transparent);
+    box-shadow: var(--shadow-sm);
+    scrollbar-width: thin;
+    backdrop-filter: blur(0.8rem);
+  }
+
+  .project-toc a {
+    flex: 0 0 auto;
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-pill);
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    text-decoration: none;
+  }
+
+  .project-toc a:hover {
+    color: var(--colour-primary-strong);
+    background: var(--colour-surface-subtle);
+  }
+
+  .project-section {
+    scroll-margin-top: calc(var(--header-height) + var(--space-16));
+    width: min(100%, var(--container-content));
+    padding-top: var(--space-8);
+    border-top: 1px solid var(--colour-border);
+  }
+
+  .project-section--wide {
+    width: 100%;
+  }
+
+  .project-section--wide > :is(h2, p, ul) {
+    width: min(100%, var(--container-content));
+  }
+
+  .project-facts,
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-3);
+    width: 100%;
+  }
+
+  .project-facts > div,
+  .metric-card {
+    display: grid;
+    align-content: start;
+    gap: var(--space-2);
+    min-width: 0;
+    padding: var(--space-5);
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-lg);
+    background: var(--colour-surface);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .project-facts span,
+  .metric-card span,
+  .metric-card small {
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-xs);
+  }
+
+  .project-facts strong,
+  .metric-card strong {
+    color: var(--colour-text);
+    overflow-wrap: anywhere;
+  }
+
+  .table-scroll {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-lg);
+    background: var(--colour-surface);
+  }
+
+  .table-scroll table {
+    width: 100%;
+    min-width: 42rem;
+    border-collapse: collapse;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .table-scroll :is(th, td) {
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--colour-border);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .table-scroll th {
+    color: var(--colour-text);
+    background: var(--colour-surface-subtle);
+    font-size: var(--font-size-sm);
+  }
+
+  .table-scroll tr:last-child td {
+    border-bottom: 0;
+  }
+
+  .source-note,
+  .no-script-summary {
+    padding: var(--space-5);
+    border-left: 3px solid var(--colour-primary);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    background: var(--colour-surface-subtle);
+  }
+
+  .model-flow {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-3);
+    width: 100%;
+    padding: 0;
+    list-style: none;
+  }
+
+  .model-flow li {
+    display: grid;
+    gap: var(--space-2);
+    min-width: 0;
+    padding: var(--space-5);
+    border-top: 3px solid var(--colour-primary);
+    border-radius: var(--radius-sm) var(--radius-sm) var(--radius-lg) var(--radius-lg);
+    background: var(--colour-surface);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .model-flow li > span {
+    color: var(--colour-primary);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-sm);
+  }
+
+  .formula-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-4);
+    width: 100%;
+  }
+
+  .formula-grid code {
+    overflow-wrap: anywhere;
+    color: var(--colour-primary-strong);
+    font-size: var(--font-size-sm);
+  }
+
+  .retirement-lab {
+    padding: clamp(var(--space-5), 4vw, var(--space-10));
+    border: 1px solid var(--colour-border-strong);
+    border-radius: var(--radius-xl);
+    background: var(--colour-surface);
+    box-shadow: var(--shadow-md);
+  }
+
+  .retirement-lab__heading {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: var(--space-6);
+  }
+
+  .retirement-lab__heading > div {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .retirement-lab__heading > p {
+    max-width: 32rem;
+  }
+
+  .retirement-controls {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-4);
+    width: 100%;
+  }
+
+  .retirement-controls label {
+    display: grid;
+    align-content: start;
+    gap: var(--space-2);
+    min-width: 0;
+    padding: var(--space-4);
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-md);
+    background: var(--colour-surface-subtle);
+    color: var(--colour-text);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .retirement-controls label span {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-2);
+  }
+
+  .retirement-controls label small {
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-regular);
+  }
+
+  .retirement-controls input {
+    width: 100%;
+    min-height: 2.75rem;
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--colour-border-strong);
+    border-radius: var(--radius-sm);
+    background: var(--colour-surface);
+    color: var(--colour-text);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .retirement-controls input:invalid {
+    border-color: var(--colour-accent);
+  }
+
+  .retirement-controls__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    grid-column: 1 / -1;
+  }
+
+  .form-error {
+    grid-column: 1 / -1;
+    color: var(--colour-accent);
+  }
+
+  .retirement-results {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .calculation-status {
+    font-size: var(--font-size-sm);
+  }
+
+  .chart-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4);
+    width: 100%;
+  }
+
+  .model-chart {
+    min-width: 0;
+    margin: 0;
+    padding: var(--space-4);
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-lg);
+    background: var(--colour-surface-subtle);
+  }
+
+  .model-chart:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .model-chart figcaption {
+    display: grid;
+    gap: var(--space-1);
+    margin-bottom: var(--space-3);
+  }
+
+  .model-chart figcaption span {
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-xs);
+  }
+
+  .model-chart svg {
+    width: 100%;
+    height: auto;
+    min-height: 14rem;
+    overflow: visible;
+  }
+
+  .model-chart svg text {
+    fill: var(--colour-text-muted);
+    font-family: var(--font-sans);
+    font-size: 12px;
+  }
+
+  .model-chart .chart-axis {
+    stroke: var(--colour-border-strong);
+    stroke-width: 1;
+  }
+
+  .model-chart .chart-current {
+    fill: var(--colour-primary);
+    stroke: var(--colour-primary);
+  }
+
+  .model-chart .chart-baseline {
+    fill: var(--colour-secondary);
+    stroke: var(--colour-secondary);
+    opacity: 0.68;
+  }
+
+  .model-chart .chart-line {
+    fill: none;
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .workbook-map {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: var(--space-3);
+    width: 100%;
+  }
+
+  .workbook-map > div {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: var(--space-2);
+    min-width: 0;
+    padding: var(--space-4);
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-md);
+    background: var(--colour-surface);
+  }
+
+  .workbook-map > div + div::before {
+    content: "→";
+    position: absolute;
+    color: var(--colour-primary);
+    transform: translateX(calc(-1 * var(--space-6)));
+  }
+
+  .workbook-map span {
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-sm);
+  }
+
+  .observation-list {
+    display: grid;
+    gap: var(--space-3);
+    padding-left: var(--space-6);
+  }
+
+  .related-content {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .related-link-list {
+    display: grid;
+    gap: var(--space-3);
+    width: min(100%, var(--container-content));
+    padding: 0;
+    list-style: none;
+  }
+
+  .related-link-list li {
+    padding: var(--space-4);
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-md);
+    background: var(--colour-surface);
+  }
+
+  .related-link-list a {
+    font-weight: var(--font-weight-semibold);
+  }
+}
+
+@media (min-width: 64.001rem) {
+  .retirement-hero {
+    grid-template-columns: minmax(24rem, 1.05fr) minmax(24rem, 0.95fr);
+    align-items: center;
+    gap: clamp(var(--space-6), 5vw, var(--space-12));
+  }
+}
+
+@media (max-width: 64rem) {
+  .project-facts,
+  .metric-grid,
+  .model-flow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .formula-grid,
+  .retirement-controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .workbook-map {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 42rem) {
+  .retirement-project {
+    gap: var(--space-8);
+  }
+
+  .project-toc {
+    top: calc(var(--header-height) + var(--space-2));
+    width: 100%;
+    border-radius: var(--radius-md);
+  }
+
+  .project-facts,
+  .metric-grid,
+  .model-flow,
+  .formula-grid,
+  .retirement-controls,
+  .chart-grid,
+  .workbook-map {
+    grid-template-columns: 1fr;
+  }
+
+  .retirement-lab__heading {
+    display: grid;
+  }
+
+  .model-chart:first-child {
+    grid-column: auto;
+  }
+
+  .retirement-controls__actions {
+    align-items: stretch;
+  }
+
+  .retirement-controls__actions .button {
+    width: 100%;
+  }
+
+  .workbook-map > div + div::before {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .model-chart .chart-line,
+  .model-chart rect {
+    transition: none;
+  }
+}
+
 /* V3.3 content-informed system: photo-derived Southern Alpine Minimal */
 .site-header {
   backdrop-filter: blur(0.45rem);
@@ -2939,4 +3425,12 @@ html[data-motion-ready="true"]
   .home-hero__scroll-cue {
     animation: none;
   }
+}
+
+/* Page-specific sizing follows the shared project-cover refinements above. */
+.retirement-hero > .project-cover {
+  width: 100%;
+  height: clamp(16rem, 38vw, 30rem);
+  min-height: 0;
+  aspect-ratio: auto;
 }

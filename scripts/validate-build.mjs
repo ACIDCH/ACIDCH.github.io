@@ -126,6 +126,30 @@ for (const file of htmlFiles) {
       failures.push(`${route}: missing ${resolved.pathname}`);
     }
   }
+
+  if (route === "/zh/projects/retirement-monte-carlo/") {
+    if (
+      !/<meta\b[^>]*\bname=["']robots["'][^>]*\bcontent=["']noindex, follow["']/i.test(
+        html,
+      )
+    ) {
+      failures.push(`${route}: pilot page must remain noindex`);
+    }
+    if (!html.includes('href="/projects/"')) {
+      failures.push(`${route}: missing English Projects fallback`);
+    }
+    if (/(?:[A-Z]:\\|Businfo\\|\.xlsx\b|\.docx\b|Daniel|Group 14)/i.test(html)) {
+      failures.push(`${route}: contains a private source reference`);
+    }
+  }
+}
+
+if (
+  await exists(
+    path.join(outputRoot, "projects", "retirement-monte-carlo", "index.html"),
+  )
+) {
+  failures.push("/projects/retirement-monte-carlo/: unexpected English detail page");
 }
 
 for (const file of outputFiles) {

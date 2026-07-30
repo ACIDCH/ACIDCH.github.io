@@ -43,7 +43,7 @@ const projectStructuredData = {
   description={entry.data.summary}
   locale={entry.data.locale}
   alternatePath={alternatePath}
-  noindex={entry.data.isPlaceholder}
+  noindex={entry.data.isPlaceholder || entry.data.noindex}
   pageType="article"
   structuredData={projectStructuredData}
 >
