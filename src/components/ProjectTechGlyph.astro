@@ -1,0 +1,64 @@
+---
+interface Props {
+  label: string;
+}
+
+const { label } = Astro.props;
+const normalized = label.trim().toLowerCase();
+const kind = normalized.includes("power bi")
+  ? "power-bi"
+  : normalized === "sql" || normalized.includes("database")
+    ? "sql"
+    : normalized.includes("python")
+      ? "python"
+      : normalized === "r" || normalized.startsWith("r ")
+        ? "r"
+        : normalized.includes("excel")
+          ? "excel"
+          : "analytics";
+---
+
+<span class="project-tech-glyph" data-kind={kind} aria-hidden="true">
+  {
+    kind === "power-bi" ? (
+      <svg viewBox="0 0 32 32" focusable="false">
+        <rect x="5" y="17" width="4" height="9" rx="1" />
+        <rect x="11" y="12" width="4" height="14" rx="1" />
+        <rect x="17" y="8" width="4" height="18" rx="1" />
+        <rect x="23" y="4" width="4" height="22" rx="1" />
+      </svg>
+    ) : kind === "sql" ? (
+      <svg viewBox="0 0 32 32" focusable="false">
+        <ellipse cx="16" cy="7" rx="10" ry="4" />
+        <path d="M6 7v8c0 2.2 4.5 4 10 4s10-1.8 10-4V7" />
+        <path d="M6 15v8c0 2.2 4.5 4 10 4s10-1.8 10-4v-8" />
+      </svg>
+    ) : kind === "python" ? (
+      <svg viewBox="0 0 32 32" focusable="false">
+        <path d="M12 7 5 16l7 9" />
+        <path d="m20 7 7 9-7 9" />
+        <path d="m18 5-4 22" />
+      </svg>
+    ) : kind === "r" ? (
+      <svg viewBox="0 0 32 32" focusable="false">
+        <path d="M5 23c5-11 9-11 13-3 2 4 5 4 9-5" />
+        <circle cx="9" cy="18" r="2" />
+        <circle cx="18" cy="20" r="2" />
+        <circle cx="26" cy="15" r="2" />
+      </svg>
+    ) : kind === "excel" ? (
+      <svg viewBox="0 0 32 32" focusable="false">
+        <rect x="5" y="5" width="22" height="22" rx="2" />
+        <path d="M5 13h22M5 21h22M13 5v22M21 5v22" />
+      </svg>
+    ) : (
+      <svg viewBox="0 0 32 32" focusable="false">
+        <path d="M5 24 12 16l5 4 10-12" />
+        <path d="M5 27h22" />
+        <circle cx="12" cy="16" r="2" />
+        <circle cx="17" cy="20" r="2" />
+        <circle cx="27" cy="8" r="2" />
+      </svg>
+    )
+  }
+</span>

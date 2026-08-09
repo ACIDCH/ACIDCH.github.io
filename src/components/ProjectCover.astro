@@ -1,5 +1,6 @@
 ---
 import type { CollectionEntry } from "astro:content";
+import ProjectTechGlyph from "./ProjectTechGlyph.astro";
 
 interface Props {
   entry: CollectionEntry<"projects">;
@@ -27,7 +28,10 @@ const coverBadges = badges.filter(Boolean).slice(0, 3);
   {
     showCode && (
       <div class="project-cover__visual">
-        <span class="project-cover__label">{coverLabel}</span>
+        <div class="project-cover__identity">
+          <ProjectTechGlyph label={coverLabel} />
+          <span class="project-cover__label">{coverLabel}</span>
+        </div>
         {coverBadges.length > 0 && (
           <span class="project-cover__badges">
             {coverBadges.map((badge) => (
