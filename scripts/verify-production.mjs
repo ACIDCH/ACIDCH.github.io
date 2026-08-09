@@ -16,42 +16,69 @@ if (!expectedSha) {
   process.exit(1);
 }
 
+const archivedChurnRasterMarkers = [
+  "numeric-distributions.webp",
+  "predictor-comparisons.webp",
+  "categorical-churn-rates.webp",
+  "service-interactions.webp",
+  "holdout-roc.webp",
+  "odds-ratio-ci.webp",
+];
+
 const pageChecks = [
   {
     path: "zh/",
     markers: ["关于我", "学习笔记"],
+    forbiddenMarkers: [">简介<"],
   },
   {
     path: "zh/about/",
     markers: ["关于我", "商业分析"],
+    forbiddenMarkers: [">简介<"],
   },
   {
     path: "zh/projects/",
-    markers: ["项目"],
+    markers: ["Power BI", "Python", "SQL", "Excel"],
+    forbiddenMarkers: [">简介<"],
   },
   {
     path: "zh/projects/customer-churn-machine-learning/",
-    markers: ["Machine Learning", "0.9053"],
+    markers: [
+      "Machine Learning",
+      "0.9053",
+      "data-predictor-explorer",
+      "data-correlation-explorer",
+      "data-model-lab",
+      "data-model-evaluation",
+      "data-risk-explorer",
+      "data-native-or",
+    ],
+    forbiddenMarkers: [">简介<", ...archivedChurnRasterMarkers],
   },
   {
     path: "zh/projects/customer-churn-machine-learning/data-validation/",
-    markers: [],
+    markers: ["Technical Deep Dive", "30,000"],
+    forbiddenMarkers: [">简介<"],
   },
   {
     path: "zh/projects/customer-churn-machine-learning/model-comparison/",
-    markers: [],
+    markers: ["Technical Deep Dive", "Logistic Regression"],
+    forbiddenMarkers: [">简介<"],
   },
   {
     path: "zh/projects/customer-churn-machine-learning/model-selection-error-analysis/",
-    markers: [],
+    markers: ["Technical Deep Dive", "2,022"],
+    forbiddenMarkers: [">简介<"],
   },
   {
     path: "zh/projects/customer-churn-machine-learning/logistic-interpretation/",
-    markers: [],
+    markers: ["Technical Deep Dive", "15.9"],
+    forbiddenMarkers: [">简介<"],
   },
   {
     path: "zh/projects/customer-churn-machine-learning/neural-network/",
-    markers: [],
+    markers: ["Technical Deep Dive", "nnet"],
+    forbiddenMarkers: [">简介<"],
   },
 ];
 
@@ -93,7 +120,7 @@ async function verifyDeploymentIdentity() {
   }
 }
 
-async function verifyPage({ path, markers }) {
+async function verifyPage({ path, markers, forbiddenMarkers = [] }) {
   const url = deploymentUrl(path);
   const response = await fetchWithTimeout(url);
   if (!response.ok) {
@@ -113,6 +140,12 @@ async function verifyPage({ path, markers }) {
       throw new Error(`${path} is missing expected marker: ${marker}`);
     }
   }
+
+  for (const marker of forbiddenMarkers) {
+    if (html.includes(marker)) {
+      throw new Error(`${path} still contains forbidden/stale marker: ${marker}`);
+    }
+  }
 }
 
 async function verifyProduction() {
@@ -127,7 +160,7 @@ for (let attempt = 1; attempt <= attempts; attempt += 1) {
   try {
     await verifyProduction();
     console.log(
-      `Production verified: ${baseUrl.href} is serving ${expectedSha} and all required routes passed.`,
+      `Production verified: ${baseUrl.href} is serving ${expectedSha} and all UI, route and raster contracts passed.`,
     );
     process.exit(0);
   } catch (error) {
