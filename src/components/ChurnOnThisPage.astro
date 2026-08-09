@@ -7,13 +7,18 @@ interface Section {
 interface Props {
   sections: readonly Section[];
   label?: string;
+  variant?: "bar" | "rail";
 }
 
-const { sections, label = "本页导航" } = Astro.props;
+const { sections, label = "本页导航", variant = "bar" } = Astro.props;
 const instanceId = `churn-toc-${Math.random().toString(36).slice(2, 8)}`;
 ---
 
-<nav class="churn-on-page" aria-label={label} data-churn-toc={instanceId}>
+<nav
+  class:list={["churn-on-page", variant === "rail" && "churn-on-page--rail"]}
+  aria-label={label}
+  data-churn-toc={instanceId}
+>
   <details class="churn-on-page__mobile">
     <summary>
       <span>{label}</span>
@@ -123,38 +128,44 @@ const instanceId = `churn-toc-${Math.random().toString(36).slice(2, 8)}`;
   }
 
   .churn-on-page__desktop {
-    width: min(100%, 64rem);
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: min(100%, 70rem);
+    min-height: 3rem;
     margin-inline: auto;
-    padding: 0.78rem 1rem;
+    padding: 0.32rem 0.65rem 0.42rem;
     border: 1px solid var(--colour-border);
-    border-radius: 1.35rem;
+    border-radius: 1rem;
     background: color-mix(in srgb, var(--colour-surface) 94%, transparent);
-    box-shadow: var(--shadow-sm);
-    backdrop-filter: blur(0.8rem);
+    box-shadow: 0 0.22rem 0.8rem rgb(10 24 35 / 5%);
+    backdrop-filter: blur(0.75rem);
   }
 
   .churn-on-page__heading {
-    display: grid;
-    grid-template-columns: auto minmax(5rem, 1fr);
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 0.55rem;
+    display: contents;
   }
 
   .churn-on-page__heading p {
-    margin: 0;
+    flex: 0 0 auto;
+    margin: 0 0.65rem 0 0;
+    padding-left: 0.35rem;
     color: var(--colour-text);
-    font: 700 0.7rem/1 var(--font-mono);
-    letter-spacing: 0.08em;
+    font: 700 0.66rem/1 var(--font-mono);
+    letter-spacing: 0.07em;
     white-space: nowrap;
   }
 
   .churn-on-page__heading > span {
+    position: absolute;
+    right: 0.7rem;
+    bottom: 0.12rem;
+    left: 0.7rem;
     display: block;
     height: 2px;
     overflow: hidden;
     border-radius: 999px;
-    background: var(--colour-border);
+    background: color-mix(in srgb, var(--colour-border) 82%, transparent);
   }
 
   .churn-on-page__heading i {
@@ -168,12 +179,18 @@ const instanceId = `churn-toc-${Math.random().toString(36).slice(2, 8)}`;
 
   .churn-on-page ol {
     display: flex;
-    gap: 0.3rem;
+    flex: 1 1 auto;
+    gap: 0.12rem;
+    min-width: 0;
     margin: 0;
     padding: 0;
     overflow-x: auto;
     list-style: none;
-    scrollbar-width: thin;
+    scrollbar-width: none;
+  }
+
+  .churn-on-page ol::-webkit-scrollbar {
+    display: none;
   }
 
   .churn-on-page a {
@@ -184,13 +201,13 @@ const instanceId = `churn-toc-${Math.random().toString(36).slice(2, 8)}`;
   .churn-on-page__desktop a {
     display: inline-flex;
     align-items: center;
-    gap: 0.42rem;
-    min-height: 2.35rem;
-    padding: 0.45rem 0.68rem;
-    border-radius: 0.72rem;
+    gap: 0.32rem;
+    min-height: 2.15rem;
+    padding: 0.34rem 0.5rem;
+    border-radius: 0.62rem;
     color: var(--colour-text-muted);
-    font-size: 0.82rem;
-    line-height: 1.35;
+    font-size: 0.77rem;
+    line-height: 1.2;
     white-space: nowrap;
     transition:
       color var(--duration-fast) var(--ease-standard),
@@ -200,7 +217,7 @@ const instanceId = `churn-toc-${Math.random().toString(36).slice(2, 8)}`;
 
   .churn-on-page__desktop a > span {
     color: var(--colour-accent);
-    font: 700 0.64rem/1 var(--font-mono);
+    font: 700 0.58rem/1 var(--font-mono);
   }
 
   .churn-on-page__desktop a strong {
@@ -215,8 +232,61 @@ const instanceId = `churn-toc-${Math.random().toString(36).slice(2, 8)}`;
 
   .churn-on-page__desktop a[aria-current] {
     color: var(--colour-primary-strong);
-    background: color-mix(in srgb, var(--colour-primary) 9%, var(--colour-surface));
-    box-shadow: inset 0 -2px 0 var(--colour-primary);
+    background: color-mix(in srgb, var(--colour-primary) 8%, var(--colour-surface));
+  }
+
+  .churn-on-page--rail .churn-on-page__desktop {
+    display: block;
+    width: 100%;
+    min-height: 0;
+    margin: 0;
+    padding: 0.2rem 0 0.2rem 0.9rem;
+    border: 0;
+    border-left: 1px solid var(--colour-border);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  .churn-on-page--rail .churn-on-page__heading {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.65rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .churn-on-page--rail .churn-on-page__heading p {
+    margin: 0;
+    padding-left: 0;
+  }
+
+  .churn-on-page--rail .churn-on-page__heading > span {
+    position: static;
+    width: 100%;
+  }
+
+  .churn-on-page--rail ol {
+    display: grid;
+    gap: 0.08rem;
+    overflow: visible;
+  }
+
+  .churn-on-page--rail .churn-on-page__desktop a {
+    display: grid;
+    grid-template-columns: 1.6rem minmax(0, 1fr);
+    width: 100%;
+    min-height: 2.3rem;
+    padding: 0.44rem 0.55rem 0.44rem 0.1rem;
+    white-space: normal;
+  }
+
+  .churn-on-page--rail .churn-on-page__desktop a:hover {
+    transform: translateX(0.1rem);
+  }
+
+  .churn-on-page--rail .churn-on-page__desktop a[aria-current] {
+    box-shadow: inset 2px 0 0 var(--colour-primary);
   }
 
   @media (max-width: 767px) {
@@ -227,7 +297,7 @@ const instanceId = `churn-toc-${Math.random().toString(36).slice(2, 8)}`;
     .churn-on-page__mobile {
       display: block;
       border: 1px solid var(--colour-border);
-      border-radius: 1rem;
+      border-radius: 0.95rem;
       background: color-mix(in srgb, var(--colour-surface) 96%, transparent);
       box-shadow: var(--shadow-sm);
       backdrop-filter: blur(0.8rem);
@@ -237,12 +307,12 @@ const instanceId = `churn-toc-${Math.random().toString(36).slice(2, 8)}`;
       display: flex;
       justify-content: space-between;
       gap: 1rem;
-      min-height: 3rem;
-      padding: 0.85rem 1rem;
+      min-height: 2.9rem;
+      padding: 0.8rem 0.95rem;
       color: var(--colour-text);
       cursor: pointer;
       list-style: none;
-      font-size: 0.84rem;
+      font-size: 0.82rem;
       font-weight: 650;
     }
 
@@ -265,10 +335,10 @@ const instanceId = `churn-toc-${Math.random().toString(36).slice(2, 8)}`;
     }
 
     .churn-on-page__links a {
-      padding: 0.78rem 1rem;
+      padding: 0.72rem 0.95rem;
       border-bottom: 1px solid var(--colour-border);
       color: var(--colour-text-muted);
-      font-size: 0.84rem;
+      font-size: 0.82rem;
     }
 
     .churn-on-page__links a:last-child {
