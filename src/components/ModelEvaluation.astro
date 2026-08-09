@@ -141,35 +141,37 @@ const data = JSON.stringify(cells).replace(/</g, "\\u003c");
           </div>
         </figcaption>
         <ChurnRocExplorer />
-        <div class="roc-layout" hidden>
-          <div class="roc-image">
-            <img
-              src={withBase(projectImages.holdoutRoc)}
-              alt="Logistic Regression 在 39,200 条留出记录上的 ROC 曲线，AUC 为 0.9053"
-              loading="lazy"
-              decoding="async"
-            />
-          </div>
-          <aside class="roc-reading">
-            <div>
-              <>
-                <span>Hold-out AUC</span>
-                <strong>0.9053</strong>
-              </>
+        {false && (
+          <div class="roc-layout">
+            <div class="roc-image">
+              <img
+                src={withBase(projectImages.holdoutRoc)}
+                alt="Logistic Regression 在 39,200 条留出记录上的 ROC 曲线，AUC 为 0.9053"
+                loading="lazy"
+                decoding="async"
+              />
             </div>
-            <p>
-              曲线在较低 false positive rate
-              区域快速上升，并长期位于随机基准上方。0.9053
-              衡量的是模型在各种阈值下把随机一位 churned 客户排在 retained
-              客户之前的总体能力，而不是某一个阈值的 Accuracy。
-            </p>
-            <p>
-              完整 ROC 曲线与 AUC
-              可以描述整体排序能力；逐阈值计数还需要每位客户的预测概率序列。
-              现有结果没有保留这组概率，因此分类错误分析以可复核的混淆矩阵为边界，不延伸到无法精确重算的阈值推演。
-            </p>
-          </aside>
-        </div>
+            <aside class="roc-reading">
+              <div>
+                <>
+                  <span>Hold-out AUC</span>
+                  <strong>0.9053</strong>
+                </>
+              </div>
+              <p>
+                曲线在较低 false positive rate
+                区域快速上升，并长期位于随机基准上方。0.9053
+                衡量的是模型在各种阈值下把随机一位 churned 客户排在 retained
+                客户之前的总体能力，而不是某一个阈值的 Accuracy。
+              </p>
+              <p>
+                完整 ROC 曲线与 AUC
+                可以描述整体排序能力；逐阈值计数还需要每位客户的预测概率序列。
+                现有结果没有保留这组概率，因此分类错误分析以可复核的混淆矩阵为边界，不延伸到无法精确重算的阈值推演。
+              </p>
+            </aside>
+          </div>
+        )}
       </figure>
     )
   }
