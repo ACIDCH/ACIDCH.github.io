@@ -2,8 +2,14 @@
 import { oddsRatios } from "../data/r-machine-learning";
 
 const maxAbsLog = Math.max(...oddsRatios.map((item) => Math.abs(Math.log(item.value))));
-const positionFor = (value: number) =>
-  50 + (Math.log(value) / (maxAbsLog || 1)) * 44;
+const geometryFor = (value: number) => {
+  const position = 50 + (Math.log(value) / (maxAbsLog || 1)) * 44;
+  return {
+    position,
+    segmentStart: Math.min(50, position),
+    segmentWidth: Math.abs(position - 50),
+  };
+};
 ---
 
 <figure class="native-or" data-native-or aria-labelledby="native-or-title">
@@ -24,21 +30,27 @@ const positionFor = (value: number) =>
   <div class="native-or__layout">
     <div class="native-or__rows" role="list" aria-label="八项 odds ratio 点估计">
       {
-        oddsRatios.map((item, index) => (
-          <button
-            type="button"
-            role="listitem"
-            aria-pressed={index === 0 ? "true" : "false"}
-            data-native-or-item={item.id}
-          >
-            <span>{item.label}</span>
-            <i class="native-or__track" style={`--or-position:${positionFor(item.value)}%`}>
-              <u aria-hidden="true" />
-              <b aria-hidden="true" />
-            </i>
-            <strong>{item.value.toFixed(2)}</strong>
-          </button>
-        ))
+        oddsRatios.map((item, index) => {
+          const geometry = geometryFor(item.value);
+          return (
+            <button
+              type="button"
+              role="listitem"
+              aria-pressed={index === 0 ? "true" : "false"}
+              data-native-or-item={item.id}
+            >
+              <span>{item.label}</span>
+              <i
+                class="native-or__track"
+                style={`--or-position:${geometry.position}%;--segment-start:${geometry.segmentStart}%;--segment-width:${geometry.segmentWidth}%`}
+              >
+                <u aria-hidden="true" />
+                <b aria-hidden="true" />
+              </i>
+              <strong>{item.value.toFixed(2)}</strong>
+            </button>
+          );
+        })
       }
     </div>
 
@@ -230,8 +242,8 @@ const positionFor = (value: number) =>
   .native-or__track u {
     position: absolute;
     top: 50%;
-    left: min(50%, var(--or-position));
-    width: abs(calc(var(--or-position) - 50%));
+    left: var(--segment-start);
+    width: var(--segment-width);
     height: 3px;
     border-radius: 999px;
     background: color-mix(in srgb, var(--colour-primary) 56%, var(--colour-accent));
