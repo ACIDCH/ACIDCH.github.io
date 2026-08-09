@@ -1,18 +1,28 @@
 ---
 import { oddsRatios } from "../data/r-machine-learning";
-const max = Math.max(...oddsRatios.map((item) => item.value));
+
+const maxAbsLog = Math.max(...oddsRatios.map((item) => Math.abs(Math.log(item.value))));
+const positionFor = (value: number) =>
+  50 + (Math.log(value) / (maxAbsLog || 1)) * 44;
 ---
 
-<section class="native-or" data-native-or aria-labelledby="native-or-title">
-  <div class="native-or__heading">
-    <span>ODDS RATIO</span><div>
-      <h3 id="native-or-title">八项风险信号的条件关联</h3><p>
-        选择一项，结合变量单位与参照阅读估计值；条形长度只比较同一 odds ratio 尺度。
+<figure class="native-or" data-native-or aria-labelledby="native-or-title">
+  <figcaption class="native-or__heading">
+    <span>FIG 11</span>
+    <div>
+      <h3 id="native-or-title">八项风险信号在 OR = 1 两侧的方向</h3>
+      <p>
+        位置按 log(OR) 映射，便于同时阅读低于 1 与高于 1 的估计值；数值仍是主要证据。
       </p>
     </div>
+  </figcaption>
+
+  <div class="native-or__axis" aria-hidden="true">
+    <span>更低 odds</span><b>OR = 1</b><span>更高 odds</span>
   </div>
+
   <div class="native-or__layout">
-    <div class="native-or__rows" role="list">
+    <div class="native-or__rows" role="list" aria-label="八项 odds ratio 点估计">
       {
         oddsRatios.map((item, index) => (
           <button
@@ -21,33 +31,48 @@ const max = Math.max(...oddsRatios.map((item) => item.value));
             aria-pressed={index === 0 ? "true" : "false"}
             data-native-or-item={item.id}
           >
-            <>
-              <span>{item.label}</span>
-              <i>
-                <b style={`--or:${(item.value / max) * 100}%`} />
-              </i>
-              <strong>{item.value.toFixed(2)}</strong>
-            </>
+            <span>{item.label}</span>
+            <i class="native-or__track" style={`--or-position:${positionFor(item.value)}%`}>
+              <u aria-hidden="true" />
+              <b aria-hidden="true" />
+            </i>
+            <strong>{item.value.toFixed(2)}</strong>
           </button>
         ))
       }
-    </div><aside aria-live="polite">
-      <p data-native-or-name>{oddsRatios[0]?.label}</p><strong data-native-or-value
-        >{oddsRatios[0]?.value.toFixed(2)}</strong
-      ><dl>
+    </div>
+
+    <aside aria-live="polite">
+      <p class="native-or__selected-label">当前信号</p>
+      <p data-native-or-name>{oddsRatios[0]?.label}</p>
+      <strong data-native-or-value>{oddsRatios[0]?.value.toFixed(2)}</strong>
+      <dl>
         <div>
           <dt>变量</dt><dd data-native-or-variable>{oddsRatios[0]?.variable}</dd>
-        </div><div>
+        </div>
+        <div>
           <dt>单位 / 参照</dt><dd data-native-or-unit>{oddsRatios[0]?.unit}</dd>
         </div>
-      </dl><p data-native-or-reading>{oddsRatios[0]?.interpretation}</p>
+        <div>
+          <dt>方向</dt><dd data-native-or-direction>{oddsRatios[0]?.direction}</dd>
+        </div>
+      </dl>
+      <p data-native-or-reading>{oddsRatios[0]?.interpretation}</p>
     </aside>
   </div>
-</section>
+
+  <p class="figure-reading">
+    支付失败远离 OR = 1，是最强的风险上升信号；Plus 与 Pro 位于 1 左侧。连续变量按原始单位增加 1 解释，分类变量按给定参照水平解释，因此不能只按点位距离比较实际业务影响。
+  </p>
+  <p class="native-or__note">
+    <strong>Note.</strong> 该原生图只绘制已核实的 odds ratio 点估计；没有在此处补造未保存的 confidence interval 端点。
+  </p>
+</figure>
+
 <script is:inline define:vars={{ oddsRatios }}>
   const setup = () =>
     document.querySelectorAll("[data-native-or]").forEach((root) => {
-      if (root.dataset.ready === "true") return;
+      if (!(root instanceof HTMLElement) || root.dataset.ready === "true") return;
       root.dataset.ready = "true";
       const items = [...root.querySelectorAll("[data-native-or-item]")];
       const read = (id) => {
@@ -64,6 +89,7 @@ const max = Math.max(...oddsRatios.map((item) => item.value));
           ["[data-native-or-value]", item.value.toFixed(2)],
           ["[data-native-or-variable]", item.variable],
           ["[data-native-or-unit]", item.unit],
+          ["[data-native-or-direction]", item.direction],
           ["[data-native-or-reading]", item.interpretation],
         ].forEach(([selector, value]) => {
           const node = root.querySelector(selector);
@@ -77,20 +103,25 @@ const max = Math.max(...oddsRatios.map((item) => item.value));
   document.addEventListener("astro:page-load", setup);
   setup();
 </script>
+
 <style>
   .native-or {
     display: grid;
     gap: 1.25rem;
+    margin: 0;
     padding: clamp(1.25rem, 4vw, 2.5rem);
     border: 1px solid var(--colour-border);
     border-radius: var(--radius-lg);
     background: var(--colour-surface);
   }
+
   .native-or__heading {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
     gap: 1rem;
+    margin: 0;
   }
+
   .native-or__heading > span {
     height: max-content;
     padding: 0.5rem 0.65rem;
@@ -99,6 +130,7 @@ const max = Math.max(...oddsRatios.map((item) => item.value));
     color: var(--colour-primary-strong);
     font: 700 0.7rem/1 var(--font-mono);
   }
+
   h3,
   p,
   dl,
@@ -106,57 +138,125 @@ const max = Math.max(...oddsRatios.map((item) => item.value));
   dd {
     margin: 0;
   }
+
   h3 {
+    max-width: 28ch;
     font-size: clamp(1.3rem, 3vw, 2rem);
+    line-height: 1.15;
   }
+
   .native-or__heading p,
-  .native-or aside > p {
+  .native-or aside > p,
+  .native-or__note {
     margin-top: 0.45rem;
     color: var(--colour-text-muted);
     line-height: 1.7;
   }
+
+  .native-or__axis {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 1rem;
+    align-items: center;
+    padding-left: min(13rem, 32%);
+    color: var(--colour-text-muted);
+    font-size: 0.72rem;
+  }
+
+  .native-or__axis span:last-child {
+    text-align: right;
+  }
+
+  .native-or__axis b {
+    color: var(--colour-primary-strong);
+    font: 700 0.7rem/1 var(--font-mono);
+  }
+
   .native-or__layout {
     display: grid;
-    grid-template-columns: minmax(0, 1.25fr) minmax(14rem, 0.75fr);
+    grid-template-columns: minmax(0, 1.25fr) minmax(15rem, 0.75fr);
     gap: 1.5rem;
   }
+
   .native-or__rows {
     display: grid;
     gap: 0.35rem;
   }
+
   .native-or__rows button {
     display: grid;
-    grid-template-columns: minmax(8rem, 0.7fr) minmax(4rem, 1fr) 3.5rem;
+    grid-template-columns: minmax(8.5rem, 0.72fr) minmax(8rem, 1fr) 3.8rem;
     gap: 0.75rem;
     align-items: center;
+    min-height: 3rem;
     padding: 0.65rem;
     border: 1px solid transparent;
+    border-radius: 0.72rem;
     background: transparent;
     color: var(--colour-text);
     text-align: left;
     cursor: pointer;
   }
+
   .native-or__rows button[aria-pressed="true"] {
     border-color: var(--colour-border);
     background: var(--colour-surface-subtle);
   }
-  .native-or__rows i {
-    height: 0.7rem;
+
+  .native-or__track {
+    position: relative;
+    height: 1.05rem;
     border-radius: 999px;
-    background: var(--colour-surface-subtle);
-    overflow: hidden;
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--colour-secondary) 16%, transparent),
+      var(--colour-surface-subtle) 48%,
+      var(--colour-surface-subtle) 52%,
+      color-mix(in srgb, var(--colour-accent) 18%, transparent)
+    );
+    overflow: visible;
   }
-  .native-or__rows b {
-    display: block;
-    width: var(--or);
-    height: 100%;
-    border-radius: inherit;
+
+  .native-or__track::before {
+    position: absolute;
+    top: -0.28rem;
+    bottom: -0.28rem;
+    left: 50%;
+    width: 1px;
+    background: var(--colour-border-strong);
+    content: "";
+  }
+
+  .native-or__track u {
+    position: absolute;
+    top: 50%;
+    left: min(50%, var(--or-position));
+    width: abs(calc(var(--or-position) - 50%));
+    height: 3px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--colour-primary) 56%, var(--colour-accent));
+    transform: translateY(-50%);
+    text-decoration: none;
+  }
+
+  .native-or__track b {
+    position: absolute;
+    top: 50%;
+    left: var(--or-position);
+    width: 0.8rem;
+    height: 0.8rem;
+    border: 2px solid var(--colour-surface);
+    border-radius: 50%;
     background: var(--colour-primary);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--colour-primary) 55%, transparent);
+    transform: translate(-50%, -50%);
   }
+
   .native-or__rows strong {
     text-align: right;
     font-variant-numeric: tabular-nums;
   }
+
   .native-or aside {
     display: grid;
     align-content: start;
@@ -165,34 +265,71 @@ const max = Math.max(...oddsRatios.map((item) => item.value));
     border-left: 1px solid var(--colour-border);
     background: var(--colour-surface-subtle);
   }
-  .native-or aside > strong {
-    font: 750 clamp(2rem, 6vw, 3.5rem)/1 var(--font-display);
-    color: var(--colour-primary-strong);
+
+  .native-or__selected-label {
+    color: var(--colour-accent) !important;
+    font: 700 0.66rem/1 var(--font-mono);
+    letter-spacing: 0.08em;
   }
+
+  .native-or aside > strong {
+    color: var(--colour-primary-strong);
+    font: 750 clamp(2rem, 6vw, 3.5rem)/1 var(--font-display);
+  }
+
   dl {
     display: grid;
     gap: 0.55rem;
   }
+
   dt {
     color: var(--colour-text-muted);
     font-size: 0.75rem;
   }
+
   dd {
     margin-top: 0.2rem;
     overflow-wrap: anywhere;
   }
+
+  .native-or__note {
+    max-width: 76ch;
+    padding: 0.8rem 0 0.8rem 1rem;
+    border-left: 2px solid var(--colour-border-strong);
+    font-size: 0.84rem;
+  }
+
+  .native-or__note strong {
+    color: var(--colour-text);
+    font: 700 0.7rem/1 var(--font-mono);
+    letter-spacing: 0.06em;
+  }
+
   @media (max-width: 700px) {
     .native-or__heading,
     .native-or__layout {
       grid-template-columns: 1fr;
     }
-    .native-or aside {
-      border-left: 0;
-      border-top: 1px solid var(--colour-border);
+
+    .native-or__axis {
+      padding-left: 0;
     }
+
+    .native-or aside {
+      border-top: 1px solid var(--colour-border);
+      border-left: 0;
+    }
+
     .native-or__rows button {
-      grid-template-columns: minmax(6.5rem, 0.7fr) minmax(4rem, 1fr) 3rem;
+      grid-template-columns: minmax(7rem, 0.72fr) minmax(6rem, 1fr) 3.2rem;
       font-size: 0.8rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .native-or__rows button {
+      transition: none;
+      transform: none !important;
     }
   }
 </style>
