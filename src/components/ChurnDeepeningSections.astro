@@ -1,0 +1,223 @@
+---
+import ChurnCaseNote from "./ChurnCaseNote.astro";
+import ChurnMicroIcon from "./ChurnMicroIcon.astro";
+
+type Topic =
+  "data-validation" | "model-comparison" | "model-selection" | "logistic" | "neural";
+interface Props {
+  topic: Topic;
+}
+const { topic } = Astro.props;
+
+const sections: Record<
+  Topic,
+  Array<{
+    eyebrow: string;
+    title: string;
+    icon: Parameters<typeof ChurnMicroIcon>[0]["name"];
+    paragraphs: string[];
+    note: string;
+  }>
+> = {
+  "data-validation": [
+    {
+      eyebrow: "FIELD DECISIONS",
+      title: "字段去向不是一次筛选，而是连续缩小模型适用边界",
+      icon: "filter",
+      paragraphs: [
+        "25 个字段并不等于 25 个可用预测变量。user_ID 的作用仅是区分记录，retained_binary 是结果的来源；两者若进入输入会分别带来无意义的标识差异与目标泄漏。其余字段先按客户资料、计划与支付、使用、服务、数字互动、接入与体验归类，再根据总体定义、数据质量、冗余程度和解释目标决定去向。这个顺序避免了把“表里存在”误写成“模型应当使用”。",
+        "满意度调查在探索中呈现梯度，但非应答比例过高，因此没有进入最终七变量。region 有 16 个水平，编码后会展开为 15 个指示列；同时它可能承接已经出现在等待时间与故障率中的基础设施与人口结构差异。两个决定都不是否认它们与流失有关，而是限制最终模型只使用更直接、结构更简洁且可解释的信号。",
+        "未进入最终输入的字段仍有分析价值：例如支付方式、通知、邮件打开和家庭充电接入可以帮助理解原始观察的广度。最终模型不承担把所有观察一次性解释完的职责；它只在既定总体内回答七个已选输入与 churn 之间的分类关系。",
+      ],
+      note: "字段状态区分“未用作最终输入”与“没有价值”；两者不能混为一谈。",
+    },
+    {
+      eyebrow: "VALIDATION BOUNDARY",
+      title: "30,000 条比较样本与 39,200 条留出记录回答的是不同问题",
+      icon: "validation",
+      paragraphs: [
+        "80/20 分层切分首先把 196,000 条个人客户记录分为 156,800 条训练部分与 39,200 条留出部分。分层使 retained 与 churned 的比例在两侧保持接近，因而后续模型差异不来自类别构成被意外改变。种子 404713359 让这个分配和随后的抽样步骤可以重复检查。",
+        "五个候选工作流在完整训练部分上反复比较会增加树模型与 boosting 模型的计算负担，因此仅从训练部分按 churn 分层抽取 30,000 条作交叉验证。这个样本不是新的独立数据，也不替代最后的训练集；模型被选定后，获胜 workflow 仍回到完整的 156,800 条训练记录重新拟合。",
+        "v = 5 的实际含义是每轮约 24,000 条 analysis 记录与 6,000 条 assessment 记录。每条 CV 样本恰好一次作为 assessment 记录，从未参与该轮拟合。最后的 39,200 条留出记录始终在此过程之外，因此 AUC 0.9053 不能再反过来用于挑选另一个模型。",
+      ],
+      note: "留出表现略高于 CV AUC 不表示模型在测试阶段得到提升，只表示两个独立样本上的测量值不同。",
+    },
+    {
+      eyebrow: "LEAKAGE CONTROL",
+      title: "把预处理放进 recipe，才能让每个验证折真正保持未知",
+      icon: "recipe",
+      paragraphs: [
+        "step_impute_median、step_unknown、step_zv 与 step_upsample 都写进 recipe，而不是在分折前对整张表先处理。这样每个步骤的统计量和转换规则只从该轮 analysis 数据得到；assessment 数据只接收已经确定的规则。当前建模变量没有缺失值，中位数步骤因此不改变训练数据，但为同结构的数值记录提供明确的缺失保护。",
+        "类别比例约为 retained 69%、churned 31%。上采样把 analysis fold 中的 churned 记录复制到 1:1，用于减少拟合时偏向多数类的压力；assessment fold 与留出部分不做同样变换。若在切分前复制记录，同一观察可能同时出现在训练与验证两侧，模型面对的就不再是未知记录。",
+        "两条 recipe 的区别只在输入表示。Logistic Regression 与 XGBoost 需要 Dummy 后的数值矩阵；Random Forest、LightGBM 与 Naive Bayes 保留 factor 水平。共同边界保证比较公平，模型特定输入保证每个引擎按自身要求运行。",
+      ],
+      note: "上采样改变的是训练折中的类别权重，不改变留出评价的分母与真实类别比例。",
+    },
+  ],
+  "model-comparison": [
+    {
+      eyebrow: "BENCHMARK DESIGN",
+      title: "五种模型的共同点是同一比较条件，不是同一种学习方式",
+      icon: "compare",
+      paragraphs: [
+        "Logistic Regression、Naive Bayes、Random Forest、XGBoost 与 LightGBM 被放入同一组 5 折中比较，四项指标也以同一事件方向计算。这样得到的差异可以被读作模型结构与预测取舍的差异，而不是某个模型使用了不同的留出样本或不同类别比例。",
+        "五种模型覆盖线性 log-odds、条件概率、bagging 树集成以及两种 boosting 树集成。它们都面对同样的七个输入，但对连续变量、分类变量和局部非线性关系的表示不同。比较的目的不是证明复杂模型天然更优，而是检验复杂度是否带来足够的判别增益，同时观察它对 churned 召回的代价。",
+        "逐折预测与逐折指标曾被用于计算平均值，但目前可公开的汇总只保存到五折均值。均值不能安全反推出每一折的范围、标准差或箱线图，因此页面保留完整模型规格与均值排序，不用估计出来的稳定性图替代原始折级结果。",
+      ],
+      note: "所有 20 个均值都来自相同的 5 折比较口径；排序变化应结合指标含义阅读。",
+    },
+    {
+      eyebrow: "METRIC READING",
+      title:
+        "最高 Accuracy、最高 AUC、最高 Sensitivity 与最高 Specificity 分别属于不同模型",
+      icon: "compare",
+      paragraphs: [
+        "LightGBM 的 Accuracy 为 0.8199，五个模型中最高；Random Forest 以 0.8187 紧随其后。这个结果说明两种树集成更常给出正确类别，但 Accuracy 合并了 retained 与 churned 两类结果，不能告诉读者这些正确判断主要来自哪一类。",
+        "Logistic Regression 的 AUC 为 0.9024，Naive Bayes 为 0.8996；两者的差距是 0.0028。AUC 读取的是跨越分类阈值的排序区分能力，因此它为模型选择提供主序，而不是只观察某一个类别切点。Naive Bayes 的 Sensitivity 0.8318 最高，Logistic Regression 的 0.8281 仅低 0.0037。",
+        "XGBoost 的 Specificity 0.8370 最高，却同时给出最低的 Sensitivity 0.7632。它更少把 retained 标为 churned，但也漏掉更多真实 churned。五模型的表现没有单一冠军；每一列领先都对应不同的错误方向和后续解释能力。",
+      ],
+      note: "四项指标的分母不同；不要把某一列的第一名推广成所有决策目标的第一名。",
+    },
+    {
+      eyebrow: "SPECIFICATION",
+      title: "参数把模型能力限制在一个可比较的实验规格内",
+      icon: "model",
+      paragraphs: [
+        "Logistic Regression 由 glm 引擎拟合二项 log-odds；Naive Bayes 使用 klaR，smoothness = 1 用于避免未出现水平带来的零概率。它们分别提供线性系数和条件概率两种可读的基线。",
+        "Random Forest 使用 ranger，设置 500 trees 与 min_n = 20。后者要求分裂节点拥有至少 20 条观察，避免树为很小的局部组合持续分裂。XGBoost 和 LightGBM 都设置 200 trees；前者配合数值矩阵，后者保留 factor 输入。",
+        "这些数字描述的是比较中实际运行的规格，并不是对每种算法的全局最优声明。没有在该比较之后追加调参、额外模型或新的验证方法，因此结论也只覆盖这五个已定义 workflow 的相对表现。",
+      ],
+      note: "同一数据边界与不同输入表示共同构成五个可比较 workflow。",
+    },
+  ],
+  "model-selection": [
+    {
+      eyebrow: "DECISION RULE",
+      title: "AUC 排序先给出候选顺序，错误结构再决定选择是否合理",
+      icon: "prediction",
+      paragraphs: [
+        "选择从 mean AUC 开始：它综合多个可能阈值下的排序能力，并且不由约 69/31 的自然类别比例直接主导。Logistic Regression 的 0.9024 高于 Naive Bayes 的 0.8996，按预先写明的规则位居第一；差距并非通过留出表现回头定义。",
+        "Sensitivity 被单独检查，因为漏掉真实 churned 与把 retained 预先标为 churned 后果不同。Logistic Regression 的 0.8281 接近最高 Sensitivity 0.8318，同时避免了 XGBoost 那样把 Sensitivity 降到 0.7632 的取舍。Specificity 0.8071 不居首，但也没有落到 Naive Bayes 的 0.7999。",
+        "解释性在这个选择中不是“模型越简单越好”的代名词。它使最终概率排序能够继续回到支付失败、退款、使用间隔和服务摩擦等原始单位，形成可审阅的风险信号，而不是只停在一个黑箱分数。",
+      ],
+      note: "选择规则先于留出评估；留出集只用于检验已选 workflow。",
+    },
+    {
+      eyebrow: "ERROR STRUCTURE",
+      title: "7,283 个错误判断必须拆开阅读，不能被 81.42% 覆盖",
+      icon: "error",
+      paragraphs: [
+        "39,200 条留出预测中，TP 为 10,092，TN 为 21,825，FP 为 5,261，FN 为 2,022。四格相加得到完整样本；这使 Accuracy 0.8142 可以回到真实计数，而不是作为脱离分母的百分比。",
+        "FN 的分母是所有真实 churned：2,022 ÷ (10,092 + 2,022) = 16.69%。它是 Sensitivity 未达到 1 的直接来源。FP 的分母是所有真实 retained：5,261 ÷ (21,825 + 5,261) = 19.42%，对应 Specificity 的缺口。两个百分比不能互相替代，因为它们面对的是不同的真实类别。",
+        "AUC 0.9053 描述留出概率排序的区分能力，而混淆矩阵描述当前分类切点下的离散判断。公开汇总没有保存每条预测概率与阈值表，因而不能可靠重算阈值滑块、逐点 ROC tooltip 或 FN/TP 的输入分布差异；页面不把这些未保存信息伪装成实时分析。",
+      ],
+      note: "混淆矩阵使用同一批 39,200 条留出预测；AUC 与四格计数回答的不是同一个问题。",
+    },
+    {
+      eyebrow: "HOLD-OUT",
+      title: "CV 与留出表现相近，说明的是测量一致性而不是模型升级",
+      icon: "validation",
+      paragraphs: [
+        "Logistic Regression 的 CV AUC 为 0.9024，留出 AUC 为 0.9053。二者接近说明模型在未参与选择的记录上仍保持强区分能力，但留出分数略高不应被写成模型在测试阶段被改进。模型规格、切分和选择在进入留出集前已经固定。",
+        "最终拟合使用 last_fit：已选 workflow 在完整训练部分重新拟合一次，然后对留出部分预测。这个顺序将“比较候选方案”和“评价已经选定的方案”分开，使 39,200 条记录不承担任何调参或模型更换职责。",
+        "ROC 图保留原始评估得到的曲线与随机基线；其读法是曲线越靠近左上角，排序区分越强。精确曲线点和概率列未被保留，因此不会用近似线段替换为看似更可交互但不再可核对的图形。",
+      ],
+      note: "留出集没有用于重选模型、追加参数或改变分类规则。",
+    },
+  ],
+  logistic: [
+    {
+      eyebrow: "MODEL LANGUAGE",
+      title: "系数先在 log-odds 尺度相加，再转成可读的 Odds Ratio",
+      icon: "interpretation",
+      paragraphs: [
+        "Logistic Regression 不是直接把一个输入映射为“流失概率增加几倍”。它先将七个输入组合成 churned 的 log-odds；对某个系数取 exp(beta) 后才得到 Odds Ratio。OR 大于 1 表示在其他已选输入相同时，churned odds 的方向更高；OR 小于 1 表示方向更低。",
+        "这里的条件很重要：每个数值都来自包含七个预测变量的同一个模型，而不是单独的组间比较。payment_failure_last4w、refund_request_last12w 与 plan_tier 是类别对照；avg_wait_minutes、app_crashes_30d、charger_fault_rate 和 weeks_since_last_charge 则按照原始单位增加 1 来解释。",
+        "解释模型不使用上采样。预测 workflow 为了训练折内召回而平衡类别，解释 workflow 则保留自然类别分布，以避免人工 1:1 构成改变截距和 Odds Ratio 的阅读口径。两条路径服务不同问题，不能把一个的结果替换为另一个。",
+      ],
+      note: "Odds Ratio 不是概率倍数，也不是单变量因果效应。",
+    },
+    {
+      eyebrow: "REFERENCE",
+      title: "分类变量必须先说清相对谁，数字才有方向",
+      icon: "filter",
+      paragraphs: [
+        "plan_tier 以 Basic 为参照。Plus 的 OR 约为 0.62，Pro 的 OR 约为 0.38；它们表示在同一模型的其他输入保持相同时，与 Basic 相比的 churn odds 方向。二元变量以 No 为参照，因此 payment failure 或 refund 的 Yes 值才是图中显示的对比。",
+        "payment failure 的 OR 约 15.9 是最强的已选风险信号；退款请求约 2.5，距上次充电每增加一周约 2.01。数值变量的单位不能跳过：等待时间每多一分钟约 1.10，应用崩溃每多一次约 1.18，故障率每增加一个百分点约 1.08。",
+        "较接近 1 的单单位 OR 不等于没有意义。它只说明一步变化的条件关联较小；连续变量的测量尺度与实际变化范围都必须一起阅读。页面不把不同单位的条形长度当作同一种绝对影响。",
+      ],
+      note: "Basic 与 No 是分类比较的参照；连续变量按分钟、周、次数或百分点增加 1 解读。",
+    },
+    {
+      eyebrow: "UNCERTAINTY",
+      title: "区间说明估计精度，方向与关联不能越过模型边界",
+      icon: "interpretation",
+      paragraphs: [
+        "系数通过 broom::tidy 的 exponentiate 与 conf.int 选项得到 OR 与 95% 区间。区间围绕点估计，参照线 OR = 1 标示没有方向变化的位置。完整区间图保留为经审计的结果证据；可公开的汇总未保存每个区间端点，因此原生交互只浏览可核实的 OR 点值，不填补缺失端点。",
+        "支付失败远离参照线，Plus 与 Pro 位于较低方向；服务变量更靠近 1。这个排序支持把支付、退款、近期使用和服务摩擦作为需要进一步理解的信号，却不允许把任何一项写成对流失的因果证明。模型控制的是另外六个已选输入，不是所有可能的客户、地区或时间因素。",
+        "风险信号浏览器的作用是把字段定义、单位、参照和 OR 放在一起，减少只看一个大数字造成的误读。它不重新拟合模型，也不为访问者输出新的个人预测；每个选择仍回到同一组已经估计的模型结果。",
+      ],
+      note: "95% 区间用于阅读估计精度；它不把关联升级为因果结论。",
+    },
+  ],
+  neural: [
+    {
+      eyebrow: "EXPERIMENT DESIGN",
+      title: "二维非线性实验与客户流失五模型比较保持独立",
+      icon: "deep-dive",
+      paragraphs: [
+        "这一实验使用 3,000 条二维合成记录，输入为 A 和 B，类别由弯曲的非线性边界生成。它用于观察一个小型分类网络怎样在二维平面上形成边界，不作为客户流失五模型比较中的第六个候选，也不参与客户流失模型的选择。",
+        "生成数据使用种子 321；80/20 分层切分使用种子 6262；拟合使用种子 987。训练集为 2,399 条，测试集为 601 条。固定这些步骤让散点、边界和测试计数能够在同一实验规格下复现，而不是每次浏览页面都改变样本或结果。",
+        "A 与 B 不是业务指标，也没有对应客户、支付或设备含义。它们提供的是一个受控几何情境：当类别边界不是直线时，线性分隔与包含隐藏节点的网络会如何面对同一组二维输入。",
+      ],
+      note: "该实验独立于客户流失比较；其作用是解释非线性分类结构。",
+    },
+    {
+      eyebrow: "NETWORK",
+      title: "两个输入、一个隐藏层、两个节点把边界学习压缩到可观察的结构",
+      icon: "model",
+      paragraphs: [
+        "网络先对 A 与 B 标准化，再把两个输入传到一个含两个节点的隐藏层，最后输出二元分类。规格为 nnet 引擎、hidden_units = 2 与 epochs = 1000。结构足够小，读者可以把输入、隐藏表示和分类输出放在同一个图中阅读，而不需要把页面变成网络参数清单。",
+        "标准化发生在 recipe 中，因此训练集定义的尺度用于测试集转换。A 与 B 的数值范围不同，若直接交给网络，较大的尺度可能主导权重更新；通过相同的标准化路径，网络学习的是相对位置与弯曲边界，而不是原始尺度大小。",
+        "决策边界图把 100 × 100 网格上的 Class1 概率表面与测试点同时呈现。切换测试点显示不会改变网络，只改变可见点的数量；边界始终来自同一训练后的模型。",
+      ],
+      note: "边界与概率表面来自已拟合的二维实验；控制项只改变结果浏览方式。",
+    },
+    {
+      eyebrow: "TEST RESULTS",
+      title: "601 条测试记录把边界质量还原为具体的正确与错误判断",
+      icon: "prediction",
+      paragraphs: [
+        "测试集中 Class1 有 266 条、Class2 有 335 条。混淆矩阵给出 TP 225、FN 41、FP 31 与 TN 304；四格相加为 601。Accuracy 为 0.8801996672，AUC 为 0.9562114241，说明这个小型网络能够对二维弯曲类别给出较强的排序区分。",
+        "41 个 FN 表示真实 Class1 被判为 Class2，31 个 FP 表示真实 Class2 被判为 Class1。它们仍然位于边界附近或局部重叠区域的可能性只能从二维图形阅读，不能凭总体 Accuracy 推断某一个输入点的必然结果。",
+        "这个实验展示网络怎样表示非线性，不比较更多层数、更多节点或其他算法，也不据此外推客户流失问题。两类页面之间的联系是分类验证语言相同：明确训练与测试边界、固定事件方向、把总体分数拆回具体错误。",
+      ],
+      note: "测试指标基于 601 条留出记录；网络结构、种子与训练轮数保持原规格。",
+    },
+  ],
+};
+---
+
+{
+  sections[topic].map((section) => (
+    <section class="r-deep-section r-deep-section--expansion" data-reveal>
+      <div class="r-deep-section__heading">
+        <span>
+          <ChurnMicroIcon name={section.icon} decorative />
+        </span>
+        <div>
+          <p>{section.eyebrow}</p>
+          <h2>{section.title}</h2>
+        </div>
+      </div>
+      <div class="r-deep-prose">
+        {section.paragraphs.map((paragraph) => (
+          <p>{paragraph}</p>
+        ))}
+      </div>
+      <ChurnCaseNote>
+        <p>{section.note}</p>
+      </ChurnCaseNote>
+    </section>
+  ))
+}

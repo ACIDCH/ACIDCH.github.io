@@ -42,6 +42,20 @@ describe("R machine learning flagship project", () => {
   const neural = readFileSync("src/components/RNeuralNetworkDeepDive.astro", "utf8");
   const comparison = readFileSync("src/components/ModelComparisonLab.astro", "utf8");
   const evaluation = readFileSync("src/components/ModelEvaluation.astro", "utf8");
+  const onThisPage = readFileSync("src/components/ChurnOnThisPage.astro", "utf8");
+  const correlationExplorer = readFileSync(
+    "src/components/ChurnCorrelationExplorer.astro",
+    "utf8",
+  );
+  const recipeComparison = readFileSync(
+    "src/components/ChurnRecipeComparison.astro",
+    "utf8",
+  );
+  const predictorExplorer = readFileSync(
+    "src/components/ChurnPredictorExplorer.astro",
+    "utf8",
+  );
+  const deepening = readFileSync("src/components/ChurnDeepeningSections.astro", "utf8");
   const route = readFileSync("src/pages/zh/projects/[slug].astro", "utf8");
   const deepDiveRoute = readFileSync(
     "src/pages/zh/projects/customer-churn-machine-learning/[deepDive].astro",
@@ -161,6 +175,22 @@ describe("R machine learning flagship project", () => {
         (step) => step.input && step.action && step.output && step.why && step.codeKey,
       ),
     ).toBe(true);
+  });
+
+  it("adds native evidence explorers and responsive on-page navigation", () => {
+    expect(mainPage).toContain("<ChurnObservationAnatomy");
+    expect(mainPage).toContain("<ChurnCorrelationExplorer");
+    expect(mainPage).toContain("<ChurnRecipeComparison");
+    expect(mainPage).toContain("<ChurnPredictorExplorer");
+    expect(mainPage).toContain("<ChurnOnThisPage");
+    expect(onThisPage).toContain("IntersectionObserver");
+    expect(onThisPage).toContain("astro:page-load");
+    expect(correlationExplorer).toContain("data-correlation-option");
+    expect(recipeComparison).toContain('role="tablist"');
+    expect(predictorExplorer).toContain('role="tablist"');
+    expect(predictorExplorer).toContain("payment_failure_last4w");
+    expect(deepening).toContain("15.9");
+    expect(deepening).toContain("0.8801996672");
   });
 
   it("reproduces the neural experiment with original seeds and fixed architecture", () => {

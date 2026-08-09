@@ -5,6 +5,12 @@ import { getLocalizedPath } from "../utils/paths";
 import AnalysisPipeline from "./AnalysisPipeline.astro";
 import ChurnEvidenceFigure from "./ChurnEvidenceFigure.astro";
 import ChurnFieldSchema from "./ChurnFieldSchema.astro";
+import ChurnObservationAnatomy from "./ChurnObservationAnatomy.astro";
+import ChurnOnThisPage from "./ChurnOnThisPage.astro";
+import ChurnCorrelationExplorer from "./ChurnCorrelationExplorer.astro";
+import ChurnRecipeComparison from "./ChurnRecipeComparison.astro";
+import ChurnPredictorExplorer from "./ChurnPredictorExplorer.astro";
+import ChurnCaseNote from "./ChurnCaseNote.astro";
 import ContextBack from "./ContextBack.astro";
 import FeatureSelectionStory from "./FeatureSelectionStory.astro";
 import ModelComparisonLab from "./ModelComparisonLab.astro";
@@ -36,6 +42,15 @@ const relatedProjects = (await getCollection("projects"))
   )
   .slice(0, 3);
 const maxFlow = sampleFlow[0]?.value ?? 1;
+const onThisPage = [
+  { id: "problem", label: "问题" },
+  { id: "data", label: "数据" },
+  { id: "features", label: "变量" },
+  { id: "validation", label: "验证" },
+  { id: "models", label: "模型" },
+  { id: "evaluation", label: "结果" },
+  { id: "interpretation", label: "解释" },
+] as const;
 ---
 
 <BaseLayout
@@ -93,587 +108,621 @@ const maxFlow = sampleFlow[0]?.value ?? 1;
               </div>
             </aside>
           </div>
-          <nav class="case-toc" aria-label="项目章节">
-            <a href="#problem">问题</a><a href="#data">数据</a><a href="#features"
-              >变量</a
-            ><a href="#validation">验证</a><a href="#models">模型</a><a
-              href="#evaluation">结果</a
-            ><a href="#interpretation">解释</a>
-          </nav>
         </div>
       </header>
 
-      <div class="case-shell case-article">
-        <section id="problem" class="chapter chapter--opening" data-reveal>
-          <div class="chapter-heading">
-            <span>01</span>
-            <div><p>THE QUESTION</p><h2>客户流失问题究竟在预测什么？</h2></div>
-          </div>
-          <div class="prose prose--lead">
-            <p>
-              一条 observation
-              对应一位充电客户在同一观察口径下的状态：使用哪一档计划、多久没有再次充电、最近是否支付失败或申请退款、平均等待多久、附近充电器出现多少故障，以及应用是否频繁崩溃。结果变量把客户分为
-              <code>retained</code> 与 <code>churned</code>；建模中把 <code
-                >churned</code
-              >
-              设为正类，所有 Sensitivity 与错误分析都围绕“能否识别真实流失客户”展开。
-            </p>
-            <p>
-              这不是先挑一个复杂算法再寻找用途。分析首先面对三个判断：哪些客户属于同一个预测总体；哪些字段既接近流失机制又能稳定解释；怎样在不接触最终答案的前提下比较多个模型。只有这三件事成立，最后的
-              AUC、混淆矩阵和 odds ratio 才有一致含义。
-            </p>
-            <p>
-              原始数据为合成客户数据，包含 200,000 条记录和 25 个字段。留出集中有 12,114
-              条 churned 与 27,086 条 retained，流失比例为
-              30.9%。这个比例不是极端失衡，却足以让只追求总体正确率的模型偏向较大的
-              retained 类别。
-            </p>
-          </div>
-          <figure class="class-distribution">
-            <figcaption>
-              <span>FIG 01</span><div>
-                <h3>留出集中，约三成客户属于 churned</h3><p>
-                  精确计数来自最终 39,200 条留出预测，可直接与混淆矩阵对齐。
-                </p>
-              </div>
-            </figcaption>
-            <div class="class-bars">
-              {
-                holdoutClassDistribution.map((item) => (
-                  <div>
-                    <span>{item.label}</span>
-                    <i style={`--share:${item.share}%`} />
-                    <strong>{item.value.toLocaleString("en-NZ")}</strong>
-                    <small>{item.share.toFixed(1)}%</small>
-                  </div>
-                ))
-              }
+      <div class="case-toc--top"><ChurnOnThisPage sections={onThisPage} /></div>
+      <div class="case-shell case-reading-layout">
+        <div class="case-article">
+          <section id="problem" class="chapter chapter--opening" data-reveal>
+            <div class="chapter-heading">
+              <span>01</span>
+              <div><p>THE QUESTION</p><h2>客户流失问题究竟在预测什么？</h2></div>
             </div>
-            <p class="figure-reading">
-              应该看哪里：任何分类结果都必须同时回答两个方向——能识别多少真实
-              churned，以及会把多少 retained 错标成
-              churned。后续上采样只改变每个训练折的拟合分布，不改变验证折和留出集的这一本来结构。
-            </p>
-          </figure>
-        </section>
-
-        <section id="data" class="chapter" data-reveal>
-          <div class="chapter-heading">
-            <span>02</span><div>
-              <p>DATA AUDIT</p><h2>200,000 条记录为什么没有直接进入模型？</h2>
+            <div class="prose prose--lead">
+              <p>
+                一条 observation
+                对应一位充电客户在同一观察口径下的状态：使用哪一档计划、多久没有再次充电、最近是否支付失败或申请退款、平均等待多久、附近充电器出现多少故障，以及应用是否频繁崩溃。结果变量把客户分为
+                <code>retained</code> 与 <code>churned</code>；建模中把 <code
+                  >churned</code
+                >
+                设为正类，所有 Sensitivity 与错误分析都围绕“能否识别真实流失客户”展开。
+              </p>
+              <p>
+                这不是先挑一个复杂算法再寻找用途。分析首先面对三个判断：哪些客户属于同一个预测总体；哪些字段既接近流失机制又能稳定解释；怎样在不接触最终答案的前提下比较多个模型。只有这三件事成立，最后的
+                AUC、混淆矩阵和 odds ratio 才有一致含义。
+              </p>
+              <p>
+                原始数据为合成客户数据，包含 200,000 条记录和 25 个字段。留出集中有
+                12,114 条 churned 与 27,086 条 retained，流失比例为
+                30.9%。这个比例不是极端失衡，却足以让只追求总体正确率的模型偏向较大的
+                retained 类别。
+              </p>
             </div>
-          </div>
-          <div class="prose">
-            <p>
-              原始字段混合了标识、客户资料、计划与支付、使用行为、服务可靠性、数字互动和结果来源。字段清理先把带单位的文本转换为数值：等待时间转为分钟、使用间隔转为周、故障率和高峰使用比例转为百分点；六个二元字段统一为
-              No / Yes factor。<code>retained_binary</code> 被转换为有明确水平顺序的 <code
-                >churn</code
-              >，记录标识
-              <code>user_ID</code> 则完全移出建模数据。
-            </p>
-            <p>
-              清洗后没有缺失值。recipe 中仍保留 <code>step_impute_median()</code
-              >，它在现有训练数据上不会改变任何值，作用是当同一结构接收新的数值记录时提供中位数保护。分类变量另由
-              <code>step_unknown()</code> 接住未见水平，避免一次未知计划或类别直接中断预测流程。
-            </p>
-          </div>
-          <ChurnFieldSchema />
-          <ChurnEvidenceFigure
-            number="FIG 02"
-            title="数值字段先揭示分布，再决定能否进入同一模型"
-            src={projectImages.numericDistributions}
-            alt="年龄、应用崩溃、等待时间、故障率、充电次数、使用间隔等数值字段的真实分布图"
-            caption="连续变量与整数周变量使用不同图形，避免把离散周数误读为平滑连续分布。"
-            reading="应该看哪里：等待时间与高峰使用大致呈钟形，应用崩溃与充电次数则明显右偏；距上次充电在 5–7 周附近更集中。分布差异解释了为什么字段类型和单位必须在 recipe 前先固定。"
-          />
-        </section>
-
-        <section class="chapter" data-reveal>
-          <div class="chapter-heading">
-            <span>03</span><div>
-              <p>POPULATION</p><h2>为什么 Fleet 必须从个人客户模型中排除？</h2>
-            </div>
-          </div>
-          <div class="prose">
-            <p>
-              Fleet 是商业账户类型，合同周期和流失机制与个人计划不同。若把 Fleet 与
-              Basic、Plus、Pro
-              一同建模，计划变量会同时承担“商业合同”和“个人会员层级”两种含义，其他行为变量也会在混合总体中被重新解释。因此模型明确限定为个人客户，并把
-              Basic 设置为计划参照水平。
-            </p>
-            <p>
-              排除 4,000 条 Fleet 后，建模总体从 200,000 降至
-              196,000。这个动作不是为了提高分数而删除难例，而是先定义模型适用人群：后续每一项结果都只回答个人充电客户的流失问题，不延伸到商业车队账户。
-            </p>
-          </div>
-          <figure class="sample-flow">
-            <figcaption>
-              <span>FIG 03</span><div>
-                <h3>总体、训练、留出与 CV 样本各有不同职责</h3><p>
-                  条形长度表示记录规模，CV 样本仍属于训练部分，不是第三个独立数据集。
-                </p>
-              </div>
-            </figcaption>
-            <div class="sample-flow__rows">
-              {
-                sampleFlow.map((step, index) => (
-                  <div>
-                    <b>{String(index + 1).padStart(2, "0")}</b>
-                    <span>
-                      <>
-                        <strong>{step.label}</strong>
-                        <small>{step.note}</small>
-                      </>
-                    </span>
-                    <i style={`--width:${(step.value / maxFlow) * 100}%`} />
-                    <em>{step.value.toLocaleString("en-NZ")}</em>
-                  </div>
-                ))
-              }
-            </div>
-            <p class="figure-reading">
-              应该看哪里：39,200 条留出记录在第三步就被隔离；30,000 条 CV 样本只从
-              156,800 条训练记录中抽取，因此模型比较没有提前看见最终答案。
-            </p>
-          </figure>
-          <RCodeShowcase title="限定个人客户总体" code={codeSnippets.population} />
-        </section>
-
-        <section id="features" class="chapter" data-reveal>
-          <div class="chapter-heading">
-            <span>04</span><div>
-              <p>FEATURE SELECTION</p><h2>25 个字段如何收缩为 7 个 predictor？</h2>
-            </div>
-          </div>
-          <div class="prose">
-            <p>
-              变量筛选不是一次 <code>select()</code> 的结果，而是多道判断的叠加。标识和目标来源先离场；Fleet
-              在总体层面被排除；调查满意度因非应答比例过高而不进入最终模型；16 水平的 region
-              会扩展为 15 个指示变量，而且其区域差异与等待时间、故障率等更直接的服务信号重叠。
-            </p>
-            <p>
-              最终七个 predictor
-              覆盖四类信息：服务质量、商业摩擦、活跃间隔和会员结构。它们分别保留原始单位，使
-              Logistic Regression
-              的系数能回答“多等待一分钟”“多一周未充电”“出现一次支付失败”各自意味着什么，而不是只留下无法解释的标准化分数。
-            </p>
-          </div>
-          <FeatureSelectionStory />
-          <ChurnEvidenceFigure
-            number="FIG 04A"
-            title="七个 predictor 在 retained 与 churned 之间呈现不同分布"
-            src={projectImages.predictorComparisons}
-            alt="七个最终预测变量按 retained 与 churned 分组的真实分布比较"
-            caption="连续变量比较中心位置与尾部，二元事件和计划层级比较类别比例。"
-            reading="应该看哪里：流失客户的支付失败、退款、等待、故障、应用崩溃和距上次充电周数整体向更高方向移动；计划层级则呈现不同的类别构成。这些差异说明七个变量各自提供了可区分信息，但单一变量仍不足以完成分类。"
-          />
-          <ChurnEvidenceFigure
-            number="FIG 04B"
-            title="计划与支付事件把类别差异转为可比较比例"
-            src={projectImages.categoricalRates}
-            alt="计划层级、支付失败与退款事件对应的真实流失比例图"
-            caption="每一组都使用相同的 churn 定义，比较的是组内流失比例。"
-            reading="应该看哪里：支付失败和退款事件对应的 churn 比例明显抬升；Plus 与 Pro 相对 Basic 的方向则相反。二元商业摩擦与计划层级因此同时保留，但在 Logistic Regression 中用不同参照方式解释。"
-          />
-          <div class="predictor-ledger">
-            {
-              predictors.map((predictor, index) => (
-                <div>
-                  <>
-                    <span>{String(index + 1).padStart(2, "0")}</span>
-                    <strong>{predictor.label}</strong>
-                    <code>{predictor.name}</code>
-                    <small>
-                      {predictor.type} · {predictor.unit} · {predictor.dimension}
-                    </small>
-                  </>
+            <ChurnObservationAnatomy />
+            <figure class="class-distribution">
+              <figcaption>
+                <span>FIG 01</span><div>
+                  <h3>留出集中，约三成客户属于 churned</h3><p>
+                    精确计数来自最终 39,200 条留出预测，可直接与混淆矩阵对齐。
+                  </p>
                 </div>
-              ))
-            }
-          </div>
-          <RCodeShowcase title="形成七变量建模表" code={codeSnippets.features} />
-        </section>
+              </figcaption>
+              <div class="class-bars">
+                {
+                  holdoutClassDistribution.map((item) => (
+                    <div>
+                      <span>{item.label}</span>
+                      <i style={`--share:${item.share}%`} />
+                      <strong>{item.value.toLocaleString("en-NZ")}</strong>
+                      <small>{item.share.toFixed(1)}%</small>
+                    </div>
+                  ))
+                }
+              </div>
+              <p class="figure-reading">
+                应该看哪里：任何分类结果都必须同时回答两个方向——能识别多少真实
+                churned，以及会把多少 retained 错标成
+                churned。后续上采样只改变每个训练折的拟合分布，不改变验证折和留出集的这一本来结构。
+              </p>
+            </figure>
+          </section>
 
-        <section class="chapter" data-reveal>
-          <div class="chapter-heading">
-            <span>05</span><div>
-              <p>CORRELATION</p><h2>0.88 的相关性如何改变变量选择？</h2>
+          <section id="data" class="chapter" data-reveal>
+            <div class="chapter-heading">
+              <span>02</span><div>
+                <p>DATA AUDIT</p><h2>200,000 条记录为什么没有直接进入模型？</h2>
+              </div>
             </div>
-          </div>
-          <div class="prose">
-            <p>
-              <code>weeks_since_signup</code> 与 <code>weeks_since_last_charge</code> 的相关系数约为
-              0.88。两者同时进入 Logistic Regression，会让相近的信息在两个系数之间分摊，扩大标准误并削弱单个系数的稳定解释。最终保留距上次充电周数，因为它更直接对应当前不活跃程度。
-            </p>
-            <p>
-              其余相关性较低或含义仍然不同。等待时间与故障率相关约
-              0.39，但一个描述排队摩擦，另一个描述设施可靠性；两者都保留。应用版本滞后与应用崩溃相关约
-              0.41，最终保留更直接的崩溃次数。这里的目标不是让所有输入彼此无关，而是删除会明显重复同一行为含义的变量。
-            </p>
-          </div>
-          <ChurnEvidenceFigure
-            number="FIG 05"
-            title="完整相关矩阵把 0.88 放回其他变量关系中"
-            src={projectImages.correlationMatrix}
-            alt="数值字段相关矩阵，距注册周数与距上次充电周数的相关系数为 0.88"
-            caption="深蓝单元格表示更强正相关；矩阵中的数值是变量筛选依据。"
-            reading="应该看哪里：0.88 明显高于 0.41、0.39 和 0.37 的其他关系，因此删除 signup 周数是针对单一高冗余对，而不是把全部中等相关变量一并移除。"
-          />
-          <ChurnEvidenceFigure
-            number="FIG 05B"
-            title="服务摩擦之间存在组合关系，但不会替代单变量判断"
-            src={projectImages.serviceInteractions}
-            alt="等待时间、充电器故障率与客户流失的真实交互分布图"
-            caption="交互图用于观察多个服务信号同时升高时的类别变化，不作为新增 predictor。"
-            reading="应该看哪里：高等待与高故障区域的 churn 比例更集中，说明非线性模型可能捕捉到局部组合关系；同时，单独的等待和故障变量仍有清晰方向。这正是后续同时比较可解释线性模型与树集成模型的理由。"
-          />
-        </section>
-
-        <section id="validation" class="chapter chapter--wide" data-reveal>
-          <div class="chapter-heading">
-            <span>06</span><div>
-              <p>VALIDATION DESIGN</p><h2>为什么测试集必须在模型选择前保持隔离？</h2>
-            </div>
-          </div>
-          <div class="prose">
-            <p>
-              196,000 条个人客户记录按 churn 分层切成 80% 训练与 20%
-              留出。分层保证两部分保留接近的类别比例；固定 seed 404713359
-              让同一切分可重复。模型比较不在完整 156,800
-              条训练数据上做五折计算，而是从训练部分分层抽取 30,000 条作为 CV
-              样本，以相同 folds 比较五个模型。
-            </p>
-            <p>
-              30,000 条数据进入 5-fold CV 后，每折约有 24,000 条 analysis 数据和 6,000
-              条 assessment
-              数据。每条验证预测都来自没有参与该折拟合的记录。最终模型确定后，<code
-                >last_fit()</code
-              > 才用完整训练部分重拟合，并一次性评估 39,200 条留出记录。
-            </p>
-          </div>
-          <AnalysisPipeline />
-        </section>
-
-        <section class="chapter" data-reveal>
-          <div class="chapter-heading">
-            <span>07</span><div>
-              <p>LEAKAGE CONTROL</p><h2>为什么上采样必须发生在每一个 fold 内部？</h2>
-            </div>
-          </div>
-          <div class="prose">
-            <p>
-              churned 约占三成。若模型直接在这一分布上优化整体正确率，更容易偏向
-              retained。recipe 使用
-              <code>step_upsample(churn, over_ratio = 1)</code>，在每个 analysis fold
-              内复制少数类，直到两类达到 1:1；assessment fold
-              与最终留出集仍保持自然比例。
-            </p>
-            <p>
-              顺序比动作本身更重要。如果先在全数据上复制 churned，再切分
-              folds，同一条或完全相同的复制记录可能同时出现在拟合与验证侧，模型相当于提前见过答案。把上采样置于
-              recipe 内，让它随每个 resample 独立 prep，阻断这条泄漏路径。
-            </p>
-            <p>
-              下采样会丢弃大量 retained 记录；SMOTE
-              会新增插值样本并扩大方法复杂度。面对约 30/70
-              的中等不平衡，折内随机上采样提供了更直接、可审计的处理，同时保留验证分布的真实性。
-            </p>
-          </div>
-          <div class="balance-diagram" aria-label="折内上采样前后结构">
-            <div>
-              <span>Analysis fold · before</span><i
-                ><b style="--part:69%">retained ≈ 69%</b><b style="--part:31%"
-                  >churned ≈ 31%</b
-                ></i
-              ><small>约 24,000 条</small>
-            </div>
-            <em>recipe</em>
-            <div>
-              <span>Analysis fold · after</span><i
-                ><b style="--part:50%">retained 50%</b><b style="--part:50%"
-                  >churned 50%</b
-                ></i
-              ><small>仅用于该折拟合</small>
-            </div>
-            <em>evaluate</em>
-            <div>
-              <span>Assessment fold</span><i
-                ><b style="--part:69%">retained ≈ 69%</b><b style="--part:31%"
-                  >churned ≈ 31%</b
-                ></i
-              ><small>约 6,000 条，未上采样</small>
-            </div>
-          </div>
-          <RCodeShowcase
-            title="两类模型 recipe 与折内上采样"
-            code={codeSnippets.recipes}
-          />
-        </section>
-
-        <section class="chapter" data-reveal>
-          <div class="chapter-heading">
-            <span>08</span><div>
-              <p>MODEL FAMILIES</p><h2>五个模型在学习什么不同的关系？</h2>
-            </div>
-          </div>
-          <div class="prose">
-            <p>
-              Logistic Regression 把七个输入组合成加性的 log-odds；Naive Bayes
-              从各类别下的条件分布计算概率；Random Forest 通过 500 棵去相关树进行
-              bagging；XGBoost 与 LightGBM
-              则让后续树持续修正前序错误。它们不是五种同义实现，而是用不同结构回答同一个二分类问题。
-            </p>
-            <p>
-              输入要求也不同。<code>glm</code> 与 <code>xgboost</code> 使用 Dummy 编码后的数值矩阵；<code
-                >ranger</code
-              >、<code>lightgbm</code> 与
-              <code>klaR</code> 保留 factor。五个 workflow 共享同一组 folds 和四项指标，因此结果差异来自模型与配套
-              recipe，而不是不同验证样本。
-            </p>
-          </div>
-          <div class="model-family-map">
-            {
-              modelResults.map((model) => (
-                <article>
-                  <>
-                    <span>{model.family}</span>
-                    <h3>{model.name}</h3>
-                    <code>{model.engine}</code>
-                    <p>{model.input}</p>
-                    <strong>{model.parameters}</strong>
-                  </>
-                </article>
-              ))
-            }
-          </div>
-          <RCodeShowcase title="五种模型规格" code={codeSnippets.models} />
-        </section>
-
-        <section id="models" class="chapter chapter--wide" data-reveal>
-          <div class="chapter-heading">
-            <span>09</span><div>
-              <p>MODEL COMPARISON</p><h2>五个模型的表现到底差在哪里？</h2>
-            </div>
-          </div>
-          <div class="prose">
-            <p>
-              单看 Accuracy，LightGBM 以 0.8199 排名第一；单看 Sensitivity，Naive Bayes
-              以 0.8318 领先；单看 Specificity，XGBoost 以 0.8370 领先；但 AUC
-              排名第一的是 Logistic Regression，达到
-              0.9024。四个“第一名”分属四个不同模型，正说明选择不能压缩成单一排行榜。
-            </p>
-            <p>
-              交叉验证代码保存了每折预测并检查每折指标，但逐折结果对象没有作为最终成果保留。因此这里展示可复核的五折平均值，不制造标准差、范围或稳定性点图。模型稳定性的判断只停留在已保留证据能够支持的层级。
-            </p>
-          </div>
-          <ModelComparisonLab />
-        </section>
-
-        <section class="chapter" data-reveal>
-          <div class="chapter-heading">
-            <span>10</span><div>
-              <p>THE DECISION</p><h2>为什么 Accuracy 最高的模型没有被选中？</h2>
-            </div>
-          </div>
-          <div class="decision-essay">
-            <div>
-              <strong>LightGBM</strong><span>Accuracy 0.8199</span><p>
-                总体正确率最高，但 AUC 0.8955、Sensitivity 0.7994 均未领先。
+            <div class="prose">
+              <p>
+                原始字段混合了标识、客户资料、计划与支付、使用行为、服务可靠性、数字互动和结果来源。字段清理先把带单位的文本转换为数值：等待时间转为分钟、使用间隔转为周、故障率和高峰使用比例转为百分点；六个二元字段统一为
+                No / Yes factor。<code>retained_binary</code> 被转换为有明确水平顺序的 <code
+                  >churn</code
+                >，记录标识
+                <code>user_ID</code> 则完全移出建模数据。
+              </p>
+              <p>
+                清洗后没有缺失值。recipe 中仍保留 <code>step_impute_median()</code
+                >，它在现有训练数据上不会改变任何值，作用是当同一结构接收新的数值记录时提供中位数保护。分类变量另由
+                <code>step_unknown()</code> 接住未见水平，避免一次未知计划或类别直接中断预测流程。
               </p>
             </div>
-            <div>
-              <strong>Naive Bayes</strong><span>Sensitivity 0.8318</span><p>
-                找回流失客户最多，但 Specificity 0.7999 最低，整体区分能力也略低。
+            <ChurnFieldSchema />
+            <ChurnEvidenceFigure
+              number="FIG 02"
+              title="数值字段先揭示分布，再决定能否进入同一模型"
+              src={projectImages.numericDistributions}
+              alt="年龄、应用崩溃、等待时间、故障率、充电次数、使用间隔等数值字段的真实分布图"
+              caption="连续变量与整数周变量使用不同图形，避免把离散周数误读为平滑连续分布。"
+              reading="应该看哪里：等待时间与高峰使用大致呈钟形，应用崩溃与充电次数则明显右偏；距上次充电在 5–7 周附近更集中。分布差异解释了为什么字段类型和单位必须在 recipe 前先固定。"
+            />
+            <ChurnCaseNote
+              ><p>
+                数值单位已统一为分钟、周或百分点；无法在已保存汇总中重建的逐条分布继续以审计后的图形证据呈现。
+              </p></ChurnCaseNote
+            >
+          </section>
+
+          <section class="chapter" data-reveal>
+            <div class="chapter-heading">
+              <span>03</span><div>
+                <p>POPULATION</p><h2>为什么 Fleet 必须从个人客户模型中排除？</h2>
+              </div>
+            </div>
+            <div class="prose">
+              <p>
+                Fleet 是商业账户类型，合同周期和流失机制与个人计划不同。若把 Fleet 与
+                Basic、Plus、Pro
+                一同建模，计划变量会同时承担“商业合同”和“个人会员层级”两种含义，其他行为变量也会在混合总体中被重新解释。因此模型明确限定为个人客户，并把
+                Basic 设置为计划参照水平。
+              </p>
+              <p>
+                排除 4,000 条 Fleet 后，建模总体从 200,000 降至
+                196,000。这个动作不是为了提高分数而删除难例，而是先定义模型适用人群：后续每一项结果都只回答个人充电客户的流失问题，不延伸到商业车队账户。
               </p>
             </div>
-            <div>
-              <strong>XGBoost</strong><span>Specificity 0.8370</span><p>
-                最少错标 retained，却只识别 76.32% 的真实 churned。
+            <figure class="sample-flow">
+              <figcaption>
+                <span>FIG 03</span><div>
+                  <h3>总体、训练、留出与 CV 样本各有不同职责</h3><p>
+                    条形长度表示记录规模，CV 样本仍属于训练部分，不是第三个独立数据集。
+                  </p>
+                </div>
+              </figcaption>
+              <div class="sample-flow__rows">
+                {
+                  sampleFlow.map((step, index) => (
+                    <div>
+                      <b>{String(index + 1).padStart(2, "0")}</b>
+                      <span>
+                        <>
+                          <strong>{step.label}</strong>
+                          <small>{step.note}</small>
+                        </>
+                      </span>
+                      <i style={`--width:${(step.value / maxFlow) * 100}%`} />
+                      <em>{step.value.toLocaleString("en-NZ")}</em>
+                    </div>
+                  ))
+                }
+              </div>
+              <p class="figure-reading">
+                应该看哪里：39,200 条留出记录在第三步就被隔离；30,000 条 CV 样本只从
+                156,800 条训练记录中抽取，因此模型比较没有提前看见最终答案。
+              </p>
+            </figure>
+            <RCodeShowcase title="限定个人客户总体" code={codeSnippets.population} />
+          </section>
+
+          <section id="features" class="chapter" data-reveal>
+            <div class="chapter-heading">
+              <span>04</span><div>
+                <p>FEATURE SELECTION</p><h2>25 个字段如何收缩为 7 个 predictor？</h2>
+              </div>
+            </div>
+            <div class="prose">
+              <p>
+                变量筛选不是一次 <code>select()</code> 的结果，而是多道判断的叠加。标识和目标来源先离场；Fleet
+                在总体层面被排除；调查满意度因非应答比例过高而不进入最终模型；16 水平的 region
+                会扩展为 15 个指示变量，而且其区域差异与等待时间、故障率等更直接的服务信号重叠。
+              </p>
+              <p>
+                最终七个 predictor
+                覆盖四类信息：服务质量、商业摩擦、活跃间隔和会员结构。它们分别保留原始单位，使
+                Logistic Regression
+                的系数能回答“多等待一分钟”“多一周未充电”“出现一次支付失败”各自意味着什么，而不是只留下无法解释的标准化分数。
               </p>
             </div>
-            <div class="decision-essay__winner">
-              <strong>Logistic Regression</strong><span>AUC 0.9024</span><p>
-                跨阈值区分能力最高，Sensitivity 距最高值仅
-                0.0037，同时能把系数转成明确风险方向。
+            <FeatureSelectionStory />
+            <ChurnPredictorExplorer />
+            <ChurnEvidenceFigure
+              number="FIG 04A"
+              title="七个 predictor 在 retained 与 churned 之间呈现不同分布"
+              src={projectImages.predictorComparisons}
+              alt="七个最终预测变量按 retained 与 churned 分组的真实分布比较"
+              caption="连续变量比较中心位置与尾部，二元事件和计划层级比较类别比例。"
+              reading="应该看哪里：流失客户的支付失败、退款、等待、故障、应用崩溃和距上次充电周数整体向更高方向移动；计划层级则呈现不同的类别构成。这些差异说明七个变量各自提供了可区分信息，但单一变量仍不足以完成分类。"
+            />
+            <ChurnEvidenceFigure
+              number="FIG 04B"
+              title="计划与支付事件把类别差异转为可比较比例"
+              src={projectImages.categoricalRates}
+              alt="计划层级、支付失败与退款事件对应的真实流失比例图"
+              caption="每一组都使用相同的 churn 定义，比较的是组内流失比例。"
+              reading="应该看哪里：支付失败和退款事件对应的 churn 比例明显抬升；Plus 与 Pro 相对 Basic 的方向则相反。二元商业摩擦与计划层级因此同时保留，但在 Logistic Regression 中用不同参照方式解释。"
+            />
+            <div class="predictor-ledger">
+              {
+                predictors.map((predictor, index) => (
+                  <div>
+                    <>
+                      <span>{String(index + 1).padStart(2, "0")}</span>
+                      <strong>{predictor.label}</strong>
+                      <code>{predictor.name}</code>
+                      <small>
+                        {predictor.type} · {predictor.unit} · {predictor.dimension}
+                      </small>
+                    </>
+                  </div>
+                ))
+              }
+            </div>
+            <RCodeShowcase title="形成七变量建模表" code={codeSnippets.features} />
+          </section>
+
+          <section class="chapter" data-reveal>
+            <div class="chapter-heading">
+              <span>05</span><div>
+                <p>CORRELATION</p><h2>0.88 的相关性如何改变变量选择？</h2>
+              </div>
+            </div>
+            <div class="prose">
+              <p>
+                <code>weeks_since_signup</code> 与 <code>weeks_since_last_charge</code> 的相关系数约为
+                0.88。两者同时进入 Logistic Regression，会让相近的信息在两个系数之间分摊，扩大标准误并削弱单个系数的稳定解释。最终保留距上次充电周数，因为它更直接对应当前不活跃程度。
+              </p>
+              <p>
+                其余相关性较低或含义仍然不同。等待时间与故障率相关约
+                0.39，但一个描述排队摩擦，另一个描述设施可靠性；两者都保留。应用版本滞后与应用崩溃相关约
+                0.41，最终保留更直接的崩溃次数。这里的目标不是让所有输入彼此无关，而是删除会明显重复同一行为含义的变量。
               </p>
             </div>
-          </div>
-          <div class="prose">
-            <p>
-              False Negative 是实际 churned 却被判断为 retained；False Positive 是实际
-              retained 却被判断为
-              churned。两类错误不是同一个后果：前者让潜在流失客户离开筛查范围，后者扩大需要进一步核查的客户范围。Sensitivity
-              和 Specificity 分别对应这两个方向，Accuracy 则把它们混在一个比例中。
-            </p>
-            <p>
-              最终选择以 mean AUC 为首要标准，并在接近时检查 Sensitivity。Logistic
-              Regression 的 AUC 第一，Sensitivity 接近 Naive
-              Bayes，同时比树集成保留更直接的解释结构。这个决定不是“线性模型更简单所以更好”，而是判别力、漏判控制和解释成本在本问题中的共同取舍。
-            </p>
-          </div>
-          <RCodeShowcase
-            title="按 mean AUC 选择 workflow"
-            code={codeSnippets.selection}
-          />
-        </section>
+            <ChurnCorrelationExplorer />
+            <ChurnCaseNote
+              ><p>
+                相关系数只用于辨识信息重叠与解释边界；它不把服务、支付或使用行为写成因果关系。
+              </p></ChurnCaseNote
+            >
+            <ChurnEvidenceFigure
+              number="FIG 05B"
+              title="服务摩擦之间存在组合关系，但不会替代单变量判断"
+              src={projectImages.serviceInteractions}
+              alt="等待时间、充电器故障率与客户流失的真实交互分布图"
+              caption="交互图用于观察多个服务信号同时升高时的类别变化，不作为新增 predictor。"
+              reading="应该看哪里：高等待与高故障区域的 churn 比例更集中，说明非线性模型可能捕捉到局部组合关系；同时，单独的等待和故障变量仍有清晰方向。这正是后续同时比较可解释线性模型与树集成模型的理由。"
+            />
+          </section>
 
-        <section id="evaluation" class="chapter chapter--wide" data-reveal>
-          <div class="chapter-heading">
-            <span>11–14</span><div>
-              <p>HOLD-OUT EVALUATION</p><h2>
-                最终模型在 39,200 条未参与选择的记录上怎样犯错？
-              </h2>
+          <section id="validation" class="chapter chapter--wide" data-reveal>
+            <div class="chapter-heading">
+              <span>06</span><div>
+                <p>VALIDATION DESIGN</p><h2>为什么测试集必须在模型选择前保持隔离？</h2>
+              </div>
             </div>
-          </div>
-          <div class="prose">
-            <p>
-              一次性留出评估得到 Accuracy 0.8142、AUC 0.9053、Sensitivity 0.8331 和
-              Specificity 0.8058。AUC 比 CV 平均值 0.9024
-              略高，说明模型在隔离数据上的整体排序能力与选择阶段相近；但真正决定筛查行为的是混淆矩阵中
-              31,917 个正确判断和 7,283 个错误判断。
-            </p>
-            <p>
-              2,022 个 False Negative 对应 16.69% 的实际 churned；5,261 个 False
-              Positive 对应 19.42% 的实际 retained。前者解释为什么 Sensitivity 没有达到
-              1，后者解释为什么 Specificity 低于 Accuracy。分别阅读两类错误，比把 81.42%
-              正确率视为单一结论更有价值。
-            </p>
-          </div>
-          <ModelEvaluation />
-          <RCodeShowcase
-            title="从留出预测生成混淆矩阵与 ROC"
-            code={codeSnippets.finalEvaluation}
-          />
-        </section>
+            <div class="prose">
+              <p>
+                196,000 条个人客户记录按 churn 分层切成 80% 训练与 20%
+                留出。分层保证两部分保留接近的类别比例；固定 seed 404713359
+                让同一切分可重复。模型比较不在完整 156,800
+                条训练数据上做五折计算，而是从训练部分分层抽取 30,000 条作为 CV
+                样本，以相同 folds 比较五个模型。
+              </p>
+              <p>
+                30,000 条数据进入 5-fold CV 后，每折约有 24,000 条 analysis 数据和 6,000
+                条 assessment
+                数据。每条验证预测都来自没有参与该折拟合的记录。最终模型确定后，<code
+                  >last_fit()</code
+                > 才用完整训练部分重拟合，并一次性评估 39,200 条留出记录。
+              </p>
+            </div>
+            <AnalysisPipeline />
+            <ChurnCaseNote
+              ><p>
+                30,000 条交叉验证样本只是 156,800 条训练记录的分层子集；39,200
+                条留出记录直到模型选择结束才进入一次评估。
+              </p></ChurnCaseNote
+            >
+          </section>
 
-        <section id="interpretation" class="chapter chapter--wide" data-reveal>
-          <div class="chapter-heading">
-            <span>15</span><div>
-              <p>INTERPRETATION</p><h2>哪些变量最明显改变 churn odds？</h2>
+          <section class="chapter" data-reveal>
+            <div class="chapter-heading">
+              <span>07</span><div>
+                <p>LEAKAGE CONTROL</p><h2>为什么上采样必须发生在每一个 fold 内部？</h2>
+              </div>
             </div>
-          </div>
-          <div class="prose">
-            <p>
-              解释模型使用自然类别分布重新拟合，不带上采样。这样做是因为把类别人为变成
-              1:1 会改变截距，并可能改变 odds ratio 的业务解释。系数通过 <code
-                >exp(beta)</code
-              > 转成 odds ratio，并为每项系数计算 95% confidence interval；虚线 OR = 1 表示在其他变量相同时没有方向变化。
-            </p>
-            <p>
-              支付失败是最强信号：Yes 相对 No 的 OR 约为 15.9。退款申请的 OR 约
-              2.5；距上次充电每增加一周，OR 约
-              2.01。应用崩溃、等待时间和故障率的单单位效应较小，但单位必须读清：一次崩溃、一分钟、一个百分点分别对应
-              1.18、1.10 和 1.08。
-            </p>
-            <p>
-              计划层级以 Basic 为参照，Plus 与 Pro 的 OR 分别约 0.62 和 0.38。小于 1
-              表示在控制其他六个输入后与更低的流失 odds
-              相关。所有解释都是已拟合模型内的条件关联，不能把它们写成支付、等待或计划对流失的因果证明。
-            </p>
-          </div>
-          <ChurnEvidenceFigure
-            number="FIG 11"
-            title="Odds ratio 与 95% 区间把方向和不确定性放在同一轴上"
-            src={projectImages.oddsRatioCi}
-            alt="Logistic Regression 八项系数的 odds ratio 与 95% confidence interval 图，参照线为 1"
-            caption="Basic 是 plan_tier 的参照；二元变量为 Yes 相对 No；数值变量按原始单位增加 1。"
-            reading="应该看哪里：支付失败远离 OR=1，Plus 与 Pro 位于保护方向；服务变量靠近 1，但它们按一分钟、一次崩溃或一个百分点计量，不能仅凭条形长度判断实际影响。区间用于判断估计精度，点值用于说明方向与单位。"
-          />
-          <RiskSignalExplorer />
-          <RCodeShowcase
-            title="自然分布下计算 odds ratio 与 95% 区间"
-            code={codeSnippets.oddsRatios}
-          />
-        </section>
+            <div class="prose">
+              <p>
+                churned 约占三成。若模型直接在这一分布上优化整体正确率，更容易偏向
+                retained。recipe 使用
+                <code>step_upsample(churn, over_ratio = 1)</code>，在每个 analysis fold
+                内复制少数类，直到两类达到 1:1；assessment fold
+                与最终留出集仍保持自然比例。
+              </p>
+              <p>
+                顺序比动作本身更重要。如果先在全数据上复制 churned，再切分
+                folds，同一条或完全相同的复制记录可能同时出现在拟合与验证侧，模型相当于提前见过答案。把上采样置于
+                recipe 内，让它随每个 resample 独立 prep，阻断这条泄漏路径。
+              </p>
+              <p>
+                下采样会丢弃大量 retained 记录；SMOTE
+                会新增插值样本并扩大方法复杂度。面对约 30/70
+                的中等不平衡，折内随机上采样提供了更直接、可审计的处理，同时保留验证分布的真实性。
+              </p>
+            </div>
+            <div class="balance-diagram" aria-label="折内上采样前后结构">
+              <div>
+                <span>Analysis fold · before</span><i
+                  ><b style="--part:69%">retained ≈ 69%</b><b style="--part:31%"
+                    >churned ≈ 31%</b
+                  ></i
+                ><small>约 24,000 条</small>
+              </div>
+              <em>recipe</em>
+              <div>
+                <span>Analysis fold · after</span><i
+                  ><b style="--part:50%">retained 50%</b><b style="--part:50%"
+                    >churned 50%</b
+                  ></i
+                ><small>仅用于该折拟合</small>
+              </div>
+              <em>evaluate</em>
+              <div>
+                <span>Assessment fold</span><i
+                  ><b style="--part:69%">retained ≈ 69%</b><b style="--part:31%"
+                    >churned ≈ 31%</b
+                  ></i
+                ><small>约 6,000 条，未上采样</small>
+              </div>
+            </div>
+            <RCodeShowcase
+              title="两类模型 recipe 与折内上采样"
+              code={codeSnippets.recipes}
+            />
+            <ChurnRecipeComparison />
+            <ChurnCaseNote
+              ><p>
+                上采样只平衡每个 analysis fold 的拟合数据；assessment fold
+                与留出评估仍保留自然比例，避免重复记录跨越验证边界。
+              </p></ChurnCaseNote
+            >
+          </section>
 
-        <section class="chapter" data-reveal>
-          <div class="chapter-heading">
-            <span>16</span><div>
-              <p>WHAT THE EVIDENCE SUPPORTS</p><h2>
-                从数据筛选到模型解释，结论如何闭合？
-              </h2>
+          <section class="chapter" data-reveal>
+            <div class="chapter-heading">
+              <span>08</span><div>
+                <p>MODEL FAMILIES</p><h2>五个模型在学习什么不同的关系？</h2>
+              </div>
             </div>
-          </div>
-          <ol class="closing-findings">
-            <li>
-              <strong>总体先于算法。</strong><span
-                >200,000 条记录排除 4,000 条 Fleet 后，模型明确服务于 196,000
-                条个人客户观察。</span
-              >
-            </li>
-            <li>
-              <strong>七个变量覆盖四种风险来源。</strong><span
-                >服务质量、商业摩擦、不活跃程度和会员结构进入同一个可解释输入集合；signup
-                周数因 0.88 相关性被移除。</span
-              >
-            </li>
-            <li>
-              <strong>验证边界完整隔离。</strong><span
-                >156,800 条训练记录承担比较与重拟合，39,200
-                条留出记录只参与最终一次评估；30,000 条 CV 样本仅来自训练部分。</span
-              >
-            </li>
-            <li>
-              <strong>五模型没有共同的“第一”。</strong><span
-                >LightGBM 领先 Accuracy，Naive Bayes 领先 Sensitivity，XGBoost 领先
-                Specificity，Logistic Regression 领先 AUC。</span
-              >
-            </li>
-            <li>
-              <strong>最终选择是多目标取舍。</strong><span
-                >Logistic Regression 的 CV AUC 为 0.9024，留出 AUC 为 0.9053；它同时保留
-                0.8331 的流失召回与系数解释。</span
-              >
-            </li>
-            <li>
-              <strong>错误结构和风险信号可以继续行动化。</strong><span
-                >2,022 个漏判与 5,261 个误报界定筛查边界；支付失败 OR
-                15.9、距上次充电每周 OR 2.01 是最明显的模型信号。</span
-              >
-            </li>
-          </ol>
-        </section>
+            <div class="prose">
+              <p>
+                Logistic Regression 把七个输入组合成加性的 log-odds；Naive Bayes
+                从各类别下的条件分布计算概率；Random Forest 通过 500 棵去相关树进行
+                bagging；XGBoost 与 LightGBM
+                则让后续树持续修正前序错误。它们不是五种同义实现，而是用不同结构回答同一个二分类问题。
+              </p>
+              <p>
+                输入要求也不同。<code>glm</code> 与 <code>xgboost</code> 使用 Dummy 编码后的数值矩阵；<code
+                  >ranger</code
+                >、<code>lightgbm</code> 与
+                <code>klaR</code> 保留 factor。五个 workflow 共享同一组 folds 和四项指标，因此结果差异来自模型与配套
+                recipe，而不是不同验证样本。
+              </p>
+            </div>
+            <div class="model-family-map">
+              {
+                modelResults.map((model) => (
+                  <article>
+                    <>
+                      <span>{model.family}</span>
+                      <h3>{model.name}</h3>
+                      <code>{model.engine}</code>
+                      <p>{model.input}</p>
+                      <strong>{model.parameters}</strong>
+                    </>
+                  </article>
+                ))
+              }
+            </div>
+            <RCodeShowcase title="五种模型规格" code={codeSnippets.models} />
+          </section>
 
-        <section class="chapter chapter--deep-dives" data-reveal>
-          <div class="chapter-heading">
-            <span>TECH</span><div>
-              <p>TECHNICAL DEEP DIVES</p><h2>
-                主项目给出完整判断链，技术专篇进入实现细节
-              </h2>
+          <section id="models" class="chapter chapter--wide" data-reveal>
+            <div class="chapter-heading">
+              <span>09</span><div>
+                <p>MODEL COMPARISON</p><h2>五个模型的表现到底差在哪里？</h2>
+              </div>
             </div>
-          </div>
-          <p class="deep-dive-intro">
-            五篇专文分别负责数据与验证、五模型基准、模型选择与错误、Logistic Regression
-            解释和独立神经网络实验。每篇只展开自己的技术问题，不把主项目重新复述一遍。
-          </p>
-          <TechnicalDeepDiveNav />
-        </section>
+            <div class="prose">
+              <p>
+                单看 Accuracy，LightGBM 以 0.8199 排名第一；单看 Sensitivity，Naive
+                Bayes 以 0.8318 领先；单看 Specificity，XGBoost 以 0.8370 领先；但 AUC
+                排名第一的是 Logistic Regression，达到
+                0.9024。四个“第一名”分属四个不同模型，正说明选择不能压缩成单一排行榜。
+              </p>
+              <p>
+                交叉验证代码保存了每折预测并检查每折指标，但逐折结果对象没有作为最终成果保留。因此这里展示可复核的五折平均值，不制造标准差、范围或稳定性点图。模型稳定性的判断只停留在已保留证据能够支持的层级。
+              </p>
+            </div>
+            <ModelComparisonLab />
+            <ChurnCaseNote
+              ><p>
+                切换指标会在同一组 5 折平均结果中改变阅读视角：最高
+                Accuracy、AUC、Sensitivity 与 Specificity 分别落在不同模型上。
+              </p></ChurnCaseNote
+            >
+          </section>
 
-        <section class="chapter related-projects" data-reveal>
-          <div class="chapter-heading">
-            <span>NEXT</span><div>
-              <p>RELATED PROJECTS</p><h2>继续查看其他分析项目</h2>
+          <section class="chapter" data-reveal>
+            <div class="chapter-heading">
+              <span>10</span><div>
+                <p>THE DECISION</p><h2>为什么 Accuracy 最高的模型没有被选中？</h2>
+              </div>
             </div>
-          </div>
-          <div class="related-projects__grid">
-            {
-              relatedProjects.map((project) => (
-                <a href={getLocalizedPath(`/projects/${project.data.slug}/`, "zh")}>
-                  <>
-                    <span>{project.data.topic}</span>
-                    <strong>{project.data.title}</strong>
-                    <p>{project.data.summary}</p>
-                  </>
-                </a>
-              ))
-            }
-          </div>
-          <ContextBack
-            locale="zh"
-            fallbackPath="/projects/"
-            label={{ en: "Back to projects", zh: "返回项目列表" }}
-          />
-        </section>
+            <div class="decision-essay">
+              <div>
+                <strong>LightGBM</strong><span>Accuracy 0.8199</span><p>
+                  总体正确率最高，但 AUC 0.8955、Sensitivity 0.7994 均未领先。
+                </p>
+              </div>
+              <div>
+                <strong>Naive Bayes</strong><span>Sensitivity 0.8318</span><p>
+                  找回流失客户最多，但 Specificity 0.7999 最低，整体区分能力也略低。
+                </p>
+              </div>
+              <div>
+                <strong>XGBoost</strong><span>Specificity 0.8370</span><p>
+                  最少错标 retained，却只识别 76.32% 的真实 churned。
+                </p>
+              </div>
+              <div class="decision-essay__winner">
+                <strong>Logistic Regression</strong><span>AUC 0.9024</span><p>
+                  跨阈值区分能力最高，Sensitivity 距最高值仅
+                  0.0037，同时能把系数转成明确风险方向。
+                </p>
+              </div>
+            </div>
+            <div class="prose">
+              <p>
+                False Negative 是实际 churned 却被判断为 retained；False Positive 是实际
+                retained 却被判断为
+                churned。两类错误不是同一个后果：前者让潜在流失客户离开筛查范围，后者扩大需要进一步核查的客户范围。Sensitivity
+                和 Specificity 分别对应这两个方向，Accuracy 则把它们混在一个比例中。
+              </p>
+              <p>
+                最终选择以 mean AUC 为首要标准，并在接近时检查 Sensitivity。Logistic
+                Regression 的 AUC 第一，Sensitivity 接近 Naive
+                Bayes，同时比树集成保留更直接的解释结构。这个决定不是“线性模型更简单所以更好”，而是判别力、漏判控制和解释成本在本问题中的共同取舍。
+              </p>
+            </div>
+            <RCodeShowcase
+              title="按 mean AUC 选择 workflow"
+              code={codeSnippets.selection}
+            />
+          </section>
+
+          <section id="evaluation" class="chapter chapter--wide" data-reveal>
+            <div class="chapter-heading">
+              <span>11–14</span><div>
+                <p>HOLD-OUT EVALUATION</p><h2>
+                  最终模型在 39,200 条未参与选择的记录上怎样犯错？
+                </h2>
+              </div>
+            </div>
+            <div class="prose">
+              <p>
+                一次性留出评估得到 Accuracy 0.8142、AUC 0.9053、Sensitivity 0.8331 和
+                Specificity 0.8058。AUC 比 CV 平均值 0.9024
+                略高，说明模型在隔离数据上的整体排序能力与选择阶段相近；但真正决定筛查行为的是混淆矩阵中
+                31,917 个正确判断和 7,283 个错误判断。
+              </p>
+              <p>
+                2,022 个 False Negative 对应 16.69% 的实际 churned；5,261 个 False
+                Positive 对应 19.42% 的实际 retained。前者解释为什么 Sensitivity
+                没有达到 1，后者解释为什么 Specificity 低于
+                Accuracy。分别阅读两类错误，比把 81.42% 正确率视为单一结论更有价值。
+              </p>
+            </div>
+            <ModelEvaluation />
+            <RCodeShowcase
+              title="从留出预测生成混淆矩阵与 ROC"
+              code={codeSnippets.finalEvaluation}
+            />
+            <ChurnCaseNote
+              ><p>
+                混淆矩阵把 39,200 条留出预测拆成四类结果；FN 对应漏掉真实流失，FP
+                对应把真实留存提前标为流失。
+              </p></ChurnCaseNote
+            >
+          </section>
+
+          <section id="interpretation" class="chapter chapter--wide" data-reveal>
+            <div class="chapter-heading">
+              <span>15</span><div>
+                <p>INTERPRETATION</p><h2>哪些变量最明显改变 churn odds？</h2>
+              </div>
+            </div>
+            <div class="prose">
+              <p>
+                解释模型使用自然类别分布重新拟合，不带上采样。这样做是因为把类别人为变成
+                1:1 会改变截距，并可能改变 odds ratio 的业务解释。系数通过 <code
+                  >exp(beta)</code
+                > 转成 odds ratio，并为每项系数计算 95% confidence interval；虚线 OR = 1 表示在其他变量相同时没有方向变化。
+              </p>
+              <p>
+                支付失败是最强信号：Yes 相对 No 的 OR 约为 15.9。退款申请的 OR 约
+                2.5；距上次充电每增加一周，OR 约
+                2.01。应用崩溃、等待时间和故障率的单单位效应较小，但单位必须读清：一次崩溃、一分钟、一个百分点分别对应
+                1.18、1.10 和 1.08。
+              </p>
+              <p>
+                计划层级以 Basic 为参照，Plus 与 Pro 的 OR 分别约 0.62 和 0.38。小于 1
+                表示在控制其他六个输入后与更低的流失 odds
+                相关。所有解释都是已拟合模型内的条件关联，不能把它们写成支付、等待或计划对流失的因果证明。
+              </p>
+            </div>
+            <ChurnEvidenceFigure
+              number="FIG 11"
+              title="Odds ratio 与 95% 区间把方向和不确定性放在同一轴上"
+              src={projectImages.oddsRatioCi}
+              alt="Logistic Regression 八项系数的 odds ratio 与 95% confidence interval 图，参照线为 1"
+              caption="Basic 是 plan_tier 的参照；二元变量为 Yes 相对 No；数值变量按原始单位增加 1。"
+              reading="应该看哪里：支付失败远离 OR=1，Plus 与 Pro 位于保护方向；服务变量靠近 1，但它们按一分钟、一次崩溃或一个百分点计量，不能仅凭条形长度判断实际影响。区间用于判断估计精度，点值用于说明方向与单位。"
+            />
+            <RiskSignalExplorer />
+            <RCodeShowcase
+              title="自然分布下计算 odds ratio 与 95% 区间"
+              code={codeSnippets.oddsRatios}
+            />
+            <ChurnCaseNote
+              ><p>
+                Odds ratio 是在其他已选变量相同条件下的关联估计；连续变量按原始单位增加
+                1 解释，分类变量相对 Basic 或 No 解释。
+              </p></ChurnCaseNote
+            >
+          </section>
+
+          <section class="chapter" data-reveal>
+            <div class="chapter-heading">
+              <span>16</span><div>
+                <p>WHAT THE EVIDENCE SUPPORTS</p><h2>
+                  从数据筛选到模型解释，结论如何闭合？
+                </h2>
+              </div>
+            </div>
+            <ol class="closing-findings">
+              <li>
+                <strong>总体先于算法。</strong><span
+                  >200,000 条记录排除 4,000 条 Fleet 后，模型明确服务于 196,000
+                  条个人客户观察。</span
+                >
+              </li>
+              <li>
+                <strong>七个变量覆盖四种风险来源。</strong><span
+                  >服务质量、商业摩擦、不活跃程度和会员结构进入同一个可解释输入集合；signup
+                  周数因 0.88 相关性被移除。</span
+                >
+              </li>
+              <li>
+                <strong>验证边界完整隔离。</strong><span
+                  >156,800 条训练记录承担比较与重拟合，39,200
+                  条留出记录只参与最终一次评估；30,000 条 CV 样本仅来自训练部分。</span
+                >
+              </li>
+              <li>
+                <strong>五模型没有共同的“第一”。</strong><span
+                  >LightGBM 领先 Accuracy，Naive Bayes 领先 Sensitivity，XGBoost 领先
+                  Specificity，Logistic Regression 领先 AUC。</span
+                >
+              </li>
+              <li>
+                <strong>最终选择是多目标取舍。</strong><span
+                  >Logistic Regression 的 CV AUC 为 0.9024，留出 AUC 为
+                  0.9053；它同时保留 0.8331 的流失召回与系数解释。</span
+                >
+              </li>
+              <li>
+                <strong>错误结构和风险信号可以继续行动化。</strong><span
+                  >2,022 个漏判与 5,261 个误报界定筛查边界；支付失败 OR
+                  15.9、距上次充电每周 OR 2.01 是最明显的模型信号。</span
+                >
+              </li>
+            </ol>
+          </section>
+
+          <section class="chapter chapter--deep-dives" data-reveal>
+            <div class="chapter-heading">
+              <span>TECH</span><div>
+                <p>TECHNICAL DEEP DIVES</p><h2>
+                  主项目给出完整判断链，技术专篇进入实现细节
+                </h2>
+              </div>
+            </div>
+            <p class="deep-dive-intro">
+              五篇专文分别负责数据与验证、五模型基准、模型选择与错误、Logistic
+              Regression
+              解释和独立神经网络实验。每篇只展开自己的技术问题，不把主项目重新复述一遍。
+            </p>
+            <TechnicalDeepDiveNav />
+          </section>
+
+          <section class="chapter related-projects" data-reveal>
+            <div class="chapter-heading">
+              <span>NEXT</span><div>
+                <p>RELATED PROJECTS</p><h2>继续查看其他分析项目</h2>
+              </div>
+            </div>
+            <div class="related-projects__grid">
+              {
+                relatedProjects.map((project) => (
+                  <a href={getLocalizedPath(`/projects/${project.data.slug}/`, "zh")}>
+                    <>
+                      <span>{project.data.topic}</span>
+                      <strong>{project.data.title}</strong>
+                      <p>{project.data.summary}</p>
+                    </>
+                  </a>
+                ))
+              }
+            </div>
+            <ContextBack
+              locale="zh"
+              fallbackPath="/projects/"
+              label={{ en: "Back to projects", zh: "返回项目列表" }}
+            />
+          </section>
+        </div>
+        <aside class="case-toc--side"><ChurnOnThisPage sections={onThisPage} /></aside>
       </div>
     </article>
   </main>
@@ -770,26 +819,22 @@ const maxFlow = sampleFlow[0]?.value ?? 1;
   .case-hero__brief small {
     grid-column: 2;
   }
-  .case-toc {
-    display: flex;
-    gap: 0;
-    overflow-x: auto;
-    border-top: 1px solid var(--colour-border);
+  .case-toc--top {
+    display: none;
   }
-  .case-toc a {
-    flex: 0 0 auto;
-    padding: 0.9rem 1.15rem;
-    border-right: 1px solid var(--colour-border);
-    color: var(--colour-text-muted);
-    text-decoration: none;
-    font-size: 0.82rem;
+  .case-reading-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 15rem;
+    gap: clamp(2rem, 4vw, 4rem);
+    align-items: start;
   }
-  .case-toc a:hover {
-    color: var(--colour-text);
-    background: var(--colour-surface);
+  .case-toc--side {
+    position: sticky;
+    top: calc(var(--header-height, 4rem) + 1rem);
   }
   .case-article {
     padding-block: clamp(4rem, 9vw, 9rem);
+    min-width: 0;
   }
   .chapter {
     display: grid;
@@ -1118,6 +1163,15 @@ const maxFlow = sampleFlow[0]?.value ?? 1;
     line-height: 1.6;
   }
   @media (max-width: 980px) {
+    .case-toc--top {
+      display: block;
+    }
+    .case-reading-layout {
+      display: block;
+    }
+    .case-toc--side {
+      display: none;
+    }
     .model-family-map {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -1183,7 +1237,7 @@ const maxFlow = sampleFlow[0]?.value ?? 1;
     }
   }
   @media (prefers-reduced-motion: reduce) {
-    .case-toc {
+    .case-toc--top {
       scroll-behavior: auto;
     }
   }

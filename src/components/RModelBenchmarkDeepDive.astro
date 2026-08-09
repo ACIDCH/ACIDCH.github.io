@@ -8,13 +8,14 @@ import {
 import RDeepDiveShell from "./RDeepDiveShell.astro";
 import ModelComparisonLab from "./ModelComparisonLab.astro";
 import RCodeShowcase from "./RCodeShowcase.astro";
+import ChurnDeepeningSections from "./ChurnDeepeningSections.astro";
 
 const deepDive = deepDives.find((item) => item.slug === "model-comparison")!;
 const metrics = Object.keys(metricLabels) as Array<keyof typeof metricLabels>;
 ---
 
 <RDeepDiveShell deepDive={deepDive}>
-  <section class="r-deep-section" data-reveal>
+  <section id="benchmark" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>01</span><div>
         <p>BENCHMARK QUESTION</p><h2>五模型比较的目的不是寻找最复杂算法</h2>
@@ -51,7 +52,7 @@ const metrics = Object.keys(metricLabels) as Array<keyof typeof metricLabels>;
     <RCodeShowcase title="五个模型与引擎规格" code={codeSnippets.models} open />
   </section>
 
-  <section class="r-deep-section" data-reveal>
+  <section id="logistic" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>02</span><div>
         <p>LOGISTIC REGRESSION</p><h2>线性基准同时承担判别和解释职责</h2>
@@ -75,7 +76,7 @@ const metrics = Object.keys(metricLabels) as Array<keyof typeof metricLabels>;
     </div>
   </section>
 
-  <section class="r-deep-section" data-reveal>
+  <section id="naive-bayes" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>03</span><div>
         <p>NAIVE BAYES</p><h2>最高 Sensitivity 来自另一种概率取舍</h2>
@@ -101,7 +102,7 @@ const metrics = Object.keys(metricLabels) as Array<keyof typeof metricLabels>;
     </div>
   </section>
 
-  <section class="r-deep-section" data-reveal>
+  <section id="random-forest" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>04</span><div>
         <p>RANDOM FOREST</p><h2>500 棵树提高 Accuracy，却降低 churned 召回</h2>
@@ -128,7 +129,7 @@ const metrics = Object.keys(metricLabels) as Array<keyof typeof metricLabels>;
     </div>
   </section>
 
-  <section class="r-deep-section" data-reveal>
+  <section id="xgboost" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>05</span><div>
         <p>XGBOOST</p><h2>最高 Specificity 与最低 Sensitivity 同时出现</h2>
@@ -154,7 +155,7 @@ const metrics = Object.keys(metricLabels) as Array<keyof typeof metricLabels>;
     </div>
   </section>
 
-  <section class="r-deep-section" data-reveal>
+  <section id="lightgbm" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>06</span><div>
         <p>LIGHTGBM</p><h2>Accuracy 第一仍不足以决定最终模型</h2>
@@ -179,7 +180,7 @@ const metrics = Object.keys(metricLabels) as Array<keyof typeof metricLabels>;
     </div>
   </section>
 
-  <section class="r-deep-section" data-reveal>
+  <section id="metrics" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>07</span><div><p>METRICS</p><h2>四项指标把同一组预测切成四种问题</h2></div>
     </div>
@@ -202,7 +203,7 @@ const metrics = Object.keys(metricLabels) as Array<keyof typeof metricLabels>;
     <ModelComparisonLab />
   </section>
 
-  <section class="r-deep-section" data-reveal>
+  <section id="results" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>08</span><div>
         <p>EXACT RESULTS</p><h2>完整均值表保留所有模型，而不是只展示胜者</h2>
@@ -247,7 +248,7 @@ const metrics = Object.keys(metricLabels) as Array<keyof typeof metricLabels>;
     />
   </section>
 
-  <section class="r-deep-section" data-reveal>
+  <section id="selection" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>09</span><div>
         <p>SELECTION</p><h2>单一 metric 不能替代最终判断，但选择规则必须明确</h2>
@@ -297,4 +298,5 @@ const metrics = Object.keys(metricLabels) as Array<keyof typeof metricLabels>;
       </li>
     </ol>
   </section>
+  <ChurnDeepeningSections topic="model-comparison" />
 </RDeepDiveShell>

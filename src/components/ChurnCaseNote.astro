@@ -1,0 +1,41 @@
+---
+import ChurnMicroIcon from "./ChurnMicroIcon.astro";
+
+interface Props {
+  label?: string;
+}
+
+const { label = "Note." } = Astro.props;
+---
+
+<aside class="churn-case-note" aria-label={label}>
+  <ChurnMicroIcon name="note" decorative />
+  <div><strong>{label}</strong><slot /></div>
+</aside>
+
+<style>
+  .churn-case-note {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.7rem;
+    max-width: 76ch;
+    margin: 1.35rem 0 0;
+    padding: 0.85rem 0 0.85rem 1rem;
+    border-left: 2px solid var(--colour-accent);
+    color: var(--colour-text-muted);
+    font-size: 0.88rem;
+    line-height: 1.65;
+  }
+  .churn-case-note > :first-child {
+    color: var(--colour-accent);
+    margin-top: 0.1rem;
+  }
+  .churn-case-note :global(p) {
+    margin: 0;
+  }
+  .churn-case-note strong {
+    color: var(--colour-text);
+    font: 700 0.72rem/1 var(--font-mono);
+    letter-spacing: 0.08em;
+  }
+</style>

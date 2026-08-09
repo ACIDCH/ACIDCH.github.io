@@ -1,0 +1,238 @@
+---
+const correlations = [
+  {
+    a: "weeks_since_last_charge",
+    b: "weeks_since_signup",
+    r: 0.88,
+    decision: "保留前者；后者不进入最终输入。",
+    detail: "两个周数变量承载高度重叠的时间信息；距上次充电更直接描述当前不活跃状态。",
+  },
+  {
+    a: "app_version_lag_weeks",
+    b: "app_crashes_30d",
+    r: 0.41,
+    decision: "保留崩溃次数作为最终输入。",
+    detail: "版本滞后在探索阶段保留，最终由更直接的应用异常信号承接。",
+  },
+  {
+    a: "avg_wait_minutes",
+    b: "charger_fault_rate",
+    r: 0.39,
+    decision: "两项均保留。",
+    detail: "排队体验与设施可靠性相关但含义不同，未按单一阈值机械删除。",
+  },
+  {
+    a: "avg_wait_minutes",
+    b: "peak_share",
+    r: 0.37,
+    decision: "peak_share 未进入最终输入。",
+    detail: "该关系用于探索拥挤情境；最终七变量未加入 peak_share。",
+  },
+] as const;
+---
+
+<figure class="correlation-explorer" data-correlation-explorer>
+  <figcaption>
+    <span>EDA / 03</span><div>
+      <h3>相关性用于判断信息重叠，而不是替代业务判断</h3><p>
+        四个经核实的关键配对按相关系数排序。选择一个配对，可查看它是否改变了最终变量去向。
+      </p>
+    </div>
+  </figcaption>
+  <div class="correlation-explorer__grid" role="list" aria-label="关键变量相关性">
+    {
+      correlations.map((item, index) => (
+        <button
+          type="button"
+          role="listitem"
+          class:list={[index === 0 && "is-active"]}
+          data-correlation-option={index}
+          aria-pressed={index === 0 ? "true" : "false"}
+        >
+          <>
+            <span>{item.a}</span>
+            <i style={`--correlation:${Math.abs(item.r) * 100}%`}>
+              <b>r {item.r.toFixed(2)}</b>
+            </i>
+            <span>{item.b}</span>
+          </>
+        </button>
+      ))
+    }
+  </div>
+  <div class="correlation-explorer__detail" aria-live="polite">
+    <p data-correlation-pair>{correlations[0].a} × {correlations[0].b}</p><strong
+      data-correlation-value>r = {correlations[0].r.toFixed(2)}</strong
+    ><span data-correlation-decision>{correlations[0].decision}</span><p
+      data-correlation-detail
+    >
+      {correlations[0].detail}
+    </p>
+  </div>
+  <p class="correlation-explorer__reading">
+    0.88 是变量选择中的明确冗余信号；0.39、0.41 与 0.37
+    则保留为比较背景。相关性说明共同变化，不单独证明某个变量造成流失。
+  </p>
+</figure>
+
+<script is:inline define:vars={{ correlations }}>
+  const initialize = () => {
+    const root = document.querySelector("[data-correlation-explorer]");
+    if (!(root instanceof HTMLElement) || root.dataset.ready === "true") return;
+    root.dataset.ready = "true";
+    const fields = {
+      pair: root.querySelector("[data-correlation-pair]"),
+      value: root.querySelector("[data-correlation-value]"),
+      decision: root.querySelector("[data-correlation-decision]"),
+      detail: root.querySelector("[data-correlation-detail]"),
+    };
+    root.querySelectorAll("[data-correlation-option]").forEach((button) =>
+      button.addEventListener("click", () => {
+        const index = Number(button.getAttribute("data-correlation-option"));
+        const item = correlations[index];
+        if (!item) return;
+        root.querySelectorAll("[data-correlation-option]").forEach((option) => {
+          const selected = option === button;
+          option.classList.toggle("is-active", selected);
+          option.setAttribute("aria-pressed", String(selected));
+        });
+        fields.pair.textContent = `${item.a} × ${item.b}`;
+        fields.value.textContent = `r = ${item.r.toFixed(2)}`;
+        fields.decision.textContent = item.decision;
+        fields.detail.textContent = item.detail;
+      }),
+    );
+  };
+  document.addEventListener("astro:page-load", initialize);
+  initialize();
+</script>
+
+<style>
+  .correlation-explorer {
+    margin: 0;
+  }
+  .correlation-explorer figcaption {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.4rem;
+  }
+  .correlation-explorer figcaption > span {
+    width: max-content;
+    padding: 0.45rem 0.65rem;
+    border: 1px solid var(--colour-border);
+    border-radius: 999px;
+    color: var(--colour-primary-strong);
+    font: 700 0.7rem/1 var(--font-mono);
+  }
+  .correlation-explorer h3,
+  .correlation-explorer p {
+    margin: 0;
+  }
+  .correlation-explorer h3 {
+    max-width: 27ch;
+    font-size: clamp(1.45rem, 3vw, 2.25rem);
+    line-height: 1.15;
+  }
+  .correlation-explorer figcaption p,
+  .correlation-explorer__reading {
+    max-width: 72ch;
+    margin-top: 0.6rem;
+    color: var(--colour-text-muted);
+    line-height: 1.72;
+  }
+  .correlation-explorer__grid {
+    display: grid;
+    border: 1px solid var(--colour-border);
+    background: var(--colour-border);
+  }
+  .correlation-explorer button {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 11rem minmax(0, 1fr);
+    gap: 1rem;
+    align-items: center;
+    padding: 0.9rem 1rem;
+    border: 0;
+    border-bottom: 1px solid var(--colour-border);
+    background: var(--colour-surface);
+    color: var(--colour-text);
+    text-align: left;
+    cursor: pointer;
+  }
+  .correlation-explorer button:last-child {
+    border-bottom: 0;
+  }
+  .correlation-explorer button:hover,
+  .correlation-explorer button.is-active {
+    background: color-mix(in srgb, var(--colour-primary) 9%, var(--colour-surface));
+  }
+  .correlation-explorer button > span {
+    overflow-wrap: anywhere;
+    font: 600 0.76rem/1.4 var(--font-mono);
+  }
+  .correlation-explorer button i {
+    position: relative;
+    display: grid;
+    place-items: center;
+    height: 0.6rem;
+    background: var(--colour-surface-raised);
+    font-style: normal;
+  }
+  .correlation-explorer button i::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: var(--correlation);
+    background: var(--colour-primary);
+  }
+  .correlation-explorer button b {
+    z-index: 1;
+    transform: translateY(-1.25rem);
+    font: 700 0.7rem/1 var(--font-mono);
+    white-space: nowrap;
+  }
+  .correlation-explorer__detail {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.55rem 1.25rem;
+    margin-top: 1rem;
+    padding: 1.1rem;
+    border-left: 3px solid var(--colour-accent);
+    background: var(--colour-surface);
+  }
+  .correlation-explorer__detail > p:last-child {
+    grid-column: 1/-1;
+    color: var(--colour-text-muted);
+    line-height: 1.65;
+  }
+  .correlation-explorer__detail strong {
+    font: 750 1.4rem/1 var(--font-display);
+  }
+  .correlation-explorer__detail span {
+    align-self: center;
+    color: var(--colour-primary-strong);
+    font-size: 0.86rem;
+  }
+  .correlation-explorer__reading {
+    padding-left: 1rem;
+    border-left: 3px solid var(--colour-accent);
+  }
+  @media (max-width: 560px) {
+    .correlation-explorer figcaption {
+      grid-template-columns: 1fr;
+    }
+    .correlation-explorer button {
+      grid-template-columns: 1fr;
+      gap: 0.45rem;
+    }
+    .correlation-explorer button i {
+      width: 100%;
+    }
+    .correlation-explorer__detail {
+      grid-template-columns: 1fr;
+    }
+    .correlation-explorer__detail span {
+      align-self: start;
+    }
+  }
+</style>

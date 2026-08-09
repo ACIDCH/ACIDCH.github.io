@@ -1,0 +1,205 @@
+---
+const shared = [
+  "中位数缺失防护",
+  "未知类别处理",
+  "零方差检查",
+  "analysis fold 内上采样至 1:1",
+];
+const paths = [
+  {
+    name: "rec_lr",
+    models: "Logistic Regression · XGBoost",
+    extra: "Dummy 编码",
+    reason: "两个引擎接收数值矩阵；计划和二元字段转换为指示列。",
+  },
+  {
+    name: "rec_rf",
+    models: "Random Forest · LightGBM · Naive Bayes",
+    extra: "保留 factor",
+    reason: "相应引擎直接处理分类水平；不额外展开指示列。",
+  },
+] as const;
+---
+
+<figure
+  class="recipe-comparison"
+  data-recipe-comparison
+  data-recipe-paths={JSON.stringify(paths)}
+>
+  <figcaption>
+    <span>RECIPE / 01</span><div>
+      <h3>相同的验证边界，不代表所有模型使用相同输入</h3><p>
+        选择一条路径，查看共同步骤如何与模型特定的输入处理组合。
+      </p>
+    </div>
+  </figcaption>
+  <div class="recipe-comparison__switch" role="tablist" aria-label="预处理路径">
+    {
+      paths.map((path, index) => (
+        <button
+          role="tab"
+          type="button"
+          aria-selected={index === 0 ? "true" : "false"}
+          data-recipe-tab={index}
+        >
+          {path.name}
+        </button>
+      ))
+    }
+  </div>
+  <div class="recipe-comparison__path" role="tabpanel">
+    <div class="recipe-comparison__models">
+      <strong data-recipe-name>{paths[0].name}</strong><span data-recipe-models
+        >{paths[0].models}</span
+      >
+    </div>
+    <ol>
+      {shared.map((step) => <li>{step}</li>)}<li class="is-extra" data-recipe-extra>
+        {paths[0].extra}
+      </li>
+    </ol>
+    <p data-recipe-reason>{paths[0].reason}</p>
+  </div>
+  <p class="recipe-comparison__reading">
+    上采样发生在每个 analysis fold 内；assessment fold 与 39,200 条留出记录维持约 69/31
+    的自然类别比例。这样比较的分数不会因验证集被重复记录改变而失真。
+  </p>
+</figure>
+
+<script>
+  const initialize = () => {
+    const root = document.querySelector("[data-recipe-comparison]");
+    if (!(root instanceof HTMLElement) || root.dataset.ready === "true") return;
+    root.dataset.ready = "true";
+    const recipePaths = JSON.parse(root.dataset.recipePaths || "[]");
+    const name = root.querySelector("[data-recipe-name]"),
+      models = root.querySelector("[data-recipe-models]"),
+      extra = root.querySelector("[data-recipe-extra]"),
+      reason = root.querySelector("[data-recipe-reason]");
+    root.querySelectorAll("[data-recipe-tab]").forEach((button) =>
+      button.addEventListener("click", () => {
+        const index = Number(button.getAttribute("data-recipe-tab"));
+        const path = recipePaths[index];
+        if (!path) return;
+        root
+          .querySelectorAll("[data-recipe-tab]")
+          .forEach((tab) => tab.setAttribute("aria-selected", String(tab === button)));
+        if (name) name.textContent = path.name;
+        if (models) models.textContent = path.models;
+        if (extra) extra.textContent = path.extra;
+        if (reason) reason.textContent = path.reason;
+      }),
+    );
+  };
+  document.addEventListener("astro:page-load", initialize);
+  initialize();
+</script>
+
+<style>
+  .recipe-comparison {
+    margin: 0;
+  }
+  .recipe-comparison figcaption {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.4rem;
+  }
+  .recipe-comparison figcaption > span {
+    width: max-content;
+    padding: 0.45rem 0.65rem;
+    border: 1px solid var(--colour-border);
+    border-radius: 999px;
+    color: var(--colour-primary-strong);
+    font: 700 0.7rem/1 var(--font-mono);
+  }
+  .recipe-comparison h3,
+  .recipe-comparison p {
+    margin: 0;
+  }
+  .recipe-comparison h3 {
+    max-width: 26ch;
+    font-size: clamp(1.45rem, 3vw, 2.25rem);
+    line-height: 1.15;
+  }
+  .recipe-comparison figcaption p,
+  .recipe-comparison__reading {
+    max-width: 72ch;
+    margin-top: 0.6rem;
+    color: var(--colour-text-muted);
+    line-height: 1.72;
+  }
+  .recipe-comparison__switch {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+  .recipe-comparison__switch button {
+    padding: 0.55rem 0.8rem;
+    border: 1px solid var(--colour-border);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--colour-text-muted);
+    cursor: pointer;
+    font: 700 0.75rem/1 var(--font-mono);
+  }
+  .recipe-comparison__switch button[aria-selected="true"] {
+    border-color: var(--colour-primary);
+    background: var(--colour-primary);
+    color: var(--colour-primary-contrast);
+  }
+  .recipe-comparison__path {
+    padding: clamp(1rem, 3vw, 2rem);
+    border: 1px solid var(--colour-border);
+    background: var(--colour-surface);
+  }
+  .recipe-comparison__models {
+    display: grid;
+    gap: 0.3rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--colour-border);
+  }
+  .recipe-comparison__models strong {
+    font: 750 clamp(1.25rem, 3vw, 1.8rem)/1 var(--font-display);
+  }
+  .recipe-comparison__models span,
+  .recipe-comparison__path > p {
+    color: var(--colour-text-muted);
+    line-height: 1.65;
+  }
+  .recipe-comparison ol {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin: 1.25rem 0;
+    padding: 0;
+    list-style: none;
+  }
+  .recipe-comparison li {
+    padding: 0.45rem 0.6rem;
+    border: 1px solid var(--colour-border);
+    border-radius: 999px;
+    font-size: 0.8rem;
+  }
+  .recipe-comparison li.is-extra {
+    border-color: var(--colour-accent);
+    color: var(--colour-primary-strong);
+  }
+  .recipe-comparison__reading {
+    padding-left: 1rem;
+    border-left: 3px solid var(--colour-accent);
+  }
+  @media (max-width: 560px) {
+    .recipe-comparison figcaption {
+      grid-template-columns: 1fr;
+    }
+    .recipe-comparison__switch {
+      display: grid;
+      grid-template-columns: 1fr;
+    }
+    .recipe-comparison__switch button {
+      text-align: left;
+    }
+  }
+</style>

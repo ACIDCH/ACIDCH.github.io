@@ -55,6 +55,23 @@
 
 .r-deep-body {
   padding-block: clamp(3rem, 8vw, 8rem);
+  min-width: 0;
+}
+
+.r-deep-reading-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 15rem;
+  gap: clamp(2rem, 4vw, 4rem);
+  align-items: start;
+}
+
+.r-deep-toc-side {
+  position: sticky;
+  top: calc(var(--header-height, 4rem) + 1rem);
+}
+
+.r-deep-toc-top {
+  display: none;
 }
 
 .r-deep-section {
@@ -236,6 +253,7 @@
 }
 
 .r-deep-end {
+  grid-column: 1 / -1;
   display: grid;
   gap: 2rem;
   padding-block: clamp(3rem, 8vw, 7rem);
@@ -247,6 +265,18 @@
 }
 
 @media (max-width: 780px) {
+  .r-deep-reading-layout {
+    display: block;
+  }
+
+  .r-deep-toc-side {
+    display: none;
+  }
+
+  .r-deep-toc-top {
+    display: block;
+  }
+
   .r-deep-hero__grid {
     grid-template-columns: 1fr;
   }

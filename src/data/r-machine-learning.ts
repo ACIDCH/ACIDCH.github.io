@@ -23,7 +23,6 @@ export const projectImages = {
   numericDistributions: "/projects/customer-churn/numeric-distributions.webp",
   predictorComparisons: "/projects/customer-churn/predictor-comparisons.webp",
   categoricalRates: "/projects/customer-churn/categorical-churn-rates.webp",
-  correlationMatrix: "/projects/customer-churn/correlation-matrix.webp",
   serviceInteractions: "/projects/customer-churn/service-interactions.webp",
   holdoutRoc: "/projects/customer-churn/holdout-roc.webp",
   oddsRatioCi: "/projects/customer-churn/odds-ratio-ci.webp",

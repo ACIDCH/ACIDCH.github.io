@@ -1,0 +1,156 @@
+---
+import ChurnMicroIcon from "./ChurnMicroIcon.astro";
+
+const parts = [
+  ["Plan", "会员层级与支付安排", "filter"],
+  ["Usage", "使用频率、时段与间隔", "data"],
+  ["Service", "等待、故障与支持记录", "validation"],
+  ["Payment", "支付失败与退款请求", "error"],
+  ["App", "崩溃、版本与互动状态", "code"],
+] as const;
+---
+
+<figure class="observation-anatomy">
+  <figcaption>
+    <span>DATA / 00</span>
+    <div>
+      <h3>一条记录先描述一个客户状态，再承接一个结果</h3><p>
+        每个 observation 把计划、使用、服务、支付和应用体验放在同一行，随后用 retained
+        或 churned 标记该行的结果。
+      </p>
+    </div>
+  </figcaption>
+  <div
+    class="observation-anatomy__map"
+    role="img"
+    aria-label="客户观察由计划、使用、服务、支付和应用体验组成，并对应 retained 或 churned 结果"
+  >
+    <div class="observation-anatomy__customer">
+      <ChurnMicroIcon name="data" decorative /><strong>Customer</strong><small
+        >一条客户观察</small
+      >
+    </div>
+    <div class="observation-anatomy__inputs">
+      {
+        parts.map(([title, detail, icon]) => (
+          <div>
+            <>
+              <ChurnMicroIcon name={icon} decorative />
+              <strong>{title}</strong>
+              <small>{detail}</small>
+            </>
+          </div>
+        ))
+      }
+    </div>
+    <div class="observation-anatomy__outcome">
+      <ChurnMicroIcon name="prediction" decorative /><strong>Outcome</strong><span
+        >retained / churned</span
+      >
+    </div>
+  </div>
+  <p class="observation-anatomy__reading">
+    churned 被设为事件类别，因此 Sensitivity
+    只计算真实流失客户中被正确识别的比例；Specificity
+    则只计算真实留存客户中被正确排除的比例。事件方向先固定，四项指标才使用同一口径。
+  </p>
+</figure>
+
+<style>
+  .observation-anatomy {
+    margin: 0;
+  }
+  figcaption {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.4rem;
+  }
+  figcaption > span {
+    width: max-content;
+    padding: 0.45rem 0.65rem;
+    border: 1px solid var(--colour-border);
+    border-radius: 999px;
+    color: var(--colour-primary-strong);
+    font: 700 0.7rem/1 var(--font-mono);
+  }
+  h3,
+  p {
+    margin: 0;
+  }
+  h3 {
+    max-width: 28ch;
+    font-size: clamp(1.45rem, 3vw, 2.25rem);
+    line-height: 1.15;
+  }
+  figcaption p,
+  .observation-anatomy__reading {
+    max-width: 72ch;
+    margin-top: 0.6rem;
+    color: var(--colour-text-muted);
+    line-height: 1.72;
+  }
+  .observation-anatomy__map {
+    display: grid;
+    grid-template-columns: minmax(9rem, 0.8fr) minmax(0, 2fr) minmax(9rem, 0.8fr);
+    gap: 1px;
+    background: var(--colour-border);
+    border: 1px solid var(--colour-border);
+  }
+  .observation-anatomy__customer,
+  .observation-anatomy__outcome,
+  .observation-anatomy__inputs > div {
+    display: grid;
+    align-content: start;
+    gap: 0.45rem;
+    padding: 1.1rem;
+    background: var(--colour-surface);
+  }
+  .observation-anatomy__customer,
+  .observation-anatomy__outcome {
+    justify-items: start;
+  }
+  .observation-anatomy__inputs {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 1px;
+    background: var(--colour-border);
+  }
+  .observation-anatomy__map :global(svg) {
+    color: var(--colour-accent);
+    font-size: 1.2rem;
+  }
+  .observation-anatomy__map strong {
+    color: var(--colour-text);
+    font-size: 0.9rem;
+  }
+  .observation-anatomy__map small,
+  .observation-anatomy__outcome span {
+    color: var(--colour-text-muted);
+    font-size: 0.72rem;
+    line-height: 1.45;
+  }
+  .observation-anatomy__outcome {
+    border-top: 3px solid var(--colour-accent);
+  }
+  .observation-anatomy__reading {
+    padding-left: 1rem;
+    border-left: 3px solid var(--colour-accent);
+  }
+  @media (max-width: 900px) {
+    .observation-anatomy__map {
+      grid-template-columns: 1fr;
+    }
+    .observation-anatomy__inputs {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 560px) {
+    figcaption {
+      grid-template-columns: 1fr;
+    }
+    .observation-anatomy__inputs {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+</style>

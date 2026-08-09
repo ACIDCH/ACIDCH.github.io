@@ -1,22 +1,22 @@
 ---
 import {
   deepDives,
-  projectImages,
   codeSnippets,
   featureDecisions,
   predictors,
 } from "../data/r-machine-learning";
 import RDeepDiveShell from "./RDeepDiveShell.astro";
 import ChurnFieldSchema from "./ChurnFieldSchema.astro";
-import ChurnEvidenceFigure from "./ChurnEvidenceFigure.astro";
+import ChurnCorrelationExplorer from "./ChurnCorrelationExplorer.astro";
 import AnalysisPipeline from "./AnalysisPipeline.astro";
 import RCodeShowcase from "./RCodeShowcase.astro";
+import ChurnDeepeningSections from "./ChurnDeepeningSections.astro";
 
 const deepDive = deepDives.find((item) => item.slug === "data-validation")!;
 ---
 
 <RDeepDiveShell deepDive={deepDive}>
-  <section class="r-deep-section" data-reveal>
+  <section id="schema" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>01</span><div>
         <p>SCHEMA</p><h2>25 个字段先按分析角色重排，而不是直接全部送进模型</h2>
@@ -38,7 +38,7 @@ const deepDive = deepDives.find((item) => item.slug === "data-validation")!;
     <ChurnFieldSchema />
   </section>
 
-  <section class="r-deep-section" data-reveal>
+  <section id="cleaning" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>02</span><div>
         <p>CLEANING</p><h2>清洗的重点是固定单位、水平和事件方向</h2>
@@ -83,7 +83,7 @@ const deepDive = deepDives.find((item) => item.slug === "data-validation")!;
     </div>
   </section>
 
-  <section class="r-deep-section" data-reveal>
+  <section id="population" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>03</span><div>
         <p>POPULATION</p><h2>Fleet 排除改变的是模型适用范围，而不是一项普通特征</h2>
@@ -107,7 +107,7 @@ const deepDive = deepDives.find((item) => item.slug === "data-validation")!;
     />
   </section>
 
-  <section class="r-deep-section" data-reveal>
+  <section id="features" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>04</span><div>
         <p>FEATURE SELECTION</p><h2>
@@ -176,7 +176,7 @@ const deepDive = deepDives.find((item) => item.slug === "data-validation")!;
     <RCodeShowcase title="固定七变量输入" code={codeSnippets.features} />
   </section>
 
-  <section class="r-deep-section" data-reveal>
+  <section id="correlation" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>05</span><div>
         <p>CORRELATION</p><h2>0.88 是删除 signup 周数的直接证据</h2>
@@ -194,17 +194,10 @@ const deepDive = deepDives.find((item) => item.slug === "data-validation")!;
         差异最大的行为变量之一。这个决策不是泛化成“相关变量只能留一个”：等待与故障虽然中等相关，但分别代表排队体验和设施可靠性，业务含义不同，因此两者都保留。
       </p>
     </div>
-    <ChurnEvidenceFigure
-      number="FIG 01"
-      title="相关矩阵中的一个突出高相关对"
-      src={projectImages.correlationMatrix}
-      alt="数值字段相关矩阵，weeks since signup 与 weeks since last charge 的相关系数为 0.88"
-      caption="矩阵同时显示 0.88、0.41、0.39 和 0.37，便于比较删除阈值的相对位置。"
-      reading="应该看哪里：0.88 单元格明显深于其他非对角关系。删除的是与当前不活跃程度高度重复的 signup 周数，而不是把全部存在相关性的服务字段一并清除。"
-    />
+    <ChurnCorrelationExplorer />
   </section>
 
-  <section class="r-deep-section" data-reveal>
+  <section id="split" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>06</span><div><p>SPLIT</p><h2>80/20 分层切分先把最终答案隔离</h2></div>
     </div>
@@ -223,7 +216,7 @@ const deepDive = deepDives.find((item) => item.slug === "data-validation")!;
     <RCodeShowcase title="建立分层训练与留出边界" code={codeSnippets.split} />
   </section>
 
-  <section class="r-deep-section" data-reveal>
+  <section id="cv-sample" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>07</span><div><p>CV SAMPLE</p><h2>30,000 条样本只用于候选模型比较</h2></div>
     </div>
@@ -261,7 +254,7 @@ const deepDive = deepDives.find((item) => item.slug === "data-validation")!;
     <RCodeShowcase title="分层抽样与五折结构" code={codeSnippets.resampling} />
   </section>
 
-  <section class="r-deep-section" data-reveal>
+  <section id="leakage" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>08</span><div>
         <p>LEAKAGE</p><h2>所有会学习数据的步骤都必须留在 analysis fold</h2>
@@ -289,7 +282,7 @@ const deepDive = deepDives.find((item) => item.slug === "data-validation")!;
     />
   </section>
 
-  <section class="r-deep-section" data-reveal>
+  <section id="recipes" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>09</span><div>
         <p>TWO RECIPES</p><h2>Dummy 编码只服务于需要数值矩阵的引擎</h2>
@@ -325,7 +318,7 @@ const deepDive = deepDives.find((item) => item.slug === "data-validation")!;
     </div>
   </section>
 
-  <section class="r-deep-section" data-reveal>
+  <section id="architecture" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>10</span><div>
         <p>ARCHITECTURE</p><h2>数据架构最终形成一条可重复的验证链</h2>
@@ -362,4 +355,5 @@ const deepDive = deepDives.find((item) => item.slug === "data-validation")!;
       </li>
     </ol>
   </section>
+  <ChurnDeepeningSections topic="data-validation" />
 </RDeepDiveShell>

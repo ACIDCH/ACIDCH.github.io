@@ -5,12 +5,13 @@ import RDeepDiveShell from "./RDeepDiveShell.astro";
 import NeuralBoundaryExplorer from "./NeuralBoundaryExplorer.astro";
 import NeuralNetworkDiagram from "./NeuralNetworkDiagram.astro";
 import RCodeShowcase from "./RCodeShowcase.astro";
+import ChurnDeepeningSections from "./ChurnDeepeningSections.astro";
 
 const deepDive = deepDives.find((item) => item.slug === "neural-network")!;
 ---
 
 <RDeepDiveShell deepDive={deepDive}>
-  <section class="r-deep-section" data-reveal>
+  <section id="experiment" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>01</span><div>
         <p>POSITION</p><h2>
@@ -50,7 +51,7 @@ const deepDive = deepDives.find((item) => item.slug === "neural-network")!;
     </div>
   </section>
 
-  <section class="r-deep-section" data-reveal>
+  <section id="data" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>02</span><div>
         <p>DATA GENERATION</p><h2>3,000 条数据如何形成一条二次边界？</h2>
@@ -95,7 +96,7 @@ const deepDive = deepDives.find((item) => item.slug === "neural-network")!;
     />
   </section>
 
-  <section class="r-deep-section" data-reveal>
+  <section id="network" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>03</span><div>
         <p>NORMALISATION</p><h2>标准化让两个输入在网络优化中处于可比尺度</h2>
@@ -124,7 +125,7 @@ const deepDive = deepDives.find((item) => item.slug === "neural-network")!;
     </div>
   </section>
 
-  <section class="r-deep-section" data-reveal>
+  <section id="boundary" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>04</span><div>
         <p>NETWORK</p><h2>2–2–1 结构用九个权重组合两条非线性响应</h2>
@@ -158,7 +159,7 @@ const deepDive = deepDives.find((item) => item.slug === "neural-network")!;
     />
   </section>
 
-  <section class="r-deep-section" data-reveal>
+  <section id="evaluation" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>05</span><div>
         <p>DECISION SURFACE</p><h2>真实类别与预测类别如何沿弯曲边界分开？</h2>
@@ -178,7 +179,7 @@ const deepDive = deepDives.find((item) => item.slug === "neural-network")!;
     <NeuralBoundaryExplorer />
   </section>
 
-  <section class="r-deep-section" data-reveal>
+  <section id="reading" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>06</span><div>
         <p>TEST METRICS</p><h2>601 条测试记录得到 Accuracy 0.8802 与 AUC 0.9562</h2>
@@ -313,4 +314,5 @@ const deepDive = deepDives.find((item) => item.slug === "neural-network")!;
       </li>
     </ol>
   </section>
+  <ChurnDeepeningSections topic="neural" />
 </RDeepDiveShell>

@@ -9,12 +9,13 @@ import RDeepDiveShell from "./RDeepDiveShell.astro";
 import ChurnEvidenceFigure from "./ChurnEvidenceFigure.astro";
 import RiskSignalExplorer from "./RiskSignalExplorer.astro";
 import RCodeShowcase from "./RCodeShowcase.astro";
+import ChurnDeepeningSections from "./ChurnDeepeningSections.astro";
 
 const deepDive = deepDives.find((item) => item.slug === "logistic-interpretation")!;
 ---
 
 <RDeepDiveShell deepDive={deepDive}>
-  <section class="r-deep-section" data-reveal>
+  <section id="model-form" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>01</span><div>
         <p>MODEL FORM</p><h2>七个项目变量共同决定一条 churn log-odds</h2>
@@ -45,7 +46,7 @@ const deepDive = deepDives.find((item) => item.slug === "logistic-interpretation
     </div>
   </section>
 
-  <section class="r-deep-section" data-reveal>
+  <section id="reference" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>02</span><div>
         <p>INTERPRETATION FIT</p><h2>解释模型为什么去掉上采样？</h2>
@@ -76,7 +77,7 @@ const deepDive = deepDives.find((item) => item.slug === "logistic-interpretation
     />
   </section>
 
-  <section class="r-deep-section" data-reveal>
+  <section id="odds" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>03</span><div>
         <p>DUMMY ENCODING</p><h2>Plus 和 Pro 的 OR 必须相对 Basic 阅读</h2>
@@ -114,7 +115,7 @@ const deepDive = deepDives.find((item) => item.slug === "logistic-interpretation
     </div>
   </section>
 
-  <section class="r-deep-section" data-reveal>
+  <section id="signals" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>04</span><div>
         <p>COEFFICIENTS</p><h2>从 beta 到 OR，再到 95% confidence interval</h2>
@@ -141,7 +142,7 @@ const deepDive = deepDives.find((item) => item.slug === "logistic-interpretation
     />
   </section>
 
-  <section class="r-deep-section" data-reveal>
+  <section id="limits" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>05</span><div>
         <p>COMMERCIAL FRICTION</p><h2>支付失败与退款申请为什么最先进入风险解释？</h2>
@@ -323,4 +324,5 @@ const deepDive = deepDives.find((item) => item.slug === "logistic-interpretation
       </li>
     </ol>
   </section>
+  <ChurnDeepeningSections topic="logistic" />
 </RDeepDiveShell>

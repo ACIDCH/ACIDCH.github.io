@@ -1,0 +1,222 @@
+---
+interface Section {
+  id: string;
+  label: string;
+}
+
+interface Props {
+  sections: readonly Section[];
+  label?: string;
+}
+
+const { sections, label = "本页导航" } = Astro.props;
+const instanceId = `churn-toc-${Math.random().toString(36).slice(2, 8)}`;
+---
+
+<nav class="churn-on-page" aria-label={label} data-churn-toc={instanceId}>
+  <details class="churn-on-page__mobile">
+    <summary
+      ><span>{label}</span><span data-churn-toc-current>{sections[0]?.label}</span
+      ></summary
+    >
+    <div class="churn-on-page__links">
+      {
+        sections.map((section) => (
+          <a href={`#${section.id}`} data-churn-toc-link={section.id}>
+            {section.label}
+          </a>
+        ))
+      }
+    </div>
+  </details>
+  <div class="churn-on-page__desktop">
+    <p>{label}</p>
+    <ol>
+      {
+        sections.map((section, index) => (
+          <li>
+            <a href={`#${section.id}`} data-churn-toc-link={section.id}>
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              {section.label}
+            </a>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</nav>
+
+<script is:inline define:vars={{ instanceId }}>
+  const initialize = () => {
+    const nav = document.querySelector(`[data-churn-toc="${instanceId}"]`);
+    if (!(nav instanceof HTMLElement) || nav.dataset.ready === "true") return;
+    nav.dataset.ready = "true";
+    const links = [...nav.querySelectorAll("[data-churn-toc-link]")];
+    const current = nav.querySelector("[data-churn-toc-current]");
+    const details = nav.querySelector("details");
+    const sections = links
+      .map((link) =>
+        document.getElementById(link.getAttribute("data-churn-toc-link") || ""),
+      )
+      .filter(Boolean);
+
+    const activate = (id) => {
+      links.forEach((link) => {
+        const active = link.getAttribute("data-churn-toc-link") === id;
+        link.toggleAttribute("aria-current", active);
+      });
+      const activeLink = links.find(
+        (link) => link.getAttribute("data-churn-toc-link") === id,
+      );
+      if (current && activeLink)
+        current.textContent = activeLink.textContent?.replace(/^\d+/, "").trim() || "";
+    };
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (visible?.target instanceof HTMLElement) activate(visible.target.id);
+      },
+      { rootMargin: "-20% 0px -68% 0px", threshold: [0.05, 0.2, 0.5] },
+    );
+    sections.forEach((section) => observer.observe(section));
+    links.forEach((link) =>
+      link.addEventListener("click", () => {
+        if (details) details.removeAttribute("open");
+      }),
+    );
+    activate(sections[0]?.id || "");
+  };
+  document.addEventListener("astro:page-load", initialize);
+  initialize();
+</script>
+
+<style>
+  .churn-on-page {
+    color: var(--colour-text-muted);
+  }
+  .churn-on-page__desktop {
+    width: 15rem;
+    padding: 1rem 0 1rem 1rem;
+    border-left: 1px solid var(--colour-border);
+  }
+  .churn-on-page__desktop > p {
+    margin: 0 0 0.8rem;
+    color: var(--colour-text);
+    font: 700 0.72rem/1 var(--font-mono);
+    letter-spacing: 0.08em;
+  }
+  .churn-on-page ol {
+    display: grid;
+    gap: 0.1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .churn-on-page a {
+    display: grid;
+    grid-template-columns: 1.7rem minmax(0, 1fr);
+    gap: 0.35rem;
+    padding: 0.45rem 0;
+    color: inherit;
+    font-size: 0.78rem;
+    line-height: 1.35;
+    text-decoration: none;
+  }
+  .churn-on-page a span {
+    color: var(--colour-accent);
+    font: 700 0.67rem/1.5 var(--font-mono);
+  }
+  .churn-on-page a:hover,
+  .churn-on-page a[aria-current] {
+    color: var(--colour-text);
+  }
+  .churn-on-page a[aria-current] {
+    border-left: 2px solid var(--colour-accent);
+    margin-left: -1rem;
+    padding-left: calc(1rem - 2px);
+  }
+  .churn-on-page__mobile {
+    display: none;
+  }
+  @media (max-width: 1199px) {
+    .churn-on-page {
+      position: sticky;
+      z-index: 4;
+      top: var(--header-height, 4rem);
+      margin: 0;
+      background: color-mix(in srgb, var(--colour-page) 94%, transparent);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--colour-border);
+    }
+    .churn-on-page__desktop {
+      width: auto;
+      padding: 0.75rem max(1rem, calc((100vw - 84rem) / 2));
+      border: 0;
+    }
+    .churn-on-page__desktop > p {
+      display: none;
+    }
+    .churn-on-page ol {
+      display: flex;
+      overflow-x: auto;
+      gap: 0.85rem;
+      scrollbar-width: thin;
+    }
+    .churn-on-page a {
+      display: block;
+      padding: 0.3rem 0;
+      white-space: nowrap;
+    }
+    .churn-on-page a span {
+      display: none;
+    }
+    .churn-on-page a[aria-current] {
+      margin: 0;
+      padding-left: 0;
+      border-left: 0;
+      border-bottom: 2px solid var(--colour-accent);
+    }
+  }
+  @media (max-width: 767px) {
+    .churn-on-page__desktop {
+      display: none;
+    }
+    .churn-on-page__mobile {
+      display: block;
+    }
+    .churn-on-page summary {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.85rem 1rem;
+      color: var(--colour-text);
+      cursor: pointer;
+      list-style: none;
+      font-size: 0.84rem;
+    }
+    .churn-on-page summary::-webkit-details-marker {
+      display: none;
+    }
+    .churn-on-page summary span:last-child {
+      overflow: hidden;
+      color: var(--colour-text-muted);
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .churn-on-page__links {
+      display: grid;
+      max-height: min(55dvh, 24rem);
+      overflow-y: auto;
+      border-top: 1px solid var(--colour-border);
+      background: var(--colour-surface);
+    }
+    .churn-on-page__links a {
+      grid-template-columns: 1fr;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--colour-border);
+    }
+  }
+</style>

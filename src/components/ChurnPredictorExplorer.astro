@@ -1,0 +1,337 @@
+---
+const predictors = [
+  {
+    id: "wait",
+    label: "平均等待时长",
+    field: "avg_wait_minutes",
+    type: "数值 · 分钟",
+    evidence: "分组对比",
+    value: "留存 23.7 分钟 · 流失 27.5 分钟",
+    reading:
+      "等待更久的客户在流失组中更常见；在其他变量同时进入模型后，每增加 1 分钟，流失 odds 的估计值约为原来的 1.10 倍。",
+  },
+  {
+    id: "crashes",
+    label: "近 30 天应用崩溃次数",
+    field: "app_crashes_30d",
+    type: "数值 · 次数",
+    evidence: "回归解释",
+    value: "Odds Ratio 1.18",
+    reading:
+      "该服务体验信号进入最终模型后保持正向关联：在其他变量相同时，崩溃次数每增加 1 次，对应的流失 odds 估计值约增加 18%。",
+  },
+  {
+    id: "fault",
+    label: "充电桩故障率",
+    field: "charger_fault_rate",
+    type: "数值 · 百分比",
+    evidence: "分组对比",
+    value: "留存 4.4% · 流失 5.5%",
+    reading:
+      "流失组面对的故障率更高；在最终模型中，每增加一个该字段的单位，流失 odds 的估计值约为原来的 1.08 倍。",
+  },
+  {
+    id: "plan",
+    label: "计划层级",
+    field: "plan_tier",
+    type: "分类 · Basic 为参照",
+    evidence: "回归解释",
+    value: "Plus 0.62 · Pro 0.38",
+    reading:
+      "模型以 Basic 为参照类别。Plus 与 Pro 的 odds ratio 均低于 1，表示在其余输入相同的条件下，估计流失 odds 低于 Basic。",
+  },
+  {
+    id: "refund",
+    label: "近 12 周退款请求",
+    field: "refund_request_last12w",
+    type: "二元 · 是 / 否",
+    evidence: "分组对比",
+    value: "无请求 29% · 有请求 43%",
+    reading:
+      "退款请求在流失组中的比例更高；在最终模型中，该信号的 odds ratio 约为 2.5，是解释风险差异的重要商业摩擦变量。",
+  },
+  {
+    id: "payment",
+    label: "近 4 周支付失败",
+    field: "payment_failure_last4w",
+    type: "二元 · 是 / 否",
+    evidence: "分组对比",
+    value: "无失败 28% · 有失败 63%",
+    reading:
+      "这是最强的单项风险信号。支付失败的流失比例差异明显；控制其他输入后，odds ratio 约为 15.9。",
+  },
+  {
+    id: "last-charge",
+    label: "距上次充电周数",
+    field: "weeks_since_last_charge",
+    type: "数值 · 周",
+    evidence: "分组对比",
+    value: "留存 3.8 周 · 流失 7.5 周",
+    reading:
+      "近期活跃度差异最直观地体现在这里。该字段保留在模型中，而与之高度相关的注册时长字段被移除，以减少重复信息。",
+  },
+];
+---
+
+<section
+  class="predictor-explorer"
+  data-predictor-explorer
+  aria-labelledby="predictor-explorer-title"
+>
+  <div class="predictor-explorer__intro">
+    <span class="predictor-explorer__eyebrow">PREDICTOR EXPLORER</span>
+    <div>
+      <h3 id="predictor-explorer-title">逐项查看七个输入信号如何进入判断</h3>
+      <p>选择一个变量，查看其单位、证据形式和在数据审阅或最终模型中的具体含义。</p>
+    </div>
+  </div>
+
+  <div class="predictor-explorer__layout">
+    <div class="predictor-explorer__tabs" role="tablist" aria-label="七个最终预测变量">
+      {
+        predictors.map((predictor, index) => (
+          <button
+            type="button"
+            role="tab"
+            id={`predictor-tab-${predictor.id}`}
+            aria-controls={`predictor-panel-${predictor.id}`}
+            aria-selected={index === 0 ? "true" : "false"}
+            tabindex={index === 0 ? "0" : "-1"}
+            data-predictor-tab={predictor.id}
+          >
+            <span>{String(index + 1).padStart(2, "0")}</span>
+            {predictor.label}
+          </button>
+        ))
+      }
+    </div>
+
+    {
+      predictors.map((predictor, index) => (
+        <section
+          class="predictor-explorer__panel"
+          role="tabpanel"
+          id={`predictor-panel-${predictor.id}`}
+          aria-labelledby={`predictor-tab-${predictor.id}`}
+          hidden={index !== 0}
+          data-predictor-panel={predictor.id}
+          tabindex="0"
+        >
+          <div>
+            <span class="predictor-explorer__type">{predictor.type}</span>
+            <h4>{predictor.label}</h4>
+            <code>{predictor.field}</code>
+          </div>
+          <dl>
+            <div>
+              <>
+                <dt>证据形式</dt>
+                <dd>{predictor.evidence}</dd>
+              </>
+            </div>
+            <div>
+              <>
+                <dt>已观察到的信号</dt>
+                <dd>{predictor.value}</dd>
+              </>
+            </div>
+          </dl>
+          <p>{predictor.reading}</p>
+        </section>
+      ))
+    }
+  </div>
+</section>
+
+<script is:inline>
+  const initialisePredictorExplorers = () => {
+    document.querySelectorAll("[data-predictor-explorer]").forEach((explorer) => {
+      if (explorer.dataset.initialised === "true") return;
+      explorer.dataset.initialised = "true";
+      const tabs = [...explorer.querySelectorAll("[data-predictor-tab]")];
+      const panels = [...explorer.querySelectorAll("[data-predictor-panel]")];
+      const activate = (id, focus = false) => {
+        tabs.forEach((tab) => {
+          const active = tab.dataset.predictorTab === id;
+          tab.setAttribute("aria-selected", String(active));
+          tab.tabIndex = active ? 0 : -1;
+          if (active && focus) tab.focus();
+        });
+        panels.forEach((panel) => {
+          panel.hidden = panel.dataset.predictorPanel !== id;
+        });
+      };
+      tabs.forEach((tab, index) => {
+        tab.addEventListener("click", () => activate(tab.dataset.predictorTab));
+        tab.addEventListener("keydown", (event) => {
+          if (!["ArrowRight", "ArrowLeft", "Home", "End"].includes(event.key)) return;
+          event.preventDefault();
+          const next =
+            event.key === "Home"
+              ? 0
+              : event.key === "End"
+                ? tabs.length - 1
+                : (index + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) %
+                  tabs.length;
+          activate(tabs[next].dataset.predictorTab, true);
+        });
+      });
+    });
+  };
+  document.addEventListener("astro:page-load", initialisePredictorExplorers);
+  initialisePredictorExplorers();
+</script>
+
+<style>
+  .predictor-explorer {
+    border-block: 1px solid var(--colour-border);
+    padding-block: clamp(1.5rem, 4vw, 3rem);
+  }
+  .predictor-explorer__intro {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 1rem;
+    align-items: start;
+    margin-bottom: 1.5rem;
+  }
+  .predictor-explorer__eyebrow,
+  .predictor-explorer__type {
+    color: var(--colour-primary-strong);
+    font: 700 0.7rem/1 var(--font-mono);
+    letter-spacing: 0.08em;
+  }
+  h3,
+  h4,
+  p {
+    margin: 0;
+  }
+  h3 {
+    max-width: 25ch;
+    font-size: clamp(1.35rem, 3vw, 2rem);
+    line-height: 1.15;
+  }
+  .predictor-explorer__intro p {
+    max-width: 62ch;
+    margin-top: 0.55rem;
+    color: var(--colour-text-muted);
+    line-height: 1.7;
+  }
+  .predictor-explorer__layout {
+    display: grid;
+    grid-template-columns: minmax(12rem, 0.75fr) minmax(0, 1.25fr);
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .predictor-explorer__tabs {
+    display: grid;
+    border-right: 1px solid var(--colour-border);
+  }
+  .predictor-explorer__tabs button {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    min-width: 0;
+    padding: 0.8rem 1rem;
+    border: 0;
+    border-bottom: 1px solid var(--colour-border);
+    background: var(--colour-surface);
+    color: var(--colour-text);
+    text-align: left;
+    cursor: pointer;
+  }
+  .predictor-explorer__tabs button:last-child {
+    border-bottom: 0;
+  }
+  .predictor-explorer__tabs button[aria-selected="true"] {
+    background: var(--colour-surface-subtle);
+    color: var(--colour-primary-strong);
+  }
+  .predictor-explorer__tabs button:hover {
+    background: var(--colour-surface-subtle);
+  }
+  .predictor-explorer__tabs span {
+    color: var(--colour-accent);
+    font: 700 0.7rem/1 var(--font-mono);
+  }
+  .predictor-explorer__panel {
+    display: grid;
+    align-content: start;
+    gap: 1.25rem;
+    min-width: 0;
+    padding: clamp(1.25rem, 4vw, 2.5rem);
+    background: var(--colour-surface);
+  }
+  .predictor-explorer__panel h4 {
+    margin-top: 0.5rem;
+    font-size: clamp(1.35rem, 3vw, 2rem);
+    line-height: 1.15;
+  }
+  code {
+    display: inline-block;
+    margin-top: 0.5rem;
+    color: var(--colour-text-muted);
+    overflow-wrap: anywhere;
+  }
+  dl {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1px;
+    margin: 0;
+    background: var(--colour-border);
+  }
+  dl div {
+    padding: 0.9rem;
+    background: var(--colour-surface-subtle);
+  }
+  dt {
+    color: var(--colour-text-muted);
+    font-size: 0.8rem;
+  }
+  dd {
+    margin: 0.35rem 0 0;
+    font-weight: 650;
+  }
+  .predictor-explorer__panel > p {
+    max-width: 62ch;
+    color: var(--colour-text-muted);
+    line-height: 1.75;
+  }
+  button:focus-visible,
+  .predictor-explorer__panel:focus-visible {
+    outline: 3px solid var(--colour-focus);
+    outline-offset: -3px;
+  }
+  @media (max-width: 680px) {
+    .predictor-explorer__intro,
+    .predictor-explorer__layout {
+      grid-template-columns: 1fr;
+    }
+    .predictor-explorer__tabs {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      border-right: 0;
+      border-bottom: 1px solid var(--colour-border);
+    }
+    .predictor-explorer__tabs button {
+      border-right: 1px solid var(--colour-border);
+    }
+    .predictor-explorer__tabs button:nth-child(2n) {
+      border-right: 0;
+    }
+    .predictor-explorer__tabs button:last-child {
+      border-bottom: 1px solid var(--colour-border);
+    }
+  }
+  @media (max-width: 420px) {
+    .predictor-explorer__tabs {
+      grid-template-columns: 1fr;
+    }
+    .predictor-explorer__tabs button,
+    .predictor-explorer__tabs button:nth-child(2n) {
+      border-right: 0;
+    }
+    dl {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

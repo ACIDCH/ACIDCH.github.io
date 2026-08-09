@@ -9,6 +9,7 @@ import RDeepDiveShell from "./RDeepDiveShell.astro";
 import ModelEvaluation from "./ModelEvaluation.astro";
 import ChurnEvidenceFigure from "./ChurnEvidenceFigure.astro";
 import RCodeShowcase from "./RCodeShowcase.astro";
+import ChurnDeepeningSections from "./ChurnDeepeningSections.astro";
 
 const deepDive = deepDives.find(
   (item) => item.slug === "model-selection-error-analysis",
@@ -16,7 +17,7 @@ const deepDive = deepDives.find(
 ---
 
 <RDeepDiveShell deepDive={deepDive}>
-  <section class="r-deep-section" data-reveal>
+  <section id="selection-rule" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>01</span><div>
         <p>SELECTION RULE</p><h2>从 CV 到最终模型，先固定选择规则</h2>
@@ -48,7 +49,7 @@ const deepDive = deepDives.find(
     />
   </section>
 
-  <section class="r-deep-section" data-reveal>
+  <section id="holdout" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>02</span><div>
         <p>LAST FIT</p><h2>留出集只在确定 Logistic Regression 后使用一次</h2>
@@ -72,7 +73,7 @@ const deepDive = deepDives.find(
     <RCodeShowcase title="一次性留出预测" code={codeSnippets.finalEvaluation} />
   </section>
 
-  <section class="r-deep-section" data-reveal>
+  <section id="matrix" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>03</span><div>
         <p>CONFUSION MATRIX</p><h2>39,200 条预测如何变成四个格子？</h2>
@@ -126,7 +127,7 @@ const deepDive = deepDives.find(
     </div>
   </section>
 
-  <section class="r-deep-section" data-reveal>
+  <section id="metrics" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>04</span><div>
         <p>ERROR DIRECTION</p><h2>2,022 个漏判与 5,261 个误报不是同一种错误</h2>
@@ -179,7 +180,7 @@ const deepDive = deepDives.find(
     </div>
   </section>
 
-  <section class="r-deep-section" data-reveal>
+  <section id="roc" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>05</span><div>
         <p>INTERACTIVE MATRIX</p><h2>点击四格，逐项检查客户状态与指标分母</h2>
@@ -188,7 +189,7 @@ const deepDive = deepDives.find(
     <ModelEvaluation showRoc={false} />
   </section>
 
-  <section class="r-deep-section" data-reveal>
+  <section id="errors" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>06</span><div>
         <p>ROC</p><h2>AUC 0.9053 来自完整概率排序，不是四格矩阵的别名</h2>
@@ -229,7 +230,7 @@ const deepDive = deepDives.find(
     />
   </section>
 
-  <section class="r-deep-section" data-reveal>
+  <section id="limits" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>07</span><div>
         <p>THRESHOLD BOUNDARY</p><h2>阈值分析需要哪些预测证据？</h2>
@@ -295,4 +296,5 @@ const deepDive = deepDives.find(
       </li>
     </ol>
   </section>
+  <ChurnDeepeningSections topic="model-selection" />
 </RDeepDiveShell>

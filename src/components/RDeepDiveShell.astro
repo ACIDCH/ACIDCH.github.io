@@ -4,6 +4,7 @@ import { getLocalizedPath } from "../utils/paths";
 import type { deepDives } from "../data/r-machine-learning";
 import ContextBack from "./ContextBack.astro";
 import TechnicalDeepDiveNav from "./TechnicalDeepDiveNav.astro";
+import ChurnOnThisPage from "./ChurnOnThisPage.astro";
 import "../styles/r-deep-dive.css";
 
 interface Props {
@@ -12,6 +13,56 @@ interface Props {
 
 const { deepDive } = Astro.props;
 const canonicalPath = `/projects/customer-churn-machine-learning/${deepDive.slug}/`;
+const sectionSets: Record<string, ReadonlyArray<{ id: string; label: string }>> = {
+  "data-validation": [
+    { id: "schema", label: "字段结构" },
+    { id: "cleaning", label: "清洗" },
+    { id: "population", label: "总体" },
+    { id: "features", label: "变量筛选" },
+    { id: "correlation", label: "相关性" },
+    { id: "split", label: "切分" },
+    { id: "cv-sample", label: "交叉验证" },
+    { id: "leakage", label: "泄漏边界" },
+    { id: "recipes", label: "配方" },
+    { id: "architecture", label: "架构" },
+  ],
+  "model-comparison": [
+    { id: "benchmark", label: "基准问题" },
+    { id: "logistic", label: "Logistic" },
+    { id: "naive-bayes", label: "Naive Bayes" },
+    { id: "random-forest", label: "Random Forest" },
+    { id: "xgboost", label: "XGBoost" },
+    { id: "lightgbm", label: "LightGBM" },
+    { id: "metrics", label: "指标" },
+    { id: "results", label: "完整结果" },
+    { id: "selection", label: "选择" },
+  ],
+  "model-selection-error-analysis": [
+    { id: "selection-rule", label: "选择规则" },
+    { id: "holdout", label: "留出评估" },
+    { id: "matrix", label: "混淆矩阵" },
+    { id: "metrics", label: "指标推导" },
+    { id: "roc", label: "ROC" },
+    { id: "errors", label: "错误结构" },
+    { id: "limits", label: "边界" },
+  ],
+  "logistic-interpretation": [
+    { id: "model-form", label: "模型形式" },
+    { id: "reference", label: "参照水平" },
+    { id: "odds", label: "Odds Ratio" },
+    { id: "signals", label: "风险信号" },
+    { id: "limits", label: "解释边界" },
+  ],
+  "neural-network": [
+    { id: "experiment", label: "实验问题" },
+    { id: "data", label: "数据与切分" },
+    { id: "network", label: "网络结构" },
+    { id: "boundary", label: "决策边界" },
+    { id: "evaluation", label: "测试评估" },
+    { id: "reading", label: "结果解读" },
+  ],
+};
+const onThisPage = sectionSets[deepDive.slug] ?? [];
 ---
 
 <BaseLayout
@@ -38,8 +89,10 @@ const canonicalPath = `/projects/customer-churn-machine-learning/${deepDive.slug
         </div>
       </div>
     </header>
-    <article class="r-deep-shell r-deep-body">
-      <slot />
+    <div class="r-deep-toc-top"><ChurnOnThisPage sections={onThisPage} /></div>
+    <article class="r-deep-shell r-deep-reading-layout">
+      <div class="r-deep-body"><slot /></div>
+      <aside class="r-deep-toc-side"><ChurnOnThisPage sections={onThisPage} /></aside>
       <footer class="r-deep-end">
         <h2>继续阅读 704 技术专篇</h2>
         <TechnicalDeepDiveNav current={deepDive.slug} />

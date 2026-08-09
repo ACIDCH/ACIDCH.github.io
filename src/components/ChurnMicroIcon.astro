@@ -1,0 +1,167 @@
+---
+type IconName =
+  | "data"
+  | "filter"
+  | "validation"
+  | "recipe"
+  | "model"
+  | "compare"
+  | "prediction"
+  | "error"
+  | "interpretation"
+  | "code"
+  | "deep-dive"
+  | "note";
+
+interface Props {
+  name: IconName;
+  label?: string;
+  decorative?: boolean;
+}
+
+const { name, label, decorative = !label } = Astro.props;
+---
+
+<svg
+  class="churn-micro-icon"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  aria-hidden={decorative ? "true" : undefined}
+  aria-label={decorative ? undefined : label}
+  role={decorative ? undefined : "img"}
+>
+  {
+    name === "data" && (
+      <>
+        <>
+          <rect x="4" y="4" width="16" height="16" rx="2" />
+          <path d="M8 9h8M8 13h8M8 17h4" />
+        </>
+      </>
+    )
+  }
+  {
+    name === "filter" && (
+      <>
+        <>
+          <path d="M4 6h16M7 12h10M10 18h4" />
+          <circle cx="7" cy="6" r="1.5" />
+          <circle cx="15" cy="12" r="1.5" />
+          <circle cx="11" cy="18" r="1.5" />
+        </>
+      </>
+    )
+  }
+  {
+    name === "validation" && (
+      <>
+        <>
+          <path d="M12 3 20 7v5c0 4.8-3.3 7.7-8 9-4.7-1.3-8-4.2-8-9V7l8-4Z" />
+          <path d="m8.5 12 2.2 2.2 4.8-5" />
+        </>
+      </>
+    )
+  }
+  {
+    name === "recipe" && (
+      <>
+        <>
+          <path d="M7 4h10M8 4v5l-3 7a3 3 0 0 0 2.8 4h8.4A3 3 0 0 0 19 16l-3-7V4" />
+          <path d="M8 14h8" />
+        </>
+      </>
+    )
+  }
+  {
+    name === "model" && (
+      <>
+        <>
+          <circle cx="6" cy="12" r="2" />
+          <circle cx="18" cy="6" r="2" />
+          <circle cx="18" cy="18" r="2" />
+          <path d="m8 11 8-4M8 13l8 4" />
+        </>
+      </>
+    )
+  }
+  {
+    name === "compare" && (
+      <>
+        <>
+          <path d="M5 19V9M12 19V5M19 19v-7" />
+          <path d="M3 19h18" />
+        </>
+      </>
+    )
+  }
+  {
+    name === "prediction" && (
+      <>
+        <>
+          <path d="m4 12 6-6 4 4 6-6" />
+          <path d="M16 4h4v4" />
+          <path d="M4 19h16" />
+        </>
+      </>
+    )
+  }
+  {
+    name === "error" && (
+      <>
+        <>
+          <circle cx="12" cy="12" r="8" />
+          <path d="M12 8v5M12 16h.01" />
+        </>
+      </>
+    )
+  }
+  {
+    name === "interpretation" && (
+      <>
+        <>
+          <circle cx="10.5" cy="10.5" r="5.5" />
+          <path d="m15 15 5 5M8 10h5M10.5 7.5v5" />
+        </>
+      </>
+    )
+  }
+  {
+    name === "code" && (
+      <>
+        <path d="m8 7-5 5 5 5M16 7l5 5-5 5M13 5l-2 14" />
+      </>
+    )
+  }
+  {
+    name === "deep-dive" && (
+      <>
+        <>
+          <path d="M5 4h11l3 3v13H5z" />
+          <path d="M16 4v4h4M8 12h8M8 16h5" />
+        </>
+      </>
+    )
+  }
+  {
+    name === "note" && (
+      <>
+        <>
+          <path d="M6 4h12v13H9l-3 3z" />
+          <path d="M9 9h6M9 13h4" />
+        </>
+      </>
+    )
+  }
+</svg>
+
+<style>
+  .churn-micro-icon {
+    width: 1.1em;
+    height: 1.1em;
+    flex: 0 0 auto;
+  }
+</style>
