@@ -1,8 +1,13 @@
 ---
 import { oddsRatios } from "../data/r-machine-learning";
 
-const data = JSON.stringify(oddsRatios).replace(/</g, "\\u003c");
-const first = oddsRatios[0];
+const maxAbsLog = Math.max(...oddsRatios.map((item) => Math.abs(Math.log(item.value))));
+const signals = oddsRatios.map((item) => ({
+  ...item,
+  position: 50 + (Math.log(item.value) / (maxAbsLog || 1)) * 44,
+}));
+const data = JSON.stringify(signals).replace(/</g, "\\u003c");
+const first = signals[0];
 ---
 
 <section class="risk-explorer" data-risk-explorer aria-labelledby="risk-explorer-title">
@@ -10,12 +15,12 @@ const first = oddsRatios[0];
     <div>
       <p class="risk-kicker">RISK SIGNAL EXPLORER</p>
       <h3 id="risk-explorer-title">把一个系数放回它的变量单位</h3>
-      <p>选择变量后，重点不是比较数字大小，而是确认参照、单位和条件解释。</p>
+      <p>选择变量后，同时读取 OR、方向、参照和单位，避免把不同尺度的系数直接横向比较。</p>
     </div>
     <label>
       <span>选择风险信号</span>
       <select data-risk-select>
-        {oddsRatios.map((signal) => <option value={signal.id}>{signal.label}</option>)}
+        {signals.map((signal) => <option value={signal.id}>{signal.label}</option>)}
       </select>
     </label>
   </header>
@@ -26,16 +31,30 @@ const first = oddsRatios[0];
       <strong data-risk-value>{first.value.toFixed(2)}</strong>
       <small data-risk-direction>{first.direction}</small>
     </div>
+
+    <div class="risk-position" data-risk-position style={`--risk-position:${first.position}%`}>
+      <div class="risk-position__labels" aria-hidden="true">
+        <span>&lt; 1</span><b>OR = 1</b><span>&gt; 1</span>
+      </div>
+      <div class="risk-position__track" aria-hidden="true">
+        <i />
+      </div>
+      <p>点位按 log(OR) 映射，只用于同时显示风险下降与风险上升方向。</p>
+    </div>
+
     <dl>
       <div><dt>变量</dt><dd><code data-risk-variable>{first.variable}</code></dd></div>
       <div><dt>类型</dt><dd data-risk-type>{first.type}</dd></div>
       <div><dt>单位 / 参照</dt><dd data-risk-unit>{first.unit}</dd></div>
     </dl>
-    <p data-risk-interpretation>{first.interpretation}</p>
+
+    <p class="risk-explorer__interpretation" data-risk-interpretation>
+      {first.interpretation}
+    </p>
   </div>
+
   <p class="risk-explorer__boundary">
-    这些数值来自同一个多变量 Logistic
-    Regression；每项解释都以“其他已选变量保持不变”为前提。它们描述模型中的条件关联，不构成因果结论。
+    <strong>Note.</strong> 八项数值来自同一个多变量 Logistic Regression。每项解释都以其他已选变量保持不变为前提，描述条件关联，不构成因果结论。
   </p>
   <script is:inline type="application/json" data-risk-data set:html={data} />
 </section>
@@ -50,6 +69,7 @@ const first = oddsRatios[0];
     value: number;
     direction: string;
     interpretation: string;
+    position: number;
   };
 
   const setupRiskExplorers = () => {
@@ -60,6 +80,7 @@ const first = oddsRatios[0];
         root.querySelector<HTMLScriptElement>("[data-risk-data]")?.textContent ?? "[]",
       ) as Signal[];
       const select = root.querySelector<HTMLSelectElement>("[data-risk-select]");
+      const position = root.querySelector<HTMLElement>("[data-risk-position]");
 
       const render = (id: string) => {
         const signal = signals.find((entry) => entry.id === id) ?? signals[0];
@@ -76,6 +97,11 @@ const first = oddsRatios[0];
           const target = root.querySelector<HTMLElement>(selector);
           if (target) target.textContent = value;
         });
+        position?.style.setProperty("--risk-position", `${signal.position}%`);
+        position?.setAttribute(
+          "data-direction",
+          signal.value < 1 ? "protective" : signal.value > 1 ? "risk" : "neutral",
+        );
       };
 
       select?.addEventListener("change", () => render(select.value));
@@ -117,13 +143,17 @@ const first = oddsRatios[0];
   }
 
   h3 {
+    max-width: 28ch;
     margin-top: 0.55rem;
     font-size: clamp(1.5rem, 3vw, 2.3rem);
+    line-height: 1.15;
   }
 
   header p:last-child {
+    max-width: 64ch;
     margin-top: 0.65rem;
     color: var(--colour-text-muted);
+    line-height: 1.68;
   }
 
   label {
@@ -144,8 +174,8 @@ const first = oddsRatios[0];
 
   .risk-explorer__body {
     display: grid;
-    grid-template-columns: minmax(9rem, 0.28fr) minmax(15rem, 0.42fr) minmax(0, 1fr);
-    gap: 1.5rem;
+    grid-template-columns: minmax(8rem, 0.25fr) minmax(13rem, 0.42fr) minmax(14rem, 0.45fr);
+    gap: 1.25rem 1.5rem;
     align-items: center;
     margin-top: 1.6rem;
     padding-block: 1.5rem;
@@ -155,6 +185,11 @@ const first = oddsRatios[0];
   .risk-number {
     display: grid;
     gap: 0.35rem;
+    align-content: center;
+    min-height: 8.5rem;
+    padding: 1rem;
+    border: 1px solid var(--colour-border);
+    border-radius: 0.9rem;
   }
 
   .risk-number span,
@@ -169,9 +204,74 @@ const first = oddsRatios[0];
     font: 750 clamp(2.3rem, 6vw, 4rem)/0.95 var(--font-display);
   }
 
-  dl {
+  .risk-position {
     display: grid;
     gap: 0.65rem;
+  }
+
+  .risk-position__labels {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 0.5rem;
+    color: var(--colour-text-muted);
+    font-size: 0.68rem;
+  }
+
+  .risk-position__labels span:last-child {
+    text-align: right;
+  }
+
+  .risk-position__labels b {
+    color: var(--colour-primary-strong);
+    font: 700 0.68rem/1 var(--font-mono);
+  }
+
+  .risk-position__track {
+    position: relative;
+    height: 1rem;
+    border-radius: 999px;
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--colour-secondary) 18%, transparent),
+      var(--colour-surface-subtle) 48%,
+      var(--colour-surface-subtle) 52%,
+      color-mix(in srgb, var(--colour-accent) 18%, transparent)
+    );
+  }
+
+  .risk-position__track::before {
+    position: absolute;
+    top: -0.3rem;
+    bottom: -0.3rem;
+    left: 50%;
+    width: 1px;
+    background: var(--colour-border-strong);
+    content: "";
+  }
+
+  .risk-position__track i {
+    position: absolute;
+    top: 50%;
+    left: var(--risk-position);
+    width: 0.9rem;
+    height: 0.9rem;
+    border: 2px solid var(--colour-surface);
+    border-radius: 50%;
+    background: var(--colour-primary);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--colour-primary) 55%, transparent);
+    transform: translate(-50%, -50%);
+    transition: left 260ms var(--ease-standard);
+  }
+
+  .risk-position > p {
+    color: var(--colour-text-muted);
+    font-size: 0.78rem;
+    line-height: 1.55;
+  }
+
+  dl {
+    display: grid;
+    gap: 0.7rem;
   }
 
   dl div {
@@ -185,25 +285,66 @@ const first = oddsRatios[0];
     overflow-wrap: anywhere;
   }
 
-  .risk-explorer__body > p,
-  .risk-explorer__boundary {
+  .risk-explorer__interpretation {
+    grid-column: 2 / -1;
+    max-width: 68ch;
+    padding-top: 1rem;
+    border-top: 1px solid var(--colour-border);
     color: var(--colour-text-muted);
     line-height: 1.72;
   }
 
   .risk-explorer__boundary {
+    max-width: 76ch;
     margin-top: 1rem;
+    padding-left: 1rem;
+    border-left: 2px solid var(--colour-accent);
+    color: var(--colour-text-muted);
     font-size: 0.86rem;
+    line-height: 1.68;
   }
 
-  @media (max-width: 760px) {
-    header,
+  .risk-explorer__boundary strong {
+    color: var(--colour-text);
+    font: 700 0.7rem/1 var(--font-mono);
+    letter-spacing: 0.06em;
+  }
+
+  @media (max-width: 860px) {
     .risk-explorer__body {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(8rem, 0.35fr) minmax(0, 1fr);
     }
+
+    dl {
+      grid-column: 1 / -1;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
     dl div {
       grid-template-columns: 1fr;
       gap: 0.2rem;
+    }
+
+    .risk-explorer__interpretation {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (max-width: 620px) {
+    header,
+    .risk-explorer__body,
+    dl {
+      grid-template-columns: 1fr;
+    }
+
+    .risk-number {
+      min-height: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .risk-position__track i {
+      transition: none;
     }
   }
 </style>
