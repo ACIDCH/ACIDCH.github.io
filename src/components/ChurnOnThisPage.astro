@@ -60,29 +60,33 @@ const instanceId = `churn-toc-${Math.random().toString(36).slice(2, 8)}`;
     const current = nav.querySelector("[data-churn-toc-current]");
     const progress = nav.querySelector("[data-churn-toc-progress]");
     const details = nav.querySelector("details");
-    const sections = links
-      .map((link) =>
-        document.getElementById(link.getAttribute("data-churn-toc-link") || ""),
-      )
+    const sectionIds = [
+      ...new Set(
+        links
+          .map((link) => link.getAttribute("data-churn-toc-link") || "")
+          .filter(Boolean),
+      ),
+    ];
+    const sectionElements = sectionIds
+      .map((id) => document.getElementById(id))
       .filter(Boolean);
 
     const activate = (id) => {
-      const activeIndex = Math.max(
-        0,
-        links.findIndex((link) => link.getAttribute("data-churn-toc-link") === id),
-      );
+      const activeIndex = Math.max(0, sectionIds.indexOf(id));
 
       links.forEach((link) => {
         const active = link.getAttribute("data-churn-toc-link") === id;
         link.toggleAttribute("aria-current", active);
       });
 
-      const activeLink = links[activeIndex];
+      const activeLink = links.find(
+        (link) => link.getAttribute("data-churn-toc-link") === id,
+      );
       if (current && activeLink)
         current.textContent = activeLink.textContent?.replace(/^\d+/, "").trim() || "";
 
-      if (progress instanceof HTMLElement && links.length > 0) {
-        progress.style.width = `${((activeIndex + 1) / links.length) * 100}%`;
+      if (progress instanceof HTMLElement && sectionIds.length > 0) {
+        progress.style.width = `${((activeIndex + 1) / sectionIds.length) * 100}%`;
       }
     };
 
@@ -96,13 +100,13 @@ const instanceId = `churn-toc-${Math.random().toString(36).slice(2, 8)}`;
       { rootMargin: "-20% 0px -68% 0px", threshold: [0.05, 0.2, 0.5] },
     );
 
-    sections.forEach((section) => observer.observe(section));
+    sectionElements.forEach((section) => observer.observe(section));
     links.forEach((link) =>
       link.addEventListener("click", () => {
         if (details) details.removeAttribute("open");
       }),
     );
-    activate(sections[0]?.id || "");
+    activate(sectionIds[0] || "");
   };
 
   document.addEventListener("astro:page-load", initialize);
