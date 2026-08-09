@@ -1,4 +1,7 @@
+/* global AbortController, fetch */
+
 import process from "node:process";
+import { clearTimeout, setTimeout as scheduleTimeout } from "node:timers";
 import { setTimeout as sleep } from "node:timers/promises";
 
 const [baseArgument, expectedShaArgument] = process.argv.slice(2);
@@ -60,7 +63,7 @@ function deploymentUrl(pathname) {
 
 async function fetchWithTimeout(url) {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), requestTimeoutMs);
+  const timeout = scheduleTimeout(() => controller.abort(), requestTimeoutMs);
   try {
     return await fetch(url, {
       cache: "no-store",
