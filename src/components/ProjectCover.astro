@@ -6,10 +6,19 @@ interface Props {
   compact?: boolean;
   showCode?: boolean;
   code?: string;
+  badges?: string[];
 }
 
-const { entry, compact = false, showCode = true, code } = Astro.props;
+const {
+  entry,
+  compact = false,
+  showCode = true,
+  code,
+  badges = [],
+} = Astro.props;
 const transitionName = `project-cover-${entry.data.translationKey}-${entry.data.locale}`;
+const coverLabel = code ?? entry.data.topic.slice(0, 3).toUpperCase();
+const coverBadges = badges.filter(Boolean).slice(0, 3);
 ---
 
 <div
@@ -19,11 +28,22 @@ const transitionName = `project-cover-${entry.data.translationKey}-${entry.data.
   transition:name={transitionName}
 >
   <span class="project-cover__grid"></span>
+  <span class="project-cover__orb project-cover__orb--one"></span>
+  <span class="project-cover__orb project-cover__orb--two"></span>
   {
     showCode && (
-      <span class="project-cover__code">
-        {code ?? entry.data.topic.slice(0, 3).toUpperCase()}
-      </span>
+      <div class="project-cover__visual">
+        <span class="project-cover__label">{coverLabel}</span>
+        {
+          coverBadges.length > 0 && (
+            <span class="project-cover__badges">
+              {coverBadges.map((badge) => (
+                <span class="project-cover__badge">{badge}</span>
+              ))}
+            </span>
+          )
+        }
+      </div>
     )
   }
 </div>

@@ -20,24 +20,28 @@ const topicLabels = {
   transportation: { en: "Transportation", zh: "运输" },
   analytics: { en: "Analytics", zh: "分析" },
 } as const;
+const coverTitles: Record<string, string> = {
+  "european-property-market-dashboard": "Power BI",
+  "grammy-spotify-analysis": "Python",
+  "sales-profitability-warehouse": "SQL",
+  "customer-churn-machine-learning": "R",
+  "retirement-monte-carlo": "Excel",
+};
+const coverTitle =
+  coverTitles[entry.data.translationKey] ?? entry.data.tools[0] ?? topicLabels[entry.data.topic].en;
+const coverBadges = entry.data.tools
+  .filter((tool) => tool.trim().toLowerCase() !== coverTitle.trim().toLowerCase())
+  .slice(0, 3);
 ---
 
 <article class="project-card" data-tilt>
   <ProjectCover
     entry={entry}
     compact
-    showCode={entry.data.translationKey !== "retirement-monte-carlo"}
-    code={entry.data.translationKey === "european-property-market-dashboard"
-      ? "PBI"
-      : entry.data.translationKey === "grammy-spotify-analysis"
-        ? "PY"
-        : entry.data.translationKey === "sales-profitability-warehouse"
-          ? "SQL"
-          : entry.data.translationKey === "customer-churn-machine-learning"
-            ? "R"
-            : undefined}
+    code={coverTitle}
+    badges={coverBadges}
   />
-  <div class="cluster cluster--compact">
+  <div class="cluster cluster--compact project-card__meta">
     <p class="status">{statusLabels[entry.data.status][locale]}</p>
     <span class="tag">{topicLabels[entry.data.topic][locale]}</span>
     {
@@ -53,8 +57,8 @@ const topicLabels = {
       {entry.data.title}
     </a>
   </h2>
-  <p>{entry.data.summary}</p>
-  <ul class="tag-list" aria-label={locale === "en" ? "Tools" : "工具"}>
+  <p class="project-card__summary">{entry.data.summary}</p>
+  <ul class="tag-list project-card__tools" aria-label={locale === "en" ? "Tools" : "工具"}>
     {entry.data.tools.map((tool) => <li class="tag">{tool}</li>)}
   </ul>
   <a
@@ -63,6 +67,6 @@ const topicLabels = {
     aria-label={`${locale === "en" ? "View project" : "查看项目"}: ${entry.data.title}`}
   >
     {locale === "en" ? "View case study" : "查看案例"}
-    <span aria-hidden="true">→</span>
+    <span class="project-card__arrow" aria-hidden="true">→</span>
   </a>
 </article>
