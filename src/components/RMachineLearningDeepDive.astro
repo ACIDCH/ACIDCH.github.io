@@ -1,0 +1,600 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { getLocalizedPath, withBase } from "../utils/paths";
+import ContextBack from "./ContextBack.astro";
+import AnalysisPipeline from "./AnalysisPipeline.astro";
+import ModelComparisonLab from "./ModelComparisonLab.astro";
+import ModelEvaluation from "./ModelEvaluation.astro";
+import NeuralNetworkDiagram from "./NeuralNetworkDiagram.astro";
+import RCodeShowcase from "./RCodeShowcase.astro";
+import TechnicalDeepDiveNav from "./TechnicalDeepDiveNav.astro";
+import {
+  codeSnippets,
+  deepDives,
+  predictors,
+  projectBasePath,
+} from "../data/r-machine-learning";
+
+interface Props {
+  deepDive: (typeof deepDives)[number];
+}
+
+const { deepDive } = Astro.props;
+const canonicalPath = `${projectBasePath}${deepDive.slug}/`;
+const isWorkflow = deepDive.slug === "workflow";
+const isComparison = deepDive.slug === "model-comparison";
+const isNeural = deepDive.slug === "neural-network";
+const isEvaluation = deepDive.slug === "prediction-evaluation";
+---
+
+<BaseLayout
+  title={`${deepDive.title} | 客户流失预测`}
+  description={deepDive.summary}
+  locale="zh"
+  alternatePath="/projects/"
+  canonicalPath={getLocalizedPath(canonicalPath.replace(/^\/zh/, ""), "zh")}
+>
+  <main id="main-content" class="deep-dive-page">
+    <article class="deep-dive-shell">
+      <ContextBack
+        locale="zh"
+        fallbackPath="/projects/customer-churn-machine-learning/"
+        label={{ en: "Back to main project", zh: "返回主项目" }}
+      />
+      <header class="deep-dive-hero" data-reveal>
+        <p class="status">{deepDive.eyebrow}</p>
+        <h1>{deepDive.title}</h1>
+        <p>{deepDive.summary}</p>
+        <a class="button button--secondary" href={withBase(projectBasePath)}
+          >查看完整项目</a
+        >
+      </header>
+
+      {
+        isWorkflow && (
+          <>
+            <section class="deep-section" data-reveal>
+              <div class="section-heading">
+                <p class="status">Validation Design</p>
+                <h2>模型选择与最终评价使用不同数据</h2>
+              </div>
+              <div class="split-diagram" aria-label="数据划分流程">
+                <article>
+                  <strong>200,000</strong>
+                  <span>原始记录</span>
+                </article>
+                <span aria-hidden="true">→</span>
+                <article>
+                  <strong>196,000</strong>
+                  <span>排除 Fleet 后</span>
+                </article>
+                <span aria-hidden="true">→</span>
+                <article>
+                  <strong>80%</strong>
+                  <span>训练部分</span>
+                </article>
+                <span aria-hidden="true">+</span>
+                <article>
+                  <strong>20%</strong>
+                  <span>留出测试集</span>
+                </article>
+              </div>
+              <p class="section-note">
+                五模型比较只使用训练部分中的 30,000
+                行分层样本；测试集直到模型选择完成后才使用一次。
+              </p>
+            </section>
+
+            <section class="deep-section" data-reveal>
+              <div class="section-heading">
+                <p class="status">Pipeline Navigator</p>
+                <h2>九个真实步骤</h2>
+              </div>
+              <AnalysisPipeline />
+            </section>
+
+            <section class="deep-section" data-reveal>
+              <div class="section-heading">
+                <p class="status">变量与 recipe</p>
+                <h2>编码方式随模型引擎改变</h2>
+                <p>
+                  Logistic Regression 和 XGBoost 使用 dummy
+                  编码；其余三个模型保留分类变量。上采样只发生在训练折内部。
+                </p>
+              </div>
+              <div class="predictor-table-wrap">
+                <table>
+                  <caption>最终输入变量</caption>
+                  <thead>
+                    <tr>
+                      <>
+                        <th scope="col">字段</th>
+                        <th scope="col">含义</th>
+                        <th scope="col">类型</th>
+                      </>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {predictors.map((item) => (
+                      <tr>
+                        <th scope="row">
+                          <code>{item.name}</code>
+                        </th>
+                        <td>{item.label}</td>
+                        <td>{item.type}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div class="code-stack">
+                <RCodeShowcase {...codeSnippets.split} open />
+                <RCodeShowcase {...codeSnippets.crossValidation} />
+                <RCodeShowcase {...codeSnippets.recipes} />
+              </div>
+            </section>
+          </>
+        )
+      }
+
+      {
+        isComparison && (
+          <>
+            <section class="deep-section" data-reveal>
+              <div class="section-heading">
+                <p class="status">固定交叉验证结果</p>
+                <h2>四项指标反映不同错误成本</h2>
+                <p>
+                  AUC 比较全部阈值下的排序能力；Sensitivity
+                  关注实际流失客户被识别的比例；Specificity
+                  检查保留客户被正确排除的比例。
+                </p>
+              </div>
+              <ModelComparisonLab />
+            </section>
+
+            <section class="deep-section" data-reveal>
+              <div class="section-heading">
+                <p class="status">模型规格</p>
+                <h2>五个模型来自四类方法</h2>
+              </div>
+              <div class="model-family-grid">
+                <article>
+                  <>
+                    <span>Linear</span>
+                    <h3>Logistic Regression</h3>
+                    <p>通过 odds ratio 保留变量方向解释。</p>
+                  </>
+                </article>
+                <article>
+                  <>
+                    <span>Bagging</span>
+                    <h3>Random Forest</h3>
+                    <p>500 棵树，最小节点样本数为 20。</p>
+                  </>
+                </article>
+                <article>
+                  <>
+                    <span>Boosting</span>
+                    <h3>XGBoost / LightGBM</h3>
+                    <p>两个模型各使用 200 棵树。</p>
+                  </>
+                </article>
+                <article>
+                  <>
+                    <span>Probabilistic</span>
+                    <h3>Naive Bayes</h3>
+                    <p>Laplace smoothness 设置为 1。</p>
+                  </>
+                </article>
+              </div>
+              <div class="code-stack">
+                <RCodeShowcase {...codeSnippets.modelSpecs} open />
+                <RCodeShowcase {...codeSnippets.metricSet} />
+              </div>
+            </section>
+          </>
+        )
+      }
+
+      {
+        isNeural && (
+          <>
+            <section class="deep-section" data-reveal>
+              <div class="section-heading">
+                <p class="status">独立非线性分类实验</p>
+                <h2>结构证据与客户流失模型分开</h2>
+                <p>
+                  该实验使用 3,000
+                  条二维合成记录探索非线性分类边界。它不属于客户流失的五模型比较，指标也不与主项目并列。
+                </p>
+              </div>
+              <dl class="neural-facts">
+                <div>
+                  <>
+                    <dt>输入</dt>
+                    <dd>A、B</dd>
+                  </>
+                </div>
+                <div>
+                  <>
+                    <dt>隐藏层</dt>
+                    <dd>1 层</dd>
+                  </>
+                </div>
+                <div>
+                  <>
+                    <dt>隐藏节点</dt>
+                    <dd>2</dd>
+                  </>
+                </div>
+                <div>
+                  <>
+                    <dt>Epochs</dt>
+                    <dd>1000</dd>
+                  </>
+                </div>
+                <div>
+                  <>
+                    <dt>引擎</dt>
+                    <dd>nnet</dd>
+                  </>
+                </div>
+                <div>
+                  <>
+                    <dt>划分</dt>
+                    <dd>80 / 20 分层</dd>
+                  </>
+                </div>
+              </dl>
+              <NeuralNetworkDiagram />
+            </section>
+
+            <section class="deep-section" data-reveal>
+              <div class="section-heading">
+                <p class="status">监督学习流程</p>
+                <h2>标准化输入后拟合二分类网络</h2>
+                <p>
+                  模型从训练记录学习 A、B
+                  与类别之间的非线性关系，再为测试记录生成类别概率和预测类别。
+                </p>
+              </div>
+              <div class="neural-flow" aria-label="神经网络分类流程">
+                <>
+                  <span>二维数据</span>
+                  <i>→</i>
+                  <span>分层划分</span>
+                  <i>→</i>
+                  <span>标准化</span>
+                  <i>→</i>
+                  <span>MLP</span>
+                  <i>→</i>
+                  <span>概率 / 类别</span>
+                </>
+              </div>
+              <RCodeShowcase {...codeSnippets.neuralNetwork} open />
+              <aside class="evidence-note">
+                <strong>评价口径</strong>
+                <p>
+                  实验代码使用 ROC AUC、Accuracy 和 Confusion Matrix
+                  检查分类结果。当前展示只保留已核实的网络结构，不生成缺少固定输出的数值。
+                </p>
+              </aside>
+            </section>
+          </>
+        )
+      }
+
+      {
+        isEvaluation && (
+          <>
+            <section class="deep-section" data-reveal>
+              <div class="section-heading">
+                <p class="status">Hold-out Evaluation</p>
+                <h2>最终模型只在留出集上评价一次</h2>
+                <p>
+                  混淆矩阵合计 39,200
+                  条记录。所有指标均由这组固定计数和保存的预测概率得到。
+                </p>
+              </div>
+              <ModelEvaluation />
+            </section>
+
+            <section class="deep-section" data-reveal>
+              <div class="section-heading">
+                <p class="status">错误解释</p>
+                <h2>漏判与误报需要分开处理</h2>
+              </div>
+              <div class="error-grid">
+                <article>
+                  <strong>2,022</strong>
+                  <h3>False Negative</h3>
+                  <p>真实流失客户被预测为保留，直接影响流失筛查的覆盖率。</p>
+                </article>
+                <article>
+                  <strong>5,261</strong>
+                  <h3>False Positive</h3>
+                  <p>保留客户被标记为流失，需要结合干预成本评估可接受范围。</p>
+                </article>
+              </div>
+              <div class="code-stack">
+                <RCodeShowcase {...codeSnippets.finalFit} open />
+                <RCodeShowcase {...codeSnippets.confusion} />
+                <RCodeShowcase {...codeSnippets.oddsRatio} />
+              </div>
+            </section>
+          </>
+        )
+      }
+
+      <section class="deep-section deep-section--nav" data-reveal>
+        <div class="section-heading">
+          <p class="status">继续查看</p>
+          <h2>Technical Deep Dives</h2>
+        </div>
+        <TechnicalDeepDiveNav current={deepDive.slug} />
+      </section>
+
+      <ContextBack
+        locale="zh"
+        fallbackPath="/projects/customer-churn-machine-learning/"
+        label={{ en: "Back to main project", zh: "返回主项目" }}
+      />
+    </article>
+  </main>
+</BaseLayout>
+
+<style>
+  .deep-dive-page {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    overflow: clip;
+  }
+
+  .deep-dive-shell {
+    width: min(calc(100% - 2rem), var(--container-project));
+    min-width: 0;
+    max-width: 100%;
+    margin-inline: auto;
+    padding-block: var(--space-6) var(--space-12);
+  }
+
+  .deep-dive-hero {
+    max-width: 76ch;
+    padding-block: clamp(var(--space-12), 12vw, var(--space-24));
+  }
+
+  .deep-dive-hero h1 {
+    max-width: 16ch;
+    margin-block: var(--space-3) var(--space-5);
+    font-size: clamp(2.6rem, 7vw, 5.7rem);
+    line-height: 0.98;
+    letter-spacing: -0.055em;
+  }
+
+  .deep-dive-hero > p:not(.status) {
+    max-width: 62ch;
+    color: var(--colour-text-muted);
+    font-size: clamp(1.05rem, 2vw, 1.25rem);
+    line-height: 1.75;
+  }
+
+  .deep-dive-hero .button {
+    margin-block-start: var(--space-5);
+  }
+
+  .deep-section {
+    min-width: 0;
+    padding-block: clamp(var(--space-10), 9vw, var(--space-18));
+    border-top: 1px solid var(--colour-border);
+  }
+
+  .section-heading {
+    max-width: 68ch;
+    margin-block-end: var(--space-8);
+  }
+
+  .section-heading h2 {
+    margin-block: var(--space-2) var(--space-4);
+    font-size: clamp(1.8rem, 4vw, 3.25rem);
+    line-height: 1.08;
+    letter-spacing: -0.035em;
+  }
+
+  .section-heading > p:last-child,
+  .section-note {
+    color: var(--colour-text-muted);
+    line-height: 1.75;
+  }
+
+  .split-diagram {
+    display: grid;
+    grid-template-columns:
+      minmax(8rem, 1fr) auto minmax(8rem, 1fr) auto minmax(8rem, 1fr)
+      auto minmax(8rem, 1fr);
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .split-diagram article {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-5);
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-lg);
+    background: var(--colour-surface);
+    text-align: center;
+  }
+
+  .split-diagram strong {
+    font-family: var(--font-family-mono);
+    font-size: clamp(1.35rem, 3vw, 2rem);
+  }
+
+  .split-diagram span {
+    color: var(--colour-text-muted);
+  }
+
+  .section-note {
+    margin-block-start: var(--space-5);
+  }
+
+  .predictor-table-wrap {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
+    min-width: 38rem;
+    border-collapse: collapse;
+  }
+
+  caption {
+    padding-block-end: var(--space-3);
+    color: var(--colour-text-muted);
+    text-align: left;
+  }
+
+  th,
+  td {
+    padding: var(--space-3);
+    border-bottom: 1px solid var(--colour-border);
+    text-align: left;
+  }
+
+  .code-stack {
+    display: grid;
+    gap: var(--space-5);
+    margin-block-start: var(--space-6);
+  }
+
+  .model-family-grid,
+  .error-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
+
+  .model-family-grid article,
+  .error-grid article,
+  .neural-facts div {
+    padding: var(--space-5);
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-lg);
+    background: var(--colour-surface);
+  }
+
+  .model-family-grid span {
+    color: var(--colour-primary-strong);
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size-sm);
+  }
+
+  .model-family-grid h3,
+  .error-grid h3 {
+    margin-block: var(--space-2) var(--space-3);
+  }
+
+  .model-family-grid p,
+  .error-grid p {
+    color: var(--colour-text-muted);
+  }
+
+  .neural-facts {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: var(--space-3);
+    margin: 0 0 var(--space-6);
+  }
+
+  .neural-facts div {
+    padding: var(--space-4);
+  }
+
+  .neural-facts dt {
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-sm);
+  }
+
+  .neural-facts dd {
+    margin: var(--space-2) 0 0;
+    font-family: var(--font-family-mono);
+    font-weight: 700;
+  }
+
+  .neural-flow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    margin-block-end: var(--space-6);
+  }
+
+  .neural-flow span {
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-pill);
+    background: var(--colour-surface);
+  }
+
+  .neural-flow i {
+    color: var(--colour-primary-strong);
+    font-style: normal;
+  }
+
+  .evidence-note {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-4);
+    margin-block-start: var(--space-5);
+    padding: var(--space-5);
+    border-radius: var(--radius-lg);
+    background: color-mix(in srgb, var(--colour-primary) 8%, var(--colour-surface));
+  }
+
+  .evidence-note p {
+    margin: 0;
+    color: var(--colour-text-muted);
+  }
+
+  .error-grid article strong {
+    font-family: var(--font-family-mono);
+    font-size: clamp(1.8rem, 4vw, 3rem);
+  }
+
+  @media (max-width: 64rem) {
+    .split-diagram {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .split-diagram > span {
+      display: none;
+    }
+
+    .neural-facts {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 44rem) {
+    .deep-dive-shell {
+      width: min(calc(100% - 1.25rem), var(--container-project));
+    }
+
+    .split-diagram,
+    .model-family-grid,
+    .error-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .neural-facts {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .evidence-note {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

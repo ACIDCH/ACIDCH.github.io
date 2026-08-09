@@ -1,0 +1,19 @@
+---
+import RMachineLearningDeepDive from "../../../../components/RMachineLearningDeepDive.astro";
+import { deepDives } from "../../../../data/r-machine-learning";
+
+export function getStaticPaths() {
+  return deepDives.map((deepDive) => ({
+    params: { deepDive: deepDive.slug },
+    props: { deepDive },
+  }));
+}
+
+interface Props {
+  deepDive: (typeof deepDives)[number];
+}
+
+const { deepDive } = Astro.props;
+---
+
+<RMachineLearningDeepDive deepDive={deepDive} />

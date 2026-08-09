@@ -239,6 +239,53 @@ for (const file of htmlFiles) {
       failures.push(`${route}: contains a database connection detail`);
     }
   }
+
+  if (
+    route === "/zh/projects/customer-churn-machine-learning/" ||
+    route.startsWith("/zh/projects/customer-churn-machine-learning/")
+  ) {
+    const pageContent = html.match(/<main\b[\s\S]*?<\/main>/i)?.[0] ?? html;
+    if (
+      /<meta\b[^>]*\bname=["']robots["'][^>]*\bcontent=["'][^"']*noindex/i.test(html)
+    ) {
+      failures.push(`${route}: R project page must be indexable`);
+    }
+    if (!html.includes('href="/projects/"')) {
+      failures.push(`${route}: missing English Projects fallback`);
+    }
+    if (
+      /BUSINFO704|\b(?:Assignment|Task|Submission)\b|课程项目|课程报告|源文件|留在本地|身份属性|暂不索引|样板页|试点|稍后补充|功能开发中|[A-Z]:\\/i.test(
+        pageContent,
+      )
+    ) {
+      failures.push(`${route}: contains a private or internal source reference`);
+    }
+    if (/在线训练 R|实时机器学习|实时模型训练|浏览器运行 R/i.test(pageContent)) {
+      failures.push(`${route}: contains a false runtime claim`);
+    }
+
+    if (route === "/zh/projects/customer-churn-machine-learning/") {
+      if (
+        !pageContent.includes("data-model-lab") ||
+        !pageContent.includes("data-analysis-pipeline") ||
+        (pageContent.match(/<details\b[^>]*\bclass=["'][^"']*r-code/g) ?? []).length <
+          5 ||
+        !pageContent.includes("0.9053") ||
+        !pageContent.includes("39,200")
+      ) {
+        failures.push(`${route}: missing pipeline, R code, comparison, or results`);
+      }
+    }
+
+    if (
+      route === "/zh/projects/customer-churn-machine-learning/neural-network/" &&
+      (!pageContent.includes("network-figure") ||
+        !pageContent.includes("hidden_units = 2") ||
+        !pageContent.includes("epochs = 1000"))
+    ) {
+      failures.push(`${route}: missing verified neural network structure`);
+    }
+  }
 }
 
 if (
@@ -280,6 +327,38 @@ if (
   )
 ) {
   failures.push("/projects/grammy-spotify-analysis/: unexpected English detail page");
+}
+
+if (
+  await exists(
+    path.join(outputRoot, "projects", "customer-churn-machine-learning", "index.html"),
+  )
+) {
+  failures.push(
+    "/projects/customer-churn-machine-learning/: unexpected English detail page",
+  );
+}
+
+for (const deepDive of [
+  "workflow",
+  "model-comparison",
+  "neural-network",
+  "prediction-evaluation",
+]) {
+  if (
+    !(await exists(
+      path.join(
+        outputRoot,
+        "zh",
+        "projects",
+        "customer-churn-machine-learning",
+        deepDive,
+        "index.html",
+      ),
+    ))
+  ) {
+    failures.push(`R project: missing ${deepDive} deep dive`);
+  }
 }
 
 for (const file of outputFiles) {

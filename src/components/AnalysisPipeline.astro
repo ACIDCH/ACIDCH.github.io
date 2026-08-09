@@ -1,0 +1,197 @@
+---
+import { pipelineSteps } from "../data/r-machine-learning";
+---
+
+<div class="analysis-pipeline" data-analysis-pipeline>
+  <div class="analysis-pipeline__tabs" role="tablist" aria-label="建模流程">
+    {
+      pipelineSteps.map((step, index) => (
+        <button
+          type="button"
+          role="tab"
+          id={`pipeline-tab-${index + 1}`}
+          aria-controls={`pipeline-panel-${index + 1}`}
+          aria-selected={index === 0 ? "true" : "false"}
+          tabindex={index === 0 ? 0 : -1}
+          data-pipeline-tab
+        >
+          <span>{step.number}</span>
+          {step.title}
+        </button>
+      ))
+    }
+  </div>
+  <div class="analysis-pipeline__panels">
+    {
+      pipelineSteps.map((step, index) => (
+        <section
+          role="tabpanel"
+          id={`pipeline-panel-${index + 1}`}
+          aria-labelledby={`pipeline-tab-${index + 1}`}
+          hidden={index !== 0}
+          data-pipeline-panel
+        >
+          <p class="status">步骤 {step.number}</p>
+          <h3>{step.title}</h3>
+          <p>{step.detail}</p>
+        </section>
+      ))
+    }
+  </div>
+</div>
+
+<script>
+  let pipelineCleanup: (() => void) | undefined;
+
+  function initAnalysisPipeline() {
+    pipelineCleanup?.();
+    const controllers: AbortController[] = [];
+
+    document
+      .querySelectorAll<HTMLElement>("[data-analysis-pipeline]")
+      .forEach((root) => {
+        const controller = new AbortController();
+        controllers.push(controller);
+        const tabs = Array.from(
+          root.querySelectorAll<HTMLButtonElement>("[data-pipeline-tab]"),
+        );
+        const panels = Array.from(
+          root.querySelectorAll<HTMLElement>("[data-pipeline-panel]"),
+        );
+
+        const activate = (index: number, focus = false) => {
+          tabs.forEach((tab, tabIndex) => {
+            const selected = tabIndex === index;
+            tab.setAttribute("aria-selected", String(selected));
+            tab.tabIndex = selected ? 0 : -1;
+            if (selected && focus) tab.focus();
+          });
+          panels.forEach((panel, panelIndex) => (panel.hidden = panelIndex !== index));
+        };
+
+        tabs.forEach((tab, index) => {
+          tab.addEventListener("click", () => activate(index), {
+            signal: controller.signal,
+          });
+          tab.addEventListener(
+            "keydown",
+            (event) => {
+              let next = index;
+              if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+                next = (index + 1) % tabs.length;
+              } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+                next = (index - 1 + tabs.length) % tabs.length;
+              } else if (event.key === "Home") {
+                next = 0;
+              } else if (event.key === "End") {
+                next = tabs.length - 1;
+              } else {
+                return;
+              }
+              event.preventDefault();
+              activate(next, true);
+            },
+            { signal: controller.signal },
+          );
+        });
+      });
+
+    pipelineCleanup = () => controllers.forEach((controller) => controller.abort());
+  }
+
+  document.addEventListener("astro:before-swap", () => pipelineCleanup?.());
+  document.addEventListener("astro:page-load", initAnalysisPipeline);
+  initAnalysisPipeline();
+</script>
+
+<style>
+  .analysis-pipeline {
+    display: grid;
+    grid-template-columns: minmax(13rem, 0.7fr) minmax(0, 1.3fr);
+    gap: var(--space-5);
+    min-width: 0;
+  }
+
+  .analysis-pipeline__tabs {
+    display: grid;
+    gap: var(--space-2);
+    align-content: start;
+  }
+
+  [role="tab"] {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    width: 100%;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    color: var(--colour-text-muted);
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  [role="tab"] span {
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size-sm);
+  }
+
+  [role="tab"]:hover,
+  [role="tab"][aria-selected="true"] {
+    border-color: var(--colour-border);
+    color: var(--colour-text);
+    background: var(--colour-surface-raised);
+  }
+
+  [role="tab"][aria-selected="true"] {
+    box-shadow: inset 3px 0 0 var(--colour-primary);
+  }
+
+  .analysis-pipeline__panels {
+    min-width: 0;
+  }
+
+  [role="tabpanel"] {
+    min-height: 100%;
+    padding: clamp(var(--space-5), 4vw, var(--space-8));
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-xl);
+    background:
+      linear-gradient(
+        145deg,
+        color-mix(in srgb, var(--colour-primary) 7%, transparent),
+        transparent 52%
+      ),
+      var(--colour-surface);
+  }
+
+  [role="tabpanel"] h3 {
+    margin-block: var(--space-2) var(--space-3);
+  }
+
+  @media (max-width: 48rem) {
+    .analysis-pipeline {
+      grid-template-columns: 1fr;
+    }
+
+    .analysis-pipeline__tabs {
+      grid-auto-flow: column;
+      grid-auto-columns: minmax(10rem, 45vw);
+      overflow-x: auto;
+      overscroll-behavior-inline: contain;
+      scroll-snap-type: inline proximity;
+      padding-block-end: var(--space-2);
+    }
+
+    [role="tab"] {
+      scroll-snap-align: start;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .analysis-pipeline__tabs {
+      scroll-behavior: auto;
+    }
+  }
+</style>

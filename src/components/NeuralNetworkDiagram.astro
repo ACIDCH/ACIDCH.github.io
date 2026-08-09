@@ -1,0 +1,135 @@
+<figure class="network-figure">
+  <svg viewBox="0 0 760 360" role="img" aria-labelledby="network-title network-desc">
+    <title id="network-title">二维分类神经网络结构</title>
+    <desc id="network-desc">
+      输入变量 A 和 B 连接到一个包含两个节点的隐藏层，再输出二分类概率和类别。
+    </desc>
+    <defs>
+      <linearGradient id="network-flow" x1="0" x2="1">
+        <stop offset="0" stop-color="var(--colour-primary)"></stop>
+        <stop offset="1" stop-color="var(--colour-secondary)"></stop>
+      </linearGradient>
+    </defs>
+
+    <g class="connections" aria-hidden="true">
+      <path d="M150 108 L355 118"></path>
+      <path d="M150 108 L355 242"></path>
+      <path d="M150 252 L355 118"></path>
+      <path d="M150 252 L355 242"></path>
+      <path d="M405 118 L610 180"></path>
+      <path d="M405 242 L610 180"></path>
+    </g>
+
+    <g class="layer-labels" aria-hidden="true">
+      <text x="125" y="42">输入层</text>
+      <text x="380" y="42">隐藏层 · 2 节点</text>
+      <text x="635" y="42">分类输出</text>
+    </g>
+
+    <g class="node node--input">
+      <circle cx="125" cy="108" r="40"></circle>
+      <text x="125" y="114">A</text>
+    </g>
+    <g class="node node--input">
+      <circle cx="125" cy="252" r="40"></circle>
+      <text x="125" y="258">B</text>
+    </g>
+
+    <g class="node node--hidden">
+      <circle cx="380" cy="118" r="40"></circle>
+      <text x="380" y="124">H1</text>
+    </g>
+    <g class="node node--hidden">
+      <circle cx="380" cy="242" r="40"></circle>
+      <text x="380" y="248">H2</text>
+    </g>
+
+    <g class="node node--output">
+      <circle cx="635" cy="180" r="48"></circle>
+      <text x="635" y="175">概率</text>
+      <text x="635" y="197">/ 类别</text>
+    </g>
+  </svg>
+  <figcaption>
+    两个数值输入先标准化；模型使用 1 个隐藏层、2 个隐藏节点和 1000 epochs。
+  </figcaption>
+</figure>
+
+<style>
+  .network-figure {
+    margin: 0;
+    padding: clamp(var(--space-4), 4vw, var(--space-7));
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-xl);
+    background:
+      radial-gradient(
+        circle at 50% 45%,
+        color-mix(in srgb, var(--colour-primary) 10%, transparent),
+        transparent 45%
+      ),
+      var(--colour-surface);
+  }
+
+  svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .connections path {
+    fill: none;
+    stroke: url(#network-flow);
+    stroke-width: 3;
+    opacity: 0.58;
+  }
+
+  .node circle {
+    stroke: var(--colour-border-strong);
+    stroke-width: 2;
+  }
+
+  .node--input circle {
+    fill: var(--colour-surface-raised);
+  }
+
+  .node--hidden circle {
+    fill: color-mix(in srgb, var(--colour-primary) 18%, var(--colour-surface));
+  }
+
+  .node--output circle {
+    fill: color-mix(in srgb, var(--colour-secondary) 20%, var(--colour-surface));
+  }
+
+  text {
+    fill: var(--colour-text);
+    font-family: var(--font-family-sans);
+    text-anchor: middle;
+  }
+
+  .node text {
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .layer-labels text {
+    fill: var(--colour-text-muted);
+    font-size: 15px;
+  }
+
+  figcaption {
+    margin-block-start: var(--space-3);
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-sm);
+  }
+
+  @media (max-width: 34rem) {
+    .network-figure {
+      overflow-x: auto;
+    }
+
+    svg {
+      width: 42rem;
+      max-width: none;
+    }
+  }
+</style>

@@ -33,7 +33,9 @@ const topicLabels = {
         ? "PY"
         : entry.data.translationKey === "sales-profitability-warehouse"
           ? "SQL"
-          : undefined}
+          : entry.data.translationKey === "customer-churn-machine-learning"
+            ? "R"
+            : undefined}
   />
   <div class="cluster cluster--compact">
     <p class="status">{statusLabels[entry.data.status][locale]}</p>

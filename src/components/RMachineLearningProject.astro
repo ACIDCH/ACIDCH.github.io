@@ -1,0 +1,617 @@
+---
+import { getCollection, type CollectionEntry } from "astro:content";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { getLocalizedPath } from "../utils/paths";
+import ContextBack from "./ContextBack.astro";
+import ProjectCard from "./ProjectCard.astro";
+import AnalysisPipeline from "./AnalysisPipeline.astro";
+import ModelComparisonLab from "./ModelComparisonLab.astro";
+import ModelEvaluation from "./ModelEvaluation.astro";
+import RCodeShowcase from "./RCodeShowcase.astro";
+import TechnicalDeepDiveNav from "./TechnicalDeepDiveNav.astro";
+import { codeSnippets, confusionMatrix, predictors } from "../data/r-machine-learning";
+
+interface Props {
+  entry: CollectionEntry<"projects">;
+  alternatePath: string;
+}
+
+const { entry, alternatePath } = Astro.props;
+const relatedProjects = (await getCollection("projects"))
+  .filter(
+    (project) =>
+      project.data.locale === "zh" &&
+      project.data.status === "completed" &&
+      project.data.translationKey !== entry.data.translationKey,
+  )
+  .slice(0, 2);
+---
+
+<BaseLayout
+  title={entry.data.title}
+  description={entry.data.summary}
+  locale="zh"
+  alternatePath={alternatePath}
+  canonicalPath={getLocalizedPath(`/projects/${entry.data.slug}/`, "zh")}
+>
+  <main id="main-content" class="r-project">
+    <article>
+      <div class="project-shell project-shell--hero">
+        <ContextBack
+          locale="zh"
+          fallbackPath="/projects/"
+          label={{ en: "Back to projects", zh: "返回项目列表" }}
+        />
+        <header class="r-hero" data-reveal>
+          <div class="r-hero__copy">
+            <p class="status">R · Machine Learning</p>
+            <h1>{entry.data.title}</h1>
+            <p class="r-hero__summary">{entry.data.summary}</p>
+            <ul class="tag-list" aria-label="工具与方法">
+              {entry.data.tools.map((tool) => <li class="tag">{tool}</li>)}
+            </ul>
+          </div>
+          <div class="r-hero__visual" aria-hidden="true">
+            <span class="r-hero__ring r-hero__ring--one"></span>
+            <span class="r-hero__ring r-hero__ring--two"></span>
+            <span class="r-hero__node r-hero__node--a">R</span>
+            <span class="r-hero__node r-hero__node--b">5</span>
+            <span class="r-hero__node r-hero__node--c">0.9053</span>
+            <svg viewBox="0 0 420 320">
+              <path d="M70 232 C150 192 155 118 235 116 S330 76 370 54"></path>
+              <path d="M70 260 C145 238 188 214 235 170 S312 132 370 118"></path>
+            </svg>
+          </div>
+        </header>
+
+        <dl class="r-hero__metrics" data-reveal>
+          <div><dt>原始记录</dt><dd>200,000</dd></div>
+          <div><dt>输入变量</dt><dd>7</dd></div>
+          <div><dt>比较模型</dt><dd>5</dd></div>
+          <div><dt>测试 AUC</dt><dd>{confusionMatrix.auc.toFixed(4)}</dd></div>
+        </dl>
+
+        <nav class="project-toc" aria-label="页面目录" data-reveal>
+          <a href="#overview">速览</a>
+          <a href="#pipeline">建模流程</a>
+          <a href="#data">数据与变量</a>
+          <a href="#comparison">模型比较</a>
+          <a href="#evaluation">预测评估</a>
+          <a href="#deep-dives">Deep Dives</a>
+        </nav>
+      </div>
+
+      <div class="project-shell">
+        <section id="overview" class="project-section" data-reveal>
+          <div class="section-heading">
+            <p class="status">项目速览</p>
+            <h2>从 25 个字段到可解释的流失筛查模型</h2>
+          </div>
+          <div class="overview-grid">
+            <article>
+              <span>01</span>
+              <h3>分析问题</h3>
+              <p>识别流失风险，并比较不同分类模型在区分能力和召回流失客户上的差异。</p>
+            </article>
+            <article>
+              <span>02</span>
+              <h3>数据</h3>
+              <p>200,000 条合成充电客户记录，覆盖计划、行为、服务可靠性和互动信号。</p>
+            </article>
+            <article>
+              <span>03</span>
+              <h3>方法</h3>
+              <p>80/20 留出集、30,000 行交叉验证样本、5 折验证和折内上采样。</p>
+            </article>
+            <article>
+              <span>04</span>
+              <h3>输出</h3>
+              <p>
+                五模型比较、测试集混淆矩阵、AUC 以及 Logistic Regression odds ratio。
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section id="pipeline" class="project-section" data-reveal>
+          <div class="section-heading">
+            <p class="status">完整分析 Pipeline</p>
+            <h2>测试集在模型选择完成前保持隔离</h2>
+            <p>选择步骤查看数据如何进入训练、交叉验证、比较和最终评价。</p>
+          </div>
+          <AnalysisPipeline />
+        </section>
+
+        <section id="data" class="project-section" data-reveal>
+          <div class="section-heading">
+            <p class="status">数据与变量</p>
+            <h2>最终模型使用 7 个输入变量</h2>
+            <p>
+              变量覆盖服务质量、支付与退款摩擦、使用间隔和会员计划。目标变量
+              <code>churn</code> 以 <code>churned</code> 为正类。
+            </p>
+          </div>
+          <div class="data-layout">
+            <div class="predictor-list">
+              {
+                predictors.map((predictor) => (
+                  <article>
+                    <span class="tag">{predictor.type}</span>
+                    <h3>{predictor.label}</h3>
+                    <code>{predictor.name}</code>
+                  </article>
+                ))
+              }
+            </div>
+            <aside class="data-boundary">
+              <p class="status">建模边界</p>
+              <h3>保留个人客户场景</h3>
+              <p>Fleet 计划按不同使用与合同逻辑排除，Basic 设为计划参考水平。</p>
+              <p>
+                <code>weeks_since_signup</code> 与距上次充电周数的相关系数约为 0.88，因此未进入最终输入集。
+              </p>
+              <p>建模数据没有缺失值；插补步骤仅用于处理以后可能出现的数值缺失。</p>
+            </aside>
+          </div>
+          <RCodeShowcase {...codeSnippets.variableSelection} />
+        </section>
+
+        <section id="comparison" class="project-section" data-reveal>
+          <div class="section-heading">
+            <p class="status">Model Comparison Lab</p>
+            <h2>五个模型使用同一组交叉验证口径</h2>
+            <p>
+              指标按钮只切换已经保存的固定结果，不触发训练。表格始终保留全部数值，便于比较。
+            </p>
+          </div>
+          <ModelComparisonLab />
+          <div class="code-grid">
+            <RCodeShowcase {...codeSnippets.recipes} />
+            <RCodeShowcase {...codeSnippets.modelSpecs} />
+          </div>
+        </section>
+
+        <section id="evaluation" class="project-section" data-reveal>
+          <div class="section-heading">
+            <p class="status">模型选择与预测评估</p>
+            <h2>Logistic Regression 保留最高 AUC 和系数解释</h2>
+            <p>
+              交叉验证 AUC 为 0.9024，高于其余四个模型；留出测试集 AUC 为 0.9053。Naive
+              Bayes 的 Sensitivity 略高，但 AUC 与 Specificity 较低。
+            </p>
+          </div>
+          <ModelEvaluation />
+          <div class="selection-note">
+            <strong>选择依据</strong>
+            <p>
+              流失筛查更关注漏判成本，因此同时检查 AUC 和 Sensitivity。Logistic
+              Regression 在两项指标之间保持稳定，并能用 odds ratio 说明变量方向。
+            </p>
+          </div>
+          <div class="code-grid">
+            <RCodeShowcase {...codeSnippets.finalFit} />
+            <RCodeShowcase {...codeSnippets.confusion} />
+          </div>
+        </section>
+
+        <section id="deep-dives" class="project-section" data-reveal>
+          <div class="section-heading">
+            <p class="status">Technical Deep Dives</p>
+            <h2>技术细节按主题单独展开</h2>
+          </div>
+          <TechnicalDeepDiveNav />
+        </section>
+
+        <section class="project-section evidence-boundary" data-reveal>
+          <div class="section-heading">
+            <p class="status">结果边界</p>
+            <h2>固定结果用于说明建模判断，不代表上线部署</h2>
+          </div>
+          <div class="boundary-grid">
+            <article>
+              <h3>合成数据</h3>
+              <p>数据描述充电客户行为，但结论只适用于该合成样本与当前变量定义。</p>
+            </article>
+            <article>
+              <h3>固定阈值</h3>
+              <p>混淆矩阵来自既定分类阈值；改变干预成本时需要重新评估阈值取舍。</p>
+            </article>
+            <article>
+              <h3>模型用途</h3>
+              <p>结果适合比较分类方法和解释风险信号，不声称已经接入实际客户系统。</p>
+            </article>
+          </div>
+        </section>
+
+        {
+          relatedProjects.length > 0 && (
+            <section class="project-section related-projects" data-reveal>
+              <div class="section-heading">
+                <p class="status">相关项目</p>
+                <h2>继续查看</h2>
+              </div>
+              <div class="related-grid">
+                {relatedProjects.map((project) => (
+                  <ProjectCard entry={project} locale="zh" />
+                ))}
+              </div>
+            </section>
+          )
+        }
+
+        <ContextBack
+          locale="zh"
+          fallbackPath="/projects/"
+          label={{ en: "Back to projects", zh: "返回项目列表" }}
+        />
+      </div>
+    </article>
+  </main>
+</BaseLayout>
+
+<style>
+  .r-project {
+    overflow: clip;
+  }
+
+  .project-shell {
+    width: min(calc(100% - 2rem), var(--container-project));
+    margin-inline: auto;
+  }
+
+  .project-shell--hero {
+    padding-block: var(--space-6) 0;
+  }
+
+  .r-hero {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(18rem, 0.75fr);
+    gap: clamp(var(--space-6), 6vw, var(--space-12));
+    align-items: center;
+    min-height: min(42rem, calc(100svh - var(--header-height) - 4rem));
+    padding-block: clamp(var(--space-10), 10vw, var(--space-20));
+  }
+
+  .r-hero__copy {
+    position: relative;
+    z-index: 1;
+  }
+
+  .r-hero h1 {
+    max-width: 17ch;
+    margin-block: var(--space-3) var(--space-5);
+    font-size: clamp(2.55rem, 6vw, 5.4rem);
+    line-height: 0.98;
+    letter-spacing: -0.055em;
+  }
+
+  .r-hero__summary {
+    max-width: 62ch;
+    color: var(--colour-text-muted);
+    font-size: clamp(1.05rem, 2vw, 1.28rem);
+    line-height: 1.75;
+  }
+
+  .r-hero__visual {
+    position: relative;
+    aspect-ratio: 1 / 0.82;
+    border: 1px solid var(--colour-border);
+    border-radius: 48% 52% 42% 58% / 56% 42% 58% 44%;
+    background:
+      radial-gradient(
+        circle at 35% 30%,
+        color-mix(in srgb, var(--colour-primary) 20%, transparent),
+        transparent 38%
+      ),
+      radial-gradient(
+        circle at 72% 66%,
+        color-mix(in srgb, var(--colour-secondary) 18%, transparent),
+        transparent 42%
+      ),
+      var(--colour-surface);
+  }
+
+  .r-hero__visual svg {
+    position: absolute;
+    inset: 8%;
+    width: 84%;
+    height: 84%;
+  }
+
+  .r-hero__visual path {
+    fill: none;
+    stroke: var(--colour-primary);
+    stroke-width: 3;
+    opacity: 0.42;
+  }
+
+  .r-hero__ring,
+  .r-hero__node {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+  }
+
+  .r-hero__ring {
+    border: 1px dashed var(--colour-border-strong);
+  }
+
+  .r-hero__ring--one {
+    inset: 10%;
+  }
+  .r-hero__ring--two {
+    inset: 24%;
+  }
+
+  .r-hero__node {
+    z-index: 1;
+    width: clamp(3.2rem, 7vw, 5.2rem);
+    aspect-ratio: 1;
+    border: 1px solid var(--colour-border-strong);
+    color: var(--colour-text);
+    background: var(--colour-surface-raised);
+    box-shadow: var(--shadow-md);
+    font-family: var(--font-family-mono);
+    font-weight: 700;
+  }
+
+  .r-hero__node--a {
+    inset: 18% auto auto 16%;
+  }
+  .r-hero__node--b {
+    inset: auto 15% 18% auto;
+  }
+  .r-hero__node--c {
+    inset: 38% 28% auto auto;
+    width: clamp(4.8rem, 10vw, 7rem);
+    color: var(--colour-primary-contrast);
+    background: var(--colour-primary);
+  }
+
+  .r-hero__metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin: 0;
+    border-block: 1px solid var(--colour-border);
+  }
+
+  .r-hero__metrics div {
+    padding: var(--space-5);
+  }
+
+  .r-hero__metrics div + div {
+    border-inline-start: 1px solid var(--colour-border);
+  }
+
+  .r-hero__metrics dt {
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-sm);
+  }
+
+  .r-hero__metrics dd {
+    margin: var(--space-2) 0 0;
+    font-family: var(--font-family-mono);
+    font-size: clamp(1.4rem, 3vw, 2.1rem);
+    font-weight: 700;
+  }
+
+  .project-toc {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    padding-block: var(--space-5);
+  }
+
+  .project-toc a {
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-pill);
+    color: var(--colour-text-muted);
+    text-decoration: none;
+  }
+
+  .project-toc a:hover {
+    color: var(--colour-text);
+    background: var(--colour-surface-raised);
+  }
+
+  .project-section {
+    padding-block: clamp(var(--space-12), 10vw, var(--space-20));
+  }
+
+  .project-section + .project-section {
+    border-top: 1px solid var(--colour-border);
+  }
+
+  .section-heading {
+    max-width: 68ch;
+    margin-block-end: clamp(var(--space-6), 5vw, var(--space-10));
+  }
+
+  .section-heading h2 {
+    margin-block: var(--space-2) var(--space-4);
+    font-size: clamp(1.8rem, 4vw, 3.25rem);
+    line-height: 1.08;
+    letter-spacing: -0.035em;
+  }
+
+  .section-heading > p:last-child {
+    color: var(--colour-text-muted);
+    line-height: 1.75;
+  }
+
+  .overview-grid,
+  .boundary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
+
+  .overview-grid article,
+  .boundary-grid article,
+  .predictor-list article {
+    padding: var(--space-5);
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-lg);
+    background: var(--colour-surface);
+  }
+
+  .overview-grid span {
+    color: var(--colour-primary-strong);
+    font-family: var(--font-family-mono);
+  }
+
+  .overview-grid h3,
+  .boundary-grid h3,
+  .predictor-list h3 {
+    margin-block: var(--space-3) var(--space-2);
+  }
+
+  .overview-grid p,
+  .boundary-grid p {
+    color: var(--colour-text-muted);
+  }
+
+  .data-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(17rem, 0.65fr);
+    gap: var(--space-5);
+    margin-block-end: var(--space-6);
+  }
+
+  .predictor-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
+  }
+
+  .predictor-list article {
+    padding: var(--space-4);
+  }
+
+  .predictor-list h3 {
+    font-size: var(--font-size-base);
+  }
+
+  .predictor-list code {
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-sm);
+  }
+
+  .data-boundary,
+  .selection-note {
+    padding: var(--space-6);
+    border-radius: var(--radius-xl);
+    background: color-mix(in srgb, var(--colour-primary) 8%, var(--colour-surface));
+  }
+
+  .data-boundary h3 {
+    margin-block: var(--space-2) var(--space-4);
+  }
+
+  .data-boundary p,
+  .selection-note p {
+    color: var(--colour-text-muted);
+  }
+
+  .code-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-5);
+    margin-block-start: var(--space-6);
+  }
+
+  .selection-note {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-4);
+    margin-block-start: var(--space-5);
+  }
+
+  .boundary-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .related-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-5);
+  }
+
+  :global(.r-project .related-projects .project-cover--compact) {
+    contain: inline-size;
+    max-width: 100%;
+  }
+
+  @media (max-width: 62rem) {
+    .r-hero {
+      grid-template-columns: 1fr;
+    }
+
+    .r-hero__visual {
+      width: min(100%, 34rem);
+      margin-inline: auto;
+    }
+
+    .overview-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .data-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 48rem) {
+    .project-shell {
+      width: min(calc(100% - 1.25rem), var(--container-project));
+    }
+
+    .r-hero {
+      min-height: auto;
+      padding-block: var(--space-10);
+    }
+
+    .r-hero h1 {
+      font-size: clamp(2.35rem, 12vw, 3.9rem);
+    }
+
+    .r-hero__metrics {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .r-hero__metrics div:nth-child(3) {
+      border-inline-start: 0;
+      border-block-start: 1px solid var(--colour-border);
+    }
+
+    .r-hero__metrics div:nth-child(4) {
+      border-block-start: 1px solid var(--colour-border);
+    }
+
+    .code-grid,
+    .related-grid,
+    .boundary-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 34rem) {
+    .overview-grid,
+    .predictor-list {
+      grid-template-columns: 1fr;
+    }
+
+    .selection-note {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .r-hero__visual,
+    .r-hero__node {
+      animation: none;
+    }
+  }
+</style>

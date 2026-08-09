@@ -3,6 +3,7 @@ import { getCollection } from "astro:content";
 import type { Locale } from "../config/site";
 import type { SearchItem } from "../utils/search";
 import { withBase } from "../utils/paths";
+import { deepDives, projectBasePath } from "../data/r-machine-learning";
 import Icon from "./Icon.astro";
 
 interface Props {
@@ -96,6 +97,14 @@ const index: SearchItem[] = [
       ...entry.data.tags,
       "body" in entry ? String(entry.body ?? "") : "",
     ].join(" "),
+  })),
+  ...deepDives.map((deepDive) => ({
+    title: deepDive.title,
+    description: deepDive.summary,
+    path: `${projectBasePath}${deepDive.slug}/`,
+    locale: "zh" as const,
+    group: "project" as const,
+    searchText: `${deepDive.title} ${deepDive.summary} ${deepDive.keywords}`,
   })),
   ...notes.map((entry) => ({
     title: entry.data.title,

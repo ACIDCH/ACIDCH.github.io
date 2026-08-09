@@ -1,0 +1,326 @@
+---
+import { confusionMatrix, oddsRatios } from "../data/r-machine-learning";
+
+const formatCount = (value: number) => new Intl.NumberFormat("zh-CN").format(value);
+const maxOdds = Math.max(...oddsRatios.map((item) => item.value));
+---
+
+<div class="model-evaluation">
+  <section class="evaluation-card" aria-labelledby="holdout-metrics-title">
+    <p class="status">留出测试集</p>
+    <h3 id="holdout-metrics-title">39,200 条记录的一次性评价</h3>
+    <dl class="metric-grid">
+      <div><dt>Accuracy</dt><dd>{confusionMatrix.accuracy.toFixed(4)}</dd></div>
+      <div><dt>AUC-ROC</dt><dd>{confusionMatrix.auc.toFixed(4)}</dd></div>
+      <div><dt>Sensitivity</dt><dd>{confusionMatrix.sensitivity.toFixed(4)}</dd></div>
+      <div><dt>Specificity</dt><dd>{confusionMatrix.specificity.toFixed(4)}</dd></div>
+    </dl>
+  </section>
+
+  <section class="evaluation-card" aria-labelledby="matrix-title">
+    <p class="status">Confusion Matrix</p>
+    <h3 id="matrix-title">流失客户是正类</h3>
+    <div
+      class="confusion-grid"
+      role="img"
+      aria-label="Logistic Regression 测试集混淆矩阵"
+    >
+      <span class="axis-label axis-label--predicted">预测</span>
+      <span class="axis-label axis-label--actual">真实</span>
+      <span class="matrix-label matrix-label--top-left">保留</span>
+      <span class="matrix-label matrix-label--top-right">流失</span>
+      <span class="matrix-label matrix-label--left-top">流失</span>
+      <span class="matrix-label matrix-label--left-bottom">保留</span>
+      <div class="matrix-cell matrix-cell--fp" tabindex="0">
+        <span>False Positive</span>
+        <strong>{formatCount(confusionMatrix.falsePositive)}</strong>
+      </div>
+      <div class="matrix-cell matrix-cell--tp" tabindex="0">
+        <span>True Positive</span>
+        <strong>{formatCount(confusionMatrix.truePositive)}</strong>
+      </div>
+      <div class="matrix-cell matrix-cell--tn" tabindex="0">
+        <span>True Negative</span>
+        <strong>{formatCount(confusionMatrix.trueNegative)}</strong>
+      </div>
+      <div class="matrix-cell matrix-cell--fn" tabindex="0">
+        <span>False Negative</span>
+        <strong>{formatCount(confusionMatrix.falseNegative)}</strong>
+      </div>
+    </div>
+    <p>
+      10,092 条真实流失记录被正确识别，2,022 条流失记录被漏判；Sensitivity 为 0.8332。
+    </p>
+  </section>
+
+  <section class="evaluation-card evaluation-card--wide" aria-labelledby="odds-title">
+    <p class="status">Logistic Regression</p>
+    <h3 id="odds-title">Odds ratio 解释</h3>
+    <p>虚线基准为 1。大于 1 表示流失 odds 增加，小于 1 表示相对 Basic 计划降低。</p>
+    <div class="odds-chart" role="img" aria-label="Logistic Regression odds ratio 比较">
+      {
+        oddsRatios.map((item) => (
+          <div
+            class="odds-row"
+            data-direction={item.direction}
+            tabindex="0"
+            aria-label={`${item.label} odds ratio ${item.value}`}
+          >
+            <span>{item.label}</span>
+            <div class="odds-track">
+              <span
+                class="odds-fill"
+                style={`--odds-width:${Math.max(3, (item.value / maxOdds) * 100)}%`}
+              />
+              <i class="odds-baseline" aria-hidden="true" />
+            </div>
+            <strong>{item.value.toFixed(item.value >= 10 ? 1 : 2)}</strong>
+            <span class="odds-tooltip" role="tooltip">
+              {item.direction === "risk" ? "流失 odds 增加" : "相对 Basic 计划降低"}
+            </span>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+</div>
+
+<style>
+  .model-evaluation {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-5);
+  }
+
+  .evaluation-card {
+    min-width: 0;
+    padding: clamp(var(--space-5), 4vw, var(--space-8));
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-xl);
+    background: var(--colour-surface);
+  }
+
+  .evaluation-card--wide {
+    grid-column: 1 / -1;
+  }
+
+  .evaluation-card h3 {
+    margin-block: var(--space-2) var(--space-4);
+  }
+
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
+    margin: 0;
+  }
+
+  .metric-grid div {
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    background: var(--colour-surface-raised);
+  }
+
+  .metric-grid dt {
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-sm);
+  }
+
+  .metric-grid dd {
+    margin: var(--space-1) 0 0;
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+  }
+
+  .confusion-grid {
+    display: grid;
+    grid-template-columns: 2.5rem 3.5rem repeat(2, minmax(6.5rem, 1fr));
+    grid-template-rows: 1.8rem 2rem repeat(2, minmax(6rem, auto));
+    gap: var(--space-2);
+    max-width: 32rem;
+    margin-block: var(--space-5);
+  }
+
+  .axis-label,
+  .matrix-label {
+    display: grid;
+    place-items: center;
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-sm);
+  }
+
+  .axis-label--actual {
+    grid-column: 3 / 5;
+    grid-row: 1;
+  }
+
+  .axis-label--predicted {
+    grid-column: 1;
+    grid-row: 3 / 5;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+  }
+
+  .matrix-label--top-left {
+    grid-column: 3;
+    grid-row: 2;
+  }
+  .matrix-label--top-right {
+    grid-column: 4;
+    grid-row: 2;
+  }
+  .matrix-label--left-top {
+    grid-column: 2;
+    grid-row: 3;
+  }
+  .matrix-label--left-bottom {
+    grid-column: 2;
+    grid-row: 4;
+  }
+
+  .matrix-cell {
+    display: grid;
+    place-content: center;
+    gap: var(--space-2);
+    min-width: 0;
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    text-align: center;
+  }
+
+  .matrix-cell span {
+    font-size: var(--font-size-sm);
+  }
+
+  .matrix-cell strong {
+    font-family: var(--font-family-mono);
+    font-size: clamp(1.15rem, 3vw, 1.65rem);
+  }
+
+  .matrix-cell--fp {
+    grid-column: 3;
+    grid-row: 3;
+    background: color-mix(in srgb, var(--colour-primary) 22%, var(--colour-surface));
+  }
+
+  .matrix-cell--tp {
+    grid-column: 4;
+    grid-row: 3;
+    color: var(--colour-primary-contrast);
+    background: var(--colour-primary);
+  }
+
+  .matrix-cell--tn {
+    grid-column: 3;
+    grid-row: 4;
+    background: var(--colour-surface-raised);
+  }
+
+  .matrix-cell--fn {
+    grid-column: 4;
+    grid-row: 4;
+    color: var(--colour-primary-contrast);
+    background: var(--colour-secondary);
+  }
+
+  .odds-chart {
+    display: grid;
+    gap: var(--space-3);
+    margin-block-start: var(--space-5);
+  }
+
+  .odds-row {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(8rem, 0.55fr) minmax(10rem, 1.45fr) 4rem;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-1);
+    border-radius: var(--radius-sm);
+  }
+
+  .odds-row:focus-visible,
+  .odds-row:hover {
+    background: var(--colour-surface-raised);
+  }
+
+  .odds-track {
+    position: relative;
+    height: 0.85rem;
+    border-radius: var(--radius-pill);
+    background: var(--colour-surface-raised);
+  }
+
+  .odds-fill {
+    display: block;
+    width: var(--odds-width);
+    height: 100%;
+    border-radius: inherit;
+    background: var(--colour-primary);
+  }
+
+  [data-direction="protective"] .odds-fill {
+    background: var(--colour-secondary);
+  }
+
+  .odds-baseline {
+    position: absolute;
+    inset-block: -0.25rem;
+    inset-inline-start: calc(100% / 15.9);
+    border-inline-start: 1px dashed var(--colour-text-muted);
+  }
+
+  .odds-row strong {
+    font-family: var(--font-family-mono);
+    text-align: right;
+  }
+
+  .odds-tooltip {
+    position: absolute;
+    z-index: var(--z-raised);
+    inset-inline-end: var(--space-2);
+    inset-block-end: calc(100% + var(--space-1));
+    display: none;
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-sm);
+    background: var(--colour-surface);
+    box-shadow: var(--shadow-md);
+    font-size: var(--font-size-sm);
+  }
+
+  .odds-row:hover .odds-tooltip,
+  .odds-row:focus-visible .odds-tooltip {
+    display: block;
+  }
+
+  @media (max-width: 50rem) {
+    .model-evaluation {
+      grid-template-columns: 1fr;
+    }
+
+    .evaluation-card--wide {
+      grid-column: auto;
+    }
+  }
+
+  @media (max-width: 34rem) {
+    .confusion-grid {
+      grid-template-columns: 1.5rem 3rem repeat(2, minmax(5rem, 1fr));
+    }
+
+    .matrix-cell {
+      padding: var(--space-3) var(--space-2);
+    }
+
+    .odds-row {
+      grid-template-columns: minmax(0, 1fr) 3.5rem;
+    }
+
+    .odds-track {
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
+  }
+</style>

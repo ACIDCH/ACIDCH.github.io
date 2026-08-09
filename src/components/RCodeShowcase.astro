@@ -1,0 +1,152 @@
+---
+interface Props {
+  title: string;
+  code: string;
+  open?: boolean;
+}
+
+const { title, code, open = false } = Astro.props;
+const escapeHtml = (value: string) =>
+  value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+const highlighted = escapeHtml(code)
+  .replace(
+    /(&quot;.*?&quot;|&#39;.*?&#39;|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')/g,
+    '<span class="r-string">$1</span>',
+  )
+  .replace(
+    /\b(function|if|else|for|while|repeat|in|next|break|TRUE|FALSE|NULL|NA)\b/g,
+    '<span class="r-keyword">$1</span>',
+  )
+  .replace(
+    /\b(recipe|workflow|initial_split|training|testing|vfold_cv|step_[a-z_]+|set_engine|set_mode|fit|last_fit|collect_metrics|collect_predictions|conf_mat|roc_curve|roc_auc|mutate|filter|select|group_by|slice_sample|ungroup|add_model|add_recipe)\b/g,
+    '<span class="r-function">$1</span>',
+  )
+  .replace(/(&lt;-|\|&gt;)/g, '<span class="r-operator">$1</span>');
+---
+
+<details class="r-code" open={open}>
+  <summary>
+    <span>{title}</span>
+    <span class="r-code__hint">展开代码</span>
+  </summary>
+  <div class="r-code__toolbar">
+    <span>R</span>
+    <button
+      class="icon-button r-code__copy"
+      type="button"
+      data-copy-r
+      aria-label={`复制${title}`}
+    >
+      复制
+    </button>
+  </div>
+  <pre tabindex="0"><code set:html={highlighted} /></pre>
+</details>
+
+<script>
+  const initialiseRCopy = () => {
+    document.querySelectorAll<HTMLButtonElement>("[data-copy-r]").forEach((button) => {
+      if (button.dataset.ready === "true") return;
+      button.dataset.ready = "true";
+      button.addEventListener("click", async () => {
+        const code =
+          button.closest(".r-code")?.querySelector("code")?.textContent ?? "";
+        try {
+          await navigator.clipboard.writeText(code);
+          button.textContent = "已复制";
+          window.setTimeout(() => (button.textContent = "复制"), 1400);
+        } catch {
+          button.textContent = "复制失败";
+        }
+      });
+    });
+  };
+
+  initialiseRCopy();
+  document.addEventListener("astro:page-load", initialiseRCopy);
+</script>
+
+<style>
+  .r-code {
+    width: 100%;
+    min-width: 0;
+    overflow: clip;
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-lg);
+    background: var(--colour-surface);
+  }
+
+  summary,
+  .r-code__toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+
+  summary {
+    padding: var(--space-4) var(--space-5);
+    cursor: pointer;
+    font-weight: 650;
+  }
+
+  .r-code__hint,
+  .r-code__toolbar {
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-sm);
+  }
+
+  .r-code__toolbar {
+    padding: var(--space-2) var(--space-4);
+    border-block: 1px solid var(--colour-border);
+    background: var(--colour-surface-raised);
+  }
+
+  .r-code__copy {
+    width: auto;
+    min-width: 4.6rem;
+    padding-inline: var(--space-3);
+  }
+
+  pre {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    margin: 0;
+    padding: var(--space-5);
+    overflow-x: auto;
+    color: var(--colour-text);
+    background: color-mix(
+      in srgb,
+      var(--colour-surface) 84%,
+      var(--colour-navy-950) 16%
+    );
+    font-size: 0.84rem;
+    line-height: 1.65;
+    tab-size: 2;
+  }
+
+  pre:focus-visible {
+    outline: 2px solid var(--colour-accent);
+    outline-offset: -3px;
+  }
+
+  :global(.r-keyword) {
+    color: var(--colour-secondary);
+    font-weight: 700;
+  }
+
+  :global(.r-string) {
+    color: var(--colour-primary-strong);
+  }
+
+  :global(.r-function) {
+    color: var(--colour-accent);
+    font-weight: 650;
+  }
+
+  :global(.r-operator) {
+    color: var(--colour-primary);
+    font-weight: 700;
+  }
+</style>
