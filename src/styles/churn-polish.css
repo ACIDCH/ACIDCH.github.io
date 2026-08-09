@@ -1,0 +1,321 @@
+@layer components {
+  :is(.churn-case, .r-deep-dive) {
+    --churn-panel-border: color-mix(
+      in srgb,
+      var(--colour-border-strong) 78%,
+      transparent
+    );
+    --churn-panel-surface: color-mix(
+      in srgb,
+      var(--colour-surface) 94%,
+      transparent
+    );
+    --churn-panel-soft: color-mix(
+      in srgb,
+      var(--colour-primary) 5%,
+      var(--colour-surface)
+    );
+  }
+
+  :is(.churn-case, .r-deep-dive)
+    :is(
+      .predictor-explorer,
+      .model-lab,
+      .risk-explorer,
+      .native-or,
+      .correlation-explorer,
+      .evaluation-story,
+      .data-story
+    ) {
+    scroll-margin-top: calc(var(--header-height, 4rem) + 4.5rem);
+  }
+
+  :is(.churn-case, .r-deep-dive)
+    :is(.predictor-explorer, .model-lab, .risk-explorer, .native-or) {
+    border-color: var(--churn-panel-border);
+    background: var(--churn-panel-surface);
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, white 6%, transparent),
+      0 0.7rem 2.4rem rgb(8 29 39 / 5%);
+  }
+
+  :is(.churn-case, .r-deep-dive)
+    :is(.predictor-explorer, .model-lab, .risk-explorer, .native-or)
+    :is(select, button) {
+    transition:
+      color var(--duration-fast) var(--ease-standard),
+      background-color var(--duration-fast) var(--ease-standard),
+      border-color var(--duration-fast) var(--ease-standard),
+      box-shadow var(--duration-fast) var(--ease-standard),
+      transform var(--duration-fast) var(--ease-standard);
+  }
+
+  :is(.churn-case, .r-deep-dive)
+    :is(.predictor-explorer, .model-lab, .risk-explorer, .native-or)
+    select {
+    border-color: var(--churn-panel-border);
+    background: var(--colour-surface);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 4%);
+  }
+
+  :is(.churn-case, .r-deep-dive)
+    :is(.predictor-explorer, .model-lab, .risk-explorer, .native-or)
+    select:hover {
+    border-color: color-mix(
+      in srgb,
+      var(--colour-primary) 42%,
+      var(--colour-border-strong)
+    );
+  }
+
+  :is(.churn-case, .r-deep-dive)
+    :is(.predictor-explorer, .model-lab, .risk-explorer, .native-or)
+    select:focus-visible {
+    outline: 2px solid var(--colour-primary);
+    outline-offset: 3px;
+  }
+
+  :is(.churn-case, .r-deep-dive)
+    :is(
+      .predictor-explorer__tabs button[aria-selected="true"],
+      .metric-button[aria-pressed="true"],
+      .model-bar[data-selected="true"],
+      .native-or__rows button[aria-pressed="true"],
+      .correlation-explorer button[aria-pressed="true"],
+      .matrix-cell[aria-pressed="true"]
+    ) {
+    border-color: color-mix(
+      in srgb,
+      var(--colour-primary) 42%,
+      var(--colour-border-strong)
+    );
+    background: color-mix(
+      in srgb,
+      var(--colour-primary) 9%,
+      var(--colour-surface)
+    );
+    box-shadow: inset 3px 0 0 var(--colour-primary);
+  }
+
+  :is(.churn-case, .r-deep-dive)
+    :is(
+      .predictor-explorer__tabs button,
+      .metric-button,
+      .model-bar,
+      .native-or__rows button,
+      .correlation-explorer button,
+      .matrix-cell
+    ):hover {
+    border-color: color-mix(
+      in srgb,
+      var(--colour-primary) 30%,
+      var(--colour-border)
+    );
+    transform: translateY(-1px);
+  }
+
+  :is(.churn-case, .r-deep-dive)
+    :is(
+      .predictor-explorer__tabs button,
+      .metric-button,
+      .model-bar,
+      .native-or__rows button,
+      .correlation-explorer button,
+      .matrix-cell
+    ):focus-visible {
+    position: relative;
+    z-index: 2;
+    outline: 2px solid var(--colour-primary);
+    outline-offset: 2px;
+  }
+
+  :is(.churn-case, .r-deep-dive) :is(figure > figcaption, .native-or__heading) {
+    align-items: start;
+  }
+
+  :is(.churn-case, .r-deep-dive)
+    :is(figure > figcaption > span, .figure-index, .native-or__heading > span) {
+    border-color: color-mix(
+      in srgb,
+      var(--colour-primary) 24%,
+      var(--colour-border)
+    );
+    background: color-mix(
+      in srgb,
+      var(--colour-primary) 5%,
+      var(--colour-surface)
+    );
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 5%);
+  }
+
+  :is(.churn-case, .r-deep-dive) .figure-reading {
+    position: relative;
+    max-width: 76ch;
+    margin-top: 1.15rem;
+    padding: 1rem 1.05rem 1rem 1.2rem;
+    border-left: 3px solid var(--colour-accent);
+    border-radius: 0 0.85rem 0.85rem 0;
+    background: color-mix(
+      in srgb,
+      var(--colour-surface-subtle) 84%,
+      transparent
+    );
+    color: var(--colour-text-muted);
+    line-height: 1.72;
+  }
+
+  :is(.churn-case, .r-deep-dive) .figure-reading::before {
+    display: block;
+    margin-bottom: 0.45rem;
+    color: var(--colour-accent);
+    font: 700 0.64rem/1 var(--font-mono);
+    letter-spacing: 0.08em;
+    content: "READING";
+  }
+
+  :is(.churn-case, .r-deep-dive) .churn-case-note {
+    max-width: 76ch;
+    margin-top: 1.05rem;
+    padding: 0.95rem 1rem;
+    border: 1px solid color-mix(
+      in srgb,
+      var(--colour-accent) 28%,
+      var(--colour-border)
+    );
+    border-left-width: 3px;
+    border-radius: 0.85rem;
+    background: color-mix(
+      in srgb,
+      var(--colour-accent) 4%,
+      var(--colour-surface)
+    );
+  }
+
+  :is(.churn-case, .r-deep-dive) .churn-case-note strong {
+    display: inline-block;
+    margin-right: 0.4rem;
+  }
+
+  :is(.churn-case, .r-deep-dive) .model-ranking__rows {
+    gap: 0.3rem;
+  }
+
+  :is(.churn-case, .r-deep-dive) .model-bar {
+    border: 1px solid transparent;
+    border-radius: 0.75rem;
+  }
+
+  :is(.churn-case, .r-deep-dive) .model-bar__fill {
+    border-radius: 999px;
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 16%);
+  }
+
+  :is(.churn-case, .r-deep-dive) .metric-matrix__scroll {
+    border: 1px solid var(--churn-panel-border);
+    border-radius: 0.9rem;
+    overflow: auto;
+  }
+
+  :is(.churn-case, .r-deep-dive) .metric-matrix th {
+    background: color-mix(
+      in srgb,
+      var(--colour-surface) 96%,
+      var(--colour-primary) 4%
+    );
+  }
+
+  :is(.churn-case, .r-deep-dive) .risk-number,
+  :is(.churn-case, .r-deep-dive) .model-detail,
+  :is(.churn-case, .r-deep-dive) .correlation-explorer__detail,
+  :is(.churn-case, .r-deep-dive) .matrix-reading,
+  :is(.churn-case, .r-deep-dive) .native-or aside {
+    border-color: var(--churn-panel-border);
+    background: var(--churn-panel-soft);
+  }
+
+  :is(.churn-case, .r-deep-dive) .correlation-explorer__grid {
+    border-color: var(--churn-panel-border);
+    border-radius: 0.95rem;
+    overflow: hidden;
+  }
+
+  :is(.churn-case, .r-deep-dive) .correlation-explorer button i,
+  :is(.churn-case, .r-deep-dive) .native-or__rows i,
+  :is(.churn-case, .r-deep-dive) .model-bar__track {
+    border-radius: 999px;
+  }
+
+  :is(.churn-case, .r-deep-dive) .selection-chain > div,
+  :is(.churn-case, .r-deep-dive) .decision-essay > div,
+  :is(.churn-case, .r-deep-dive) .model-family-map article {
+    transition:
+      border-color var(--duration-fast) var(--ease-standard),
+      background-color var(--duration-fast) var(--ease-standard),
+      transform var(--duration-fast) var(--ease-standard);
+  }
+
+  :is(.churn-case, .r-deep-dive) .selection-chain > div:hover,
+  :is(.churn-case, .r-deep-dive) .decision-essay > div:hover,
+  :is(.churn-case, .r-deep-dive) .model-family-map article:hover {
+    background: color-mix(
+      in srgb,
+      var(--colour-primary) 5%,
+      var(--colour-surface)
+    );
+    transform: translateY(-1px);
+  }
+}
+
+@media (max-width: 48rem) {
+  @layer components {
+    :is(.churn-case, .r-deep-dive)
+      :is(.predictor-explorer, .model-lab, .risk-explorer, .native-or) {
+      box-shadow: none;
+    }
+
+    :is(.churn-case, .r-deep-dive)
+      :is(
+        .predictor-explorer__tabs button,
+        .metric-button,
+        .model-bar,
+        .native-or__rows button,
+        .correlation-explorer button,
+        .matrix-cell
+      ):hover {
+      transform: none;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @layer components {
+    :is(.churn-case, .r-deep-dive)
+      :is(
+        .predictor-explorer,
+        .model-lab,
+        .risk-explorer,
+        .native-or,
+        .correlation-explorer,
+        .evaluation-story,
+        .data-story
+      )
+      :is(button, select, article, div) {
+      transition: none !important;
+    }
+
+    :is(.churn-case, .r-deep-dive)
+      :is(
+        .predictor-explorer__tabs button,
+        .metric-button,
+        .model-bar,
+        .native-or__rows button,
+        .correlation-explorer button,
+        .matrix-cell,
+        .selection-chain > div,
+        .decision-essay > div,
+        .model-family-map article
+      ) {
+      transform: none !important;
+    }
+  }
+}
