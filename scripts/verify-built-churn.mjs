@@ -1,4 +1,5 @@
 import { readFile } from "node:fs/promises";
+import process from "node:process";
 
 const checks = [
   {
@@ -63,4 +64,6 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log("Built Customer Churn acceptance passed: navigation, technology identity, native visuals and raster removal are present in dist/.");
+console.log(
+  "Built Customer Churn acceptance passed: navigation, technology identity, native visuals and raster removal are present in dist/.",
+);
