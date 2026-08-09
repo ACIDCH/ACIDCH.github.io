@@ -20,6 +20,9 @@
     "test": "vitest run && node scripts/scan-sensitive.mjs",
     "test:site": "node scripts/validate-build.mjs",
     "security:scan": "node scripts/scan-sensitive.mjs",
+    "quality": "npm run format:check && npm run check && npm run lint && npm run test && npm audit --audit-level=high && npm run build",
+    "deploy:meta": "node scripts/write-deploy-meta.mjs",
+    "verify:production": "node scripts/verify-production.mjs",
     "astro": "astro"
   },
   "dependencies": {
