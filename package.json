@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "astro build && node scripts/validate-ci.mjs",
+    "build": "astro build && node scripts/validate-ci.mjs && node scripts/verify-built-churn.mjs",
     "preview": "astro preview",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -20,6 +20,7 @@
     "test:site": "node scripts/validate-ci.mjs",
     "security:scan": "node scripts/scan-sensitive.mjs",
     "audit:churn-raster": "node scripts/audit-churn-raster.mjs",
+    "acceptance:churn": "node scripts/verify-built-churn.mjs",
     "quality": "npm run format && npm run check && npm run lint && npm run test && npm audit --audit-level=high && npm run build",
     "quality:check": "npm run format:check && npm run check && npm run lint && npm run test && npm audit --audit-level=high && npm run build",
     "deploy:meta": "node scripts/write-deploy-meta.mjs",
