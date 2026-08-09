@@ -16,6 +16,8 @@ describe("production deployment contracts", () => {
     expect(workflow).toContain("Resolve checked-out revision");
     expect(workflow).toContain("deploy_sha:");
     expect(workflow).toContain("needs.quality.outputs.deploy_sha");
+    expect(workflow).toContain("github.event.pull_request.merged == true && 'main' || github.sha");
+    expect(workflow).not.toContain("github.event.pull_request.head.sha");
     expect(workflow).not.toContain("types: [opened, synchronize, reopened, closed]");
   });
 
