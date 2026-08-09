@@ -12,11 +12,20 @@ interface Props {
 }
 
 const { number, title, src, alt, caption, reading, fit = "contain" } = Astro.props;
-const replacedByNativeVisual = src.includes("/projects/customer-churn/");
+
+const nativeOnlySources = new Set([
+  "/projects/customer-churn/numeric-distributions.webp",
+  "/projects/customer-churn/predictor-comparisons.webp",
+  "/projects/customer-churn/categorical-churn-rates.webp",
+  "/projects/customer-churn/service-interactions.webp",
+  "/projects/customer-churn/holdout-roc.webp",
+  "/projects/customer-churn/odds-ratio-ci.webp",
+]);
+const shouldRenderRaster = !nativeOnlySources.has(src);
 ---
 
 {
-  !replacedByNativeVisual && (
+  shouldRenderRaster && (
     <figure class="evidence-figure" data-fit={fit}>
       <figcaption>
         <span>{number}</span>
@@ -106,12 +115,15 @@ const replacedByNativeVisual = src.includes("/projects/customer-churn/");
     figcaption {
       grid-template-columns: 1fr;
     }
+
     figcaption > span {
       width: max-content;
     }
+
     .evidence-figure__frame {
       overflow-x: auto;
     }
+
     [data-fit="cover"] img {
       min-width: 44rem;
     }
