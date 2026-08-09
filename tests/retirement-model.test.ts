@@ -53,7 +53,11 @@ describe("retirement Monte Carlo project", () => {
     expect(page).toContain("随机种子");
     expect(page).toContain("模型结果");
     expect(page).toContain("随机模拟逻辑");
-    expect(card).toContain('entry.data.translationKey !== "retirement-monte-carlo"');
+    expect(card).toContain('"retirement-monte-carlo": "Excel"');
+    expect(card).toMatch(/<ProjectCover[^>]*\bshowCode\b/);
+    expect(card).not.toContain(
+      'showCode={entry.data.translationKey !== "retirement-monte-carlo"}',
+    );
     expect(page).not.toMatch(
       /Task [1-4]|Client data|课程项目|中文样板页|暂不索引|局限与下一步|来源与口径|6\.1625%|10\.5%/,
     );
