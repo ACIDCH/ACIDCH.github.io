@@ -10,6 +10,7 @@ import ChurnEvidenceFigure from "./ChurnEvidenceFigure.astro";
 import RiskSignalExplorer from "./RiskSignalExplorer.astro";
 import RCodeShowcase from "./RCodeShowcase.astro";
 import ChurnDeepeningSections from "./ChurnDeepeningSections.astro";
+import ChurnOddsRatioChart from "./ChurnOddsRatioChart.astro";
 
 const deepDive = deepDives.find((item) => item.slug === "logistic-interpretation")!;
 ---
@@ -140,6 +141,7 @@ const deepDive = deepDives.find((item) => item.slug === "logistic-interpretation
       caption="二元变量按 Yes 相对 No，计划按 Plus / Pro 相对 Basic，数值变量按原始单位增加 1。"
       reading="应该看哪里：支付失败的点估计和区间远离 1；Plus 与 Pro 位于 1 左侧；等待、故障和应用崩溃靠近 1，但它们按小单位计量，不能与一次性二元事件直接比较条形长度。"
     />
+    <ChurnOddsRatioChart />
   </section>
 
   <section id="limits" class="r-deep-section" data-reveal>

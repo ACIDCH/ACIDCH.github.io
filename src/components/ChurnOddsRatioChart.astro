@@ -1,0 +1,198 @@
+---
+import { oddsRatios } from "../data/r-machine-learning";
+const max = Math.max(...oddsRatios.map((item) => item.value));
+---
+
+<section class="native-or" data-native-or aria-labelledby="native-or-title">
+  <div class="native-or__heading">
+    <span>ODDS RATIO</span><div>
+      <h3 id="native-or-title">八项风险信号的条件关联</h3><p>
+        选择一项，结合变量单位与参照阅读估计值；条形长度只比较同一 odds ratio 尺度。
+      </p>
+    </div>
+  </div>
+  <div class="native-or__layout">
+    <div class="native-or__rows" role="list">
+      {
+        oddsRatios.map((item, index) => (
+          <button
+            type="button"
+            role="listitem"
+            aria-pressed={index === 0 ? "true" : "false"}
+            data-native-or-item={item.id}
+          >
+            <>
+              <span>{item.label}</span>
+              <i>
+                <b style={`--or:${(item.value / max) * 100}%`} />
+              </i>
+              <strong>{item.value.toFixed(2)}</strong>
+            </>
+          </button>
+        ))
+      }
+    </div><aside aria-live="polite">
+      <p data-native-or-name>{oddsRatios[0]?.label}</p><strong data-native-or-value
+        >{oddsRatios[0]?.value.toFixed(2)}</strong
+      ><dl>
+        <div>
+          <dt>变量</dt><dd data-native-or-variable>{oddsRatios[0]?.variable}</dd>
+        </div><div>
+          <dt>单位 / 参照</dt><dd data-native-or-unit>{oddsRatios[0]?.unit}</dd>
+        </div>
+      </dl><p data-native-or-reading>{oddsRatios[0]?.interpretation}</p>
+    </aside>
+  </div>
+</section>
+<script is:inline define:vars={{ oddsRatios }}>
+  const setup = () =>
+    document.querySelectorAll("[data-native-or]").forEach((root) => {
+      if (root.dataset.ready === "true") return;
+      root.dataset.ready = "true";
+      const items = [...root.querySelectorAll("[data-native-or-item]")];
+      const read = (id) => {
+        const item = oddsRatios.find((entry) => entry.id === id);
+        if (!item) return;
+        items.forEach((button) =>
+          button.setAttribute(
+            "aria-pressed",
+            String(button.dataset.nativeOrItem === id),
+          ),
+        );
+        [
+          ["[data-native-or-name]", item.label],
+          ["[data-native-or-value]", item.value.toFixed(2)],
+          ["[data-native-or-variable]", item.variable],
+          ["[data-native-or-unit]", item.unit],
+          ["[data-native-or-reading]", item.interpretation],
+        ].forEach(([selector, value]) => {
+          const node = root.querySelector(selector);
+          if (node) node.textContent = value;
+        });
+      };
+      items.forEach((button) =>
+        button.addEventListener("click", () => read(button.dataset.nativeOrItem)),
+      );
+    });
+  document.addEventListener("astro:page-load", setup);
+  setup();
+</script>
+<style>
+  .native-or {
+    display: grid;
+    gap: 1.25rem;
+    padding: clamp(1.25rem, 4vw, 2.5rem);
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-lg);
+    background: var(--colour-surface);
+  }
+  .native-or__heading {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 1rem;
+  }
+  .native-or__heading > span {
+    height: max-content;
+    padding: 0.5rem 0.65rem;
+    border: 1px solid var(--colour-border);
+    border-radius: 999px;
+    color: var(--colour-primary-strong);
+    font: 700 0.7rem/1 var(--font-mono);
+  }
+  h3,
+  p,
+  dl,
+  dt,
+  dd {
+    margin: 0;
+  }
+  h3 {
+    font-size: clamp(1.3rem, 3vw, 2rem);
+  }
+  .native-or__heading p,
+  .native-or aside > p {
+    margin-top: 0.45rem;
+    color: var(--colour-text-muted);
+    line-height: 1.7;
+  }
+  .native-or__layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(14rem, 0.75fr);
+    gap: 1.5rem;
+  }
+  .native-or__rows {
+    display: grid;
+    gap: 0.35rem;
+  }
+  .native-or__rows button {
+    display: grid;
+    grid-template-columns: minmax(8rem, 0.7fr) minmax(4rem, 1fr) 3.5rem;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.65rem;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--colour-text);
+    text-align: left;
+    cursor: pointer;
+  }
+  .native-or__rows button[aria-pressed="true"] {
+    border-color: var(--colour-border);
+    background: var(--colour-surface-subtle);
+  }
+  .native-or__rows i {
+    height: 0.7rem;
+    border-radius: 999px;
+    background: var(--colour-surface-subtle);
+    overflow: hidden;
+  }
+  .native-or__rows b {
+    display: block;
+    width: var(--or);
+    height: 100%;
+    border-radius: inherit;
+    background: var(--colour-primary);
+  }
+  .native-or__rows strong {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .native-or aside {
+    display: grid;
+    align-content: start;
+    gap: 0.8rem;
+    padding: 1.25rem;
+    border-left: 1px solid var(--colour-border);
+    background: var(--colour-surface-subtle);
+  }
+  .native-or aside > strong {
+    font: 750 clamp(2rem, 6vw, 3.5rem)/1 var(--font-display);
+    color: var(--colour-primary-strong);
+  }
+  dl {
+    display: grid;
+    gap: 0.55rem;
+  }
+  dt {
+    color: var(--colour-text-muted);
+    font-size: 0.75rem;
+  }
+  dd {
+    margin-top: 0.2rem;
+    overflow-wrap: anywhere;
+  }
+  @media (max-width: 700px) {
+    .native-or__heading,
+    .native-or__layout {
+      grid-template-columns: 1fr;
+    }
+    .native-or aside {
+      border-left: 0;
+      border-top: 1px solid var(--colour-border);
+    }
+    .native-or__rows button {
+      grid-template-columns: minmax(6.5rem, 0.7fr) minmax(4rem, 1fr) 3rem;
+      font-size: 0.8rem;
+    }
+  }
+</style>

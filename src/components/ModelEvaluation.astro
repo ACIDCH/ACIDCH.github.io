@@ -1,6 +1,7 @@
 ---
 import { confusionMatrix, projectImages } from "../data/r-machine-learning";
 import { withBase } from "../utils/paths";
+import ChurnRocExplorer from "./ChurnRocExplorer.astro";
 
 interface Props {
   showRoc?: boolean;
@@ -139,7 +140,8 @@ const data = JSON.stringify(cells).replace(/</g, "\\u003c");
             <p>曲线由留出预测概率计算，虚线代表没有区分能力的随机基准。</p>
           </div>
         </figcaption>
-        <div class="roc-layout">
+        <ChurnRocExplorer />
+        <div class="roc-layout" hidden>
           <div class="roc-image">
             <img
               src={withBase(projectImages.holdoutRoc)}

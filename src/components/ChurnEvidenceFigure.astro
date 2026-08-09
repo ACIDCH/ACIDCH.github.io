@@ -12,9 +12,10 @@ interface Props {
 }
 
 const { number, title, src, alt, caption, reading, fit = "contain" } = Astro.props;
+const replacedByNativeVisual = src.includes("/projects/customer-churn/");
 ---
 
-<figure class="evidence-figure" data-fit={fit}>
+<figure class="evidence-figure" data-fit={fit} hidden={replacedByNativeVisual}>
   <figcaption>
     <span>{number}</span>
     <div>

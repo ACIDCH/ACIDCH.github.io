@@ -55,6 +55,11 @@ describe("R machine learning flagship project", () => {
     "src/components/ChurnPredictorExplorer.astro",
     "utf8",
   );
+  const rocExplorer = readFileSync("src/components/ChurnRocExplorer.astro", "utf8");
+  const oddsRatioChart = readFileSync(
+    "src/components/ChurnOddsRatioChart.astro",
+    "utf8",
+  );
   const deepening = readFileSync("src/components/ChurnDeepeningSections.astro", "utf8");
   const route = readFileSync("src/pages/zh/projects/[slug].astro", "utf8");
   const deepDiveRoute = readFileSync(
@@ -191,6 +196,10 @@ describe("R machine learning flagship project", () => {
     expect(predictorExplorer).toContain("payment_failure_last4w");
     expect(deepening).toContain("15.9");
     expect(deepening).toContain("0.8801996672");
+    expect(mainPage).toContain("<ChurnDataStory");
+    expect(mainPage).toContain("<ChurnOddsRatioChart");
+    expect(rocExplorer).toContain("0.9053");
+    expect(oddsRatioChart).toContain("data-native-or-item");
   });
 
   it("reproduces the neural experiment with original seeds and fixed architecture", () => {

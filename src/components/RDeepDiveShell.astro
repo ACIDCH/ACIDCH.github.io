@@ -92,7 +92,6 @@ const onThisPage = sectionSets[deepDive.slug] ?? [];
     <div class="r-deep-toc-top"><ChurnOnThisPage sections={onThisPage} /></div>
     <article class="r-deep-shell r-deep-reading-layout">
       <div class="r-deep-body"><slot /></div>
-      <aside class="r-deep-toc-side"><ChurnOnThisPage sections={onThisPage} /></aside>
       <footer class="r-deep-end">
         <h2>继续阅读 704 技术专篇</h2>
         <TechnicalDeepDiveNav current={deepDive.slug} />

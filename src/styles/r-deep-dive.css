@@ -59,19 +59,17 @@
 }
 
 .r-deep-reading-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 15rem;
-  gap: clamp(2rem, 4vw, 4rem);
-  align-items: start;
+  display: block;
 }
-
 .r-deep-toc-side {
-  position: sticky;
-  top: calc(var(--header-height, 4rem) + 1rem);
-}
-
-.r-deep-toc-top {
   display: none;
+}
+.r-deep-toc-top {
+  position: sticky;
+  z-index: 5;
+  top: calc(var(--header-height, 4rem) + 0.75rem);
+  padding: 0.75rem 1rem;
+  background: color-mix(in srgb, var(--colour-page) 94%, transparent);
 }
 
 .r-deep-section {

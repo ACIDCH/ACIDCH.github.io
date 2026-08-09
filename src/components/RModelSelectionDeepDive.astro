@@ -8,6 +8,7 @@ import {
 import RDeepDiveShell from "./RDeepDiveShell.astro";
 import ModelEvaluation from "./ModelEvaluation.astro";
 import ChurnEvidenceFigure from "./ChurnEvidenceFigure.astro";
+import ChurnRocExplorer from "./ChurnRocExplorer.astro";
 import RCodeShowcase from "./RCodeShowcase.astro";
 import ChurnDeepeningSections from "./ChurnDeepeningSections.astro";
 
@@ -228,6 +229,7 @@ const deepDive = deepDives.find(
       caption="曲线由 39,200 条留出预测中的 churned 概率生成。"
       reading="应该看哪里：曲线在低 false positive rate 区域快速上升，并保持在对角线之上；AUC 0.9053 概括整条曲线，而不是选择其中一个点。"
     />
+    <ChurnRocExplorer />
   </section>
 
   <section id="limits" class="r-deep-section" data-reveal>

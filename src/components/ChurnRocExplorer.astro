@@ -1,0 +1,171 @@
+---
+import { confusionMatrix } from "../data/r-machine-learning";
+
+// A faithful visual trace of the audited ROC figure. No threshold-level counts are inferred.
+const curve =
+  "M 54 282 C 56 187, 72 129, 114 90 C 160 48, 235 29, 346 23 C 430 18, 500 17, 566 17";
+---
+
+<section class="native-roc" aria-labelledby="native-roc-title">
+  <div class="native-roc__heading">
+    <span>ROC</span>
+    <div>
+      <h3 id="native-roc-title">留出集上的排序能力</h3><p>
+        曲线与随机基准共同说明模型在不同分类边界下的区分方向；AUC 来自 39,200
+        条留出记录。
+      </p>
+    </div>
+  </div>
+  <div class="native-roc__layout">
+    <figure>
+      <svg
+        viewBox="0 0 620 340"
+        role="img"
+        aria-labelledby="native-roc-svg-title native-roc-svg-desc"
+      >
+        <title id="native-roc-svg-title">Logistic Regression 的 ROC 曲线</title>
+        <desc id="native-roc-svg-desc"
+          >曲线位于随机基准上方，留出集 AUC 为 0.9053。</desc
+        >
+        <g class="native-roc__grid" aria-hidden="true"
+          >{
+            [54, 182, 310, 438, 566].map((point) => (
+              <>
+                <>
+                  <line x1={point} y1="17" x2={point} y2="282" />
+                  <line x1="54" y1={299 - point / 2} x2="566" y2={299 - point / 2} />
+                </>
+              </>
+            ))
+          }</g
+        >
+        <line class="native-roc__random" x1="54" y1="282" x2="566" y2="17"></line>
+        <path class="native-roc__curve" d={curve}></path>
+        <line class="native-roc__axis" x1="54" y1="282" x2="576" y2="282"></line><line
+          class="native-roc__axis"
+          x1="54"
+          y1="292"
+          x2="54"
+          y2="8"></line>
+        <text x="310" y="328">1 − Specificity</text><text
+          x="15"
+          y="154"
+          transform="rotate(-90 15 154)">Sensitivity</text
+        >
+      </svg>
+    </figure>
+    <dl>
+      <div><dt>Hold-out AUC</dt><dd>{confusionMatrix.auc.toFixed(4)}</dd></div><div>
+        <dt>Sensitivity</dt><dd>{confusionMatrix.sensitivity.toFixed(4)}</dd>
+      </div><div>
+        <dt>Specificity</dt><dd>{confusionMatrix.specificity.toFixed(4)}</dd>
+      </div>
+    </dl>
+  </div>
+  <p class="native-roc__note">
+    AUC
+    描述整体排序能力；逐阈值计数没有在可用结果中保留，因此页面不输出无法精确复算的阈值推演。
+  </p>
+</section>
+
+<style>
+  .native-roc {
+    display: grid;
+    gap: 1.25rem;
+    padding: clamp(1.25rem, 4vw, 2.5rem);
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-lg);
+    background: var(--colour-surface);
+  }
+  .native-roc__heading {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 1rem;
+  }
+  .native-roc__heading > span {
+    height: max-content;
+    padding: 0.5rem 0.65rem;
+    border: 1px solid var(--colour-border);
+    border-radius: 999px;
+    color: var(--colour-primary-strong);
+    font: 700 0.7rem/1 var(--font-mono);
+  }
+  h3,
+  p,
+  dl,
+  dt,
+  dd,
+  figure {
+    margin: 0;
+  }
+  h3 {
+    font-size: clamp(1.3rem, 3vw, 2rem);
+  }
+  .native-roc__heading p,
+  .native-roc__note {
+    margin-top: 0.45rem;
+    color: var(--colour-text-muted);
+    line-height: 1.7;
+  }
+  .native-roc__layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(12rem, 0.7fr);
+    gap: 1.5rem;
+    align-items: center;
+  }
+  .native-roc svg {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+  .native-roc__grid line {
+    stroke: var(--colour-border);
+    stroke-width: 1;
+  }
+  .native-roc__random {
+    stroke: var(--colour-text-muted);
+    stroke-dasharray: 7 7;
+  }
+  .native-roc__curve {
+    fill: none;
+    stroke: var(--colour-primary-strong);
+    stroke-width: 6;
+    stroke-linecap: round;
+  }
+  .native-roc__axis {
+    stroke: var(--colour-text);
+  }
+  text {
+    fill: var(--colour-text-muted);
+    font: 14px var(--font-sans);
+  }
+  dl {
+    display: grid;
+    border: 1px solid var(--colour-border);
+  }
+  dl div {
+    padding: 1rem;
+    border-bottom: 1px solid var(--colour-border);
+  }
+  dl div:last-child {
+    border: 0;
+  }
+  dt {
+    color: var(--colour-text-muted);
+    font-size: 0.8rem;
+  }
+  dd {
+    margin-top: 0.35rem;
+    font: 750 clamp(1.35rem, 3vw, 2rem)/1 var(--font-display);
+  }
+  .native-roc__note {
+    padding-left: 1rem;
+    border-left: 3px solid var(--colour-accent);
+  }
+  @media (max-width: 680px) {
+    .native-roc__heading,
+    .native-roc__layout {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
