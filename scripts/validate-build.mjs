@@ -273,8 +273,10 @@ for (const file of htmlFiles) {
         !pageContent.includes("data-feature-selection-story") ||
         !pageContent.includes("data-matrix-cell") ||
         !pageContent.includes("roc-figure") ||
+        !pageContent.includes("native-roc") ||
         !pageContent.includes("data-risk-explorer") ||
-        (pageContent.match(/class=["'][^"']*evidence-figure/g) ?? []).length < 6 ||
+        !pageContent.includes("data-native-or") ||
+        (pageContent.match(/class=["'][^"']*evidence-figure/g) ?? []).length < 4 ||
         (pageContent.match(/<details\b[^>]*\bclass=["'][^"']*r-code/g) ?? []).length <
           5 ||
         !pageContent.includes("0.9053") ||

@@ -15,19 +15,23 @@ const { number, title, src, alt, caption, reading, fit = "contain" } = Astro.pro
 const replacedByNativeVisual = src.includes("/projects/customer-churn/");
 ---
 
-<figure class="evidence-figure" data-fit={fit} hidden={replacedByNativeVisual}>
-  <figcaption>
-    <span>{number}</span>
-    <div>
-      <h3>{title}</h3>
-      <p>{caption}</p>
-    </div>
-  </figcaption>
-  <div class="evidence-figure__frame">
-    <img src={withBase(src)} alt={alt} loading="lazy" decoding="async" />
-  </div>
-  <p class="evidence-figure__reading">{reading}</p>
-</figure>
+{
+  !replacedByNativeVisual && (
+    <figure class="evidence-figure" data-fit={fit}>
+      <figcaption>
+        <span>{number}</span>
+        <div>
+          <h3>{title}</h3>
+          <p>{caption}</p>
+        </div>
+      </figcaption>
+      <div class="evidence-figure__frame">
+        <img src={withBase(src)} alt={alt} loading="lazy" decoding="async" />
+      </div>
+      <p class="evidence-figure__reading">{reading}</p>
+    </figure>
+  )
+}
 
 <style>
   .evidence-figure {
