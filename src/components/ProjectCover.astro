@@ -9,13 +9,7 @@ interface Props {
   badges?: string[];
 }
 
-const {
-  entry,
-  compact = false,
-  showCode = true,
-  code,
-  badges = [],
-} = Astro.props;
+const { entry, compact = false, showCode = true, code, badges = [] } = Astro.props;
 const transitionName = `project-cover-${entry.data.translationKey}-${entry.data.locale}`;
 const coverLabel = code ?? entry.data.topic.slice(0, 3).toUpperCase();
 const coverBadges = badges.filter(Boolean).slice(0, 3);
@@ -34,15 +28,13 @@ const coverBadges = badges.filter(Boolean).slice(0, 3);
     showCode && (
       <div class="project-cover__visual">
         <span class="project-cover__label">{coverLabel}</span>
-        {
-          coverBadges.length > 0 && (
-            <span class="project-cover__badges">
-              {coverBadges.map((badge) => (
-                <span class="project-cover__badge">{badge}</span>
-              ))}
-            </span>
-          )
-        }
+        {coverBadges.length > 0 && (
+          <span class="project-cover__badges">
+            {coverBadges.map((badge) => (
+              <span class="project-cover__badge">{badge}</span>
+            ))}
+          </span>
+        )}
       </div>
     )
   }

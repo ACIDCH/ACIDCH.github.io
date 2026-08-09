@@ -28,7 +28,9 @@ const coverTitles: Record<string, string> = {
   "retirement-monte-carlo": "Excel",
 };
 const coverTitle =
-  coverTitles[entry.data.translationKey] ?? entry.data.tools[0] ?? topicLabels[entry.data.topic].en;
+  coverTitles[entry.data.translationKey] ??
+  entry.data.tools[0] ??
+  topicLabels[entry.data.topic].en;
 const coverBadges = entry.data.tools
   .filter((tool) => tool.trim().toLowerCase() !== coverTitle.trim().toLowerCase())
   .slice(0, 3);
@@ -38,6 +40,7 @@ const coverBadges = entry.data.tools
   <ProjectCover
     entry={entry}
     compact
+    showCode={entry.data.translationKey !== "retirement-monte-carlo"}
     code={coverTitle}
     badges={coverBadges}
   />
@@ -58,7 +61,10 @@ const coverBadges = entry.data.tools
     </a>
   </h2>
   <p class="project-card__summary">{entry.data.summary}</p>
-  <ul class="tag-list project-card__tools" aria-label={locale === "en" ? "Tools" : "工具"}>
+  <ul
+    class="tag-list project-card__tools"
+    aria-label={locale === "en" ? "Tools" : "工具"}
+  >
     {entry.data.tools.map((tool) => <li class="tag">{tool}</li>)}
   </ul>
   <a
