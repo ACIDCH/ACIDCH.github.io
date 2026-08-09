@@ -5,7 +5,10 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
-    types: [opened, synchronize, reopened, closed]
+    types: [opened, synchronize, reopened]
+  pull_request_target:
+    branches: [main]
+    types: [closed]
   workflow_dispatch:
 
 permissions:
@@ -13,15 +16,14 @@ permissions:
 
 concurrency:
   group: >-
-    pages-${{ github.event_name == 'pull_request' && github.event.action == 'closed' && 'main' || github.ref }}
+    pages-${{ github.event_name == 'pull_request_target' && 'main' || github.ref }}
   cancel-in-progress: true
 
 jobs:
   quality:
     name: Validate, test and build
     if: >-
-      github.event_name != 'pull_request' ||
-      github.event.action != 'closed' ||
+      github.event_name != 'pull_request_target' ||
       github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -31,7 +33,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v6
         with:
-          ref: ${{ github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true && 'main' || github.sha }}
+          ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.merged == true && 'main' || github.sha }}
 
       - name: Resolve checked-out revision
         id: revision
@@ -82,7 +84,7 @@ jobs:
         if: >-
           github.event_name == 'push' ||
           github.event_name == 'workflow_dispatch' ||
-          (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true)
+          (github.event_name == 'pull_request_target' && github.event.pull_request.merged == true)
         env:
           DEPLOY_SHA: ${{ steps.revision.outputs.sha }}
           DEPLOY_RUN_ID: ${{ github.run_id }}
@@ -93,14 +95,14 @@ jobs:
         if: >-
           github.event_name == 'push' ||
           github.event_name == 'workflow_dispatch' ||
-          (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true)
+          (github.event_name == 'pull_request_target' && github.event.pull_request.merged == true)
         uses: actions/configure-pages@v5
 
       - name: Upload GitHub Pages artifact
         if: >-
           github.event_name == 'push' ||
           github.event_name == 'workflow_dispatch' ||
-          (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true)
+          (github.event_name == 'pull_request_target' && github.event.pull_request.merged == true)
         uses: actions/upload-pages-artifact@v4
         with:
           path: dist
@@ -110,7 +112,7 @@ jobs:
     if: >-
       github.event_name == 'push' ||
       github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true)
+      (github.event_name == 'pull_request_target' && github.event.pull_request.merged == true)
     needs: quality
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -133,7 +135,7 @@ jobs:
     if: >-
       github.event_name == 'push' ||
       github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true)
+      (github.event_name == 'pull_request_target' && github.event.pull_request.merged == true)
     needs: [quality, deploy]
     runs-on: ubuntu-latest
     timeout-minutes: 5
