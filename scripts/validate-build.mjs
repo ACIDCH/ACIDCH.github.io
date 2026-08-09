@@ -254,7 +254,7 @@ for (const file of htmlFiles) {
       failures.push(`${route}: missing English Projects fallback`);
     }
     if (
-      /BUSINFO704|\b(?:Assignment|Task|Submission)\b|课程项目|课程报告|源文件|留在本地|身份属性|暂不索引|样板页|试点|稍后补充|功能开发中|[A-Z]:\\/i.test(
+      /BUSINFO704|\b(?:Assignment|Task|Submission)\b|课程项目|课程报告|源文件|留在本地|身份属性|暂不索引|样板页|试点|稍后补充|功能开发中|固定结果|保存的固定结果|不会触发训练|浏览器本地计算|内部核实|匿名访问|课程文件|正式版 V3|[A-Z]:\\/i.test(
         pageContent,
       )
     ) {
@@ -268,6 +268,11 @@ for (const file of htmlFiles) {
       if (
         !pageContent.includes("data-model-lab") ||
         !pageContent.includes("data-analysis-pipeline") ||
+        !pageContent.includes("data-churn-data-story") ||
+        !pageContent.includes("data-feature-selection-story") ||
+        !pageContent.includes("data-matrix-cell") ||
+        !pageContent.includes("roc-figure") ||
+        !pageContent.includes("forest-plot") ||
         (pageContent.match(/<details\b[^>]*\bclass=["'][^"']*r-code/g) ?? []).length <
           5 ||
         !pageContent.includes("0.9053") ||

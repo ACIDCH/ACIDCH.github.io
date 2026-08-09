@@ -34,6 +34,16 @@ import { pipelineSteps } from "../data/r-machine-learning";
           <p class="status">步骤 {step.number}</p>
           <h3>{step.title}</h3>
           <p>{step.detail}</p>
+          <dl>
+            <div>
+              <dt>本步证据</dt>
+              <dd>{step.evidence}</dd>
+            </div>
+            <div>
+              <dt>下一判断</dt>
+              <dd>{step.nextQuestion}</dd>
+            </div>
+          </dl>
         </section>
       ))
     }
@@ -170,6 +180,40 @@ import { pipelineSteps } from "../data/r-machine-learning";
     margin-block: var(--space-2) var(--space-3);
   }
 
+  [role="tabpanel"] > p:not(.status) {
+    max-width: 62ch;
+    color: var(--colour-text-muted);
+    line-height: 1.7;
+  }
+
+  [role="tabpanel"] dl {
+    display: grid;
+    gap: var(--space-4);
+    margin: var(--space-6) 0 0;
+    padding-block-start: var(--space-5);
+    border-top: 1px solid var(--colour-border);
+  }
+
+  [role="tabpanel"] dl div {
+    display: grid;
+    grid-template-columns: 7rem minmax(0, 1fr);
+    gap: var(--space-4);
+  }
+
+  [role="tabpanel"] dt,
+  [role="tabpanel"] dd {
+    margin: 0;
+  }
+
+  [role="tabpanel"] dt {
+    color: var(--colour-accent);
+    font: 700 var(--font-size-sm) / 1.4 var(--font-family-mono);
+  }
+
+  [role="tabpanel"] dd {
+    color: var(--colour-text-muted);
+  }
+
   @media (max-width: 48rem) {
     .analysis-pipeline {
       grid-template-columns: 1fr;
@@ -186,6 +230,11 @@ import { pipelineSteps } from "../data/r-machine-learning";
 
     [role="tab"] {
       scroll-snap-align: start;
+    }
+
+    [role="tabpanel"] dl div {
+      grid-template-columns: 1fr;
+      gap: var(--space-1);
     }
   }
 

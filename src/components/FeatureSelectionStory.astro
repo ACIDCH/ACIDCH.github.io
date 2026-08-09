@@ -1,0 +1,425 @@
+---
+import { correlations, featureDecisions, predictors } from "../data/r-machine-learning";
+
+const groups = [
+  {
+    label: "服务质量",
+    marker: "S",
+    items: predictors.filter((item) =>
+      ["avg_wait_minutes", "app_crashes_30d", "charger_fault_rate"].includes(item.name),
+    ),
+  },
+  {
+    label: "商业摩擦",
+    marker: "F",
+    items: predictors.filter((item) =>
+      ["refund_request_last12w", "payment_failure_last4w"].includes(item.name),
+    ),
+  },
+  {
+    label: "活跃度与结构",
+    marker: "E",
+    items: predictors.filter((item) =>
+      ["weeks_since_last_charge", "plan_tier"].includes(item.name),
+    ),
+  },
+];
+---
+
+<div class="feature-story" data-feature-selection-story>
+  <figure class="feature-flow" aria-labelledby="feature-flow-title">
+    <figcaption>
+      <span class="feature-marker" aria-hidden="true">FILTER</span>
+      <div>
+        <h3 id="feature-flow-title">字段减少不是一次性删除，而是连续判断</h3>
+        <p>字段类型、分析对象、探索结果与相关性共同决定最终输入。</p>
+      </div>
+    </figcaption>
+
+    <ol>
+      {
+        featureDecisions.map((step, index) => (
+          <li>
+            <span>{String(index + 1).padStart(2, "0")}</span>
+            <div>
+              <>
+                <strong>{step.label}</strong>
+                <p>{step.note}</p>
+              </>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+  </figure>
+
+  <figure class="predictor-map" aria-labelledby="predictor-map-title">
+    <figcaption>
+      <span class="feature-marker" aria-hidden="true">7 INPUTS</span>
+      <div>
+        <h3 id="predictor-map-title">最终输入覆盖三类可观察信号</h3>
+        <p>四个数值字段和三个分类字段共同进入五个模型。</p>
+      </div>
+    </figcaption>
+
+    <div class="predictor-groups">
+      {
+        groups.map((group) => (
+          <section>
+            <header>
+              <>
+                <span aria-hidden="true">{group.marker}</span>
+                <h4>{group.label}</h4>
+              </>
+            </header>
+            <ul>
+              {group.items.map((item) => (
+                <li>
+                  <strong>{item.label}</strong>
+                  <code>{item.name}</code>
+                  <small>{item.type}</small>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))
+      }
+    </div>
+  </figure>
+
+  <figure class="correlation-evidence" aria-labelledby="correlation-title">
+    <figcaption>
+      <span class="feature-marker" aria-hidden="true">CORR</span>
+      <div>
+        <h3 id="correlation-title">0.88 是唯一改变最终字段组合的相关性</h3>
+        <p>其他三组处于中度相关范围，没有直接触发成对删除。</p>
+      </div>
+    </figcaption>
+
+    <div class="correlation-list" role="list" aria-label="四组已核实相关系数">
+      {
+        correlations.map((item, index) => (
+          <article
+            role="listitem"
+            class:list={["correlation-row", index === 0 && "correlation-row--strong"]}
+            tabindex="0"
+          >
+            <div class="correlation-row__pair">
+              <span>{item.shortA}</span>
+              <i aria-hidden="true">×</i>
+              <span>{item.shortB}</span>
+            </div>
+            <div
+              class="correlation-row__scale"
+              aria-label={`${item.a} 与 ${item.b} 的相关系数 ${item.value}`}
+            >
+              <i style={`--correlation:${item.value * 100}%`} />
+              <span>{item.value.toFixed(2)}</span>
+            </div>
+            <p>{item.decision}</p>
+          </article>
+        ))
+      }
+    </div>
+
+    <div class="correlation-reading">
+      <strong>为什么保留“距上次充电周数”？</strong>
+      <p>
+        它直接描述近期活跃度，在分组均值中也出现最明显差异；同时保留注册时长会使
+        Logistic Regression 的系数解释不稳定。
+      </p>
+    </div>
+  </figure>
+</div>
+
+<style>
+  .feature-story {
+    display: grid;
+    gap: clamp(2.5rem, 6vw, 5rem);
+  }
+
+  figure {
+    margin: 0;
+    min-width: 0;
+  }
+
+  figcaption {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 1rem;
+    align-items: start;
+    margin-bottom: 1.5rem;
+  }
+
+  figcaption h3,
+  figcaption p,
+  .feature-flow p,
+  .correlation-row p,
+  .correlation-reading p {
+    margin: 0;
+  }
+
+  figcaption h3 {
+    max-width: 25ch;
+    font-size: clamp(1.45rem, 3vw, 2.25rem);
+    line-height: 1.14;
+  }
+
+  figcaption p {
+    max-width: 62ch;
+    margin-top: 0.5rem;
+    color: var(--colour-text-muted);
+  }
+
+  .feature-marker {
+    min-width: 4.4rem;
+    padding: 0.55rem 0.65rem;
+    border: 1px solid var(--colour-border);
+    border-radius: 999px;
+    color: var(--colour-secondary);
+    text-align: center;
+    font: 700 0.68rem/1 var(--font-mono);
+    letter-spacing: 0.08em;
+  }
+
+  .feature-flow ol {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-block: 1px solid var(--colour-border);
+  }
+
+  .feature-flow li {
+    position: relative;
+    min-width: 0;
+    padding: 1.25rem 1rem 1.35rem;
+    border-right: 1px solid var(--colour-border);
+  }
+
+  .feature-flow li:last-child {
+    border-right: 0;
+  }
+
+  .feature-flow li > span {
+    display: block;
+    margin-bottom: 1.2rem;
+    color: var(--colour-accent);
+    font: 700 0.78rem/1 var(--font-mono);
+  }
+
+  .feature-flow strong {
+    display: block;
+    line-height: 1.3;
+  }
+
+  .feature-flow p {
+    margin-top: 0.5rem;
+    color: var(--colour-text-muted);
+    font-size: 0.82rem;
+  }
+
+  .predictor-groups {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border-block: 1px solid var(--colour-border);
+  }
+
+  .predictor-groups section {
+    min-width: 0;
+    padding: 1.5rem;
+    border-right: 1px solid var(--colour-border);
+  }
+
+  .predictor-groups section:last-child {
+    border-right: 0;
+  }
+
+  .predictor-groups header {
+    display: flex;
+    gap: 0.7rem;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .predictor-groups header span {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background: var(--colour-primary);
+    color: var(--colour-primary-contrast);
+    font: 700 0.75rem/1 var(--font-mono);
+  }
+
+  .predictor-groups h4 {
+    margin: 0;
+    font-size: 1rem;
+  }
+
+  .predictor-groups ul {
+    display: grid;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .predictor-groups li {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.3rem 0.75rem;
+    padding: 0.85rem 0;
+    border-top: 1px solid var(--colour-border);
+  }
+
+  .predictor-groups code {
+    grid-column: 1 / -1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    color: var(--colour-primary-strong);
+    font-size: 0.74rem;
+  }
+
+  .predictor-groups small {
+    color: var(--colour-text-muted);
+  }
+
+  .correlation-list {
+    display: grid;
+    border-top: 1px solid var(--colour-border);
+  }
+
+  .correlation-row {
+    display: grid;
+    grid-template-columns: minmax(12rem, 0.8fr) minmax(14rem, 1.2fr) minmax(14rem, 1fr);
+    gap: clamp(1rem, 3vw, 2rem);
+    align-items: center;
+    padding: 1.15rem 0;
+    border-bottom: 1px solid var(--colour-border);
+    outline: none;
+  }
+
+  .correlation-row:focus-visible {
+    box-shadow: 0 0 0 3px var(--colour-focus);
+  }
+
+  .correlation-row__pair {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 650;
+  }
+
+  .correlation-row__pair i {
+    color: var(--colour-text-muted);
+    font-style: normal;
+  }
+
+  .correlation-row__scale {
+    position: relative;
+    height: 1.2rem;
+    border-radius: 999px;
+    background: var(--colour-surface-subtle);
+  }
+
+  .correlation-row__scale i {
+    display: block;
+    width: var(--correlation);
+    height: 100%;
+    border-radius: inherit;
+    background: var(--colour-primary);
+  }
+
+  .correlation-row--strong .correlation-row__scale i {
+    background: var(--colour-accent);
+  }
+
+  .correlation-row__scale span {
+    position: absolute;
+    top: 50%;
+    left: min(calc(var(--correlation) + 0.45rem), calc(100% - 2.7rem));
+    transform: translateY(-50%);
+    font: 700 0.76rem/1 var(--font-mono);
+  }
+
+  .correlation-row p {
+    color: var(--colour-text-muted);
+    font-size: 0.84rem;
+  }
+
+  .correlation-reading {
+    display: grid;
+    grid-template-columns: minmax(10rem, 0.5fr) minmax(0, 1.5fr);
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+    padding: 1.25rem 0;
+    border-block: 1px solid var(--colour-border-strong);
+  }
+
+  .correlation-reading p {
+    color: var(--colour-text-muted);
+  }
+
+  @media (max-width: 920px) {
+    .feature-flow ol {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .feature-flow li:nth-child(3) {
+      border-right: 0;
+    }
+
+    .feature-flow li:nth-child(-n + 3) {
+      border-bottom: 1px solid var(--colour-border);
+    }
+
+    .correlation-row {
+      grid-template-columns: minmax(10rem, 0.8fr) minmax(12rem, 1.2fr);
+    }
+
+    .correlation-row p {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (max-width: 700px) {
+    figcaption,
+    .predictor-groups,
+    .correlation-row,
+    .correlation-reading {
+      grid-template-columns: 1fr;
+    }
+
+    .feature-marker {
+      width: max-content;
+    }
+
+    .predictor-groups section {
+      border-right: 0;
+      border-bottom: 1px solid var(--colour-border);
+    }
+
+    .predictor-groups section:last-child {
+      border-bottom: 0;
+    }
+  }
+
+  @media (max-width: 520px) {
+    .feature-flow ol {
+      grid-template-columns: 1fr;
+    }
+
+    .feature-flow li,
+    .feature-flow li:nth-child(3) {
+      border-right: 0;
+      border-bottom: 1px solid var(--colour-border);
+    }
+
+    .feature-flow li:last-child {
+      border-bottom: 0;
+    }
+  }
+</style>

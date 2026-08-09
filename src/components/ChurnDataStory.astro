@@ -1,0 +1,646 @@
+---
+import {
+  behaviourComparisons,
+  frictionSignals,
+  holdoutClassDistribution,
+  sampleFlow,
+} from "../data/r-machine-learning";
+
+const maxFlow = sampleFlow[0].value;
+const retainedShare = holdoutClassDistribution[0].share;
+---
+
+<div class="data-story" data-churn-data-story>
+  <figure
+    class="evidence-figure evidence-figure--flow"
+    aria-labelledby="sample-flow-title"
+  >
+    <figcaption>
+      <span class="figure-index" aria-hidden="true">DATA / 01</span>
+      <div>
+        <h3 id="sample-flow-title">20 万条记录如何进入模型？</h3>
+        <p>先限定个人客户范围，再把模型选择与最终评价分开。</p>
+      </div>
+    </figcaption>
+
+    <ol class="sample-flow" aria-label="样本流转">
+      {
+        sampleFlow.map((step, index) => (
+          <li class={`sample-flow__item sample-flow__item--${step.id}`}>
+            <div
+              class="sample-flow__bar"
+              style={`--flow-width:${Math.max(20, (step.value / maxFlow) * 100)}%`}
+            >
+              <span>{step.display}</span>
+            </div>
+            <div class="sample-flow__copy">
+              <strong>{step.label}</strong>
+              <p>{step.note}</p>
+            </div>
+            {index < sampleFlow.length - 1 && (
+              <span class="sample-flow__arrow" aria-hidden="true">
+                ↓
+              </span>
+            )}
+          </li>
+        ))
+      }
+    </ol>
+
+    <p class="figure-reading">
+      训练部分承担模型比较与最终拟合；39,200 条留出记录没有参与模型选择。30,000
+      条交叉验证样本来自训练部分，并不是额外的数据集。
+    </p>
+  </figure>
+
+  <figure
+    class="evidence-figure evidence-figure--class"
+    aria-labelledby="class-distribution-title"
+  >
+    <figcaption>
+      <span class="figure-index" aria-hidden="true">DATA / 02</span>
+      <div>
+        <h3 id="class-distribution-title">留出集仍保留约 31% 的流失比例</h3>
+        <p>分层拆分保留自然类别结构，最终评价没有使用 1:1 的训练分布。</p>
+      </div>
+    </figcaption>
+
+    <div class="class-layout">
+      <div
+        class="class-donut"
+        style={`--retained:${retainedShare * 3.6}deg`}
+        role="img"
+        aria-label={`留出集保留客户 ${holdoutClassDistribution[0].display} 条，占 ${holdoutClassDistribution[0].share}%；流失客户 ${holdoutClassDistribution[1].display} 条，占 ${holdoutClassDistribution[1].share}%`}
+      >
+        <span><strong>39,200</strong>留出记录</span>
+      </div>
+      <dl class="class-legend">
+        {
+          holdoutClassDistribution.map((group, index) => (
+            <div
+              class:list={[
+                "class-legend__item",
+                index === 1 && "class-legend__item--churned",
+              ]}
+            >
+              <dt>
+                <i aria-hidden="true" />
+                {group.label}
+              </dt>
+              <dd>
+                <>
+                  <strong>{group.display}</strong>
+                  <span>{group.share.toFixed(1)}%</span>
+                </>
+              </dd>
+            </div>
+          ))
+        }
+      </dl>
+    </div>
+
+    <p class="figure-reading">
+      训练折内部的上采样用于减少多数类偏向；验证折和留出集维持原比例，因此页面上的最终指标反映自然分布。
+    </p>
+  </figure>
+
+  <figure
+    class="evidence-figure evidence-figure--behaviour"
+    aria-labelledby="behaviour-title"
+  >
+    <figcaption>
+      <span class="figure-index" aria-hidden="true">EDA / 01</span>
+      <div>
+        <h3 id="behaviour-title">流失客户的近期活跃度更低，服务摩擦更高</h3>
+        <p>
+          每一行比较同一指标下的 churned 与 retained 均值；不同单位不做跨行大小比较。
+        </p>
+      </div>
+    </figcaption>
+
+    <div class="pair-legend" aria-hidden="true">
+      <span><i class="pair-dot pair-dot--churned"></i>流失</span>
+      <span><i class="pair-dot pair-dot--retained"></i>保留</span>
+    </div>
+    <div class="paired-chart" role="img" aria-label="流失与保留客户的四项分组均值比较">
+      {
+        behaviourComparisons.map((item) => (
+          <div class="paired-row" tabindex="0">
+            <div class="paired-row__label">
+              <strong>{item.label}</strong>
+              <span>{item.unit}</span>
+            </div>
+            <div class="paired-row__plot">
+              <i class="paired-row__line" aria-hidden="true" />
+              <span
+                class="paired-point paired-point--churned"
+                style={`--point:${(item.churned / item.max) * 100}%`}
+              >
+                <b>{item.churned}</b>
+              </span>
+              <span
+                class="paired-point paired-point--retained"
+                style={`--point:${(item.retained / item.max) * 100}%`}
+              >
+                <b>{item.retained}</b>
+              </span>
+            </div>
+            <p>{item.reading}</p>
+          </div>
+        ))
+      }
+    </div>
+
+    <p class="figure-reading">
+      距上次充电周数的组间差异最明显，这也解释了它为什么进入最终输入。等待时间与故障率的差异则把服务体验带入后续模型比较。
+    </p>
+  </figure>
+
+  <figure
+    class="evidence-figure evidence-figure--friction"
+    aria-labelledby="friction-title"
+  >
+    <figcaption>
+      <span class="figure-index" aria-hidden="true">EDA / 02</span>
+      <div>
+        <h3 id="friction-title">支付失败把流失率推到 63%</h3>
+        <p>退款与价格变化也出现更高流失率，但三项信号的时间窗口和对照口径并不相同。</p>
+      </div>
+    </figcaption>
+
+    <div class="rate-chart" role="img" aria-label="商业摩擦信号对应的流失率">
+      {
+        frictionSignals.map((signal) => (
+          <div class="rate-row" tabindex="0">
+            <div class="rate-row__heading">
+              <strong>{signal.label}</strong>
+              <span>{signal.value}%</span>
+            </div>
+            <div class="rate-row__track">
+              <i style={`--rate:${signal.value}%`} />
+              <span class="rate-row__baseline" aria-label="总体流失率约 31%" />
+            </div>
+            <div class="rate-row__note">
+              <>
+                <span>{signal.comparison}</span>
+                <p>{signal.note}</p>
+              </>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+    <div class="baseline-key"><i aria-hidden="true"></i>虚线：总体流失比例约 31%</div>
+  </figure>
+</div>
+
+<style>
+  .data-story {
+    display: grid;
+    gap: clamp(2.5rem, 6vw, 5rem);
+  }
+
+  .evidence-figure {
+    margin: 0;
+    min-width: 0;
+  }
+
+  figcaption {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 1rem;
+    align-items: start;
+    margin-bottom: 1.5rem;
+  }
+
+  figcaption h3,
+  figcaption p,
+  .figure-reading,
+  .sample-flow__copy p,
+  .paired-row p,
+  .rate-row__note p {
+    margin: 0;
+  }
+
+  figcaption h3 {
+    max-width: 24ch;
+    font-size: clamp(1.45rem, 3vw, 2.25rem);
+    line-height: 1.14;
+  }
+
+  figcaption p {
+    max-width: 64ch;
+    margin-top: 0.5rem;
+    color: var(--colour-text-muted);
+  }
+
+  .figure-index {
+    display: inline-grid;
+    place-items: center;
+    min-width: 4.4rem;
+    min-height: 2rem;
+    padding: 0.35rem 0.55rem;
+    border: 1px solid var(--colour-border);
+    border-radius: 999px;
+    color: var(--colour-primary-strong);
+    font: 700 0.7rem/1 var(--font-mono);
+    letter-spacing: 0.08em;
+  }
+
+  .sample-flow {
+    display: grid;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .sample-flow__item {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(8rem, 0.9fr) minmax(13rem, 1.4fr);
+    gap: clamp(1rem, 4vw, 3rem);
+    align-items: center;
+    padding: 1rem 0;
+    border-top: 1px solid var(--colour-border);
+  }
+
+  .sample-flow__item:last-child {
+    border-bottom: 1px solid var(--colour-border);
+  }
+
+  .sample-flow__bar {
+    width: var(--flow-width);
+    max-width: 100%;
+    min-height: 3.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0 0.85rem;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--colour-primary) 22%, transparent),
+      var(--colour-primary)
+    );
+    color: var(--colour-primary-contrast);
+  }
+
+  .sample-flow__item--test .sample-flow__bar,
+  .sample-flow__item--cv .sample-flow__bar {
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--colour-accent) 20%, transparent),
+      var(--colour-accent)
+    );
+  }
+
+  .sample-flow__bar span {
+    font: 750 clamp(1.1rem, 3vw, 1.55rem)/1 var(--font-display);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .sample-flow__copy strong {
+    font-size: 1rem;
+  }
+
+  .sample-flow__copy p {
+    margin-top: 0.3rem;
+    color: var(--colour-text-muted);
+    font-size: 0.9rem;
+  }
+
+  .sample-flow__arrow {
+    position: absolute;
+    bottom: -0.55rem;
+    left: 0.5rem;
+    z-index: 1;
+    color: var(--colour-text-muted);
+  }
+
+  .figure-reading {
+    max-width: 72ch;
+    margin-top: 1.25rem;
+    padding-left: 1rem;
+    border-left: 3px solid var(--colour-accent);
+    color: var(--colour-text-muted);
+  }
+
+  .class-layout {
+    display: grid;
+    grid-template-columns: minmax(12rem, 0.8fr) minmax(16rem, 1.2fr);
+    gap: clamp(2rem, 7vw, 5rem);
+    align-items: center;
+    padding: clamp(1.5rem, 4vw, 3rem);
+    border-block: 1px solid var(--colour-border);
+  }
+
+  .class-donut {
+    width: min(100%, 17rem);
+    aspect-ratio: 1;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: conic-gradient(
+      var(--colour-primary) 0 var(--retained),
+      var(--colour-accent) var(--retained) 360deg
+    );
+    box-shadow: inset 0 0 0 1px
+      color-mix(in srgb, var(--colour-border) 70%, transparent);
+  }
+
+  .class-donut::before {
+    content: "";
+    grid-area: 1 / 1;
+    width: 64%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: var(--colour-surface);
+  }
+
+  .class-donut span {
+    grid-area: 1 / 1;
+    z-index: 1;
+    display: grid;
+    gap: 0.3rem;
+    text-align: center;
+    color: var(--colour-text-muted);
+    font-size: 0.8rem;
+  }
+
+  .class-donut strong {
+    color: var(--colour-text);
+    font: 750 clamp(1.45rem, 4vw, 2rem)/1 var(--font-display);
+  }
+
+  .class-legend {
+    display: grid;
+    gap: 1.25rem;
+    margin: 0;
+  }
+
+  .class-legend__item {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1rem;
+    align-items: end;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--colour-border);
+  }
+
+  .class-legend dt,
+  .class-legend dd {
+    margin: 0;
+  }
+
+  .class-legend dt {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: var(--colour-text-muted);
+  }
+
+  .class-legend i {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 50%;
+    background: var(--colour-primary);
+  }
+
+  .class-legend__item--churned i {
+    background: var(--colour-accent);
+  }
+
+  .class-legend dd {
+    display: flex;
+    align-items: baseline;
+    gap: 0.65rem;
+  }
+
+  .class-legend dd strong {
+    font: 750 clamp(1.35rem, 3vw, 1.8rem)/1 var(--font-display);
+  }
+
+  .class-legend dd span {
+    color: var(--colour-text-muted);
+    font-size: 0.85rem;
+  }
+
+  .pair-legend {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-bottom: 0.8rem;
+    color: var(--colour-text-muted);
+    font-size: 0.82rem;
+  }
+
+  .pair-legend span {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .pair-dot {
+    width: 0.65rem;
+    height: 0.65rem;
+    border-radius: 50%;
+    background: var(--colour-primary);
+  }
+
+  .pair-dot--churned {
+    background: var(--colour-accent);
+  }
+
+  .paired-chart {
+    border-top: 1px solid var(--colour-border);
+  }
+
+  .paired-row {
+    display: grid;
+    grid-template-columns: minmax(8.5rem, 0.8fr) minmax(14rem, 1.4fr) minmax(
+        14rem,
+        1fr
+      );
+    gap: 1.5rem;
+    align-items: center;
+    padding: 1.25rem 0;
+    border-bottom: 1px solid var(--colour-border);
+    outline: none;
+  }
+
+  .paired-row:focus-visible {
+    box-shadow: 0 0 0 3px var(--colour-focus);
+  }
+
+  .paired-row__label {
+    display: grid;
+    gap: 0.25rem;
+  }
+
+  .paired-row__label span,
+  .paired-row p {
+    color: var(--colour-text-muted);
+    font-size: 0.85rem;
+  }
+
+  .paired-row__plot {
+    position: relative;
+    min-height: 3.3rem;
+  }
+
+  .paired-row__line {
+    position: absolute;
+    inset: 50% 0 auto;
+    height: 1px;
+    background: var(--colour-border);
+  }
+
+  .paired-point {
+    position: absolute;
+    left: var(--point);
+    transform: translateX(-50%);
+    display: grid;
+    place-items: center;
+    min-width: 2.4rem;
+    min-height: 1.4rem;
+    padding: 0.15rem 0.35rem;
+    border-radius: 999px;
+    background: var(--colour-primary);
+    color: var(--colour-primary-contrast);
+    font-size: 0.76rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .paired-point--churned {
+    top: 0;
+    background: var(--colour-accent);
+  }
+
+  .paired-point--retained {
+    bottom: 0;
+  }
+
+  .rate-chart {
+    display: grid;
+    gap: 1.5rem;
+    padding: clamp(1.25rem, 4vw, 2rem) 0;
+    border-block: 1px solid var(--colour-border);
+  }
+
+  .rate-row {
+    outline: none;
+  }
+
+  .rate-row:focus-visible {
+    box-shadow: 0 0 0 3px var(--colour-focus);
+  }
+
+  .rate-row__heading,
+  .rate-row__note {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .rate-row__heading span {
+    font: 750 1.2rem/1 var(--font-display);
+  }
+
+  .rate-row__track {
+    position: relative;
+    height: 0.7rem;
+    margin: 0.6rem 0;
+    border-radius: 999px;
+    background: var(--colour-surface-subtle);
+    overflow: hidden;
+  }
+
+  .rate-row__track > i {
+    display: block;
+    width: var(--rate);
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--colour-primary), var(--colour-accent));
+  }
+
+  .rate-row__baseline {
+    position: absolute;
+    inset: 0 auto 0 31%;
+    border-left: 2px dashed var(--colour-text);
+  }
+
+  .rate-row__note {
+    align-items: baseline;
+    color: var(--colour-text-muted);
+    font-size: 0.82rem;
+  }
+
+  .rate-row__note p {
+    text-align: right;
+  }
+
+  .baseline-key {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-top: 0.75rem;
+    color: var(--colour-text-muted);
+    font-size: 0.8rem;
+  }
+
+  .baseline-key i {
+    width: 1.5rem;
+    border-top: 2px dashed var(--colour-text);
+  }
+
+  @media (max-width: 760px) {
+    figcaption,
+    .class-layout,
+    .paired-row {
+      grid-template-columns: 1fr;
+    }
+
+    .figure-index {
+      width: max-content;
+    }
+
+    .sample-flow__item {
+      grid-template-columns: minmax(6.5rem, 0.65fr) minmax(0, 1fr);
+      gap: 1rem;
+    }
+
+    .class-donut {
+      justify-self: center;
+    }
+
+    .paired-row {
+      gap: 0.75rem;
+    }
+
+    .paired-row__plot {
+      margin-inline: 1.2rem;
+    }
+
+    .paired-row p,
+    .rate-row__note p {
+      text-align: left;
+    }
+
+    .rate-row__note {
+      display: grid;
+      gap: 0.25rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .sample-flow__item {
+      grid-template-columns: 1fr;
+    }
+
+    .sample-flow__bar {
+      width: 100%;
+      justify-content: flex-start;
+    }
+  }
+</style>

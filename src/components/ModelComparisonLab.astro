@@ -3,356 +3,705 @@ import { metricLabels, modelResults, type MetricKey } from "../data/r-machine-le
 
 const metricKeys = Object.keys(metricLabels) as MetricKey[];
 const modelData = JSON.stringify(modelResults).replace(/</g, "\\u003c");
+const metricBest = Object.fromEntries(
+  metricKeys.map((metric) => [
+    metric,
+    Math.max(...modelResults.map((model) => model[metric])),
+  ]),
+) as Record<MetricKey, number>;
+const metricMin = Object.fromEntries(
+  metricKeys.map((metric) => [
+    metric,
+    Math.min(...modelResults.map((model) => model[metric])),
+  ]),
+) as Record<MetricKey, number>;
+
+const firstModel = modelResults[0];
 ---
 
-<section class="model-lab" data-model-lab>
-  <div class="model-lab__controls">
-    <fieldset>
-      <legend>比较指标</legend>
-      <div class="model-lab__metric-buttons">
-        {
-          metricKeys.map((metric, index) => (
-            <button
-              type="button"
-              class="tag"
-              aria-pressed={index === 1 ? "true" : "false"}
-              data-model-metric={metric}
-            >
-              {metricLabels[metric]}
-            </button>
-          ))
-        }
-      </div>
-    </fieldset>
-    <label>
-      查看模型
+<section class="model-lab" data-model-lab aria-labelledby="model-lab-title">
+  <header class="model-lab__header">
+    <div>
+      <p class="model-lab__eyebrow">MODEL COMPARISON</p>
+      <h3 id="model-lab-title">同一个“最好”，在四项指标下指向不同模型</h3>
+      <p>先切换指标查看排名，再选中模型读取参数、预处理和主要取舍。</p>
+    </div>
+    <label class="model-lab__select">
+      <span>查看模型</span>
       <select data-model-select>
         {modelResults.map((model) => <option value={model.id}>{model.name}</option>)}
       </select>
     </label>
-  </div>
+  </header>
 
-  <div class="model-lab__chart" aria-label="模型指标比较" data-model-chart>
+  <div class="model-lab__metric-buttons" role="group" aria-label="比较指标">
     {
-      modelResults.map((model) => (
-        <div class="model-bar" data-model-bar={model.id}>
-          <span>{model.name}</span>
-          <div class="model-bar__track">
-            <span
-              class="model-bar__fill"
-              style={`--metric-value:${model.auc}`}
-              data-model-fill
-            />
-          </div>
-          <strong data-model-value>{model.auc.toFixed(4)}</strong>
-        </div>
+      metricKeys.map((metric, index) => (
+        <button
+          type="button"
+          class="metric-button"
+          data-model-metric={metric}
+          aria-pressed={index === 1 ? "true" : "false"}
+        >
+          <span>{metricLabels[metric]}</span>
+          <small>{metricBest[metric].toFixed(4)} 最高值</small>
+        </button>
       ))
     }
   </div>
 
-  <article class="model-lab__detail" data-model-detail>
-    <p class="status">当前模型</p>
-    <h3 data-model-name>{modelResults[0].name}</h3>
-    <dl>
-      <div><dt>模型族</dt><dd data-model-family>{modelResults[0].family}</dd></div>
-      <div><dt>R 引擎</dt><dd data-model-engine>{modelResults[0].engine}</dd></div>
-      <div>
-        <dt>关键参数</dt><dd data-model-parameters>{modelResults[0].parameters}</dd>
+  <div class="model-lab__stage">
+    <div class="model-ranking">
+      <div class="model-ranking__axis" aria-hidden="true">
+        <span>较低</span><span>较高</span>
       </div>
-      <div><dt>预处理</dt><dd data-model-recipe>{modelResults[0].recipe}</dd></div>
-    </dl>
-  </article>
-
-  <div class="model-lab__table-wrap">
-    <table>
-      <caption>5 折交叉验证平均结果</caption>
-      <thead>
-        <tr>
-          <th scope="col">模型</th>
-          <th scope="col">Accuracy</th>
-          <th scope="col">AUC-ROC</th>
-          <th scope="col">Sensitivity</th>
-          <th scope="col">Specificity</th>
-        </tr>
-      </thead>
-      <tbody>
+      <div class="model-ranking__rows" aria-label="模型指标排名" data-model-chart>
         {
           modelResults.map((model) => (
-            <tr>
-              <th scope="row">{model.name}</th>
-              <td>{model.accuracy.toFixed(4)}</td>
-              <td>{model.auc.toFixed(4)}</td>
-              <td>{model.sensitivity.toFixed(4)}</td>
-              <td>{model.specificity.toFixed(4)}</td>
-            </tr>
+            <button
+              type="button"
+              class="model-bar"
+              data-model-bar={model.id}
+              data-selected={model.id === firstModel.id ? "true" : "false"}
+              aria-label={`${model.name} AUC-ROC ${model.auc.toFixed(4)}`}
+            >
+              <span class="model-bar__rank" data-model-rank />
+              <span class="model-bar__name">{model.name}</span>
+              <span class="model-bar__track">
+                <i
+                  class="model-bar__fill"
+                  data-model-fill
+                  style={`--model-width:${((model.auc - metricMin.auc) / (metricBest.auc - metricMin.auc || 1)) * 72 + 24}%`}
+                />
+              </span>
+              <strong data-model-value>{model.auc.toFixed(4)}</strong>
+            </button>
           ))
         }
-      </tbody>
-    </table>
+      </div>
+      <p class="model-ranking__reading" data-metric-reading>
+        Logistic Regression 的 AUC 为 0.9024，比第二名 Naive Bayes 高
+        0.0028；五个模型的差距不大，因此还需要检查 Sensitivity、Specificity 与解释方式。
+      </p>
+    </div>
+
+    <article class="model-detail" data-model-detail aria-live="polite">
+      <p class="model-detail__label">当前模型</p>
+      <h4 data-model-name>{firstModel.name}</h4>
+      <p class="model-detail__reading" data-model-reading>{firstModel.reading}</p>
+      <dl>
+        <div><dt>模型族</dt><dd data-model-family>{firstModel.family}</dd></div>
+        <div>
+          <dt>R 引擎</dt><dd><code data-model-engine>{firstModel.engine}</code></dd>
+        </div>
+        <div>
+          <dt>关键参数</dt><dd data-model-parameters>{firstModel.parameters}</dd>
+        </div>
+        <div><dt>预处理</dt><dd data-model-recipe>{firstModel.recipe}</dd></div>
+      </dl>
+    </article>
+  </div>
+
+  <figure class="metric-matrix" aria-labelledby="metric-matrix-title">
+    <figcaption>
+      <span aria-hidden="true">5 × 4</span>
+      <div>
+        <h4 id="metric-matrix-title">一次看完五模型的四项取舍</h4>
+        <p>颜色深浅只在同一列内比较；数值仍是主要证据。</p>
+      </div>
+    </figcaption>
+    <div class="metric-matrix__scroll" tabindex="0">
+      <table>
+        <caption class="visually-hidden">五个模型的五折交叉验证平均指标</caption>
+        <thead>
+          <tr>
+            <th scope="col">模型</th>
+            {metricKeys.map((metric) => <th scope="col">{metricLabels[metric]}</th>)}
+          </tr>
+        </thead>
+        <tbody>
+          {
+            modelResults.map((model) => (
+              <tr data-matrix-model={model.id}>
+                <th scope="row">{model.name}</th>
+                {metricKeys.map((metric) => {
+                  const spread = metricBest[metric] - metricMin[metric] || 1;
+                  const heat = ((model[metric] - metricMin[metric]) / spread) * 68 + 14;
+                  const rank =
+                    [...modelResults]
+                      .sort((a, b) => b[metric] - a[metric])
+                      .findIndex((entry) => entry.id === model.id) + 1;
+                  return (
+                    <td
+                      tabindex="0"
+                      style={`--heat:${heat}%`}
+                      aria-label={`${model.name} ${metricLabels[metric]} ${model[metric].toFixed(4)}，排名第 ${rank}`}
+                    >
+                      <strong>{model[metric].toFixed(4)}</strong>
+                      <small>#{rank}</small>
+                    </td>
+                  );
+                })}
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+  </figure>
+
+  <div class="selection-chain" aria-label="最终模型选择逻辑">
+    <div>
+      <span>01</span><strong>先看 AUC</strong><p>
+        Logistic Regression 以 0.9024 排名第一。
+      </p>
+    </div>
+    <i aria-hidden="true">→</i>
+    <div>
+      <span>02</span><strong>再看流失召回</strong><p>
+        0.8281 接近 Naive Bayes 的 0.8318。
+      </p>
+    </div>
+    <i aria-hidden="true">→</i>
+    <div>
+      <span>03</span><strong>检查误报控制</strong><p>
+        Specificity 0.8071，不是最高，但没有牺牲到最低。
+      </p>
+    </div>
+    <i aria-hidden="true">→</i>
+    <div>
+      <span>04</span><strong>保留解释路径</strong><p>
+        系数可以转换为 odds ratio，说明变量方向。
+      </p>
+    </div>
   </div>
 
   <script is:inline type="application/json" data-model-data set:html={modelData} />
 </section>
 
 <script>
-  import type { MetricKey, ModelResult } from "../data/r-machine-learning";
+  type MetricKey = "accuracy" | "auc" | "sensitivity" | "specificity";
+  type Model = {
+    id: string;
+    name: string;
+    family: string;
+    engine: string;
+    parameters: string;
+    recipe: string;
+    reading: string;
+    accuracy: number;
+    auc: number;
+    sensitivity: number;
+    specificity: number;
+  };
 
-  let modelLabCleanup: (() => void) | undefined;
+  const metricNames: Record<MetricKey, string> = {
+    accuracy: "Accuracy",
+    auc: "AUC-ROC",
+    sensitivity: "Sensitivity",
+    specificity: "Specificity",
+  };
 
-  function initialiseModelLab() {
-    modelLabCleanup?.();
-    const controllers: AbortController[] = [];
-
+  const setupModelLabs = () => {
     document.querySelectorAll<HTMLElement>("[data-model-lab]").forEach((root) => {
-      const controller = new AbortController();
-      controllers.push(controller);
-      const data = JSON.parse(
+      if (root.dataset.ready === "true") return;
+      root.dataset.ready = "true";
+
+      const models = JSON.parse(
         root.querySelector<HTMLScriptElement>("[data-model-data]")?.textContent ?? "[]",
-      ) as ModelResult[];
-      const byId = new Map(data.map((model) => [model.id, model]));
+      ) as Model[];
       const select = root.querySelector<HTMLSelectElement>("[data-model-select]");
       const metricButtons = Array.from(
         root.querySelectorAll<HTMLButtonElement>("[data-model-metric]"),
       );
-      if (!select || data.length === 0) return;
+      const bars = Array.from(
+        root.querySelectorAll<HTMLButtonElement>("[data-model-bar]"),
+      );
+      let metric: MetricKey = "auc";
 
-      let activeMetric: MetricKey = "auc";
+      const selectModel = (id: string) => {
+        const model = models.find((entry) => entry.id === id) ?? models[0];
+        if (!model) return;
+        if (select) select.value = model.id;
 
-      const renderMetric = () => {
-        root.querySelectorAll<HTMLElement>("[data-model-bar]").forEach((bar) => {
-          const model = byId.get(bar.dataset.modelBar ?? "");
-          if (!model) return;
-          const value = model[activeMetric];
-          bar
-            .querySelector<HTMLElement>("[data-model-fill]")
-            ?.style.setProperty("--metric-value", String(value));
-          const output = bar.querySelector<HTMLElement>("[data-model-value]");
-          if (output) output.textContent = value.toFixed(4);
-          bar.setAttribute(
-            "aria-label",
-            `${model.name} ${activeMetric} ${value.toFixed(4)}`,
-          );
-        });
-      };
-
-      const renderDetail = () => {
-        const model = byId.get(select.value) ?? data[0];
-        const fields: Array<[string, string]> = [
+        const bindings: Array<[string, string]> = [
           ["[data-model-name]", model.name],
           ["[data-model-family]", model.family],
           ["[data-model-engine]", model.engine],
           ["[data-model-parameters]", model.parameters],
           ["[data-model-recipe]", model.recipe],
+          ["[data-model-reading]", model.reading],
         ];
-        fields.forEach(([selector, value]) => {
-          const node = root.querySelector<HTMLElement>(selector);
-          if (node) node.textContent = value;
+        bindings.forEach(([selector, value]) => {
+          const target = root.querySelector<HTMLElement>(selector);
+          if (target) target.textContent = value;
         });
-        root.querySelectorAll<HTMLElement>("[data-model-bar]").forEach((bar) => {
+        bars.forEach((bar) => {
           bar.dataset.selected = String(bar.dataset.modelBar === model.id);
         });
       };
 
-      metricButtons.forEach((button) => {
-        button.addEventListener(
-          "click",
-          () => {
-            activeMetric = button.dataset.modelMetric as MetricKey;
-            metricButtons.forEach((item) =>
-              item.setAttribute("aria-pressed", String(item === button)),
+      const renderMetric = (nextMetric: MetricKey) => {
+        metric = nextMetric;
+        const sorted = [...models].sort((a, b) => b[metric] - a[metric]);
+        const high = sorted[0]?.[metric] ?? 1;
+        const low = sorted.at(-1)?.[metric] ?? 0;
+        const spread = high - low || 1;
+
+        metricButtons.forEach((button) => {
+          button.setAttribute(
+            "aria-pressed",
+            String(button.dataset.modelMetric === metric),
+          );
+        });
+
+        bars.forEach((bar) => {
+          const model = models.find((entry) => entry.id === bar.dataset.modelBar);
+          if (!model) return;
+          const value = model[metric];
+          const rank = sorted.findIndex((entry) => entry.id === model.id) + 1;
+          const fill = bar.querySelector<HTMLElement>("[data-model-fill]");
+          const output = bar.querySelector<HTMLElement>("[data-model-value]");
+          const rankNode = bar.querySelector<HTMLElement>("[data-model-rank]");
+          if (fill)
+            fill.style.setProperty(
+              "--model-width",
+              `${((value - low) / spread) * 72 + 24}%`,
             );
-            renderMetric();
-          },
-          { signal: controller.signal },
+          if (output) output.textContent = value.toFixed(4);
+          if (rankNode) rankNode.textContent = String(rank).padStart(2, "0");
+          bar.setAttribute(
+            "aria-label",
+            `${model.name} ${metricNames[metric]} ${value.toFixed(4)}，排名第 ${rank}`,
+          );
+          bar.style.order = String(rank);
+        });
+
+        const leader = sorted[0];
+        const second = sorted[1];
+        const reading = root.querySelector<HTMLElement>("[data-metric-reading]");
+        if (leader && second && reading) {
+          reading.textContent = `${leader.name} 的 ${metricNames[metric]} 为 ${leader[metric].toFixed(4)}，比第二名 ${second.name} 高 ${(leader[metric] - second[metric]).toFixed(4)}。单项领先不能替代四项指标的共同判断。`;
+        }
+      };
+
+      metricButtons.forEach((button) => {
+        button.addEventListener("click", () =>
+          renderMetric(button.dataset.modelMetric as MetricKey),
         );
       });
-      select.addEventListener("change", renderDetail, { signal: controller.signal });
-      renderMetric();
-      renderDetail();
+      bars.forEach((bar) => {
+        bar.addEventListener("click", () => selectModel(bar.dataset.modelBar ?? ""));
+      });
+      select?.addEventListener("change", () => selectModel(select.value));
+
+      renderMetric(metric);
+      selectModel(select?.value ?? models[0]?.id ?? "");
     });
+  };
 
-    modelLabCleanup = () => controllers.forEach((controller) => controller.abort());
-  }
-
-  document.addEventListener("astro:before-swap", () => modelLabCleanup?.());
-  document.addEventListener("astro:page-load", initialiseModelLab);
-  initialiseModelLab();
+  document.addEventListener("astro:page-load", setupModelLabs);
+  setupModelLabs();
 </script>
 
 <style>
   .model-lab {
+    min-width: 0;
+    padding-block: clamp(1.5rem, 4vw, 2.5rem);
+    border-block: 1px solid var(--colour-border-strong);
+  }
+
+  .model-lab__header {
     display: grid;
-    gap: var(--space-5);
-    min-width: 0;
-    padding: clamp(var(--space-5), 4vw, var(--space-8));
-    border: 1px solid var(--colour-border);
-    border-radius: var(--radius-xl);
-    background: var(--colour-surface);
-  }
-
-  .model-lab__controls {
-    display: flex;
-    flex-wrap: wrap;
+    grid-template-columns: minmax(0, 1fr) minmax(13rem, 0.35fr);
+    gap: 2rem;
     align-items: end;
-    justify-content: space-between;
-    gap: var(--space-5);
   }
 
-  fieldset {
-    min-width: 0;
+  .model-lab__eyebrow,
+  .model-lab__header h3,
+  .model-lab__header p,
+  .model-detail p,
+  .selection-chain p,
+  .metric-matrix h4,
+  .metric-matrix p {
     margin: 0;
-    padding: 0;
-    border: 0;
   }
 
-  legend,
-  label {
+  .model-lab__eyebrow,
+  .model-detail__label {
+    color: var(--colour-accent);
+    font: 700 0.72rem/1 var(--font-mono);
+    letter-spacing: 0.1em;
+  }
+
+  .model-lab__header h3 {
+    max-width: 25ch;
+    margin-top: 0.55rem;
+    font-size: clamp(1.6rem, 3.4vw, 2.55rem);
+    line-height: 1.12;
+  }
+
+  .model-lab__header p:last-child {
+    max-width: 66ch;
+    margin-top: 0.7rem;
     color: var(--colour-text-muted);
-    font-size: var(--font-size-sm);
-    font-weight: 650;
+  }
+
+  .model-lab__select {
+    display: grid;
+    gap: 0.45rem;
+    color: var(--colour-text-muted);
+    font-size: 0.82rem;
+  }
+
+  .model-lab__select select {
+    width: 100%;
+    min-height: 2.8rem;
+    padding: 0 0.8rem;
+    border: 1px solid var(--colour-border-strong);
+    border-radius: var(--radius-sm);
+    background: var(--colour-surface);
+    color: var(--colour-text);
   }
 
   .model-lab__metric-buttons {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-    margin-block-start: var(--space-2);
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0;
+    margin-top: 2rem;
+    border-block: 1px solid var(--colour-border);
   }
 
-  button.tag {
+  .metric-button {
+    display: grid;
+    gap: 0.35rem;
+    min-height: 4.5rem;
+    padding: 0.9rem 1rem;
+    border: 0;
+    border-right: 1px solid var(--colour-border);
+    background: transparent;
+    color: var(--colour-text);
+    text-align: left;
     cursor: pointer;
   }
 
-  button.tag[aria-pressed="true"] {
-    border-color: var(--colour-primary);
-    color: var(--colour-primary-strong);
-    background: color-mix(in srgb, var(--colour-primary) 12%, transparent);
+  .metric-button:last-child {
+    border-right: 0;
   }
 
-  label {
+  .metric-button small {
+    color: var(--colour-text-muted);
+  }
+
+  .metric-button[aria-pressed="true"] {
+    background: var(--colour-primary);
+    color: var(--colour-primary-contrast);
+  }
+
+  .metric-button[aria-pressed="true"] small {
+    color: inherit;
+    opacity: 0.8;
+  }
+
+  .model-lab__stage {
     display: grid;
-    gap: var(--space-2);
+    grid-template-columns: minmax(0, 1.6fr) minmax(17rem, 0.7fr);
+    gap: clamp(2rem, 5vw, 4rem);
+    align-items: start;
+    padding-block: clamp(2rem, 5vw, 3.5rem);
   }
 
-  select {
-    min-height: 2.75rem;
-    padding-inline: var(--space-3);
-    border: 1px solid var(--colour-border);
-    border-radius: var(--radius-md);
-    color: var(--colour-text);
-    background: var(--colour-surface-raised);
+  .model-ranking__axis {
+    display: flex;
+    justify-content: space-between;
+    margin-left: min(43%, 13rem);
+    color: var(--colour-text-muted);
+    font-size: 0.72rem;
   }
 
-  .model-lab__chart {
-    display: grid;
-    gap: var(--space-3);
+  .model-ranking__rows {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-top: 0.4rem;
   }
 
   .model-bar {
     display: grid;
-    grid-template-columns: minmax(8rem, 0.55fr) minmax(8rem, 1fr) 4.5rem;
+    grid-template-columns: 2rem minmax(8rem, 0.85fr) minmax(8rem, 1.4fr) 4.2rem;
+    gap: 0.75rem;
     align-items: center;
-    gap: var(--space-3);
-    padding: var(--space-2);
-    border-radius: var(--radius-md);
+    min-height: 3.25rem;
+    padding: 0.55rem 0;
+    border: 0;
+    border-bottom: 1px solid var(--colour-border);
+    background: transparent;
+    color: var(--colour-text);
+    text-align: left;
+    cursor: pointer;
   }
 
-  .model-bar[data-selected="true"] {
-    background: color-mix(in srgb, var(--colour-primary) 8%, transparent);
+  .model-bar__rank {
+    color: var(--colour-text-muted);
+    font: 700 0.75rem/1 var(--font-mono);
   }
 
   .model-bar__track {
-    height: 0.7rem;
+    height: 0.68rem;
+    border-radius: 999px;
+    background: var(--colour-surface-subtle);
     overflow: hidden;
-    border-radius: var(--radius-pill);
-    background: var(--colour-surface-raised);
   }
 
   .model-bar__fill {
     display: block;
-    width: calc(var(--metric-value) * 100%);
+    width: var(--model-width);
     height: 100%;
     border-radius: inherit;
-    background: linear-gradient(90deg, var(--colour-primary), var(--colour-secondary));
-    transform-origin: left;
+    background: var(--colour-primary);
     transition: width var(--duration-normal) var(--ease-standard);
   }
 
+  .model-bar[data-selected="true"] .model-bar__fill {
+    background: var(--colour-accent);
+  }
+
   .model-bar strong {
-    font-family: var(--font-family-mono);
     text-align: right;
+    font: 700 0.9rem/1 var(--font-mono);
+    font-variant-numeric: tabular-nums;
   }
 
-  .model-lab__detail {
-    padding: var(--space-5);
-    border-radius: var(--radius-lg);
-    background: var(--colour-surface-raised);
-  }
-
-  .model-lab__detail h3 {
-    margin-block: var(--space-2) var(--space-4);
-  }
-
-  .model-lab__detail dl {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-4);
-    margin: 0;
-  }
-
-  .model-lab__detail dl div {
-    display: grid;
-    gap: var(--space-1);
-  }
-
-  dt {
+  .model-ranking__reading {
+    max-width: 68ch;
+    margin: 1.25rem 0 0;
+    padding-left: 1rem;
+    border-left: 3px solid var(--colour-primary);
     color: var(--colour-text-muted);
-    font-size: var(--font-size-sm);
   }
 
-  dd {
+  .model-detail {
+    padding: 1.4rem 0 0 1.4rem;
+    border-left: 1px solid var(--colour-border-strong);
+  }
+
+  .model-detail h4 {
+    margin: 0.55rem 0 0;
+    font-size: clamp(1.35rem, 2.5vw, 1.8rem);
+  }
+
+  .model-detail__reading {
+    margin-top: 0.7rem !important;
+    color: var(--colour-text-muted);
+  }
+
+  .model-detail dl {
+    display: grid;
+    gap: 0;
+    margin: 1.25rem 0 0;
+  }
+
+  .model-detail dl div {
+    display: grid;
+    grid-template-columns: 5rem minmax(0, 1fr);
+    gap: 0.75rem;
+    padding: 0.75rem 0;
+    border-top: 1px solid var(--colour-border);
+  }
+
+  .model-detail dt,
+  .model-detail dd {
     margin: 0;
   }
 
-  .model-lab__table-wrap {
+  .model-detail dt {
+    color: var(--colour-text-muted);
+    font-size: 0.78rem;
+  }
+
+  .model-detail dd {
+    font-size: 0.88rem;
+  }
+
+  .metric-matrix {
+    margin: 0;
+    padding-top: clamp(2rem, 5vw, 3.5rem);
+    border-top: 1px solid var(--colour-border);
+  }
+
+  .metric-matrix figcaption {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 1rem;
+    align-items: start;
+    margin-bottom: 1.25rem;
+  }
+
+  .metric-matrix figcaption > span {
+    padding: 0.45rem 0.6rem;
+    border: 1px solid var(--colour-border);
+    border-radius: 999px;
+    color: var(--colour-secondary);
+    font: 700 0.7rem/1 var(--font-mono);
+  }
+
+  .metric-matrix h4 {
+    font-size: clamp(1.25rem, 2.4vw, 1.8rem);
+  }
+
+  .metric-matrix p {
+    margin-top: 0.35rem;
+    color: var(--colour-text-muted);
+  }
+
+  .metric-matrix__scroll {
     max-width: 100%;
     overflow-x: auto;
   }
 
-  table {
+  .metric-matrix table {
     width: 100%;
-    min-width: 44rem;
+    min-width: 42rem;
     border-collapse: collapse;
   }
 
-  caption {
-    padding-block-end: var(--space-3);
+  .metric-matrix th,
+  .metric-matrix td {
+    padding: 0.85rem;
+    border: 1px solid var(--colour-border);
+  }
+
+  .metric-matrix thead th {
     color: var(--colour-text-muted);
-    text-align: left;
-  }
-
-  th,
-  td {
-    padding: var(--space-3);
-    border-bottom: 1px solid var(--colour-border);
     text-align: right;
+    font-size: 0.78rem;
   }
 
-  th:first-child {
+  .metric-matrix thead th:first-child,
+  .metric-matrix tbody th {
     text-align: left;
   }
 
-  @media (max-width: 42rem) {
+  .metric-matrix tbody th {
+    min-width: 11rem;
+    font-size: 0.88rem;
+  }
+
+  .metric-matrix td {
+    background: color-mix(in srgb, var(--colour-primary) var(--heat), transparent);
+    color: var(--colour-text);
+    text-align: right;
+    outline: none;
+  }
+
+  .metric-matrix td:focus-visible {
+    box-shadow: inset 0 0 0 3px var(--colour-focus);
+  }
+
+  .metric-matrix td strong,
+  .metric-matrix td small {
+    display: block;
+  }
+
+  .metric-matrix td strong {
+    font: 700 0.88rem/1 var(--font-mono);
+  }
+
+  .metric-matrix td small {
+    margin-top: 0.25rem;
+    opacity: 0.72;
+  }
+
+  .selection-chain {
+    display: grid;
+    grid-template-columns: repeat(7, auto);
+    gap: 0.8rem;
+    align-items: center;
+    margin-top: clamp(2rem, 5vw, 3.5rem);
+    padding-top: clamp(2rem, 5vw, 3.5rem);
+    border-top: 1px solid var(--colour-border);
+  }
+
+  .selection-chain > div {
+    min-width: 0;
+  }
+
+  .selection-chain span {
+    color: var(--colour-accent);
+    font: 700 0.72rem/1 var(--font-mono);
+  }
+
+  .selection-chain strong {
+    display: block;
+    margin-top: 0.45rem;
+  }
+
+  .selection-chain p {
+    margin-top: 0.4rem;
+    color: var(--colour-text-muted);
+    font-size: 0.82rem;
+  }
+
+  .selection-chain > i {
+    color: var(--colour-border-strong);
+    font-style: normal;
+  }
+
+  @media (max-width: 900px) {
+    .model-lab__stage {
+      grid-template-columns: 1fr;
+    }
+
+    .model-detail {
+      padding: 1.4rem 0 0;
+      border-top: 1px solid var(--colour-border-strong);
+      border-left: 0;
+    }
+
+    .selection-chain {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-items: start;
+    }
+
+    .selection-chain > i {
+      display: none;
+    }
+  }
+
+  @media (max-width: 680px) {
+    .model-lab__header,
+    .metric-matrix figcaption {
+      grid-template-columns: 1fr;
+    }
+
+    .model-lab__metric-buttons {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .metric-button:nth-child(2) {
+      border-right: 0;
+    }
+
+    .metric-button:nth-child(-n + 2) {
+      border-bottom: 1px solid var(--colour-border);
+    }
+
     .model-bar {
-      grid-template-columns: minmax(0, 1fr) 4rem;
+      grid-template-columns: 1.6rem minmax(7rem, 1fr) 4rem;
     }
 
     .model-bar__track {
-      grid-column: 1 / -1;
+      grid-column: 2 / -1;
       grid-row: 2;
     }
 
-    .model-lab__detail dl {
+    .model-bar strong {
+      grid-column: 3;
+      grid-row: 1;
+    }
+
+    .selection-chain {
       grid-template-columns: 1fr;
     }
   }

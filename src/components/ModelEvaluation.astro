@@ -1,15 +1,64 @@
 ---
-import { confusionMatrix, oddsRatios } from "../data/r-machine-learning";
+import { confusionMatrix, oddsRatios, rocTrace } from "../data/r-machine-learning";
 
-const formatCount = (value: number) => new Intl.NumberFormat("zh-CN").format(value);
-const maxOdds = Math.max(...oddsRatios.map((item) => item.value));
+const cells = [
+  {
+    id: "tp",
+    short: "TP",
+    label: "正确识别流失",
+    value: confusionMatrix.truePositive,
+    denominator: confusionMatrix.truePositive + confusionMatrix.falseNegative,
+    detail: "实际流失且预测为流失。10,092 条记录进入可识别的流失人群。",
+    tone: "primary",
+  },
+  {
+    id: "fn",
+    short: "FN",
+    label: "漏掉流失客户",
+    value: confusionMatrix.falseNegative,
+    denominator: confusionMatrix.truePositive + confusionMatrix.falseNegative,
+    detail: "实际流失但预测为保留。2,022 条记录构成模型最需要关注的漏判。",
+    tone: "accent",
+  },
+  {
+    id: "fp",
+    short: "FP",
+    label: "误报流失客户",
+    value: confusionMatrix.falsePositive,
+    denominator: confusionMatrix.trueNegative + confusionMatrix.falsePositive,
+    detail: "实际保留但预测为流失。5,261 条记录会进入不必要的流失提醒。",
+    tone: "muted",
+  },
+  {
+    id: "tn",
+    short: "TN",
+    label: "正确识别保留",
+    value: confusionMatrix.trueNegative,
+    denominator: confusionMatrix.trueNegative + confusionMatrix.falsePositive,
+    detail: "实际保留且预测为保留。21,825 条记录被正确留在保留类别。",
+    tone: "soft",
+  },
+].map((cell) => ({ ...cell, share: (cell.value / cell.denominator) * 100 }));
+
+const rocPath = rocTrace
+  .map(([x, y], index) => `${index === 0 ? "M" : "L"} ${x * 100} ${100 - y * 100}`)
+  .join(" ");
+
+const logMin = Math.log(0.25);
+const logMax = Math.log(20);
+const oddsPosition = (value: number) =>
+  ((Math.log(value) - logMin) / (logMax - logMin)) * 100;
+const oddsBaseline = oddsPosition(1);
 ---
 
-<div class="model-evaluation">
-  <section class="evaluation-card" aria-labelledby="holdout-metrics-title">
-    <p class="status">留出测试集</p>
-    <h3 id="holdout-metrics-title">39,200 条记录的一次性评价</h3>
-    <dl class="metric-grid">
+<div class="evaluation-story" data-model-evaluation>
+  <section class="holdout-summary" aria-labelledby="holdout-summary-title">
+    <div>
+      <p class="evaluation-eyebrow">HOLD-OUT TEST</p>
+      <h3 id="holdout-summary-title">39,200 条未参与选择的记录，给出最后一次检验</h3>
+      <p>测试集保持自然类别比例。四项指标由同一组预测结果计算，不能拆开理解。</p>
+    </div>
+    <dl>
       <div><dt>Accuracy</dt><dd>{confusionMatrix.accuracy.toFixed(4)}</dd></div>
       <div><dt>AUC-ROC</dt><dd>{confusionMatrix.auc.toFixed(4)}</dd></div>
       <div><dt>Sensitivity</dt><dd>{confusionMatrix.sensitivity.toFixed(4)}</dd></div>
@@ -17,310 +66,837 @@ const maxOdds = Math.max(...oddsRatios.map((item) => item.value));
     </dl>
   </section>
 
-  <section class="evaluation-card" aria-labelledby="matrix-title">
-    <p class="status">Confusion Matrix</p>
-    <h3 id="matrix-title">流失客户是正类</h3>
-    <div
-      class="confusion-grid"
-      role="img"
-      aria-label="Logistic Regression 测试集混淆矩阵"
-    >
-      <span class="axis-label axis-label--predicted">预测</span>
-      <span class="axis-label axis-label--actual">真实</span>
-      <span class="matrix-label matrix-label--top-left">保留</span>
-      <span class="matrix-label matrix-label--top-right">流失</span>
-      <span class="matrix-label matrix-label--left-top">流失</span>
-      <span class="matrix-label matrix-label--left-bottom">保留</span>
-      <div class="matrix-cell matrix-cell--fp" tabindex="0">
-        <span>False Positive</span>
-        <strong>{formatCount(confusionMatrix.falsePositive)}</strong>
+  <figure class="confusion-figure" aria-labelledby="confusion-title">
+    <figcaption>
+      <span class="figure-marker" aria-hidden="true">ERROR / 01</span>
+      <div>
+        <h3 id="confusion-title">模型识别了 83.32% 的真实流失客户</h3>
+        <p>选择任一单元格，查看该错误或正确分类在客户流失语境中的含义。</p>
       </div>
-      <div class="matrix-cell matrix-cell--tp" tabindex="0">
-        <span>True Positive</span>
-        <strong>{formatCount(confusionMatrix.truePositive)}</strong>
+    </figcaption>
+
+    <div class="confusion-layout">
+      <div class="confusion-matrix" aria-label="Logistic Regression 留出集混淆矩阵">
+        <span class="matrix-axis matrix-axis--actual">实际类别</span>
+        <span class="matrix-axis matrix-axis--predicted">预测类别</span>
+        <span class="matrix-label matrix-label--actual-retained">保留</span>
+        <span class="matrix-label matrix-label--actual-churned">流失</span>
+        <span class="matrix-label matrix-label--predicted-churned">流失</span>
+        <span class="matrix-label matrix-label--predicted-retained">保留</span>
+        {
+          cells.map((cell) => (
+            <button
+              type="button"
+              class={`matrix-cell matrix-cell--${cell.id}`}
+              data-matrix-cell={cell.id}
+              aria-pressed={cell.id === "fn" ? "true" : "false"}
+              aria-label={`${cell.short} ${cell.label} ${cell.value.toLocaleString("en-US")} 条`}
+            >
+              <small>{cell.short}</small>
+              <strong>{cell.value.toLocaleString("en-US")}</strong>
+              <span>{cell.label}</span>
+            </button>
+          ))
+        }
       </div>
-      <div class="matrix-cell matrix-cell--tn" tabindex="0">
-        <span>True Negative</span>
-        <strong>{formatCount(confusionMatrix.trueNegative)}</strong>
+
+      <aside class="matrix-reading" aria-live="polite">
+        <p class="matrix-reading__label" data-matrix-short>FN · False Negative</p>
+        <h4 data-matrix-label>漏掉流失客户</h4>
+        <p data-matrix-detail>
+          实际流失但预测为保留。2,022 条记录构成模型最需要关注的漏判。
+        </p>
+        <div class="matrix-reading__ratio">
+          <span>在实际流失客户中</span>
+          <strong data-matrix-share
+            >{cells.find((cell) => cell.id === "fn")?.share.toFixed(2)}%</strong
+          >
+        </div>
+      </aside>
+    </div>
+
+    <p class="figure-reading">
+      False Negative 比 False Positive
+      少，但它直接减少了模型能够识别的流失客户数量。Sensitivity 因此与 AUC
+      一起进入最终选择，而不是只看 Accuracy。
+    </p>
+  </figure>
+
+  <figure class="roc-figure" aria-labelledby="roc-title">
+    <figcaption>
+      <span class="figure-marker" aria-hidden="true">ROC / 02</span>
+      <div>
+        <h3 id="roc-title">AUC 0.9053 说明排序能力在留出集上保持稳定</h3>
+        <p>ROC 把不同分类阈值下的流失召回与误报率放在同一坐标中。</p>
       </div>
-      <div class="matrix-cell matrix-cell--fn" tabindex="0">
-        <span>False Negative</span>
-        <strong>{formatCount(confusionMatrix.falseNegative)}</strong>
+    </figcaption>
+
+    <div class="roc-layout">
+      <div
+        class="roc-chart"
+        role="img"
+        aria-label="Logistic Regression 留出集 ROC 曲线，AUC 0.9053"
+      >
+        <svg viewBox="-12 -8 122 120" aria-hidden="true">
+          <g class="roc-grid">
+            {
+              [0, 25, 50, 75, 100].map((tick) => (
+                <>
+                  <line x1={tick} x2={tick} y1="0" y2="100" />
+                  <line x1="0" x2="100" y1={tick} y2={tick} />
+                </>
+              ))
+            }
+          </g>
+          <line class="roc-baseline" x1="0" y1="100" x2="100" y2="0"></line>
+          <path class="roc-area" d={`${rocPath} L 100 100 L 0 100 Z`}></path>
+          <path class="roc-line" d={rocPath}></path>
+          <g class="roc-ticks">
+            <text x="0" y="107">0</text><text x="50" y="107">0.5</text><text
+              x="100"
+              y="107">1.0</text
+            >
+            <text x="-4" y="101" text-anchor="end">0</text><text
+              x="-4"
+              y="52"
+              text-anchor="end">0.5</text
+            ><text x="-4" y="3" text-anchor="end">1.0</text>
+          </g>
+        </svg>
+        <div class="roc-axis roc-axis--x">False Positive Rate</div>
+        <div class="roc-axis roc-axis--y">True Positive Rate</div>
+      </div>
+
+      <div class="roc-reading">
+        <div class="auc-number"><span>留出集 AUC</span><strong>0.9053</strong></div>
+        <dl>
+          <div><dt>随机基准</dt><dd>0.5000</dd></div>
+          <div><dt>交叉验证均值</dt><dd>0.9024</dd></div>
+          <div><dt>留出集差值</dt><dd>+0.0029</dd></div>
+        </dl>
+        <p>
+          留出集 AUC 与五折均值接近，没有出现明显回落。曲线按项目的留出集 ROC
+          输出重绘；阈值明细没有进入本页，因此不提供阈值模拟。
+        </p>
       </div>
     </div>
-    <p>
-      10,092 条真实流失记录被正确识别，2,022 条流失记录被漏判；Sensitivity 为 0.8332。
-    </p>
-  </section>
+  </figure>
 
-  <section class="evaluation-card evaluation-card--wide" aria-labelledby="odds-title">
-    <p class="status">Logistic Regression</p>
-    <h3 id="odds-title">Odds ratio 解释</h3>
-    <p>虚线基准为 1。大于 1 表示流失 odds 增加，小于 1 表示相对 Basic 计划降低。</p>
-    <div class="odds-chart" role="img" aria-label="Logistic Regression odds ratio 比较">
+  <figure class="odds-figure" aria-labelledby="odds-title">
+    <figcaption>
+      <span class="figure-marker" aria-hidden="true">OR / 03</span>
+      <div>
+        <h3 id="odds-title">支付失败的流失 odds 是无支付失败记录的 15.9 倍</h3>
+        <p>
+          横轴使用对数尺度，使低于 1 和高于 1 的变量都能保持可读；图中横线连接 OR=1
+          与点估计，不表示置信区间。
+        </p>
+      </div>
+    </figcaption>
+
+    <div
+      class="forest-plot"
+      style={`--or-baseline:${oddsBaseline}%`}
+      role="img"
+      aria-label="Logistic Regression odds ratio 点估计比较图"
+    >
+      <div class="forest-axis" aria-hidden="true">
+        {
+          [0.25, 0.5, 1, 2, 5, 10, 20].map((tick) => (
+            <span style={`--tick:${oddsPosition(tick)}%`}>{tick}</span>
+          ))
+        }
+      </div>
+      <i class="forest-baseline" aria-hidden="true"></i>
       {
         oddsRatios.map((item) => (
           <div
-            class="odds-row"
-            data-direction={item.direction}
+            class:list={[
+              "forest-row",
+              item.direction === "protective" && "forest-row--protective",
+            ]}
             tabindex="0"
-            aria-label={`${item.label} odds ratio ${item.value}`}
+            aria-label={`${item.label} odds ratio ${item.value}，${item.value > 1 ? "流失 odds 增加" : "相对 Basic 计划降低"}`}
           >
-            <span>{item.label}</span>
-            <div class="odds-track">
-              <span
-                class="odds-fill"
-                style={`--odds-width:${Math.max(3, (item.value / maxOdds) * 100)}%`}
+            <strong>{item.label}</strong>
+            <div class="forest-row__plot">
+              <i
+                class="forest-row__stem"
+                style={`--point:${oddsPosition(item.value)}%`}
               />
-              <i class="odds-baseline" aria-hidden="true" />
+              <span
+                class="forest-row__point"
+                style={`--point:${oddsPosition(item.value)}%`}
+              >
+                <b>{item.value.toFixed(item.value >= 10 ? 1 : 2)}</b>
+              </span>
             </div>
-            <strong>{item.value.toFixed(item.value >= 10 ? 1 : 2)}</strong>
-            <span class="odds-tooltip" role="tooltip">
-              {item.direction === "risk" ? "流失 odds 增加" : "相对 Basic 计划降低"}
-            </span>
+            <p>{item.value > 1 ? "增加流失 odds" : "相对 Basic 降低"}</p>
           </div>
         ))
       }
     </div>
-  </section>
+
+    <div class="odds-reading">
+      <p><strong>商业摩擦：</strong>支付失败与退款申请的 OR 明显高于 1。</p>
+      <p>
+        <strong>活跃度：</strong>距上次充电每增加一周，流失 odds 约为原来的 2.01 倍。
+      </p>
+      <p><strong>会员结构：</strong>Plus 和 Pro 相对 Basic 的 OR 低于 1。</p>
+    </div>
+  </figure>
+
+  <script
+    is:inline
+    type="application/json"
+    data-matrix-data
+    set:html={JSON.stringify(cells).replace(/</g, "\\u003c")}
+  />
 </div>
 
+<script>
+  type MatrixCell = {
+    id: string;
+    short: string;
+    label: string;
+    value: number;
+    detail: string;
+    share: number;
+  };
+
+  const setupEvaluation = () => {
+    document
+      .querySelectorAll<HTMLElement>("[data-model-evaluation]")
+      .forEach((root) => {
+        if (root.dataset.ready === "true") return;
+        root.dataset.ready = "true";
+        const cells = JSON.parse(
+          root.querySelector<HTMLScriptElement>("[data-matrix-data]")?.textContent ??
+            "[]",
+        ) as MatrixCell[];
+        const buttons = Array.from(
+          root.querySelectorAll<HTMLButtonElement>("[data-matrix-cell]"),
+        );
+
+        const selectCell = (id: string) => {
+          const cell = cells.find((entry) => entry.id === id);
+          if (!cell) return;
+          buttons.forEach((button) => {
+            button.setAttribute(
+              "aria-pressed",
+              String(button.dataset.matrixCell === id),
+            );
+          });
+          const short = root.querySelector<HTMLElement>("[data-matrix-short]");
+          const label = root.querySelector<HTMLElement>("[data-matrix-label]");
+          const detail = root.querySelector<HTMLElement>("[data-matrix-detail]");
+          const share = root.querySelector<HTMLElement>("[data-matrix-share]");
+          if (short)
+            short.textContent = `${cell.short} · ${cell.id === "tp" ? "True Positive" : cell.id === "tn" ? "True Negative" : cell.id === "fp" ? "False Positive" : "False Negative"}`;
+          if (label) label.textContent = cell.label;
+          if (detail) detail.textContent = cell.detail;
+          if (share) share.textContent = `${cell.share.toFixed(2)}%`;
+        };
+
+        buttons.forEach((button) => {
+          button.addEventListener("click", () =>
+            selectCell(button.dataset.matrixCell ?? ""),
+          );
+        });
+        selectCell("fn");
+      });
+  };
+
+  document.addEventListener("astro:page-load", setupEvaluation);
+  setupEvaluation();
+</script>
+
 <style>
-  .model-evaluation {
+  .evaluation-story {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-5);
-  }
-
-  .evaluation-card {
+    gap: clamp(3rem, 7vw, 6rem);
     min-width: 0;
-    padding: clamp(var(--space-5), 4vw, var(--space-8));
-    border: 1px solid var(--colour-border);
-    border-radius: var(--radius-xl);
-    background: var(--colour-surface);
   }
 
-  .evaluation-card--wide {
-    grid-column: 1 / -1;
-  }
-
-  .evaluation-card h3 {
-    margin-block: var(--space-2) var(--space-4);
-  }
-
-  .metric-grid {
+  .holdout-summary {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-3);
+    grid-template-columns: minmax(0, 1fr) minmax(22rem, 0.8fr);
+    gap: clamp(2rem, 6vw, 5rem);
+    align-items: end;
+    padding-block: clamp(1.5rem, 4vw, 2.5rem);
+    border-block: 1px solid var(--colour-border-strong);
+  }
+
+  .evaluation-eyebrow,
+  .holdout-summary h3,
+  .holdout-summary p,
+  figcaption h3,
+  figcaption p,
+  .figure-reading,
+  .matrix-reading p,
+  .roc-reading p,
+  .forest-row p,
+  .odds-reading p {
     margin: 0;
   }
 
-  .metric-grid div {
-    padding: var(--space-4);
-    border-radius: var(--radius-md);
-    background: var(--colour-surface-raised);
+  .evaluation-eyebrow {
+    color: var(--colour-accent);
+    font: 700 0.72rem/1 var(--font-mono);
+    letter-spacing: 0.1em;
   }
 
-  .metric-grid dt {
+  .holdout-summary h3 {
+    max-width: 25ch;
+    margin-top: 0.55rem;
+    font-size: clamp(1.6rem, 3.5vw, 2.6rem);
+    line-height: 1.12;
+  }
+
+  .holdout-summary p:last-child {
+    max-width: 64ch;
+    margin-top: 0.7rem;
     color: var(--colour-text-muted);
-    font-size: var(--font-size-sm);
   }
 
-  .metric-grid dd {
-    margin: var(--space-1) 0 0;
-    font-family: var(--font-family-mono);
-    font-size: var(--font-size-xl);
-    font-weight: 700;
-  }
-
-  .confusion-grid {
+  .holdout-summary dl {
     display: grid;
-    grid-template-columns: 2.5rem 3.5rem repeat(2, minmax(6.5rem, 1fr));
-    grid-template-rows: 1.8rem 2rem repeat(2, minmax(6rem, auto));
-    gap: var(--space-2);
-    max-width: 32rem;
-    margin-block: var(--space-5);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0;
   }
 
-  .axis-label,
+  .holdout-summary dl div {
+    padding: 1rem;
+    border: 1px solid var(--colour-border);
+  }
+
+  .holdout-summary dt,
+  .holdout-summary dd {
+    margin: 0;
+  }
+
+  .holdout-summary dt {
+    color: var(--colour-text-muted);
+    font-size: 0.76rem;
+  }
+
+  .holdout-summary dd {
+    margin-top: 0.35rem;
+    font: 750 clamp(1.35rem, 3vw, 1.85rem)/1 var(--font-display);
+    font-variant-numeric: tabular-nums;
+  }
+
+  figure {
+    margin: 0;
+    min-width: 0;
+  }
+
+  figcaption {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 1rem;
+    align-items: start;
+    margin-bottom: 1.5rem;
+  }
+
+  figcaption h3 {
+    max-width: 26ch;
+    font-size: clamp(1.5rem, 3.2vw, 2.35rem);
+    line-height: 1.14;
+  }
+
+  figcaption p {
+    max-width: 64ch;
+    margin-top: 0.5rem;
+    color: var(--colour-text-muted);
+  }
+
+  .figure-marker {
+    min-width: 4.8rem;
+    padding: 0.5rem 0.65rem;
+    border: 1px solid var(--colour-border);
+    border-radius: 999px;
+    color: var(--colour-primary-strong);
+    text-align: center;
+    font: 700 0.68rem/1 var(--font-mono);
+    letter-spacing: 0.08em;
+  }
+
+  .confusion-layout,
+  .roc-layout {
+    display: grid;
+    grid-template-columns: minmax(20rem, 1.25fr) minmax(17rem, 0.75fr);
+    gap: clamp(2rem, 6vw, 5rem);
+    align-items: center;
+  }
+
+  .confusion-matrix {
+    display: grid;
+    grid-template-columns: 4.5rem 4rem repeat(2, minmax(9rem, 1fr));
+    grid-template-rows: 2rem 2.3rem repeat(2, minmax(8rem, 1fr));
+    min-width: 0;
+  }
+
+  .matrix-axis,
   .matrix-label {
     display: grid;
     place-items: center;
     color: var(--colour-text-muted);
-    font-size: var(--font-size-sm);
+    font-size: 0.78rem;
   }
 
-  .axis-label--actual {
+  .matrix-axis--actual {
     grid-column: 3 / 5;
     grid-row: 1;
   }
 
-  .axis-label--predicted {
+  .matrix-axis--predicted {
     grid-column: 1;
     grid-row: 3 / 5;
     writing-mode: vertical-rl;
     transform: rotate(180deg);
   }
 
-  .matrix-label--top-left {
+  .matrix-label--actual-retained {
     grid-column: 3;
     grid-row: 2;
   }
-  .matrix-label--top-right {
+  .matrix-label--actual-churned {
     grid-column: 4;
     grid-row: 2;
   }
-  .matrix-label--left-top {
+  .matrix-label--predicted-churned {
     grid-column: 2;
     grid-row: 3;
   }
-  .matrix-label--left-bottom {
+  .matrix-label--predicted-retained {
     grid-column: 2;
     grid-row: 4;
   }
 
   .matrix-cell {
     display: grid;
-    place-content: center;
-    gap: var(--space-2);
+    align-content: center;
+    gap: 0.35rem;
     min-width: 0;
-    padding: var(--space-4);
-    border-radius: var(--radius-md);
-    text-align: center;
-  }
-
-  .matrix-cell span {
-    font-size: var(--font-size-sm);
-  }
-
-  .matrix-cell strong {
-    font-family: var(--font-family-mono);
-    font-size: clamp(1.15rem, 3vw, 1.65rem);
+    padding: 1rem;
+    border: 2px solid var(--colour-page);
+    color: var(--colour-text);
+    text-align: left;
+    cursor: pointer;
   }
 
   .matrix-cell--fp {
     grid-column: 3;
     grid-row: 3;
-    background: color-mix(in srgb, var(--colour-primary) 22%, var(--colour-surface));
+    background: color-mix(in srgb, var(--colour-primary) 24%, var(--colour-surface));
   }
-
   .matrix-cell--tp {
     grid-column: 4;
     grid-row: 3;
-    color: var(--colour-primary-contrast);
     background: var(--colour-primary);
+    color: var(--colour-primary-contrast);
   }
-
   .matrix-cell--tn {
     grid-column: 3;
     grid-row: 4;
-    background: var(--colour-surface-raised);
+    background: color-mix(in srgb, var(--colour-secondary) 18%, var(--colour-surface));
   }
-
   .matrix-cell--fn {
     grid-column: 4;
     grid-row: 4;
-    color: var(--colour-primary-contrast);
-    background: var(--colour-secondary);
+    background: color-mix(in srgb, var(--colour-accent) 72%, var(--colour-surface));
   }
 
-  .odds-chart {
-    display: grid;
-    gap: var(--space-3);
-    margin-block-start: var(--space-5);
+  .matrix-cell[aria-pressed="true"] {
+    box-shadow: inset 0 0 0 3px var(--colour-focus);
   }
 
-  .odds-row {
+  .matrix-cell small {
+    font: 700 0.72rem/1 var(--font-mono);
+    letter-spacing: 0.08em;
+  }
+
+  .matrix-cell strong {
+    font: 750 clamp(1.35rem, 3vw, 2rem)/1 var(--font-display);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .matrix-cell span {
+    font-size: 0.78rem;
+  }
+
+  .matrix-reading {
+    padding-left: 1.5rem;
+    border-left: 1px solid var(--colour-border-strong);
+  }
+
+  .matrix-reading__label {
+    color: var(--colour-accent);
+    font: 700 0.72rem/1 var(--font-mono);
+    letter-spacing: 0.08em;
+  }
+
+  .matrix-reading h4 {
+    margin: 0.55rem 0 0;
+    font-size: clamp(1.35rem, 3vw, 1.9rem);
+  }
+
+  .matrix-reading > p:not(.matrix-reading__label) {
+    margin-top: 0.75rem;
+    color: var(--colour-text-muted);
+  }
+
+  .matrix-reading__ratio {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: baseline;
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--colour-border);
+  }
+
+  .matrix-reading__ratio span {
+    color: var(--colour-text-muted);
+    font-size: 0.82rem;
+  }
+
+  .matrix-reading__ratio strong {
+    font: 750 1.5rem/1 var(--font-display);
+  }
+
+  .figure-reading {
+    max-width: 72ch;
+    margin-top: 1.25rem;
+    padding-left: 1rem;
+    border-left: 3px solid var(--colour-accent);
+    color: var(--colour-text-muted);
+  }
+
+  .roc-chart {
     position: relative;
-    display: grid;
-    grid-template-columns: minmax(8rem, 0.55fr) minmax(10rem, 1.45fr) 4rem;
-    align-items: center;
-    gap: var(--space-3);
-    padding: var(--space-1);
-    border-radius: var(--radius-sm);
+    min-width: 0;
+    padding: 1.5rem 1.5rem 2.8rem 3rem;
+    border: 1px solid var(--colour-border);
+    background: var(--colour-surface);
   }
 
-  .odds-row:focus-visible,
-  .odds-row:hover {
-    background: var(--colour-surface-raised);
-  }
-
-  .odds-track {
-    position: relative;
-    height: 0.85rem;
-    border-radius: var(--radius-pill);
-    background: var(--colour-surface-raised);
-  }
-
-  .odds-fill {
+  .roc-chart svg {
     display: block;
-    width: var(--odds-width);
-    height: 100%;
-    border-radius: inherit;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+
+  .roc-grid line {
+    stroke: var(--colour-border);
+    stroke-width: 0.5;
+  }
+
+  .roc-baseline {
+    stroke: var(--colour-text-muted);
+    stroke-width: 1;
+    stroke-dasharray: 4 3;
+  }
+
+  .roc-area {
+    fill: color-mix(in srgb, var(--colour-primary) 15%, transparent);
+  }
+
+  .roc-line {
+    fill: none;
+    stroke: var(--colour-primary-strong);
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .roc-ticks text {
+    fill: var(--colour-text-muted);
+    font: 4px var(--font-mono);
+  }
+
+  .roc-axis {
+    position: absolute;
+    color: var(--colour-text-muted);
+    font-size: 0.72rem;
+  }
+
+  .roc-axis--x {
+    right: 1.5rem;
+    bottom: 0.8rem;
+    left: 3rem;
+    text-align: center;
+  }
+
+  .roc-axis--y {
+    top: 50%;
+    left: 0.6rem;
+    transform: translateY(-50%) rotate(-90deg);
+    white-space: nowrap;
+  }
+
+  .roc-reading {
+    display: grid;
+    gap: 1.25rem;
+  }
+
+  .auc-number {
+    display: grid;
+    gap: 0.35rem;
+    padding-bottom: 1.2rem;
+    border-bottom: 1px solid var(--colour-border-strong);
+  }
+
+  .auc-number span {
+    color: var(--colour-text-muted);
+    font-size: 0.8rem;
+  }
+
+  .auc-number strong {
+    font: 750 clamp(2.5rem, 7vw, 4.5rem)/0.95 var(--font-display);
+    color: var(--colour-primary-strong);
+  }
+
+  .roc-reading dl {
+    display: grid;
+    gap: 0;
+    margin: 0;
+  }
+
+  .roc-reading dl div {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid var(--colour-border);
+  }
+
+  .roc-reading dt,
+  .roc-reading dd {
+    margin: 0;
+  }
+
+  .roc-reading dt {
+    color: var(--colour-text-muted);
+  }
+
+  .roc-reading dd {
+    font-family: var(--font-mono);
+  }
+
+  .roc-reading p {
+    color: var(--colour-text-muted);
+  }
+
+  .forest-plot {
+    position: relative;
+    display: grid;
+    gap: 0;
+    padding-top: 2.5rem;
+    border-block: 1px solid var(--colour-border);
+  }
+
+  .forest-axis {
+    position: absolute;
+    inset: 0 10rem auto min(33%, 17rem);
+    height: 2rem;
+  }
+
+  .forest-axis span {
+    position: absolute;
+    left: var(--tick);
+    transform: translateX(-50%);
+    color: var(--colour-text-muted);
+    font: 0.68rem/1 var(--font-mono);
+  }
+
+  .forest-baseline {
+    display: none;
+  }
+
+  .forest-row {
+    display: grid;
+    grid-template-columns: minmax(11rem, 0.6fr) minmax(18rem, 1.4fr) 9rem;
+    gap: 1rem;
+    align-items: center;
+    min-height: 3.4rem;
+    border-bottom: 1px solid var(--colour-border);
+    outline: none;
+  }
+
+  .forest-row:last-child {
+    border-bottom: 0;
+  }
+
+  .forest-row:focus-visible {
+    box-shadow: 0 0 0 3px var(--colour-focus);
+  }
+
+  .forest-row > strong,
+  .forest-row p {
+    font-size: 0.84rem;
+  }
+
+  .forest-row p {
+    color: var(--colour-text-muted);
+  }
+
+  .forest-row__plot {
+    position: relative;
+    height: 1.2rem;
+    background: linear-gradient(var(--colour-border), var(--colour-border)) center /
+      100% 1px no-repeat;
+  }
+
+  .forest-row__plot::after {
+    content: "";
+    position: absolute;
+    inset: -1.15rem auto -1.15rem var(--or-baseline);
+    border-left: 2px dashed var(--colour-accent);
+    pointer-events: none;
+  }
+
+  .forest-row__stem {
+    position: absolute;
+    top: 50%;
+    right: calc(100% - var(--point));
+    left: var(--or-baseline);
+    height: 2px;
     background: var(--colour-primary);
   }
 
-  [data-direction="protective"] .odds-fill {
+  .forest-row--protective .forest-row__stem {
+    right: calc(100% - var(--or-baseline));
+    left: var(--point);
     background: var(--colour-secondary);
   }
 
-  .odds-baseline {
+  .forest-row__point {
     position: absolute;
-    inset-block: -0.25rem;
-    inset-inline-start: calc(100% / 15.9);
-    border-inline-start: 1px dashed var(--colour-text-muted);
+    top: 50%;
+    left: var(--point);
+    transform: translate(-50%, -50%);
+    width: 0.9rem;
+    height: 0.9rem;
+    border: 3px solid var(--colour-surface);
+    border-radius: 50%;
+    background: var(--colour-primary);
+    box-shadow: 0 0 0 1px var(--colour-primary);
   }
 
-  .odds-row strong {
-    font-family: var(--font-family-mono);
-    text-align: right;
+  .forest-row--protective .forest-row__point {
+    background: var(--colour-secondary);
+    box-shadow: 0 0 0 1px var(--colour-secondary);
   }
 
-  .odds-tooltip {
+  .forest-row__point b {
     position: absolute;
-    z-index: var(--z-raised);
-    inset-inline-end: var(--space-2);
-    inset-block-end: calc(100% + var(--space-1));
-    display: none;
-    padding: var(--space-2) var(--space-3);
-    border: 1px solid var(--colour-border);
-    border-radius: var(--radius-sm);
-    background: var(--colour-surface);
-    box-shadow: var(--shadow-md);
-    font-size: var(--font-size-sm);
+    top: 50%;
+    left: 1.1rem;
+    transform: translateY(-50%);
+    color: var(--colour-text);
+    font: 700 0.72rem/1 var(--font-mono);
+    white-space: nowrap;
   }
 
-  .odds-row:hover .odds-tooltip,
-  .odds-row:focus-visible .odds-tooltip {
-    display: block;
+  .odds-reading {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.4rem;
   }
 
-  @media (max-width: 50rem) {
-    .model-evaluation {
+  .odds-reading p {
+    color: var(--colour-text-muted);
+  }
+
+  .odds-reading strong {
+    color: var(--colour-text);
+  }
+
+  @media (max-width: 880px) {
+    .holdout-summary,
+    .confusion-layout,
+    .roc-layout {
       grid-template-columns: 1fr;
     }
 
-    .evaluation-card--wide {
-      grid-column: auto;
+    .matrix-reading {
+      padding: 1.25rem 0 0;
+      border-top: 1px solid var(--colour-border-strong);
+      border-left: 0;
+    }
+
+    .forest-axis {
+      right: 0;
+      left: 10rem;
+    }
+
+    .forest-row {
+      grid-template-columns: 9rem minmax(15rem, 1fr);
+    }
+
+    .forest-row p {
+      grid-column: 1 / -1;
+      padding-bottom: 0.7rem;
     }
   }
 
-  @media (max-width: 34rem) {
-    .confusion-grid {
-      grid-template-columns: 1.5rem 3rem repeat(2, minmax(5rem, 1fr));
+  @media (max-width: 620px) {
+    figcaption {
+      grid-template-columns: 1fr;
+    }
+
+    .figure-marker {
+      width: max-content;
+    }
+
+    .holdout-summary dl {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .confusion-matrix {
+      grid-template-columns: 2.4rem 2.7rem repeat(2, minmax(0, 1fr));
+      grid-template-rows: 1.6rem 2rem repeat(2, minmax(7.4rem, 1fr));
     }
 
     .matrix-cell {
-      padding: var(--space-3) var(--space-2);
+      padding: 0.7rem;
     }
 
-    .odds-row {
-      grid-template-columns: minmax(0, 1fr) 3.5rem;
+    .matrix-cell span {
+      font-size: 0.68rem;
     }
 
-    .odds-track {
-      grid-column: 1 / -1;
-      grid-row: 2;
+    .forest-plot {
+      padding-top: 0;
+      border-top: 0;
+    }
+
+    .forest-axis,
+    .forest-baseline,
+    .forest-row__plot::after {
+      display: none;
+    }
+
+    .forest-row {
+      grid-template-columns: 1fr;
+      gap: 0.4rem;
+      padding: 0.9rem 0;
+    }
+
+    .forest-row__plot {
+      min-width: 0;
+    }
+
+    .forest-row p {
+      grid-column: auto;
+      padding: 0;
+    }
+
+    .odds-reading {
+      grid-template-columns: 1fr;
     }
   }
 </style>

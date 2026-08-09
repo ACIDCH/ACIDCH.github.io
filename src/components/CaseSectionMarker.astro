@@ -1,0 +1,132 @@
+---
+interface Props {
+  kind:
+    | "question"
+    | "data"
+    | "filter"
+    | "pipeline"
+    | "compare"
+    | "evaluate"
+    | "code"
+    | "detail";
+  label: string;
+}
+
+const { kind, label } = Astro.props;
+---
+
+<span class="case-marker" aria-hidden="true">
+  <svg viewBox="0 0 32 32">
+    {
+      kind === "question" && (
+        <>
+          <>
+            <path d="M9 8.5h14v10H14l-5 4v-14Z" />
+            <path d="M13 12h6M13 15h4" />
+          </>
+        </>
+      )
+    }
+    {
+      kind === "data" && (
+        <>
+          <>
+            <ellipse cx="16" cy="8" rx="9" ry="4" />
+            <path d="M7 8v8c0 2.2 4 4 9 4s9-1.8 9-4V8M7 16v7c0 2.2 4 4 9 4s9-1.8 9-4v-7" />
+          </>
+        </>
+      )
+    }
+    {
+      kind === "filter" && (
+        <>
+          <>
+            <path d="M6 7h20l-8 9v7l-4 2v-9L6 7Z" />
+            <path d="M11 11h10" />
+          </>
+        </>
+      )
+    }
+    {
+      kind === "pipeline" && (
+        <>
+          <>
+            <circle cx="7" cy="16" r="3" />
+            <circle cx="16" cy="8" r="3" />
+            <circle cx="25" cy="16" r="3" />
+            <circle cx="16" cy="24" r="3" />
+            <path d="m9.5 14.5 4-4M18.5 10.5l4 4M22.5 17.5l-4 4M13.5 21.5l-4-4" />
+          </>
+        </>
+      )
+    }
+    {
+      kind === "compare" && (
+        <>
+          <>
+            <path d="M7 25V15h4v10H7ZM14 25V7h4v18h-4ZM21 25V11h4v14h-4Z" />
+            <path d="M5 25h22" />
+          </>
+        </>
+      )
+    }
+    {
+      kind === "evaluate" && (
+        <>
+          <>
+            <path d="M6 24 12 13l5 5 9-12" />
+            <circle cx="12" cy="13" r="2" />
+            <circle cx="17" cy="18" r="2" />
+            <circle cx="26" cy="6" r="2" />
+          </>
+        </>
+      )
+    }
+    {
+      kind === "code" && (
+        <>
+          <path d="m12 9-7 7 7 7M20 9l7 7-7 7M18 6l-4 20" />
+        </>
+      )
+    }
+    {
+      kind === "detail" && (
+        <>
+          <>
+            <circle cx="14" cy="14" r="8" />
+            <path d="m20 20 6 6M14 10v8M10 14h8" />
+          </>
+        </>
+      )
+    }
+  </svg>
+  <small>{label}</small>
+</span>
+
+<style>
+  .case-marker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    color: var(--colour-primary-strong);
+  }
+
+  svg {
+    width: 2rem;
+    height: 2rem;
+    padding: 0.4rem;
+    border: 1px solid var(--colour-border-strong);
+    border-radius: 50%;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  small {
+    font: 700 0.7rem/1 var(--font-mono);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+</style>

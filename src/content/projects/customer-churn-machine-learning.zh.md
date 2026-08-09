@@ -2,19 +2,14 @@
 translationKey: customer-churn-machine-learning
 locale: zh
 slug: customer-churn-machine-learning
-title: 客户流失预测与监督学习模型比较
-summary: 使用 R 对 20 万条合成客户记录完成数据准备、分层验证和五模型比较，并以留出集结果选择可解释的流失分类模型。
+title: 客户流失预测：五模型比较与可解释性
+summary: 从 20 万条电动车充电客户记录中梳理活跃度、服务摩擦与会员结构信号，以统一验证设计比较五种分类模型，并用留出集解释预测错误与关键变量。
 tools:
   - R
   - tidymodels
   - Machine Learning
   - Supervised Learning
   - Classification
-  - Logistic Regression
-  - Random Forest
-  - XGBoost
-  - LightGBM
-  - Naive Bayes
 topic: analytics
 status: completed
 featured: true
@@ -36,4 +31,4 @@ tags:
 updatedAt: 2026-08-09
 ---
 
-从数据清理、变量筛选和折内上采样开始，以统一的交叉验证口径比较五个分类模型，再用 39,200 条留出记录检查最终模型。
+项目沿着问题、数据、变量判断、验证设计、模型比较和预测评估逐层展开；图表与 R 代码共同说明 Logistic Regression 为什么在这组数据上成为最终选择。
