@@ -5,23 +5,38 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+    types: [opened, synchronize, reopened, closed]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: pages-${{ github.workflow }}-${{ github.ref }}
+  group: >-
+    pages-${{ github.event_name == 'pull_request' && github.event.action == 'closed' && 'main' || github.ref }}
   cancel-in-progress: true
 
 jobs:
   quality:
     name: Validate, test and build
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.event.action != 'closed' ||
+      github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    outputs:
+      deploy_sha: ${{ steps.revision.outputs.sha }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true && 'main' || github.sha }}
+
+      - name: Resolve checked-out revision
+        id: revision
+        shell: bash
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Set up Node.js
         uses: actions/setup-node@v6
@@ -64,26 +79,38 @@ jobs:
         run: npm run build
 
       - name: Write deployment identity
-        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        if: >-
+          github.event_name == 'push' ||
+          github.event_name == 'workflow_dispatch' ||
+          (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true)
         env:
-          DEPLOY_SHA: ${{ github.sha }}
+          DEPLOY_SHA: ${{ steps.revision.outputs.sha }}
           DEPLOY_RUN_ID: ${{ github.run_id }}
           DEPLOY_RUN_NUMBER: ${{ github.run_number }}
         run: npm run deploy:meta
 
       - name: Configure GitHub Pages
-        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        if: >-
+          github.event_name == 'push' ||
+          github.event_name == 'workflow_dispatch' ||
+          (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true)
         uses: actions/configure-pages@v5
 
       - name: Upload GitHub Pages artifact
-        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        if: >-
+          github.event_name == 'push' ||
+          github.event_name == 'workflow_dispatch' ||
+          (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true)
         uses: actions/upload-pages-artifact@v4
         with:
           path: dist
 
   deploy:
     name: Deploy verified artifact
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    if: >-
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true)
     needs: quality
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -103,13 +130,18 @@ jobs:
 
   verify-production:
     name: Verify live deployment
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-    needs: deploy
+    if: >-
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true)
+    needs: [quality, deploy]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.quality.outputs.deploy_sha }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v6
@@ -117,4 +149,4 @@ jobs:
           node-version-file: .nvmrc
 
       - name: Confirm production matches this commit
-        run: npm run verify:production -- "${{ needs.deploy.outputs.page_url }}" "${{ github.sha }}"
+        run: npm run verify:production -- "${{ needs.deploy.outputs.page_url }}" "${{ needs.quality.outputs.deploy_sha }}"
