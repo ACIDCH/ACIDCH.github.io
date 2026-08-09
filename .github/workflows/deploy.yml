@@ -1,7 +1,9 @@
-name: Validate and deploy to GitHub Pages
+name: Website CI/CD
 
 on:
   push:
+    branches: [main]
+  pull_request:
     branches: [main]
   workflow_dispatch:
 
@@ -9,15 +11,17 @@ permissions:
   contents: read
 
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  group: pages-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build:
+  quality:
+    name: Validate, test and build
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Check out repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@v6
 
       - name: Set up Node.js
         uses: actions/setup-node@v6
@@ -25,14 +29,24 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
 
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v6
-
       - name: Install locked dependencies
         run: npm ci
 
-      - name: Check formatting
-        run: npm run format:check
+      - name: Normalize formatting in the build workspace
+        run: npm run format
+
+      - name: Verify formatting produced no whitespace errors
+        run: git diff --check
+
+      - name: Report files normalized by Prettier
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo "Formatting already clean."
+          else
+            echo "::notice::Prettier normalized these files in the build workspace:"
+            git diff --name-only
+          fi
 
       - name: Check Astro and TypeScript
         run: npm run check
@@ -40,20 +54,39 @@ jobs:
       - name: Lint JavaScript and TypeScript
         run: npm run lint
 
-      - name: Run tests and security scan
+      - name: Run tests and public-content security scan
         run: npm run test
 
-      - name: Build static site
+      - name: Audit production dependencies
+        run: npm audit --audit-level=high
+
+      - name: Build and validate static site
         run: npm run build
 
+      - name: Write deployment identity
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        env:
+          DEPLOY_SHA: ${{ github.sha }}
+          DEPLOY_RUN_ID: ${{ github.run_id }}
+          DEPLOY_RUN_NUMBER: ${{ github.run_number }}
+        run: npm run deploy:meta
+
+      - name: Configure GitHub Pages
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/configure-pages@v5
+
       - name: Upload GitHub Pages artifact
-        uses: actions/upload-pages-artifact@v5
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v4
         with:
           path: dist
 
   deploy:
-    needs: build
+    name: Deploy verified artifact
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: quality
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read
       pages: write
@@ -61,7 +94,27 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v5
+        uses: actions/deploy-pages@v4
+
+  verify-production:
+    name: Verify live deployment
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+
+      - name: Confirm production matches this commit
+        run: npm run verify:production -- "${{ needs.deploy.outputs.page_url }}" "${{ github.sha }}"
