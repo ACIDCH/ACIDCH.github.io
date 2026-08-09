@@ -1,12 +1,20 @@
 ---
 import { deepDives, projectBasePath } from "../data/r-machine-learning";
 import { withBase } from "../utils/paths";
+import ChurnMicroIcon from "./ChurnMicroIcon.astro";
 
 interface Props {
   current?: string;
 }
 
 const { current } = Astro.props;
+const iconBySlug = {
+  "data-validation": "validation",
+  "model-comparison": "compare",
+  "model-selection-error-analysis": "error",
+  "logistic-interpretation": "interpretation",
+  "neural-network": "model",
+} as const;
 ---
 
 <nav class="deep-dive-nav" aria-label="Technical Deep Dives">
@@ -18,7 +26,16 @@ const { current } = Astro.props;
             href={withBase(`${projectBasePath}${item.slug}/`)}
             aria-current={current === item.slug ? "page" : undefined}
           >
-            <span>{item.eyebrow.replace("Technical Deep Dive ", "")}</span>
+            <span class="deep-dive-nav__number">
+              {item.eyebrow.replace("Technical Deep Dive ", "")}
+            </span>
+            <span class="deep-dive-nav__icon" aria-hidden="true">
+              <ChurnMicroIcon
+                name={
+                  iconBySlug[item.slug as keyof typeof iconBySlug] ?? "deep-dive"
+                }
+              />
+            </span>
             <strong>
               {item.titleZh}
               <em>{item.title}</em>
@@ -43,36 +60,72 @@ const { current } = Astro.props;
 
   a {
     display: grid;
-    grid-template-columns: 3rem minmax(12rem, 0.55fr) minmax(0, 1fr) auto;
-    gap: var(--space-3) var(--space-5);
+    grid-template-columns: 3rem 2.6rem minmax(12rem, 0.55fr) minmax(0, 1fr) auto;
+    gap: var(--space-3) var(--space-4);
     align-items: center;
     height: 100%;
     padding: var(--space-5) var(--space-2);
     border-bottom: 1px solid var(--colour-border);
     color: var(--colour-text);
     text-decoration: none;
+    transition:
+      padding-inline var(--duration-fast) var(--ease-standard),
+      background-color var(--duration-fast) var(--ease-standard),
+      border-color var(--duration-fast) var(--ease-standard);
   }
 
   a::after {
     content: "↗";
     color: var(--colour-accent);
     font-size: 1.1rem;
+    transition: transform var(--duration-fast) var(--ease-standard);
   }
 
   a:hover,
   a[aria-current="page"] {
     padding-inline: var(--space-4);
+    border-bottom-color: var(--colour-border-strong);
     background: color-mix(in srgb, var(--colour-primary) 6%, transparent);
+  }
+
+  a:hover::after {
+    transform: translate(0.12rem, -0.12rem);
   }
 
   a[aria-current="page"] {
     box-shadow: inset 3px 0 0 var(--colour-primary);
   }
 
-  span {
+  .deep-dive-nav__number {
     color: var(--colour-primary-strong);
     font-family: var(--font-family-mono);
     font-weight: 700;
+  }
+
+  .deep-dive-nav__icon {
+    display: grid;
+    place-items: center;
+    width: 2.35rem;
+    height: 2.35rem;
+    border: 1px solid var(--colour-border);
+    border-radius: 0.78rem;
+    background: color-mix(in srgb, var(--colour-surface) 88%, transparent);
+    color: var(--colour-primary-strong);
+    transition:
+      transform var(--duration-fast) var(--ease-standard),
+      border-color var(--duration-fast) var(--ease-standard),
+      background-color var(--duration-fast) var(--ease-standard);
+  }
+
+  a:hover .deep-dive-nav__icon,
+  a[aria-current="page"] .deep-dive-nav__icon {
+    border-color: color-mix(
+      in srgb,
+      var(--colour-primary) 42%,
+      var(--colour-border)
+    );
+    background: color-mix(in srgb, var(--colour-primary) 9%, var(--colour-surface));
+    transform: translateY(-1px);
   }
 
   strong {
@@ -90,22 +143,42 @@ const { current } = Astro.props;
     line-height: 1.55;
   }
 
-  @media (max-width: 44rem) {
-    .deep-dive-nav ul {
-      display: grid;
-    }
-
+  @media (max-width: 58rem) {
     a {
-      grid-template-columns: 2.2rem minmax(0, 1fr) auto;
-      gap: var(--space-2) var(--space-3);
+      grid-template-columns: 2.6rem 2.35rem minmax(0, 1fr) auto;
     }
 
     small {
-      grid-column: 2 / -1;
+      grid-column: 3 / -1;
+    }
+  }
+
+  @media (max-width: 44rem) {
+    a {
+      grid-template-columns: 2.1rem 2.2rem minmax(0, 1fr) auto;
+      gap: var(--space-2) var(--space-3);
+      padding-block: var(--space-4);
+    }
+
+    .deep-dive-nav__icon {
+      width: 2rem;
+      height: 2rem;
+      border-radius: 0.68rem;
+    }
+
+    small {
+      grid-column: 3 / -1;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
+    a,
+    a::after,
+    .deep-dive-nav__icon {
+      transition: none;
+      transform: none !important;
+    }
+
     a:hover,
     a[aria-current="page"] {
       padding-inline: var(--space-2);
