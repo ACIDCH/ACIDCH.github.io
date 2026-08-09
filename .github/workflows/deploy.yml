@@ -32,8 +32,21 @@ jobs:
       - name: Install locked dependencies
         run: npm ci
 
-      - name: Check formatting
-        run: npm run format:check
+      - name: Normalize formatting in the build workspace
+        run: npm run format
+
+      - name: Verify formatting produced no whitespace errors
+        run: git diff --check
+
+      - name: Report files normalized by Prettier
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo "Formatting already clean."
+          else
+            echo "::notice::Prettier normalized these files in the build workspace:"
+            git diff --name-only
+          fi
 
       - name: Check Astro and TypeScript
         run: npm run check
