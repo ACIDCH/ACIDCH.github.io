@@ -15,8 +15,10 @@ describe("portfolio visual polish contracts", () => {
   it("shows a technology identity on every project cover", async () => {
     const card = await source("src/components/ProjectCard.astro");
     expect(card).toContain('"retirement-monte-carlo": "Excel"');
-    expect(card).toContain("showCode\n");
-    expect(card).not.toContain('showCode={entry.data.translationKey !== "retirement-monte-carlo"}');
+    expect(card).toMatch(/<ProjectCover[^>]*\bshowCode\b/);
+    expect(card).not.toContain(
+      'showCode={entry.data.translationKey !== "retirement-monte-carlo"}',
+    );
   });
 
   it("mounts the accessible back-to-top progress control globally", async () => {
