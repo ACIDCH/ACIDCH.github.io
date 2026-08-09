@@ -1,0 +1,209 @@
+---
+import { oddsRatios } from "../data/r-machine-learning";
+
+const data = JSON.stringify(oddsRatios).replace(/</g, "\\u003c");
+const first = oddsRatios[0];
+---
+
+<section class="risk-explorer" data-risk-explorer aria-labelledby="risk-explorer-title">
+  <header>
+    <div>
+      <p class="risk-kicker">RISK SIGNAL EXPLORER</p>
+      <h3 id="risk-explorer-title">把一个系数放回它的变量单位</h3>
+      <p>选择变量后，重点不是比较数字大小，而是确认参照、单位和条件解释。</p>
+    </div>
+    <label>
+      <span>选择风险信号</span>
+      <select data-risk-select>
+        {oddsRatios.map((signal) => <option value={signal.id}>{signal.label}</option>)}
+      </select>
+    </label>
+  </header>
+
+  <div class="risk-explorer__body" aria-live="polite">
+    <div class="risk-number">
+      <span>Odds ratio</span>
+      <strong data-risk-value>{first.value.toFixed(2)}</strong>
+      <small data-risk-direction>{first.direction}</small>
+    </div>
+    <dl>
+      <div><dt>变量</dt><dd><code data-risk-variable>{first.variable}</code></dd></div>
+      <div><dt>类型</dt><dd data-risk-type>{first.type}</dd></div>
+      <div><dt>单位 / 参照</dt><dd data-risk-unit>{first.unit}</dd></div>
+    </dl>
+    <p data-risk-interpretation>{first.interpretation}</p>
+  </div>
+  <p class="risk-explorer__boundary">
+    这些数值来自同一个多变量 Logistic
+    Regression；每项解释都以“其他已选变量保持不变”为前提。它们描述模型中的条件关联，不构成因果结论。
+  </p>
+  <script is:inline type="application/json" data-risk-data set:html={data} />
+</section>
+
+<script>
+  type Signal = {
+    id: string;
+    variable: string;
+    label: string;
+    type: string;
+    unit: string;
+    value: number;
+    direction: string;
+    interpretation: string;
+  };
+
+  const setupRiskExplorers = () => {
+    document.querySelectorAll<HTMLElement>("[data-risk-explorer]").forEach((root) => {
+      if (root.dataset.ready === "true") return;
+      root.dataset.ready = "true";
+      const signals = JSON.parse(
+        root.querySelector<HTMLScriptElement>("[data-risk-data]")?.textContent ?? "[]",
+      ) as Signal[];
+      const select = root.querySelector<HTMLSelectElement>("[data-risk-select]");
+
+      const render = (id: string) => {
+        const signal = signals.find((entry) => entry.id === id) ?? signals[0];
+        if (!signal) return;
+        const bindings: Array<[string, string]> = [
+          ["[data-risk-value]", signal.value.toFixed(2)],
+          ["[data-risk-direction]", signal.direction],
+          ["[data-risk-variable]", signal.variable],
+          ["[data-risk-type]", signal.type],
+          ["[data-risk-unit]", signal.unit],
+          ["[data-risk-interpretation]", signal.interpretation],
+        ];
+        bindings.forEach(([selector, value]) => {
+          const target = root.querySelector<HTMLElement>(selector);
+          if (target) target.textContent = value;
+        });
+      };
+
+      select?.addEventListener("change", () => render(select.value));
+      render(select?.value ?? signals[0]?.id ?? "");
+    });
+  };
+
+  document.addEventListener("astro:page-load", setupRiskExplorers);
+  setupRiskExplorers();
+</script>
+
+<style>
+  .risk-explorer {
+    padding: clamp(1.25rem, 4vw, 2rem);
+    border: 1px solid var(--colour-border-strong);
+    border-radius: var(--radius-lg);
+    background: var(--colour-surface);
+  }
+
+  header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(14rem, 0.35fr);
+    gap: 2rem;
+    align-items: end;
+  }
+
+  h3,
+  p,
+  dl,
+  dt,
+  dd {
+    margin: 0;
+  }
+
+  .risk-kicker {
+    color: var(--colour-accent);
+    font: 700 0.7rem/1 var(--font-mono);
+    letter-spacing: 0.09em;
+  }
+
+  h3 {
+    margin-top: 0.55rem;
+    font-size: clamp(1.5rem, 3vw, 2.3rem);
+  }
+
+  header p:last-child {
+    margin-top: 0.65rem;
+    color: var(--colour-text-muted);
+  }
+
+  label {
+    display: grid;
+    gap: 0.45rem;
+    color: var(--colour-text-muted);
+    font-size: 0.8rem;
+  }
+
+  select {
+    min-height: 2.8rem;
+    padding-inline: 0.75rem;
+    border: 1px solid var(--colour-border-strong);
+    border-radius: var(--radius-sm);
+    background: var(--colour-page);
+    color: var(--colour-text);
+  }
+
+  .risk-explorer__body {
+    display: grid;
+    grid-template-columns: minmax(9rem, 0.28fr) minmax(15rem, 0.42fr) minmax(0, 1fr);
+    gap: 1.5rem;
+    align-items: center;
+    margin-top: 1.6rem;
+    padding-block: 1.5rem;
+    border-block: 1px solid var(--colour-border);
+  }
+
+  .risk-number {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .risk-number span,
+  .risk-number small,
+  dt {
+    color: var(--colour-text-muted);
+    font-size: 0.75rem;
+  }
+
+  .risk-number strong {
+    color: var(--colour-primary-strong);
+    font: 750 clamp(2.3rem, 6vw, 4rem)/0.95 var(--font-display);
+  }
+
+  dl {
+    display: grid;
+    gap: 0.65rem;
+  }
+
+  dl div {
+    display: grid;
+    grid-template-columns: 5rem minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+
+  dd,
+  code {
+    overflow-wrap: anywhere;
+  }
+
+  .risk-explorer__body > p,
+  .risk-explorer__boundary {
+    color: var(--colour-text-muted);
+    line-height: 1.72;
+  }
+
+  .risk-explorer__boundary {
+    margin-top: 1rem;
+    font-size: 0.86rem;
+  }
+
+  @media (max-width: 760px) {
+    header,
+    .risk-explorer__body {
+      grid-template-columns: 1fr;
+    }
+    dl div {
+      grid-template-columns: 1fr;
+      gap: 0.2rem;
+    }
+  }
+</style>

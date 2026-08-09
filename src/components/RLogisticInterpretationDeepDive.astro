@@ -1,0 +1,326 @@
+---
+import {
+  deepDives,
+  oddsRatios,
+  projectImages,
+  codeSnippets,
+} from "../data/r-machine-learning";
+import RDeepDiveShell from "./RDeepDiveShell.astro";
+import ChurnEvidenceFigure from "./ChurnEvidenceFigure.astro";
+import RiskSignalExplorer from "./RiskSignalExplorer.astro";
+import RCodeShowcase from "./RCodeShowcase.astro";
+
+const deepDive = deepDives.find((item) => item.slug === "logistic-interpretation")!;
+---
+
+<RDeepDiveShell deepDive={deepDive}>
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>01</span><div>
+        <p>MODEL FORM</p><h2>七个项目变量共同决定一条 churn log-odds</h2>
+      </div>
+    </div>
+    <div class="r-deep-prose">
+      <p>
+        Logistic Regression 不直接把输入相加成概率，而是先在 log-odds
+        尺度组合变量：等待时间、应用崩溃、故障率、距上次充电周数进入连续部分；支付失败与退款申请进入二元部分；Plus
+        和 Pro 作为相对 Basic 的计划指示变量。经过 logistic 转换后，结果落回 0 到 1 的
+        churn 概率。
+      </p>
+      <p>
+        在这个结构中，一个系数表示其他已选变量保持不变时，某项输入增加一个单位带来的
+        log-odds 变化。直接阅读 beta 不够直观，因此使用 <code>exp(beta)</code> 转为 odds ratio。OR
+        大于 1 表示 churn odds 上升，小于 1 表示下降，等于 1 表示没有方向变化。
+      </p>
+      <p>
+        这种解释依赖加性结构。它回答“在模型控制的七项变量中，这个变量与 churn odds
+        如何关联”，并不证明等待、支付或计划是流失的因果来源。模型没有随机干预，也没有排除所有潜在混杂。
+      </p>
+    </div>
+    <div class="r-deep-callout">
+      <span>FORM</span><p>
+        logit[P(churned)] = β₀ + β₁(wait) + β₂(crashes) + β₃(fault) + β₄(refund) +
+        β₅(payment) + β₆(last charge) + β₇(Plus) + β₈(Pro)
+      </p>
+    </div>
+  </section>
+
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>02</span><div>
+        <p>INTERPRETATION FIT</p><h2>解释模型为什么去掉上采样？</h2>
+      </div>
+    </div>
+    <div class="r-deep-prose">
+      <p>
+        预测 workflow 在每个训练折内把 churned 上采样到
+        1:1，以改善少数类学习。但如果直接用相同 1:1 分布解释 Logistic
+        Regression，人工改变的类先验会移动截距，并可能改变系数在自然客户分布中的含义。
+      </p>
+      <p>
+        因此解释阶段建立 <code>rec_lr_interp</code>：保留数值中位数保护、未知水平、Dummy
+        与零方差步骤，移除
+        <code>step_upsample()</code>，再在完整训练部分的自然 30/70
+        分布上拟合。预测性能仍来自原胜出 workflow；OR 则来自这一独立解释
+        fit，两者职责分开。
+      </p>
+      <p>
+        这一步也固定了计划参照。Basic 是第一水平，Plus 与 Pro 的系数分别比较各自计划与
+        Basic；没有一个单独“Basic 系数”，因为它被吸收到截距中。
+      </p>
+    </div>
+    <RCodeShowcase
+      title="自然类别分布下的解释 workflow"
+      code={codeSnippets.oddsRatios}
+      open
+    />
+  </section>
+
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>03</span><div>
+        <p>DUMMY ENCODING</p><h2>Plus 和 Pro 的 OR 必须相对 Basic 阅读</h2>
+      </div>
+    </div>
+    <div class="r-deep-prose">
+      <p>
+        <code>step_dummy()</code> 把 <code>plan_tier</code> 转成 Plus 与 Pro 两个指示列。Basic
+        记录在两列上都为 0；Plus 只在 Plus 列为 1；Pro 只在 Pro 列为 1。因此 OR 0.62 与 0.38
+        分别表示 Plus / Basic、Pro / Basic 的条件 odds 比。
+      </p>
+      <p>
+        OR 0.62 可以读成：在等待、故障、崩溃、退款、支付和使用间隔相同的条件下，Plus
+        客户的 churn odds 约为 Basic 的 62%，即低约 38%。Pro 的 OR 0.38 表示 odds 约为
+        Basic 的 38%。这不是说 Plus 或 Pro 客户一定不会流失，也不是把 odds
+        等同于概率下降比例。
+      </p>
+      <p>
+        Odds 与 probability 的关系是非线性的。同一个 OR
+        对不同基准概率产生不同绝对概率变化，因此这里不把 OR 直接改写成“流失概率下降
+        38%”或“下降 62 个百分点”。
+      </p>
+    </div>
+    <div class="r-deep-table" tabindex="0">
+      <table>
+        <caption>plan_tier Dummy 与参照</caption><thead
+          ><tr><th>计划</th><th>Plus column</th><th>Pro column</th><th>解释参照</th></tr
+          ></thead
+        ><tbody
+          ><tr><th>Basic</th><td>0</td><td>0</td><td>reference</td></tr><tr
+            ><th>Plus</th><td>1</td><td>0</td><td>Plus vs Basic</td></tr
+          ><tr><th>Pro</th><td>0</td><td>1</td><td>Pro vs Basic</td></tr></tbody
+        >
+      </table>
+    </div>
+  </section>
+
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>04</span><div>
+        <p>COEFFICIENTS</p><h2>从 beta 到 OR，再到 95% confidence interval</h2>
+      </div>
+    </div>
+    <div class="r-deep-prose">
+      <p>
+        <code>broom::tidy(exponentiate = TRUE, conf.int = TRUE)</code> 同时返回点估计与 95%
+        区间。点估计告诉方向和倍数，区间说明在模型假设下估计的不确定性；参照线 OR = 1 用于判断区间是否跨越“无方向变化”位置。完整
+        CI 图形呈现了每项区间相对于参照线的位置。
+      </p>
+      <p>
+        数值化区间端点没有另存为表格，不能从图片像素精确反推。风险信号选择器因此展示可核对的
+        OR 点值、变量类型、单位和解释，区间范围则由图形承担，不填入目测估计的端点。
+      </p>
+    </div>
+    <ChurnEvidenceFigure
+      number="FIG 01"
+      title="八项系数的 OR 与 95% 区间"
+      src={projectImages.oddsRatioCi}
+      alt="Logistic Regression 的八项 odds ratio 和 95% confidence interval，参考线为 1"
+      caption="二元变量按 Yes 相对 No，计划按 Plus / Pro 相对 Basic，数值变量按原始单位增加 1。"
+      reading="应该看哪里：支付失败的点估计和区间远离 1；Plus 与 Pro 位于 1 左侧；等待、故障和应用崩溃靠近 1，但它们按小单位计量，不能与一次性二元事件直接比较条形长度。"
+    />
+  </section>
+
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>05</span><div>
+        <p>COMMERCIAL FRICTION</p><h2>支付失败与退款申请为什么最先进入风险解释？</h2>
+      </div>
+    </div>
+    <div class="r-deep-prose">
+      <p>
+        <code>payment_failure_last4w = Yes</code> 的 OR 约 15.9，是八项系数中最大的点估计。它比较最近四周出现支付失败与未出现支付失败的客户，在其余六个
+        predictor 和计划水平相同条件下，前者 churn odds 约为后者 15.9 倍。
+      </p>
+      <p>
+        <code>refund_request_last12w = Yes</code> 的 OR 约 2.5，表示提出退款申请的客户具有更高
+        churn odds。EDA 中支付失败与退款申请也分别对应更高观察流失率，方向与多变量模型一致；多变量
+        OR 进一步控制了活跃间隔、服务质量和计划层级。
+      </p>
+      <p>
+        两个变量都是事件指示，不按次数累加：数据只记录观察窗口内是否发生。因此 15.9 和
+        2.5 都是 Yes / No 比较，不能解释成每增加一次失败或每多一次退款申请的倍数。
+      </p>
+    </div>
+  </section>
+
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>06</span><div><p>INACTIVITY</p><h2>每多一周未充电，OR 约乘以 2.01</h2></div>
+    </div>
+    <div class="r-deep-prose">
+      <p>
+        <code>weeks_since_last_charge</code> 的单位是一周，OR 约 2.01。控制支付、退款、计划、等待、故障和崩溃后，每增加一周未充电，模型中的
+        churn odds 约翻倍。它是连续累积解释：两周差异对应 OR 的乘法组合，而不是每周固定增加相同概率百分点。
+      </p>
+      <p>
+        EDA 中 retained 客户距上次充电平均约 3.8 周，churned 客户约 7.5
+        周；箱线图也显示两类分布明显分离。这种单变量差异与多变量 OR
+        方向一致，使“当前不活跃”成为比“注册多久”更直接的风险信号。
+      </p>
+      <p>
+        <code>weeks_since_signup</code> 因与该变量相关 0.88 被删除，避免两个时间变量互相分摊同一信息。因此
+        2.01 的解释不再附带一个高度相似的 signup 系数。
+      </p>
+    </div>
+  </section>
+
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>07</span><div>
+        <p>SERVICE SIGNALS</p><h2>小单位 OR 需要按实际量纲阅读</h2>
+      </div>
+    </div>
+    <div class="r-deep-prose">
+      <p>
+        应用崩溃 OR 1.18 的单位是一次；平均等待 OR 1.10 的单位是一分钟；故障率 OR 1.08
+        的单位是一个百分点。它们的点值看似接近 1，但单位很小。等待增加 5
+        分钟或故障率增加多个百分点时，odds 变化会按乘法累积。
+      </p>
+      <p>
+        不能把三个点值直接排序成“应用崩溃比等待更重要”，因为计数、分钟和百分点的自然变化范围不同。更加稳妥的解释是：在控制其余输入后，三项服务摩擦都与
+        churn odds 上升相关；其实际优先级需要结合各变量可改变的范围和运营可控性。
+      </p>
+      <p>
+        EDA 中 churned 客户平均等待 27.5 分钟、retained 为 23.7 分钟；故障率分别约 5.5%
+        与 4.4%。这些观察差异与 OR 方向一致，但并不替代多变量估计。
+      </p>
+      <p>
+        按模型的乘法尺度读取更长差距，可以看出“小 OR”如何累积：等待增加 5 分钟对应约
+        <code>1.10^5 = 1.61</code> 倍 odds，故障率增加 5 个百分点对应约
+        <code>1.08^5 = 1.47</code> 倍，应用崩溃增加 3 次对应约
+        <code>1.18^3 = 1.64</code> 倍。这些是同一系数在不同单位跨度上的换算，不是新增模型结果。
+      </p>
+      <p>
+        换算后的仍然是 odds ratio，而不是概率直接增加 47% 或 64%。同一个 OR
+        对最终概率的影响取决于其他变量共同形成的基准
+        log-odds；因此图中可以比较方向和条件倍数，却不能脱离具体客户输入给出统一概率增量。
+      </p>
+    </div>
+    <div class="r-deep-table" tabindex="0">
+      <table>
+        <caption>数值 predictor 的一个单位</caption><thead
+          ><tr><th>字段</th><th>一个单位</th><th>OR</th><th>条件解释</th></tr></thead
+        ><tbody>
+          {
+            oddsRatios
+              .filter((item) =>
+                ["last-charge", "crash", "wait", "fault"].includes(item.id),
+              )
+              .map((item) => (
+                <tr>
+                  <>
+                    <th>
+                      <code>{item.variable}</code>
+                    </th>
+                    <td>{item.unit}</td>
+                    <td>{item.value.toFixed(2)}</td>
+                    <td>{item.interpretation}</td>
+                  </>
+                </tr>
+              ))
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>08</span><div>
+        <p>RISK SIGNAL EXPLORER</p><h2>每次只读一个变量、一个参照和一个方向</h2>
+      </div>
+    </div>
+    <RiskSignalExplorer />
+  </section>
+
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>08B</span><div>
+        <p>COMBINED READING</p><h2>风险信号需要在同一条件模型中合并阅读</h2>
+      </div>
+    </div>
+    <div class="r-deep-prose">
+      <p>
+        七个 predictor 不是七套独立规则。支付失败的 15.9 倍、退款的 2.5
+        倍、距上次充电每周 2.01 倍，都是在其余变量保持相同条件下的局部比较。
+        当一位客户同时出现多个信号时，Logistic Regression 先在 log-odds
+        尺度相加，再转换成概率；不能把各项 OR 直接相加。
+      </p>
+      <p>
+        这套结构也说明解释顺序：先确认变量的单位或参照水平，再读 OR 方向，随后结合 95%
+        CI 判断不确定性，最后才讨论多个信号的共同作用。
+        若跳过单位，等待一分钟与出现一次支付失败会被错误放在同一尺度；若跳过参照，Plus
+        与 Pro 的保护方向也会失去比较基准。
+      </p>
+    </div>
+  </section>
+
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>09</span><div>
+        <p>LIMITS OF INTERPRETATION</p><h2>可解释模型不等于因果模型</h2>
+      </div>
+    </div>
+    <div class="r-deep-prose">
+      <p>
+        OR
+        描述条件关联，依赖七变量模型、样本总体和函数形式。支付失败可能与账户状态、客户财务状况或服务中断共同发生；等待与故障也可能受到地区和时段影响。控制现有变量不能自动消除所有未观测因素。
+      </p>
+      <p>
+        系数按原始单位解释，但线性 log-odds
+        假设意味着每增加一分钟等待或一周未充电都使用相同
+        beta。若真实关系存在阈值或饱和，树模型可以捕捉不同结构，而 Logistic Regression
+        只给出整体加性近似。模型选择保留它，是因为判别和解释的综合取舍，不是因为该假设永远成立。
+      </p>
+      <p>
+        CI 图提供估计不确定性，但没有数值端点，因此不比较精确区间宽度。VIF
+        代码曾用于检查剩余 predictor
+        的多重共线性，然而最终数值表同样未被持久化；结论只保留已核实的 0.88 筛查和可见
+        CI 图。
+      </p>
+    </div>
+    <ol class="r-deep-evidence-list">
+      <li>
+        <strong>能解释</strong><span
+          >变量单位、参照水平、OR 方向、点估计和图形中的 95% 区间。</span
+        >
+      </li>
+      <li>
+        <strong>不能解释</strong><span
+          >因果效应、具体货币价值、未观测混杂或所有客户群体。</span
+        >
+      </li>
+      <li>
+        <strong>适用总体</strong><span
+          >排除 Fleet 后的个人客户，不外推到商业车队账户。</span
+        >
+      </li>
+      <li>
+        <strong>适用结构</strong><span
+          >七变量加性 log-odds 模型，非线性与交互不自动进入系数解释。</span
+        >
+      </li>
+    </ol>
+  </section>
+</RDeepDiveShell>

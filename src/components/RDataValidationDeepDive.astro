@@ -1,0 +1,365 @@
+---
+import {
+  deepDives,
+  projectImages,
+  codeSnippets,
+  featureDecisions,
+  predictors,
+} from "../data/r-machine-learning";
+import RDeepDiveShell from "./RDeepDiveShell.astro";
+import ChurnFieldSchema from "./ChurnFieldSchema.astro";
+import ChurnEvidenceFigure from "./ChurnEvidenceFigure.astro";
+import AnalysisPipeline from "./AnalysisPipeline.astro";
+import RCodeShowcase from "./RCodeShowcase.astro";
+
+const deepDive = deepDives.find((item) => item.slug === "data-validation")!;
+---
+
+<RDeepDiveShell deepDive={deepDive}>
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>01</span><div>
+        <p>SCHEMA</p><h2>25 个字段先按分析角色重排，而不是直接全部送进模型</h2>
+      </div>
+    </div>
+    <div class="r-deep-prose">
+      <p>
+        原始表把标识、目标来源、客户资料、计划支付、充电行为、服务可靠性、数字互动和体验字段放在同一层。建模前先回答每个字段承担什么角色：<code
+          >user_ID</code
+        >
+        只标识记录，不能提供可推广关系；<code>retained_binary</code> 是结果来源，需要转换成明确正类；其余字段才可能作为解释或预测输入。
+      </p>
+      <p>
+        这一分类同时解决了后续审计问题。只要字段进入最终七变量，就能回到它所属的业务维度和原始单位；未进入的字段则保留在
+        EDA 中，不会因为“数据里存在”就自动成为模型输入。这样的边界比把 25 列全部 Dummy
+        编码更容易判断冗余、代理关系和解释成本。
+      </p>
+    </div>
+    <ChurnFieldSchema />
+  </section>
+
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>02</span><div>
+        <p>CLEANING</p><h2>清洗的重点是固定单位、水平和事件方向</h2>
+      </div>
+    </div>
+    <div class="r-deep-prose">
+      <p>
+        <code>avg_kwh_per_session</code>、<code>avg_wait_minutes</code>、<code
+          >weeks_since_signup</code
+        > 与
+        <code>weeks_since_last_charge</code> 原本带有 kWh、minutes 或 weeks 文本，使用
+        <code>parse_number()</code> 提取数值。<code>peak_share</code> 与 <code
+          >charger_fault_rate</code
+        >
+        去掉百分号后保留为百分点。这样，后续一个系数单位能够落到“一分钟”“一周”“一个百分点”，而不是无法解释的字符变化。
+      </p>
+      <p>
+        六个二元字段统一转换为 No / Yes
+        factor：通知开启、最近邮件打开、家庭充电接入、退款申请、价格变化暴露和支付失败。<code
+          >satisfaction_survey</code
+        >
+        在 factor 化前把空白或缺失值归入 NoResponse，避免因水平丢失而改变分母。支持工单则保持三个有顺序含义的水平。
+      </p>
+      <p>
+        结果变量由 <code>retained_binary</code> 构造，水平顺序固定为 retained、churned。tidymodels
+        中的类指标显式使用
+        <code>event_level = "second"</code>，因此 Sensitivity 始终指真实 churned
+        被识别的比例。ROC 对概率列的事件方向另行核对，避免把 AUC 误算成
+        <code>1 - AUC</code>。
+      </p>
+    </div>
+    <RCodeShowcase
+      title="单位转换、二元字段和正类定义"
+      code={codeSnippets.cleaning}
+      open
+    />
+    <div class="r-deep-callout">
+      <span>NO MISSING</span><p>
+        清洗后的建模变量没有缺失值。中位数填补在现有训练中是 no-op，但它使相同 workflow
+        面对新的数值缺失时仍有明确处理；这与用填补掩盖已有缺失问题不同。
+      </p>
+    </div>
+  </section>
+
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>03</span><div>
+        <p>POPULATION</p><h2>Fleet 排除改变的是模型适用范围，而不是一项普通特征</h2>
+      </div>
+    </div>
+    <div class="r-deep-prose">
+      <p>
+        Fleet 是商业账户计划，合同周期和流失动态与个人会员不同。若只把 Fleet 当作
+        plan_tier 的第四个水平，模型需要用同一套行为关系解释商业合同客户与个人客户；此时
+        plan_tier 系数混合了总体差异，等待、支付和活跃变量也可能承担不同含义。
+      </p>
+      <p>
+        因此总体定义先于特征选择：4,000 条 Fleet 记录从 200,000 条原始观察中排除，余下
+        196,000 条构成个人客户总体。Basic 被重设为第一个水平，Plus 和 Pro
+        的系数才有统一参照。最终结论只适用于这一总体，不延伸到 Fleet。
+      </p>
+    </div>
+    <RCodeShowcase
+      title="排除 Fleet 并重设 Basic 参照"
+      code={codeSnippets.population}
+    />
+  </section>
+
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>04</span><div>
+        <p>FEATURE SELECTION</p><h2>
+          七变量并不是“表现最强的七列”，而是四类信息的可解释组合
+        </h2>
+      </div>
+    </div>
+    <div class="r-deep-prose">
+      <p>
+        EDA 显示服务、支付、退款、计划与不活跃程度和 churn
+        关系更清楚。最终输入覆盖服务质量、商业摩擦、不活跃程度和会员结构。满意度调查虽然在
+        EDA 中呈梯度，却因非应答比例过高而未进入；region 有 16
+        个水平，并与等待和故障等直接服务信号重叠；<code>weeks_since_signup</code> 则因与上次充电间隔高度相关而删除。
+      </p>
+      <p>
+        未入选字段不能自动获得一套“表现差”的解释。年龄、支付方式、设备系统、通知、邮件、家庭接入等字段仍属于原始观察，只是没有进入七变量模型。字段筛选只采用分析中已经记录的判断，不为其余排除项补造原因。
+      </p>
+    </div>
+    <div class="r-deep-table" tabindex="0">
+      <table>
+        <caption>最终七个 predictor 的类型、单位和分析维度</caption><thead
+          ><tr
+            ><th>字段</th><th>中文含义</th><th>类型</th><th>单位 / 水平</th><th>维度</th
+            ></tr
+          ></thead
+        ><tbody>
+          {
+            predictors.map((item) => (
+              <tr>
+                <>
+                  <th>
+                    <code>{item.name}</code>
+                  </th>
+                  <td>{item.label}</td>
+                  <td>{item.type}</td>
+                  <td>{item.unit}</td>
+                  <td>{item.dimension}</td>
+                </>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="r-deep-table" tabindex="0">
+      <table>
+        <caption>关键字段决策</caption><thead
+          ><tr><th>阶段</th><th>字段 / 总体</th><th>判断</th></tr></thead
+        ><tbody>
+          {
+            featureDecisions.map((item) => (
+              <tr>
+                <>
+                  <th>{item.stage}</th>
+                  <td>
+                    <code>{item.field}</code>
+                  </td>
+                  <td>{item.decision}</td>
+                </>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+    <RCodeShowcase title="固定七变量输入" code={codeSnippets.features} />
+  </section>
+
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>05</span><div>
+        <p>CORRELATION</p><h2>0.88 是删除 signup 周数的直接证据</h2>
+      </div>
+    </div>
+    <div class="r-deep-prose">
+      <p>
+        <code>weeks_since_signup</code> 与 <code>weeks_since_last_charge</code> 的相关系数约
+        0.88，远高于等待时间与故障率的 0.39、等待时间与高峰使用的 0.37，以及应用版本滞后与崩溃次数的
+        0.41。两项周数变量共同进入 Logistic Regression 时，会让相近信息在系数之间分摊，增加标准误并削弱解释稳定性。
+      </p>
+      <p>
+        选择保留 <code>weeks_since_last_charge</code
+        >，因为它直接描述当前不活跃间隔，也是 EDA 中 retained 与 churned
+        差异最大的行为变量之一。这个决策不是泛化成“相关变量只能留一个”：等待与故障虽然中等相关，但分别代表排队体验和设施可靠性，业务含义不同，因此两者都保留。
+      </p>
+    </div>
+    <ChurnEvidenceFigure
+      number="FIG 01"
+      title="相关矩阵中的一个突出高相关对"
+      src={projectImages.correlationMatrix}
+      alt="数值字段相关矩阵，weeks since signup 与 weeks since last charge 的相关系数为 0.88"
+      caption="矩阵同时显示 0.88、0.41、0.39 和 0.37，便于比较删除阈值的相对位置。"
+      reading="应该看哪里：0.88 单元格明显深于其他非对角关系。删除的是与当前不活跃程度高度重复的 signup 周数，而不是把全部存在相关性的服务字段一并清除。"
+    />
+  </section>
+
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>06</span><div><p>SPLIT</p><h2>80/20 分层切分先把最终答案隔离</h2></div>
+    </div>
+    <div class="r-deep-prose">
+      <p>
+        196,000 条个人客户记录在任何模型比较之前按 churn 分层切分。156,800
+        条进入训练部分，39,200 条进入留出部分。分层让两侧保留接近的 retained / churned
+        比例，固定 seed 404713359 则让分配可复现。留出集不会参与变量选择、recipe
+        选择、候选模型拟合或 AUC 排名。
+      </p>
+      <p>
+        模型选择完成后，<code>last_fit()</code> 读取同一个 split：在完整训练部分重拟合最终
+        workflow，然后一次性对留出部分预测。这样，CV 指标回答“哪一个候选方案更合适”，留出指标回答“选定方案面对新记录如何表现”，两个问题不会共享答案。
+      </p>
+    </div>
+    <RCodeShowcase title="建立分层训练与留出边界" code={codeSnippets.split} />
+  </section>
+
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>07</span><div><p>CV SAMPLE</p><h2>30,000 条样本只用于候选模型比较</h2></div>
+    </div>
+    <div class="r-deep-prose">
+      <p>
+        在 156,800
+        条训练记录上对五个模型分别执行五折拟合，会显著增加树集成计算。分析从训练部分内部按
+        churn 分组抽取 30,000
+        条，仍保持类别比例。这个样本不包含留出记录，也不会替代最终模型的完整训练数据。
+      </p>
+      <p>
+        <code>vfold_cv(v = 5, strata = churn)</code> 将 30,000 条分成五个 assessment fold。每轮约
+        24,000 条用于 analysis、6,000 条用于 assessment；五轮后每条记录恰好承担一次验证角色。原说明中曾出现
+        22,500 / 7,500 的口径，但那对应四折比例，与实际 <code>v = 5</code> 不一致；这里以执行代码为准。
+      </p>
+    </div>
+    <div class="r-deep-grid">
+      {
+        [1, 2, 3, 4, 5].map((fold) => (
+          <article>
+            <>
+              <h3>Fold {fold}</h3>
+              <p>
+                Analysis ≈ 24,000
+                <br />
+                Assessment ≈ 6,000
+                <br />
+                churn stratified
+              </p>
+            </>
+          </article>
+        ))
+      }
+    </div>
+    <RCodeShowcase title="分层抽样与五折结构" code={codeSnippets.resampling} />
+  </section>
+
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>08</span><div>
+        <p>LEAKAGE</p><h2>所有会学习数据的步骤都必须留在 analysis fold</h2>
+      </div>
+    </div>
+    <div class="r-deep-prose">
+      <p>
+        上采样通过复制 churned 记录把 analysis fold 调整为 1:1。如果在切 folds
+        之前复制，同一条客户记录及其副本可能被分配到 analysis 与 assessment
+        两侧，模型验证时会遇到已经看过的模式。把
+        <code>step_upsample()</code> 放进 recipe，保证每次 prep 只看该 fold 的 analysis 数据。
+      </p>
+      <p>
+        <code>step_impute_median()</code>、<code>step_unknown()</code> 和 <code
+          >step_zv()</code
+        >
+        同样跟随 recipe。虽然当前没有缺失值，但中位数仍由 analysis fold 的训练状态决定；未知水平和零方差检查也不会借用
+        assessment 信息。预处理与 resampling 集成的意义，就是把“模型没见过验证答案”落实到每一个数据依赖步骤。
+      </p>
+    </div>
+    <RCodeShowcase
+      title="两类 recipe 的共同边界与输入差异"
+      code={codeSnippets.recipes}
+      open
+    />
+  </section>
+
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>09</span><div>
+        <p>TWO RECIPES</p><h2>Dummy 编码只服务于需要数值矩阵的引擎</h2>
+      </div>
+    </div>
+    <div class="r-deep-prose">
+      <p>
+        <code>rec_lr</code> 由 Logistic Regression 与 XGBoost 共用。glm 的分类系数需要相对参照水平的指示变量，xgboost
+        引擎也要求数值矩阵，因此两者在 unknown 处理后执行 <code>step_dummy()</code
+        >。Basic 是 plan_tier 的参照，Plus 与 Pro 获得独立指示列。
+      </p>
+      <p>
+        <code>rec_rf</code> 服务 Random Forest、LightGBM 与 Naive Bayes，保留 factor 输入。树模型按阈值或类别分裂，klaR
+        则分别估计连续与分类条件分布。五模型都不标准化：树分裂不依赖量纲，Naive Bayes 不是距离模型，Logistic
+        Regression 保留原始单位更利于 odds ratio 解释。
+      </p>
+    </div>
+    <div class="r-deep-table" tabindex="0">
+      <table>
+        <caption>Recipe 与模型输入对应</caption><thead
+          ><tr><th>Recipe</th><th>Dummy</th><th>模型</th><th>理由</th></tr></thead
+        ><tbody
+          ><tr
+            ><th><code>rec_lr</code></th><td>是</td><td>Logistic Regression、XGBoost</td
+            ><td>glm 与 xgboost 接收数值矩阵</td></tr
+          ><tr
+            ><th><code>rec_rf</code></th><td>否</td><td
+              >Random Forest、LightGBM、Naive Bayes</td
+            ><td>相应引擎保留 factor 输入</td></tr
+          ></tbody
+        >
+      </table>
+    </div>
+  </section>
+
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>10</span><div>
+        <p>ARCHITECTURE</p><h2>数据架构最终形成一条可重复的验证链</h2>
+      </div>
+    </div>
+    <AnalysisPipeline />
+    <ol class="r-deep-evidence-list">
+      <li>
+        <strong>总体边界</strong><span
+          >商业 Fleet 在切分前排除，模型只解释个人客户。</span
+        >
+      </li>
+      <li>
+        <strong>答案边界</strong><span
+          >39,200 条留出记录在模型选择前隔离，直到 last_fit 才进入。</span
+        >
+      </li>
+      <li>
+        <strong>计算边界</strong><span
+          >30,000 条 CV 样本只用于候选比较；胜出模型仍在完整 156,800
+          条训练记录上重拟合。</span
+        >
+      </li>
+      <li>
+        <strong>折边界</strong><span
+          >未知水平、零方差处理和 1:1 上采样都随 recipe 在 analysis fold 内完成。</span
+        >
+      </li>
+      <li>
+        <strong>输入边界</strong><span
+          >Dummy 与 factor 两套 recipe
+          对应具体引擎要求，不把同一预处理机械套给所有模型。</span
+        >
+      </li>
+    </ol>
+  </section>
+</RDeepDiveShell>

@@ -1,5 +1,6 @@
 ---
-import { pipelineSteps } from "../data/r-machine-learning";
+import { codeSnippets, pipelineSteps } from "../data/r-machine-learning";
+import RCodeShowcase from "./RCodeShowcase.astro";
 ---
 
 <div class="analysis-pipeline" data-analysis-pipeline>
@@ -31,19 +32,43 @@ import { pipelineSteps } from "../data/r-machine-learning";
           hidden={index !== 0}
           data-pipeline-panel
         >
-          <p class="status">步骤 {step.number}</p>
+          <p class="status">
+            {step.group} · {step.number}
+          </p>
           <h3>{step.title}</h3>
           <p>{step.detail}</p>
           <dl>
             <div>
-              <dt>本步证据</dt>
+              <dt>输入</dt>
+              <dd>{step.input}</dd>
+            </div>
+            <div>
+              <dt>操作</dt>
+              <dd>{step.action}</dd>
+            </div>
+            <div>
+              <dt>输出</dt>
+              <dd>{step.output}</dd>
+            </div>
+            <div>
+              <dt>数字证据</dt>
               <dd>{step.evidence}</dd>
+            </div>
+            <div>
+              <dt>为什么</dt>
+              <dd>{step.why}</dd>
             </div>
             <div>
               <dt>下一判断</dt>
               <dd>{step.nextQuestion}</dd>
             </div>
           </dl>
+          <div class="analysis-pipeline__code">
+            <RCodeShowcase
+              title={`${step.title} · 对应 R 实现`}
+              code={codeSnippets[step.codeKey]}
+            />
+          </div>
         </section>
       ))
     }
@@ -192,6 +217,10 @@ import { pipelineSteps } from "../data/r-machine-learning";
     margin: var(--space-6) 0 0;
     padding-block-start: var(--space-5);
     border-top: 1px solid var(--colour-border);
+  }
+
+  .analysis-pipeline__code {
+    margin-top: var(--space-5);
   }
 
   [role="tabpanel"] dl div {

@@ -1,0 +1,114 @@
+---
+import { withBase } from "../utils/paths";
+
+interface Props {
+  number: string;
+  title: string;
+  src: string;
+  alt: string;
+  caption: string;
+  reading: string;
+  fit?: "contain" | "cover";
+}
+
+const { number, title, src, alt, caption, reading, fit = "contain" } = Astro.props;
+---
+
+<figure class="evidence-figure" data-fit={fit}>
+  <figcaption>
+    <span>{number}</span>
+    <div>
+      <h3>{title}</h3>
+      <p>{caption}</p>
+    </div>
+  </figcaption>
+  <div class="evidence-figure__frame">
+    <img src={withBase(src)} alt={alt} loading="lazy" decoding="async" />
+  </div>
+  <p class="evidence-figure__reading">{reading}</p>
+</figure>
+
+<style>
+  .evidence-figure {
+    margin: 0;
+    min-width: 0;
+  }
+
+  figcaption {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+
+  figcaption > span {
+    height: max-content;
+    padding: 0.5rem 0.7rem;
+    border: 1px solid var(--colour-border);
+    border-radius: 999px;
+    color: var(--colour-primary-strong);
+    font: 700 0.7rem/1 var(--font-mono);
+    letter-spacing: 0.08em;
+  }
+
+  h3,
+  p {
+    margin: 0;
+  }
+
+  h3 {
+    max-width: 30ch;
+    font-size: clamp(1.45rem, 3vw, 2.25rem);
+    line-height: 1.15;
+  }
+
+  figcaption p,
+  .evidence-figure__reading {
+    max-width: 74ch;
+    margin-top: 0.6rem;
+    color: var(--colour-text-muted);
+    line-height: 1.72;
+  }
+
+  .evidence-figure__frame {
+    display: grid;
+    place-items: center;
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-lg);
+    background: #fff;
+  }
+
+  img {
+    display: block;
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+  }
+
+  [data-fit="cover"] img {
+    aspect-ratio: 16 / 8;
+    object-fit: cover;
+  }
+
+  .evidence-figure__reading {
+    padding-left: 1rem;
+    border-left: 3px solid var(--colour-accent);
+  }
+
+  @media (max-width: 560px) {
+    figcaption {
+      grid-template-columns: 1fr;
+    }
+    figcaption > span {
+      width: max-content;
+    }
+    .evidence-figure__frame {
+      overflow-x: auto;
+    }
+    [data-fit="cover"] img {
+      min-width: 44rem;
+    }
+  }
+</style>

@@ -1,0 +1,54 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { getLocalizedPath } from "../utils/paths";
+import type { deepDives } from "../data/r-machine-learning";
+import ContextBack from "./ContextBack.astro";
+import TechnicalDeepDiveNav from "./TechnicalDeepDiveNav.astro";
+import "../styles/r-deep-dive.css";
+
+interface Props {
+  deepDive: (typeof deepDives)[number];
+}
+
+const { deepDive } = Astro.props;
+const canonicalPath = `/projects/customer-churn-machine-learning/${deepDive.slug}/`;
+---
+
+<BaseLayout
+  title={`${deepDive.titleZh} | 客户流失预测`}
+  description={deepDive.summary}
+  locale="zh"
+  alternatePath="/projects/"
+  canonicalPath={getLocalizedPath(canonicalPath, "zh")}
+>
+  <main id="main-content" class="r-deep-dive">
+    <header class="r-deep-hero">
+      <div class="r-deep-shell">
+        <ContextBack
+          locale="zh"
+          fallbackPath="/projects/customer-churn-machine-learning/"
+          label={{ en: "Back to main project", zh: "返回主项目" }}
+        />
+        <div class="r-deep-hero__grid" data-reveal>
+          <div>
+            <p class="r-deep-kicker">{deepDive.eyebrow}</p>
+            <h1>{deepDive.title}<span>{deepDive.titleZh}</span></h1>
+          </div>
+          <p class="r-deep-hero__summary">{deepDive.summary}</p>
+        </div>
+      </div>
+    </header>
+    <article class="r-deep-shell r-deep-body">
+      <slot />
+      <footer class="r-deep-end">
+        <h2>继续阅读 704 技术专篇</h2>
+        <TechnicalDeepDiveNav current={deepDive.slug} />
+        <ContextBack
+          locale="zh"
+          fallbackPath="/projects/customer-churn-machine-learning/"
+          label={{ en: "Back to main project", zh: "返回主项目" }}
+        />
+      </footer>
+    </article>
+  </main>
+</BaseLayout>

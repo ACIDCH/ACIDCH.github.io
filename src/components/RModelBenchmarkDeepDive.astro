@@ -1,0 +1,300 @@
+---
+import {
+  deepDives,
+  modelResults,
+  metricLabels,
+  codeSnippets,
+} from "../data/r-machine-learning";
+import RDeepDiveShell from "./RDeepDiveShell.astro";
+import ModelComparisonLab from "./ModelComparisonLab.astro";
+import RCodeShowcase from "./RCodeShowcase.astro";
+
+const deepDive = deepDives.find((item) => item.slug === "model-comparison")!;
+const metrics = Object.keys(metricLabels) as Array<keyof typeof metricLabels>;
+---
+
+<RDeepDiveShell deepDive={deepDive}>
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>01</span><div>
+        <p>BENCHMARK QUESTION</p><h2>五模型比较的目的不是寻找最复杂算法</h2>
+      </div>
+    </div>
+    <div class="r-deep-prose">
+      <p>
+        同一组七变量、同一组五折和同一组四项指标下，五种算法代表四类不同归纳结构：线性
+        log-odds、条件概率、bagging 树集成和 boosting
+        树集成。比较要回答的是：非线性和集成结构是否带来足够稳定的增益，以及这种增益是否值得牺牲流失召回或解释能力。
+      </p>
+      <p>
+        五个 workflow 共享 CV 边界，但不强行共享同一 recipe。glm 与 xgboost 使用 Dummy
+        数值矩阵；ranger、lightgbm 和 klaR 保留
+        factor。这样，每个模型在满足自身输入要求的前提下接受同一数据分割，指标差异才具有可比性。
+      </p>
+    </div>
+    <div class="r-deep-grid">
+      {
+        modelResults.map((model) => (
+          <article>
+            <>
+              <p>{model.family}</p>
+              <h3>{model.name}</h3>
+              <p>
+                <code>{model.engine}</code> · {model.parameters}
+              </p>
+              <p>{model.input}</p>
+            </>
+          </article>
+        ))
+      }
+    </div>
+    <RCodeShowcase title="五个模型与引擎规格" code={codeSnippets.models} open />
+  </section>
+
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>02</span><div>
+        <p>LOGISTIC REGRESSION</p><h2>线性基准同时承担判别和解释职责</h2>
+      </div>
+    </div>
+    <div class="r-deep-prose">
+      <p>
+        Logistic Regression 使用 <code>logistic_reg()</code> 与 <code>glm</code> 引擎。七个输入在
+        log-odds 尺度上线性相加，二元和计划字段由 Dummy 编码转换为相对参照水平的系数。这个结构不会自动搜索复杂交互，却能把每个输入转换成条件
+        odds ratio。
+      </p>
+      <p>
+        它在 CV 中的 Accuracy 为 0.8136、AUC 0.9024、Sensitivity 0.8281、Specificity
+        0.8071。AUC 为五模型最高，Sensitivity 距 Naive Bayes 最高值仅 0.0037。它没有赢得
+        Accuracy 或 Specificity，却在区分能力和流失召回之间保持更均衡位置。
+      </p>
+      <p>
+        主要局限是加性 log-odds
+        假设：若等待、故障和计划之间存在复杂弯曲边界，它不会像树模型那样自动切分。但这个项目的最终选择并不只追求局部非线性，而是要求预测结果还能回到支付、活跃和服务信号。
+      </p>
+    </div>
+  </section>
+
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>03</span><div>
+        <p>NAIVE BAYES</p><h2>最高 Sensitivity 来自另一种概率取舍</h2>
+      </div>
+    </div>
+    <div class="r-deep-prose">
+      <p>
+        Naive Bayes 通过 <code>discrim::naive_Bayes()</code> 和 <code>klaR</code> 引擎拟合，<code
+          >smoothness = 1</code
+        >
+        为分类水平提供 Laplace 平滑，避免某类训练数据未出现某水平时得到零概率。数值 predictor
+        在类别内按引擎默认条件分布处理，factor 则保留分类概率结构。
+      </p>
+      <p>
+        它的 Sensitivity 为 0.8318，五模型最高；AUC 0.8996 排第二，与 Logistic
+        Regression 相差 0.0028。但 Specificity 0.7999 与 Accuracy 0.8098
+        都是最低值，说明多找回一部分 churned 的同时，也把更多 retained 标为 churned。
+      </p>
+      <p>
+        条件独立假设在这组输入上并不完全成立，例如等待时间与故障率相关 0.39。Naive Bayes
+        因而是很有价值的敏感度参照，却不是无条件更好的最终方案；它揭示了召回上限和误报之间的交换。
+      </p>
+    </div>
+  </section>
+
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>04</span><div>
+        <p>RANDOM FOREST</p><h2>500 棵树提高 Accuracy，却降低 churned 召回</h2>
+      </div>
+    </div>
+    <div class="r-deep-prose">
+      <p>
+        Random Forest 使用 <code>ranger</code>，建立 500 棵树并设置 <code
+          >min_n = 20</code
+        >。每棵树在重采样数据和随机 predictor 子集上分裂，最后用集成投票形成类别概率。<code
+          >min_n</code
+        > 限制过小叶节点，避免把少量客户组合切得过细；impurity importance 为变量排序提供补充证据。
+      </p>
+      <p>
+        它的 Accuracy 0.8187 排第二，Specificity 0.8286 也高于 Logistic Regression；但
+        Sensitivity 只有 0.7966。对 retained 的识别更好，并没有转化为对 churned
+        的同等提升。AUC 0.8964 说明整体排序能力仍然强，却没有超过线性基准。
+      </p>
+      <p>
+        这个结果使“树能捕捉非线性”从理论优点变成可量化取舍：非线性结构提高了总体正确率和
+        retained 识别，但在本次上采样和默认参数边界下，真实流失客户的召回下降约 3.15
+        个百分点。
+      </p>
+    </div>
+  </section>
+
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>05</span><div>
+        <p>XGBOOST</p><h2>最高 Specificity 与最低 Sensitivity 同时出现</h2>
+      </div>
+    </div>
+    <div class="r-deep-prose">
+      <p>
+        XGBoost 使用 200 棵 boosting tree，源规格记录 tree depth 6、learning rate 0.3 与
+        min_n 1。每一轮树尝试修正前序模型残差；由于 xgboost 引擎接收数值矩阵，它与
+        Logistic Regression 共用带 Dummy 的
+        <code>rec_lr</code>。
+      </p>
+      <p>
+        Specificity 0.8370 为五模型最高，意味着它最少把 retained 错标为 churned。但
+        Sensitivity 0.7632 是最低值，AUC 0.8842 也排最后。模型在 0.5
+        类别判断附近更倾向保守地标记 churned，减少误报的同时扩大漏判。
+      </p>
+      <p>
+        本比较没有为 XGBoost 追加 tuning，也没有以调参后的结果替换原实验。200 trees
+        与原默认参数构成固定基准，因此结论只描述这一规格在相同验证架构下的表现，不外推到所有可能的
+        XGBoost 配置。
+      </p>
+    </div>
+  </section>
+
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>06</span><div>
+        <p>LIGHTGBM</p><h2>Accuracy 第一仍不足以决定最终模型</h2>
+      </div>
+    </div>
+    <div class="r-deep-prose">
+      <p>
+        LightGBM 同样使用 200 棵 boosting tree，由 bonsai 注册 lightgbm 引擎。它保留
+        factor 输入，并以 leaf-wise 生长形成更深的局部改进。与 XGBoost
+        使用相同树数，使两个 boosting 基准至少在迭代数量上保持一致。
+      </p>
+      <p>
+        Accuracy 0.8199 为五模型最高，Specificity 0.8291 排第二；但 AUC
+        0.8955、Sensitivity 0.7994 均未领先。相对 Logistic Regression，Accuracy 只高
+        0.0063，而 AUC 低 0.0069、Sensitivity 低 0.0287。
+      </p>
+      <p>
+        因而“LightGBM 预测最准确”只在 Accuracy
+        这一列成立。若任务强调流失排序和减少漏判，必须把 AUC 与 Sensitivity
+        一起读；若还要求解释支付失败和使用间隔的方向，模型复杂度也成为选择的一部分。
+      </p>
+    </div>
+  </section>
+
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>07</span><div><p>METRICS</p><h2>四项指标把同一组预测切成四种问题</h2></div>
+    </div>
+    <div class="r-deep-prose">
+      <p>
+        Accuracy 计算全部预测中正确比例；AUC 衡量各种阈值下的排序区分能力；Sensitivity
+        只看实际 churned 中找回多少；Specificity 只看实际 retained
+        中正确排除多少。它们共享预测结果，但分母和决策含义不同。
+      </p>
+      <p>
+        流失识别不能让 Accuracy 独占选择权，因为约 69% 的 retained
+        会给多数类正确判断更大权重。AUC 提供跨阈值视角，Sensitivity 和 Specificity
+        再把两类错误拆开。模型只有在这些维度上形成明确取舍，才有选择依据。
+      </p>
+    </div>
+    <RCodeShowcase
+      title="固定 churned 事件方向的四指标集合"
+      code={codeSnippets.metrics}
+    />
+    <ModelComparisonLab />
+  </section>
+
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>08</span><div>
+        <p>EXACT RESULTS</p><h2>完整均值表保留所有模型，而不是只展示胜者</h2>
+      </div>
+    </div>
+    <div class="r-deep-table" tabindex="0">
+      <table>
+        <caption>5-fold cross-validation mean</caption><thead
+          ><tr
+            ><th>Model</th>{
+              metrics.map((metric) => <th>{metricLabels[metric]}</th>)
+            }</tr
+          ></thead
+        ><tbody>
+          {
+            modelResults.map((model) => (
+              <tr>
+                <th>{model.name}</th>
+                {metrics.map((metric) => (
+                  <td>{model[metric].toFixed(4)}</td>
+                ))}
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="r-deep-prose">
+      <p>
+        代码使用 <code>collect_metrics(summarize = FALSE)</code> 检查每折结果，并通过
+        <code>save_pred = TRUE</code> 生成每折 ROC 所需预测。可复核结果只保留五折均值，没有逐折
+        fitted resample 对象或逐折数值表。因此无法在不重跑完整客户数据的情况下精确恢复 standard
+        deviation、range 和 fold-to-fold 点图。
+      </p>
+      <p>
+        五折均值无法反推出五个折点，图像也不足以精确读取误差条。因此稳定性分析不填入推测数字；模型比较集中在规格、输入、四指标排名和错误方向。若要比较折间波动，需要重新取得逐折指标和预测记录。
+      </p>
+    </div>
+    <RCodeShowcase
+      title="保存每折预测并收集逐折指标的实现"
+      code={codeSnippets.fitResamples}
+    />
+  </section>
+
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>09</span><div>
+        <p>SELECTION</p><h2>单一 metric 不能替代最终判断，但选择规则必须明确</h2>
+      </div>
+    </div>
+    <div class="r-deep-prose">
+      <p>
+        选择规则以 mean AUC 为首要标准，因为它评估所有阈值下的区分能力，并且不由 30/70
+        类别比例直接主导。若 AUC 差异小于 0.002，再用 Sensitivity 作为
+        tie-breaker。实际结果中 Logistic Regression 比 Naive Bayes 高 0.0028，达到
+        0.9024，因此按规则胜出。
+      </p>
+      <p>
+        规则之外仍需解释 trade-off：Logistic 的 Sensitivity 距最高值很近；Specificity
+        虽不领先，却没有降到最低；模型能以 odds ratio
+        解释七个变量；复杂度低于三种树集成。最终选择由预先明确的排序规则启动，再由错误方向和解释需求完成，而不是在看到测试结果后反向挑模型。
+      </p>
+    </div>
+    <RCodeShowcase
+      title="按 mean AUC 提取胜出模型"
+      code={codeSnippets.selection}
+      open
+    />
+    <ol class="r-deep-evidence-list">
+      <li>
+        <strong>Accuracy</strong><span
+          >LightGBM 最高，但只领先 Logistic Regression 0.0063。</span
+        >
+      </li>
+      <li>
+        <strong>AUC</strong><span
+          >Logistic Regression 最高，说明跨阈值区分能力领先。</span
+        >
+      </li>
+      <li>
+        <strong>Sensitivity</strong><span
+          >Naive Bayes 最高；Logistic Regression 仅低 0.0037。</span
+        >
+      </li>
+      <li>
+        <strong>Specificity</strong><span>XGBoost 最高，但它的 Sensitivity 最低。</span>
+      </li>
+      <li>
+        <strong>Interpretation</strong><span
+          >Logistic Regression 能把最终七变量转成单位明确的 odds ratio。</span
+        >
+      </li>
+    </ol>
+  </section>
+</RDeepDiveShell>

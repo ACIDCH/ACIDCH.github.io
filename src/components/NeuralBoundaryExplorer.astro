@@ -1,0 +1,543 @@
+---
+import neuralData from "../data/r-neural-experiment.generated.json";
+
+const points = neuralData.test_points;
+const boundaries = neuralData.boundary;
+const roc = neuralData.roc;
+const width = 700;
+const height = 500;
+const padding = 34;
+const xValues = points.map((point) => point.A);
+const yValues = points.map((point) => point.B);
+const xMin = Math.min(...xValues);
+const xMax = Math.max(...xValues);
+const yMin = Math.min(...yValues);
+const yMax = Math.max(...yValues);
+const sx = (value: number) =>
+  padding + ((value - xMin) / (xMax - xMin)) * (width - padding * 2);
+const sy = (value: number) =>
+  height - padding - ((value - yMin) / (yMax - yMin)) * (height - padding * 2);
+const boundaryPaths = boundaries.map((line) =>
+  line.x
+    .map(
+      (x, index) =>
+        `${index === 0 ? "M" : "L"}${sx(x).toFixed(2)},${sy(line.y[index] ?? yMin).toFixed(2)}`,
+    )
+    .join(" "),
+);
+const rocPath = roc
+  .map((point, index) => {
+    const x = 8 + (1 - point.specificity) * 84;
+    const y = 92 - point.sensitivity * 84;
+    return `${index === 0 ? "M" : "L"}${x.toFixed(2)},${y.toFixed(2)}`;
+  })
+  .join(" ");
+const sampleRows = points.slice(0, 8);
+---
+
+<section
+  class="neural-explorer"
+  data-neural-explorer
+  aria-labelledby="neural-explorer-title"
+>
+  <header>
+    <div>
+      <p class="neural-kicker">DECISION BOUNDARY</p>
+      <h3 id="neural-explorer-title">两个输入如何形成一条弯曲分类边界</h3>
+      <p>
+        601
+        个点来自分层留出的测试集。切换“真实类别”和“预测类别”，可以定位分类边界两侧的正确判断与错误判断。
+      </p>
+    </div>
+    <div class="neural-toggle" role="group" aria-label="散点颜色">
+      <button type="button" aria-pressed="true" data-neural-view="truth"
+        >真实类别</button
+      >
+      <button type="button" aria-pressed="false" data-neural-view="prediction"
+        >预测类别</button
+      >
+    </div>
+  </header>
+
+  <div class="neural-explorer__grid">
+    <figure class="boundary-chart" data-view="truth">
+      <svg
+        viewBox={`0 0 ${width} ${height}`}
+        role="img"
+        aria-labelledby="boundary-title boundary-desc"
+      >
+        <title id="boundary-title">神经网络测试集与 0.5 决策边界</title>
+        <desc id="boundary-desc"
+          >二维测试点按类别着色，黑色曲线是 Class1 概率 0.5 的分界线。</desc
+        >
+        <g class="boundary-grid" aria-hidden="true">
+          {
+            [0, 1, 2, 3, 4].map((index) => (
+              <>
+                <line
+                  x1={padding}
+                  y1={padding + index * ((height - padding * 2) / 4)}
+                  x2={width - padding}
+                  y2={padding + index * ((height - padding * 2) / 4)}
+                />
+                <line
+                  y1={padding}
+                  x1={padding + index * ((width - padding * 2) / 4)}
+                  y2={height - padding}
+                  x2={padding + index * ((width - padding * 2) / 4)}
+                />
+              </>
+            ))
+          }
+        </g>
+        <g class="boundary-points">
+          {
+            points.map((point, index) => (
+              <circle
+                cx={sx(point.A)}
+                cy={sy(point.B)}
+                r="3.2"
+                data-truth={point.truth}
+                data-predicted={point.predicted}
+                data-error={point.truth === point.predicted ? "false" : "true"}
+              >
+                <title>{`#${index + 1} · A ${point.A.toFixed(2)} · B ${point.B.toFixed(2)} · 真实 ${point.truth} · 预测 ${point.predicted} · P(Class1) ${point.probability_class1.toFixed(3)}`}</title>
+              </circle>
+            ))
+          }
+        </g>
+        <g class="boundary-lines" aria-hidden="true">
+          {boundaryPaths.map((path) => <path d={path} />)}
+        </g>
+        <text x={width / 2} y={height - 5}>A</text>
+        <text x="10" y={height / 2} transform={`rotate(-90 10 ${height / 2})`}>B</text>
+      </svg>
+      <figcaption>
+        <span><i class="legend-dot legend-dot--one"></i>Class1</span>
+        <span><i class="legend-dot legend-dot--two"></i>Class2</span>
+        <span><i class="legend-line"></i>P(Class1) = 0.5</span>
+      </figcaption>
+    </figure>
+
+    <aside class="neural-results">
+      <div class="neural-metrics">
+        <div>
+          <span>Test Accuracy</span><strong
+            >{neuralData.metrics.accuracy.toFixed(4)}</strong
+          >
+        </div>
+        <div>
+          <span>Test AUC</span><strong>{neuralData.metrics.auc.toFixed(4)}</strong>
+        </div>
+        <div>
+          <span>Train / Test</span><strong
+            >{neuralData.provenance.train_rows} / {
+              neuralData.provenance.test_rows
+            }</strong
+          >
+        </div>
+      </div>
+      <div class="mini-confusion" aria-label="神经网络测试集混淆矩阵">
+        <span></span><b>True C1</b><b>True C2</b>
+        <b>Pred C1</b><strong>{neuralData.confusion.class1_as_class1}</strong><strong
+          >{neuralData.confusion.class2_as_class1}</strong
+        >
+        <b>Pred C2</b><strong>{neuralData.confusion.class1_as_class2}</strong><strong
+          >{neuralData.confusion.class2_as_class2}</strong
+        >
+      </div>
+      <p>
+        72 个测试点被错分：41 个 Class1 被判断为 Class2，31 个 Class2 被判断为
+        Class1。错误主要贴近弯曲边界，而不是均匀散落在整个平面。
+      </p>
+    </aside>
+  </div>
+
+  <div class="neural-secondary">
+    <figure class="network-map">
+      <figcaption>
+        <strong>2–2–1 network</strong><span
+          >2 inputs · 2 hidden nodes · binary output</span
+        >
+      </figcaption>
+      <svg
+        viewBox="0 0 620 250"
+        role="img"
+        aria-label="两输入、两隐藏节点和一个输出节点的神经网络结构"
+      >
+        <g class="network-links">
+          <path
+            d="M115 70 L310 70 M115 70 L310 180 M115 180 L310 70 M115 180 L310 180 M340 70 L510 125 M340 180 L510 125"
+          ></path>
+        </g>
+        <g class="network-nodes">
+          <circle cx="100" cy="70" r="28"></circle><circle cx="100" cy="180" r="28"
+          ></circle>
+          <circle cx="325" cy="70" r="28"></circle><circle cx="325" cy="180" r="28"
+          ></circle>
+          <circle cx="525" cy="125" r="32"></circle>
+        </g>
+        <g class="network-labels">
+          <text x="100" y="76">A</text><text x="100" y="186">B</text>
+          <text x="325" y="76">H1</text><text x="325" y="186">H2</text>
+          <text x="525" y="131">P</text>
+        </g>
+      </svg>
+    </figure>
+
+    <figure class="neural-roc">
+      <figcaption>
+        <strong>Test ROC</strong><span>AUC {neuralData.metrics.auc.toFixed(4)}</span>
+      </figcaption>
+      <svg
+        viewBox="0 0 100 100"
+        role="img"
+        aria-label={`神经网络测试集 ROC 曲线，AUC ${neuralData.metrics.auc.toFixed(4)}`}
+      >
+        <path class="neural-roc__baseline" d="M8 92 L92 8"></path>
+        <path class="neural-roc__line" d={rocPath}></path>
+        <text x="50" y="99">1 − Specificity</text>
+        <text x="3" y="50" transform="rotate(-90 3 50)">Sensitivity</text>
+      </svg>
+    </figure>
+  </div>
+
+  <div class="prediction-table" tabindex="0">
+    <table>
+      <caption>测试集预测示例（前 8 条）</caption>
+      <thead
+        ><tr
+          ><th>A</th><th>B</th><th>真实类别</th><th>预测类别</th><th>P(Class1)</th></tr
+        ></thead
+      >
+      <tbody>
+        {
+          sampleRows.map((row) => (
+            <tr data-correct={row.truth === row.predicted ? "true" : "false"}>
+              <>
+                <td>{row.A.toFixed(3)}</td>
+                <td>{row.B.toFixed(3)}</td>
+                <td>{row.truth}</td>
+                <td>{row.predicted}</td>
+                <td>{row.probability_class1.toFixed(4)}</td>
+              </>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<script>
+  const setupNeuralExplorers = () => {
+    document.querySelectorAll<HTMLElement>("[data-neural-explorer]").forEach((root) => {
+      if (root.dataset.ready === "true") return;
+      root.dataset.ready = "true";
+      const chart = root.querySelector<HTMLElement>(".boundary-chart");
+      const buttons = Array.from(
+        root.querySelectorAll<HTMLButtonElement>("[data-neural-view]"),
+      );
+      buttons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const view = button.dataset.neuralView ?? "truth";
+          if (chart) chart.dataset.view = view;
+          buttons.forEach((candidate) =>
+            candidate.setAttribute("aria-pressed", String(candidate === button)),
+          );
+        });
+      });
+    });
+  };
+  document.addEventListener("astro:page-load", setupNeuralExplorers);
+  setupNeuralExplorers();
+</script>
+
+<style>
+  .neural-explorer {
+    min-width: 0;
+  }
+  header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 2rem;
+    align-items: end;
+    margin-bottom: 1.5rem;
+  }
+  h3,
+  p,
+  figure,
+  figcaption {
+    margin: 0;
+  }
+  .neural-kicker {
+    color: var(--colour-accent);
+    font: 700 0.7rem/1 var(--font-mono);
+    letter-spacing: 0.09em;
+  }
+  h3 {
+    max-width: 28ch;
+    margin-top: 0.55rem;
+    font-size: clamp(1.55rem, 3vw, 2.4rem);
+  }
+  header p:last-child {
+    max-width: 70ch;
+    margin-top: 0.65rem;
+    color: var(--colour-text-muted);
+    line-height: 1.7;
+  }
+  .neural-toggle {
+    display: flex;
+    border: 1px solid var(--colour-border-strong);
+    border-radius: 999px;
+    padding: 0.2rem;
+  }
+  .neural-toggle button {
+    min-height: 2.5rem;
+    padding-inline: 1rem;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--colour-text-muted);
+    cursor: pointer;
+  }
+  .neural-toggle button[aria-pressed="true"] {
+    background: var(--colour-primary);
+    color: var(--colour-primary-contrast);
+  }
+  .neural-explorer__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(17rem, 0.5fr);
+    gap: 1.5rem;
+  }
+  .boundary-chart,
+  .neural-results,
+  .network-map,
+  .neural-roc {
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-lg);
+    background: var(--colour-surface);
+  }
+  .boundary-chart {
+    padding: 1rem;
+  }
+  .boundary-chart svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .boundary-grid line {
+    stroke: var(--colour-border);
+    stroke-width: 1;
+  }
+  .boundary-points circle {
+    opacity: 0.72;
+    stroke: var(--colour-surface);
+    stroke-width: 0.7;
+  }
+  [data-view="truth"] circle[data-truth="Class1"],
+  [data-view="prediction"] circle[data-predicted="Class1"] {
+    fill: var(--colour-primary-strong);
+  }
+  [data-view="truth"] circle[data-truth="Class2"],
+  [data-view="prediction"] circle[data-predicted="Class2"] {
+    fill: var(--colour-accent);
+  }
+  [data-view="prediction"] circle[data-error="true"] {
+    stroke: var(--colour-text);
+    stroke-width: 2;
+  }
+  .boundary-lines path {
+    fill: none;
+    stroke: var(--colour-text);
+    stroke-width: 3;
+    stroke-linecap: round;
+  }
+  svg text {
+    fill: var(--colour-text-muted);
+    font: 14px var(--font-mono);
+    text-anchor: middle;
+  }
+  .boundary-chart figcaption {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding: 0.75rem 0.5rem 0;
+    color: var(--colour-text-muted);
+    font-size: 0.75rem;
+  }
+  .boundary-chart figcaption span {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .legend-dot {
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 50%;
+  }
+  .legend-dot--one {
+    background: var(--colour-primary-strong);
+  }
+  .legend-dot--two {
+    background: var(--colour-accent);
+  }
+  .legend-line {
+    width: 1.2rem;
+    border-top: 2px solid var(--colour-text);
+  }
+  .neural-results {
+    display: grid;
+    align-content: start;
+    gap: 1.2rem;
+    padding: 1.2rem;
+  }
+  .neural-metrics {
+    display: grid;
+    gap: 1px;
+    background: var(--colour-border);
+  }
+  .neural-metrics div {
+    display: grid;
+    gap: 0.3rem;
+    padding: 0.85rem;
+    background: var(--colour-surface);
+  }
+  .neural-metrics span {
+    color: var(--colour-text-muted);
+    font-size: 0.72rem;
+  }
+  .neural-metrics strong {
+    font: 750 1.35rem/1 var(--font-display);
+  }
+  .mini-confusion {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1px;
+    background: var(--colour-border);
+  }
+  .mini-confusion > * {
+    display: grid;
+    place-items: center;
+    min-height: 2.7rem;
+    padding: 0.35rem;
+    background: var(--colour-surface);
+    font-size: 0.72rem;
+  }
+  .mini-confusion strong {
+    color: var(--colour-primary-strong);
+    font-size: 1rem;
+  }
+  .neural-results p {
+    color: var(--colour-text-muted);
+    line-height: 1.7;
+  }
+  .neural-secondary {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+  }
+  .network-map,
+  .neural-roc {
+    padding: 1rem;
+  }
+  .network-map figcaption,
+  .neural-roc figcaption {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    color: var(--colour-text-muted);
+    font-size: 0.76rem;
+  }
+  .network-map figcaption strong,
+  .neural-roc figcaption strong {
+    color: var(--colour-text);
+  }
+  .network-map svg,
+  .neural-roc svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin-top: 0.75rem;
+  }
+  .network-links path {
+    fill: none;
+    stroke: var(--colour-border-strong);
+    stroke-width: 2;
+  }
+  .network-nodes circle {
+    fill: var(--colour-surface-raised);
+    stroke: var(--colour-primary);
+    stroke-width: 3;
+  }
+  .network-labels text {
+    fill: var(--colour-text);
+    font-weight: 700;
+  }
+  .neural-roc__baseline {
+    fill: none;
+    stroke: var(--colour-border-strong);
+    stroke-dasharray: 3 2;
+  }
+  .neural-roc__line {
+    fill: none;
+    stroke: var(--colour-primary-strong);
+    stroke-width: 2.5;
+  }
+  .neural-roc text {
+    font-size: 4px;
+  }
+  .prediction-table {
+    margin-top: 1.5rem;
+    overflow-x: auto;
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-lg);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-variant-numeric: tabular-nums;
+  }
+  caption {
+    padding: 1rem;
+    color: var(--colour-text-muted);
+    text-align: left;
+  }
+  th,
+  td {
+    padding: 0.75rem 1rem;
+    border-top: 1px solid var(--colour-border);
+    text-align: left;
+    white-space: nowrap;
+  }
+  th {
+    color: var(--colour-text-muted);
+    font-size: 0.75rem;
+  }
+  tr[data-correct="false"] td {
+    background: color-mix(in srgb, var(--colour-accent) 10%, transparent);
+  }
+  @media (max-width: 850px) {
+    header,
+    .neural-explorer__grid {
+      grid-template-columns: 1fr;
+    }
+    .neural-toggle {
+      width: max-content;
+    }
+  }
+  @media (max-width: 620px) {
+    .neural-secondary {
+      grid-template-columns: 1fr;
+    }
+    .boundary-chart {
+      padding: 0.4rem;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .neural-toggle button {
+      transition: none;
+    }
+  }
+</style>

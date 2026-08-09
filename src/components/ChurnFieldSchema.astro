@@ -1,0 +1,163 @@
+---
+import { rawFieldGroups } from "../data/r-machine-learning";
+---
+
+<figure class="field-schema" aria-labelledby="field-schema-title">
+  <figcaption>
+    <span>25 FIELDS</span>
+    <div>
+      <h3 id="field-schema-title">原始数据不是一张“变量清单”，而是八类信息的组合</h3>
+      <p>
+        字段先按其在客户观察中的角色重新排列。标识和结果来源不会作为输入；其余字段分别描述客户、计划、使用、服务、数字互动与体验。
+      </p>
+    </div>
+  </figcaption>
+  <div class="field-schema__grid">
+    {
+      rawFieldGroups.map((group) => (
+        <section data-tone={group.tone}>
+          <header>
+            <strong>{group.group}</strong>
+            <span>{group.fields.length}</span>
+          </header>
+          <ul>
+            {group.fields.map((field) => (
+              <li>
+                <code>{field}</code>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))
+    }
+  </div>
+  <p class="field-schema__reading">
+    应该看哪里：25 个字段中只有一个记录标识和一个结果来源，其余 23
+    个字段跨越多个业务维度。最终七变量并非把同类字段全部留下，而是经过总体限定、应答质量、相关性和解释目标逐步缩减。
+  </p>
+</figure>
+
+<style>
+  .field-schema {
+    margin: 0;
+    min-width: 0;
+  }
+
+  figcaption {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 1rem;
+    align-items: start;
+    margin-bottom: 1.5rem;
+  }
+
+  figcaption > span {
+    padding: 0.5rem 0.7rem;
+    border: 1px solid var(--colour-border);
+    border-radius: 999px;
+    color: var(--colour-primary-strong);
+    font: 700 0.7rem/1 var(--font-mono);
+    letter-spacing: 0.08em;
+  }
+
+  h3,
+  p {
+    margin: 0;
+  }
+
+  h3 {
+    max-width: 28ch;
+    font-size: clamp(1.45rem, 3vw, 2.25rem);
+    line-height: 1.15;
+  }
+
+  figcaption p,
+  .field-schema__reading {
+    max-width: 72ch;
+    margin-top: 0.65rem;
+    color: var(--colour-text-muted);
+    line-height: 1.72;
+  }
+
+  .field-schema__grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1px;
+    overflow: hidden;
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-lg);
+    background: var(--colour-border);
+  }
+
+  section {
+    min-width: 0;
+    padding: 1rem;
+    background: var(--colour-surface);
+  }
+
+  section header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid var(--schema-tone, var(--colour-primary));
+  }
+
+  section[data-tone="target"] {
+    --schema-tone: var(--colour-accent);
+  }
+  section[data-tone="commercial"] {
+    --schema-tone: var(--colour-primary-strong);
+  }
+  section[data-tone="usage"] {
+    --schema-tone: var(--colour-secondary);
+  }
+  section[data-tone="service"] {
+    --schema-tone: var(--colour-warning, #9b6b38);
+  }
+  section[data-tone="digital"] {
+    --schema-tone: var(--colour-info, #557f91);
+  }
+
+  header span {
+    color: var(--colour-text-muted);
+    font-family: var(--font-mono);
+  }
+
+  ul {
+    display: grid;
+    gap: 0.55rem;
+    margin: 0.85rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  code {
+    overflow-wrap: anywhere;
+    color: var(--colour-text-muted);
+    font-size: 0.76rem;
+  }
+
+  .field-schema__reading {
+    padding-left: 1rem;
+    border-left: 3px solid var(--colour-accent);
+  }
+
+  @media (max-width: 920px) {
+    .field-schema__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 560px) {
+    figcaption {
+      grid-template-columns: 1fr;
+    }
+    figcaption > span {
+      width: max-content;
+    }
+    .field-schema__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

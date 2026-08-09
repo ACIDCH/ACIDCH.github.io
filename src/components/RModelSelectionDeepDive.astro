@@ -1,0 +1,298 @@
+---
+import {
+  deepDives,
+  codeSnippets,
+  confusionMatrix,
+  projectImages,
+} from "../data/r-machine-learning";
+import RDeepDiveShell from "./RDeepDiveShell.astro";
+import ModelEvaluation from "./ModelEvaluation.astro";
+import ChurnEvidenceFigure from "./ChurnEvidenceFigure.astro";
+import RCodeShowcase from "./RCodeShowcase.astro";
+
+const deepDive = deepDives.find(
+  (item) => item.slug === "model-selection-error-analysis",
+)!;
+---
+
+<RDeepDiveShell deepDive={deepDive}>
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>01</span><div>
+        <p>SELECTION RULE</p><h2>从 CV 到最终模型，先固定选择规则</h2>
+      </div>
+    </div>
+    <div class="r-deep-prose">
+      <p>
+        五个候选 workflow 完成同一组五折验证后，结果按 mean ROC AUC 排序。AUC
+        衡量随机抽取一位 churned 和一位 retained
+        时，模型把前者排在更高风险位置的能力；它不依赖某一个类别阈值，也不把多数类正确预测自动放大为唯一目标。
+      </p>
+      <p>
+        代码以 <code>filter(.metric == "roc_auc")</code> 和 <code
+          >slice_max(mean, n = 1)</code
+        >
+        提取胜者。预先记录的补充规则是：若两个模型 AUC 相差小于 0.002，则用 Sensitivity 作为
+        tie-breaker。实际 Logistic Regression 的 0.9024 比 Naive Bayes 的 0.8996 高 0.0028，因此无需启动
+        tie-breaker。
+      </p>
+      <p>
+        这一步只读取 CV 结果，不看测试集。若在看到留出分数后改用另一个模型，39,200
+        条留出记录就会从“最后一次验证”变成“第二个选择集”，最终表现会被选择过程污染。
+      </p>
+    </div>
+    <RCodeShowcase
+      title="按 CV mean AUC 选择 workflow"
+      code={codeSnippets.selection}
+      open
+    />
+  </section>
+
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>02</span><div>
+        <p>LAST FIT</p><h2>留出集只在确定 Logistic Regression 后使用一次</h2>
+      </div>
+    </div>
+    <div class="r-deep-prose">
+      <p>
+        <code>last_fit(data_split)</code> 使用最初的 80/20 split：先在全部 156,800 条训练记录上重新拟合选定
+        workflow，再对 39,200 条留出记录预测。CV 阶段的 30,000 条样本完成候选比较后结束职责，最终拟合不受该样本规模限制。
+      </p>
+      <p>
+        输出同时包含 <code>.pred_class</code> 与 <code>.pred_churned</code
+        >。前者提供最终类别，后者提供 churned 概率。混淆矩阵由类别生成；ROC 与 AUC
+        由概率生成。两种结果不能互换：类别回答某个阈值下如何决策，概率回答风险排序在多个阈值下如何变化。
+      </p>
+      <p>
+        原流程没有设置自定义阈值，<code>.pred_class</code> 因而采用二项分类的默认判断边界。这个边界用于最终混淆矩阵；AUC
+        则不绑定该边界。0.5 只能作为分类规则读取，不能描述为经过额外优化的业务阈值。
+      </p>
+    </div>
+    <RCodeShowcase title="一次性留出预测" code={codeSnippets.finalEvaluation} />
+  </section>
+
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>03</span><div>
+        <p>CONFUSION MATRIX</p><h2>39,200 条预测如何变成四个格子？</h2>
+      </div>
+    </div>
+    <div class="r-deep-prose">
+      <p>
+        真实 retained 有 27,086 条，其中 21,825 条判断正确，5,261 条被误标为
+        churned；真实 churned 有 12,114 条，其中 10,092 条被识别，2,022 条被判断为
+        retained。四格总和恰好为 39,200，所有类指标都能从这些计数反算。
+      </p>
+      <p>
+        Accuracy 为 <code>(TP + TN) / N</code>，得到 0.8142。Sensitivity 为
+        <code>TP / (TP + FN)</code>，由计数得到 0.8331；Specificity 为 <code
+          >TN / (TN + FP)</code
+        >，得到 0.8058。它们分别使用不同分母，因而不能用一个 Accuracy 数字替代。
+      </p>
+    </div>
+    <div class="r-deep-table" tabindex="0">
+      <table>
+        <caption>由混淆计数推导指标</caption><thead
+          ><tr><th>指标</th><th>公式</th><th>代入计数</th><th>结果</th></tr></thead
+        ><tbody>
+          <tr
+            ><th>Accuracy</th><td><code>(TP + TN) / N</code></td><td
+              >(10,092 + 21,825) / 39,200</td
+            ><td>0.8142</td></tr
+          >
+          <tr
+            ><th>Sensitivity</th><td><code>TP / (TP + FN)</code></td><td
+              >10,092 / 12,114</td
+            ><td>0.8331</td></tr
+          >
+          <tr
+            ><th>Specificity</th><td><code>TN / (TN + FP)</code></td><td
+              >21,825 / 27,086</td
+            ><td>0.8058</td></tr
+          >
+          <tr
+            ><th>False negative rate</th><td><code>FN / (TP + FN)</code></td><td
+              >2,022 / 12,114</td
+            ><td>0.1669</td></tr
+          >
+          <tr
+            ><th>False positive rate</th><td><code>FP / (TN + FP)</code></td><td
+              >5,261 / 27,086</td
+            ><td>0.1942</td></tr
+          >
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>04</span><div>
+        <p>ERROR DIRECTION</p><h2>2,022 个漏判与 5,261 个误报不是同一种错误</h2>
+      </div>
+    </div>
+    <div class="r-deep-prose">
+      <p>
+        False Negative 是实际 churned、预测 retained。它让客户离开 churn
+        筛查名单，直接降低 Sensitivity。2,022 个 FN 占真实 churned 的
+        16.69%；换一个角度看，模型找回了剩余
+        83.31%。在任何保留策略中，这一格决定筛查覆盖率的上限。
+      </p>
+      <p>
+        False Positive 是实际 retained、预测
+        churned。它不会漏掉流失客户，却会扩大后续复核或干预范围。5,261 个 FP 占真实
+        retained 的 19.42%，因此 Specificity 为 80.58%。若只优化 Sensitivity，FP
+        通常会增加；若只优化 Specificity，FN 往往增加。
+      </p>
+      <p>
+        这里不为两类错误虚构货币成本。结果能够支持的是分类后果：FN 缩小风险覆盖，FP
+        扩大复核范围。具体成本需要真实业务规则、触达费用和客户价值数据，现有项目没有这些证据。
+      </p>
+      <p>
+        两个比率使用不同分母。FNR 的分母是 12,114 位真实 churned
+        客户，回答“风险客户中漏掉多少”；FPR 的分母是 27,086 位真实 retained
+        客户，回答“稳定客户中误报多少”。因此不能用 2,022 与 5,261
+        的绝对数量直接判断哪类错误更严重：retained
+        总体本来就更大，必须同时读取计数、比例与业务关注方向。
+      </p>
+      <p>
+        混淆矩阵也解释了为什么 Accuracy 0.8142 不能独立代表筛查质量。如果模型进一步偏向
+        retained，较大的 retained 类别可能维持可观 Accuracy，却会把更多 churned 推入
+        FN。Sensitivity 0.8331 与 Specificity 0.8058
+        把这两个方向拆开，使模型选择回到“覆盖风险”与“控制误报”的真实权衡，也让后续复核能够针对明确的错误方向展开。
+      </p>
+    </div>
+    <div class="r-deep-grid">
+      <article>
+        <h3>False Negative</h3><p>
+          <strong>{confusionMatrix.fn.toLocaleString("en-NZ")}</strong> · 实际 churned → 预测
+          retained
+        </p><p>FNR {(confusionMatrix.falseNegativeRate * 100).toFixed(2)}%</p>
+      </article>
+      <article>
+        <h3>False Positive</h3><p>
+          <strong>{confusionMatrix.fp.toLocaleString("en-NZ")}</strong> · 实际 retained →
+          预测 churned
+        </p><p>FPR {(confusionMatrix.falsePositiveRate * 100).toFixed(2)}%</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>05</span><div>
+        <p>INTERACTIVE MATRIX</p><h2>点击四格，逐项检查客户状态与指标分母</h2>
+      </div>
+    </div>
+    <ModelEvaluation showRoc={false} />
+  </section>
+
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>06</span><div>
+        <p>ROC</p><h2>AUC 0.9053 来自完整概率排序，不是四格矩阵的别名</h2>
+      </div>
+    </div>
+    <div class="r-deep-prose">
+      <p>
+        <code>roc_curve(truth = churn, .pred_churned, event_level = "second")</code>
+        按所有可能阈值计算 Sensitivity 与 1 − Specificity。曲线越靠左上，模型越能在保持较低误报的同时找回更多
+        churned。虚线表示没有区分能力的随机基准。
+      </p>
+      <p>
+        混淆矩阵对应一个分类边界，ROC 则把所有可用边界连成完整轨迹。前者适合核对 39,200
+        条记录最终落在哪个格子，后者适合比较概率排序是否稳定地区分两类。AUC 0.9053
+        高于五折选择阶段的平均 AUC
+        0.9024，方向接近，说明留出结果没有推翻交叉验证中的模型排序判断。
+      </p>
+      <p>
+        0.9053 不是“90.53% 预测正确”。它表示随机抽取一位 churned 与一位 retained
+        时，前者获得更高 churn 概率的机会约为
+        90.53%。分类正确率仍由所用边界和四格计数决定，这也是 AUC 与 Accuracy
+        必须并列呈现的原因。
+      </p>
+      <p>
+        留出 AUC 0.9053 略高于 CV 平均 AUC
+        0.9024。两者分别来自隔离测试与五折选择，接近的结果说明最终排序能力没有在留出集上明显坍缩。AUC
+        不表示 90.53% 的客户被正确分类；它描述的是概率排序，而 Accuracy
+        才使用最终类别计数。
+      </p>
+    </div>
+    <ChurnEvidenceFigure
+      number="FIG 01"
+      title="留出 ROC 曲线与随机基准"
+      src={projectImages.holdoutRoc}
+      alt="Logistic Regression 留出集 ROC 曲线，AUC 为 0.9053"
+      caption="曲线由 39,200 条留出预测中的 churned 概率生成。"
+      reading="应该看哪里：曲线在低 false positive rate 区域快速上升，并保持在对角线之上；AUC 0.9053 概括整条曲线，而不是选择其中一个点。"
+    />
+  </section>
+
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>07</span><div>
+        <p>THRESHOLD BOUNDARY</p><h2>阈值分析需要哪些预测证据？</h2>
+      </div>
+    </div>
+    <div class="r-deep-prose">
+      <p>
+        Threshold Explorer 需要每一条留出记录的真实 <code>.pred_churned</code> 与 truth，才能在每个
+        slider 位置重新计算 TP、FP、TN、FN、Sensitivity 和 Specificity。建模流程生成了
+        <code>final_pred</code>，但可复核结果只包含 ROC 图、AUC 与混淆计数，没有 39,200
+        条客户级概率序列。
+      </p>
+      <p>
+        仅凭 AUC、一个混淆矩阵和 ROC 图片，无法精确恢复每一个 threshold
+        的计数。插值或随机生成曲线会让互动看似完整，却不再对应真实预测。因此可操作分析集中在混淆矩阵，阈值讨论则明确停留在证据能够支持的范围内。
+      </p>
+      <p>
+        同样，错误分析无法把 FN / TP 再连接回 payment failure、last charge 或 plan tier
+        的客户级分布，因为最终预测表没有与 predictor
+        一同保留。总体变量分布不能替代错误子集分布，因此不据此推断哪些客户更容易被漏判。
+      </p>
+    </div>
+    <div class="r-deep-callout">
+      <span>EVIDENCE LIMIT</span><p>
+        混淆计数、四项指标、ROC 图与 AUC 可以直接核对；逐阈值计数、客户级错误样本和
+        FN/TP predictor 对照缺少逐行概率与特征记录，因此不作数值推演。
+      </p>
+    </div>
+  </section>
+
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>08</span><div>
+        <p>DECISION SUMMARY</p><h2>最终模型选择与错误分析形成两层结论</h2>
+      </div>
+    </div>
+    <ol class="r-deep-evidence-list">
+      <li>
+        <strong>选择层</strong><span
+          >Logistic Regression 以 CV AUC 0.9024 胜出，Sensitivity 0.8281
+          接近最高值，并保留解释结构。</span
+        >
+      </li>
+      <li>
+        <strong>验证层</strong><span
+          >留出 AUC 0.9053、Accuracy 0.8142，与选择阶段的整体表现接近。</span
+        >
+      </li>
+      <li>
+        <strong>漏判层</strong><span
+          >2,022 个 FN 对应 16.69% 的真实 churned，是 Sensitivity 的主要损失。</span
+        >
+      </li>
+      <li>
+        <strong>误报层</strong><span
+          >5,261 个 FP 对应 19.42% 的真实 retained，界定后续复核范围。</span
+        >
+      </li>
+      <li>
+        <strong>边界层</strong><span
+          >无客户级概率时，不延伸 threshold 或错误子群互动，避免用插值替代真实预测。</span
+        >
+      </li>
+    </ol>
+  </section>
+</RDeepDiveShell>

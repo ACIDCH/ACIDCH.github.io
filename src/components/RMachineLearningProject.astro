@@ -2,16 +2,24 @@
 import { getCollection, type CollectionEntry } from "astro:content";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { getLocalizedPath } from "../utils/paths";
-import ContextBack from "./ContextBack.astro";
 import AnalysisPipeline from "./AnalysisPipeline.astro";
-import CaseSectionMarker from "./CaseSectionMarker.astro";
-import ChurnDataStory from "./ChurnDataStory.astro";
+import ChurnEvidenceFigure from "./ChurnEvidenceFigure.astro";
+import ChurnFieldSchema from "./ChurnFieldSchema.astro";
+import ContextBack from "./ContextBack.astro";
 import FeatureSelectionStory from "./FeatureSelectionStory.astro";
 import ModelComparisonLab from "./ModelComparisonLab.astro";
 import ModelEvaluation from "./ModelEvaluation.astro";
 import RCodeShowcase from "./RCodeShowcase.astro";
+import RiskSignalExplorer from "./RiskSignalExplorer.astro";
 import TechnicalDeepDiveNav from "./TechnicalDeepDiveNav.astro";
-import { codeSnippets } from "../data/r-machine-learning";
+import {
+  codeSnippets,
+  holdoutClassDistribution,
+  modelResults,
+  predictors,
+  projectImages,
+  sampleFlow,
+} from "../data/r-machine-learning";
 
 interface Props {
   entry: CollectionEntry<"projects">;
@@ -27,6 +35,7 @@ const relatedProjects = (await getCollection("projects"))
       project.data.translationKey !== entry.data.translationKey,
   )
   .slice(0, 3);
+const maxFlow = sampleFlow[0]?.value ?? 1;
 ---
 
 <BaseLayout
@@ -45,368 +54,626 @@ const relatedProjects = (await getCollection("projects"))
             fallbackPath="/projects/"
             label={{ en: "Back to projects", zh: "返回项目列表" }}
           />
-
           <div class="case-hero__grid" data-reveal>
             <div class="case-hero__copy">
-              <p class="case-kicker">R / CUSTOMER CHURN / CLASSIFICATION</p>
-              <h1>{entry.data.title}</h1>
-              <p class="case-hero__summary">
-                以 20
-                万条合成电动车充电客户记录为起点，比较五种分类模型如何识别流失客户，并在区分能力、漏判控制和变量解释之间完成模型选择。
+              <p class="case-kicker">R · SUPERVISED LEARNING · CUSTOMER CHURN</p>
+              <h1>
+                <span>客户流失预测</span>
+                <span>与监督学习模型比较</span>
+              </h1>
+              <p class="case-hero__lead">
+                一组 20
+                万条电动车充电客户记录，经过总体限定、变量筛选和严格验证后，形成五种分类模型的可比实验。最终选择并不由最高
+                Accuracy 决定，而是由判别能力、流失召回、误报控制和解释路径共同决定。
               </p>
               <ul class="case-tags" aria-label="工具与方法">
-                {entry.data.tools.slice(0, 5).map((tool) => <li>{tool}</li>)}
+                {entry.data.tools.map((tool) => <li>{tool}</li>)}
               </ul>
             </div>
-
-            <div class="case-hero__signal" aria-label="项目数据链">
-              <div class="signal-route" aria-hidden="true">
-                <svg viewBox="0 0 640 260">
-                  <path
-                    class="signal-route__base"
-                    d="M28 210 C126 210 120 152 210 152 S302 86 390 86 S504 42 612 42"
-                  ></path>
-                  <path
-                    class="signal-route__active"
-                    d="M28 210 C126 210 120 152 210 152 S302 86 390 86 S504 42 612 42"
-                  ></path>
-                  <circle cx="28" cy="210" r="8"></circle>
-                  <circle cx="210" cy="152" r="8"></circle>
-                  <circle cx="390" cy="86" r="8"></circle>
-                  <circle cx="612" cy="42" r="8"></circle>
-                </svg>
+            <aside class="case-hero__brief" aria-label="项目摘要">
+              <div>
+                <span>原始规模</span><strong>200,000 × 25</strong><small
+                  >客户记录 × 原始字段</small
+                >
               </div>
-              <ol>
-                <li><span>01</span><strong>200,000</strong><small>原始记录</small></li>
-                <li><span>02</span><strong>7</strong><small>最终输入</small></li>
-                <li><span>03</span><strong>5</strong><small>比较模型</small></li>
-                <li><span>04</span><strong>0.9053</strong><small>留出集 AUC</small></li>
-              </ol>
-            </div>
+              <div>
+                <span>候选模型</span><strong>5</strong><small
+                  >线性、概率、Bagging、Boosting</small
+                >
+              </div>
+              <div>
+                <span>留出表现</span><strong>0.9053</strong><small
+                  >Logistic Regression AUC</small
+                >
+              </div>
+              <div>
+                <span>最终错误</span><strong>2,022 FN</strong><small
+                  >39,200 条留出记录</small
+                >
+              </div>
+            </aside>
           </div>
-
-          <div class="case-hero__decision" data-reveal>
-            <span>最终判断</span>
-            <strong>Logistic Regression</strong>
-            <p>
-              AUC 在五折比较中排名第一，Sensitivity 接近最高值，同时保留 odds ratio
-              解释。
-            </p>
-          </div>
+          <nav class="case-toc" aria-label="项目章节">
+            <a href="#problem">问题</a><a href="#data">数据</a><a href="#features"
+              >变量</a
+            ><a href="#validation">验证</a><a href="#models">模型</a><a
+              href="#evaluation">结果</a
+            ><a href="#interpretation">解释</a>
+          </nav>
         </div>
       </header>
 
-      <nav class="case-toc" aria-label="项目阅读目录">
-        <div class="case-shell">
-          <a href="#question">问题</a>
-          <a href="#data-flow">数据流转</a>
-          <a href="#feature-selection">变量判断</a>
-          <a href="#pipeline">建模流程</a>
-          <a href="#comparison">模型比较</a>
-          <a href="#evaluation">预测评估</a>
-          <a href="#code">R 代码</a>
-          <a href="#deep-dives">Deep Dives</a>
-        </div>
-      </nav>
-
-      <div class="case-shell case-body">
-        <section id="question" class="case-section case-section--opening" data-reveal>
-          <div class="section-intro">
-            <CaseSectionMarker kind="question" label="Problem" />
-            <p class="section-number">01</p>
-            <h2>真正要回答的，不是“谁会流失”这一句话</h2>
-            <p class="section-lead">
-              分类模型可以给出流失概率，但选择哪一个模型，取决于它如何平衡三件事：能否把流失客户排在更前面、会漏掉多少真实流失客户，以及结果能否解释到具体变量。
+      <div class="case-shell case-article">
+        <section id="problem" class="chapter chapter--opening" data-reveal>
+          <div class="chapter-heading">
+            <span>01</span>
+            <div><p>THE QUESTION</p><h2>客户流失问题究竟在预测什么？</h2></div>
+          </div>
+          <div class="prose prose--lead">
+            <p>
+              一条 observation
+              对应一位充电客户在同一观察口径下的状态：使用哪一档计划、多久没有再次充电、最近是否支付失败或申请退款、平均等待多久、附近充电器出现多少故障，以及应用是否频繁崩溃。结果变量把客户分为
+              <code>retained</code> 与 <code>churned</code>；建模中把 <code
+                >churned</code
+              >
+              设为正类，所有 Sensitivity 与错误分析都围绕“能否识别真实流失客户”展开。
+            </p>
+            <p>
+              这不是先挑一个复杂算法再寻找用途。分析首先面对三个判断：哪些客户属于同一个预测总体；哪些字段既接近流失机制又能稳定解释；怎样在不接触最终答案的前提下比较多个模型。只有这三件事成立，最后的
+              AUC、混淆矩阵和 odds ratio 才有一致含义。
+            </p>
+            <p>
+              原始数据为合成客户数据，包含 200,000 条记录和 25 个字段。留出集中有 12,114
+              条 churned 与 27,086 条 retained，流失比例为
+              30.9%。这个比例不是极端失衡，却足以让只追求总体正确率的模型偏向较大的
+              retained 类别。
             </p>
           </div>
-
-          <div class="question-grid">
-            <article>
-              <span>Q1</span>
-              <h3>数据能否直接进入模型？</h3>
-              <p>
-                单位、百分比、二元字段和目标水平需要先统一；Fleet 还代表另一种合同结构。
-              </p>
-            </article>
-            <article>
-              <span>Q2</span>
-              <h3>哪些信号值得保留？</h3>
-              <p>字段选择由 EDA、业务边界和相关性共同决定，不按模型方便程度倒推。</p>
-            </article>
-            <article>
-              <span>Q3</span>
-              <h3>模型差异落在哪里？</h3>
-              <p>Accuracy、AUC、Sensitivity 和 Specificity 分别给出不同排名。</p>
-            </article>
-            <article>
-              <span>Q4</span>
-              <h3>最后的判断如何解释？</h3>
-              <p>留出集回答泛化表现，混淆矩阵回答错误结构，odds ratio 回答变量方向。</p>
-            </article>
-          </div>
-
-          <p class="bridge-copy">
-            第一个判断发生在建模之前：先看 20
-            万条记录如何被限定、拆分和抽样，才能判断后面的指标是否可信。
-          </p>
+          <figure class="class-distribution">
+            <figcaption>
+              <span>FIG 01</span><div>
+                <h3>留出集中，约三成客户属于 churned</h3><p>
+                  精确计数来自最终 39,200 条留出预测，可直接与混淆矩阵对齐。
+                </p>
+              </div>
+            </figcaption>
+            <div class="class-bars">
+              {
+                holdoutClassDistribution.map((item) => (
+                  <div>
+                    <span>{item.label}</span>
+                    <i style={`--share:${item.share}%`} />
+                    <strong>{item.value.toLocaleString("en-NZ")}</strong>
+                    <small>{item.share.toFixed(1)}%</small>
+                  </div>
+                ))
+              }
+            </div>
+            <p class="figure-reading">
+              应该看哪里：任何分类结果都必须同时回答两个方向——能识别多少真实
+              churned，以及会把多少 retained 错标成
+              churned。后续上采样只改变每个训练折的拟合分布，不改变验证折和留出集的这一本来结构。
+            </p>
+          </figure>
         </section>
 
-        <section id="data-flow" class="case-section case-section--wide" data-reveal>
-          <div class="section-intro">
-            <CaseSectionMarker kind="data" label="Data" />
-            <p class="section-number">02</p>
-            <h2>200,000 条记录如何进入分析？</h2>
-            <p class="section-lead">
-              样本流转决定了模型比较与最终评价的边界。探索结果则回答另一件事：哪些差异值得进入后续筛选。
+        <section id="data" class="chapter" data-reveal>
+          <div class="chapter-heading">
+            <span>02</span><div>
+              <p>DATA AUDIT</p><h2>200,000 条记录为什么没有直接进入模型？</h2>
+            </div>
+          </div>
+          <div class="prose">
+            <p>
+              原始字段混合了标识、客户资料、计划与支付、使用行为、服务可靠性、数字互动和结果来源。字段清理先把带单位的文本转换为数值：等待时间转为分钟、使用间隔转为周、故障率和高峰使用比例转为百分点；六个二元字段统一为
+              No / Yes factor。<code>retained_binary</code> 被转换为有明确水平顺序的 <code
+                >churn</code
+              >，记录标识
+              <code>user_ID</code> 则完全移出建模数据。
+            </p>
+            <p>
+              清洗后没有缺失值。recipe 中仍保留 <code>step_impute_median()</code
+              >，它在现有训练数据上不会改变任何值，作用是当同一结构接收新的数值记录时提供中位数保护。分类变量另由
+              <code>step_unknown()</code> 接住未见水平，避免一次未知计划或类别直接中断预测流程。
             </p>
           </div>
-          <ChurnDataStory />
-          <p class="bridge-copy">
-            活跃度、等待时间、设备故障和支付退款信号都出现差异，但“出现差异”还不等于“全部放入模型”。下一步需要解释
-            25 个字段如何缩减到 7 个输入。
-          </p>
+          <ChurnFieldSchema />
+          <ChurnEvidenceFigure
+            number="FIG 02"
+            title="数值字段先揭示分布，再决定能否进入同一模型"
+            src={projectImages.numericDistributions}
+            alt="年龄、应用崩溃、等待时间、故障率、充电次数、使用间隔等数值字段的真实分布图"
+            caption="连续变量与整数周变量使用不同图形，避免把离散周数误读为平滑连续分布。"
+            reading="应该看哪里：等待时间与高峰使用大致呈钟形，应用崩溃与充电次数则明显右偏；距上次充电在 5–7 周附近更集中。分布差异解释了为什么字段类型和单位必须在 recipe 前先固定。"
+          />
         </section>
 
-        <section
-          id="feature-selection"
-          class="case-section case-section--wide"
-          data-reveal
-        >
-          <div class="section-intro">
-            <CaseSectionMarker kind="filter" label="Feature" />
-            <p class="section-number">03</p>
-            <h2>25 个字段为什么最后只留下 7 个？</h2>
-            <p class="section-lead">
-              最终输入覆盖服务质量、商业摩擦、活跃度和会员结构。高缺失调查字段、可能代理服务质量的地区字段，以及与近期活跃度高度相关的注册时长没有进入模型。
+        <section class="chapter" data-reveal>
+          <div class="chapter-heading">
+            <span>03</span><div>
+              <p>POPULATION</p><h2>为什么 Fleet 必须从个人客户模型中排除？</h2>
+            </div>
+          </div>
+          <div class="prose">
+            <p>
+              Fleet 是商业账户类型，合同周期和流失机制与个人计划不同。若把 Fleet 与
+              Basic、Plus、Pro
+              一同建模，计划变量会同时承担“商业合同”和“个人会员层级”两种含义，其他行为变量也会在混合总体中被重新解释。因此模型明确限定为个人客户，并把
+              Basic 设置为计划参照水平。
+            </p>
+            <p>
+              排除 4,000 条 Fleet 后，建模总体从 200,000 降至
+              196,000。这个动作不是为了提高分数而删除难例，而是先定义模型适用人群：后续每一项结果都只回答个人充电客户的流失问题，不延伸到商业车队账户。
+            </p>
+          </div>
+          <figure class="sample-flow">
+            <figcaption>
+              <span>FIG 03</span><div>
+                <h3>总体、训练、留出与 CV 样本各有不同职责</h3><p>
+                  条形长度表示记录规模，CV 样本仍属于训练部分，不是第三个独立数据集。
+                </p>
+              </div>
+            </figcaption>
+            <div class="sample-flow__rows">
+              {
+                sampleFlow.map((step, index) => (
+                  <div>
+                    <b>{String(index + 1).padStart(2, "0")}</b>
+                    <span>
+                      <>
+                        <strong>{step.label}</strong>
+                        <small>{step.note}</small>
+                      </>
+                    </span>
+                    <i style={`--width:${(step.value / maxFlow) * 100}%`} />
+                    <em>{step.value.toLocaleString("en-NZ")}</em>
+                  </div>
+                ))
+              }
+            </div>
+            <p class="figure-reading">
+              应该看哪里：39,200 条留出记录在第三步就被隔离；30,000 条 CV 样本只从
+              156,800 条训练记录中抽取，因此模型比较没有提前看见最终答案。
+            </p>
+          </figure>
+          <RCodeShowcase title="限定个人客户总体" code={codeSnippets.population} />
+        </section>
+
+        <section id="features" class="chapter" data-reveal>
+          <div class="chapter-heading">
+            <span>04</span><div>
+              <p>FEATURE SELECTION</p><h2>25 个字段如何收缩为 7 个 predictor？</h2>
+            </div>
+          </div>
+          <div class="prose">
+            <p>
+              变量筛选不是一次 <code>select()</code> 的结果，而是多道判断的叠加。标识和目标来源先离场；Fleet
+              在总体层面被排除；调查满意度因非应答比例过高而不进入最终模型；16 水平的 region
+              会扩展为 15 个指示变量，而且其区域差异与等待时间、故障率等更直接的服务信号重叠。
+            </p>
+            <p>
+              最终七个 predictor
+              覆盖四类信息：服务质量、商业摩擦、活跃间隔和会员结构。它们分别保留原始单位，使
+              Logistic Regression
+              的系数能回答“多等待一分钟”“多一周未充电”“出现一次支付失败”各自意味着什么，而不是只留下无法解释的标准化分数。
             </p>
           </div>
           <FeatureSelectionStory />
-          <div class="code-evidence code-evidence--single">
-            <div>
-              <span>R / SELECT</span>
-              <h3>字段判断如何对应到建模数据</h3>
-              <p>
-                代码只保留七个输入和 churn 目标；这一列表随后由两套 recipe 共同使用。
-              </p>
-              <dl><div><dt>输出</dt><dd>196,000 行 × 8 列</dd></div></dl>
-            </div>
-            <RCodeShowcase {...codeSnippets.variableSelection} />
+          <ChurnEvidenceFigure
+            number="FIG 04A"
+            title="七个 predictor 在 retained 与 churned 之间呈现不同分布"
+            src={projectImages.predictorComparisons}
+            alt="七个最终预测变量按 retained 与 churned 分组的真实分布比较"
+            caption="连续变量比较中心位置与尾部，二元事件和计划层级比较类别比例。"
+            reading="应该看哪里：流失客户的支付失败、退款、等待、故障、应用崩溃和距上次充电周数整体向更高方向移动；计划层级则呈现不同的类别构成。这些差异说明七个变量各自提供了可区分信息，但单一变量仍不足以完成分类。"
+          />
+          <ChurnEvidenceFigure
+            number="FIG 04B"
+            title="计划与支付事件把类别差异转为可比较比例"
+            src={projectImages.categoricalRates}
+            alt="计划层级、支付失败与退款事件对应的真实流失比例图"
+            caption="每一组都使用相同的 churn 定义，比较的是组内流失比例。"
+            reading="应该看哪里：支付失败和退款事件对应的 churn 比例明显抬升；Plus 与 Pro 相对 Basic 的方向则相反。二元商业摩擦与计划层级因此同时保留，但在 Logistic Regression 中用不同参照方式解释。"
+          />
+          <div class="predictor-ledger">
+            {
+              predictors.map((predictor, index) => (
+                <div>
+                  <>
+                    <span>{String(index + 1).padStart(2, "0")}</span>
+                    <strong>{predictor.label}</strong>
+                    <code>{predictor.name}</code>
+                    <small>
+                      {predictor.type} · {predictor.unit} · {predictor.dimension}
+                    </small>
+                  </>
+                </div>
+              ))
+            }
           </div>
-          <p class="bridge-copy">
-            输入确定之后，新的风险来自流程本身：如果上采样或编码越过数据边界，模型比较会变得乐观。因此需要把拆分、交叉验证与预处理顺序放在同一条
-            Pipeline 中检查。
-          </p>
+          <RCodeShowcase title="形成七变量建模表" code={codeSnippets.features} />
         </section>
 
-        <section id="pipeline" class="case-section case-section--wide" data-reveal>
-          <div class="section-intro">
-            <CaseSectionMarker kind="pipeline" label="Pipeline" />
-            <p class="section-number">04</p>
-            <h2>如何比较模型，同时不让测试集提前泄露答案？</h2>
-            <p class="section-lead">
-              80/20 分层拆分先于抽样和预处理。五折比较只使用训练部分中的 30,000
-              条记录；上采样写进 recipe，因此只作用于每一折的训练数据。
+        <section class="chapter" data-reveal>
+          <div class="chapter-heading">
+            <span>05</span><div>
+              <p>CORRELATION</p><h2>0.88 的相关性如何改变变量选择？</h2>
+            </div>
+          </div>
+          <div class="prose">
+            <p>
+              <code>weeks_since_signup</code> 与 <code>weeks_since_last_charge</code> 的相关系数约为
+              0.88。两者同时进入 Logistic Regression，会让相近的信息在两个系数之间分摊，扩大标准误并削弱单个系数的稳定解释。最终保留距上次充电周数，因为它更直接对应当前不活跃程度。
+            </p>
+            <p>
+              其余相关性较低或含义仍然不同。等待时间与故障率相关约
+              0.39，但一个描述排队摩擦，另一个描述设施可靠性；两者都保留。应用版本滞后与应用崩溃相关约
+              0.41，最终保留更直接的崩溃次数。这里的目标不是让所有输入彼此无关，而是删除会明显重复同一行为含义的变量。
+            </p>
+          </div>
+          <ChurnEvidenceFigure
+            number="FIG 05"
+            title="完整相关矩阵把 0.88 放回其他变量关系中"
+            src={projectImages.correlationMatrix}
+            alt="数值字段相关矩阵，距注册周数与距上次充电周数的相关系数为 0.88"
+            caption="深蓝单元格表示更强正相关；矩阵中的数值是变量筛选依据。"
+            reading="应该看哪里：0.88 明显高于 0.41、0.39 和 0.37 的其他关系，因此删除 signup 周数是针对单一高冗余对，而不是把全部中等相关变量一并移除。"
+          />
+          <ChurnEvidenceFigure
+            number="FIG 05B"
+            title="服务摩擦之间存在组合关系，但不会替代单变量判断"
+            src={projectImages.serviceInteractions}
+            alt="等待时间、充电器故障率与客户流失的真实交互分布图"
+            caption="交互图用于观察多个服务信号同时升高时的类别变化，不作为新增 predictor。"
+            reading="应该看哪里：高等待与高故障区域的 churn 比例更集中，说明非线性模型可能捕捉到局部组合关系；同时，单独的等待和故障变量仍有清晰方向。这正是后续同时比较可解释线性模型与树集成模型的理由。"
+          />
+        </section>
+
+        <section id="validation" class="chapter chapter--wide" data-reveal>
+          <div class="chapter-heading">
+            <span>06</span><div>
+              <p>VALIDATION DESIGN</p><h2>为什么测试集必须在模型选择前保持隔离？</h2>
+            </div>
+          </div>
+          <div class="prose">
+            <p>
+              196,000 条个人客户记录按 churn 分层切成 80% 训练与 20%
+              留出。分层保证两部分保留接近的类别比例；固定 seed 404713359
+              让同一切分可重复。模型比较不在完整 156,800
+              条训练数据上做五折计算，而是从训练部分分层抽取 30,000 条作为 CV
+              样本，以相同 folds 比较五个模型。
+            </p>
+            <p>
+              30,000 条数据进入 5-fold CV 后，每折约有 24,000 条 analysis 数据和 6,000
+              条 assessment
+              数据。每条验证预测都来自没有参与该折拟合的记录。最终模型确定后，<code
+                >last_fit()</code
+              > 才用完整训练部分重拟合，并一次性评估 39,200 条留出记录。
             </p>
           </div>
           <AnalysisPipeline />
-          <div class="recipe-contrast">
-            <article>
-              <span>RECIPE A</span>
-              <h3>Dummy 编码</h3>
-              <p>
-                Logistic Regression 与 XGBoost 使用数值矩阵；分类字段展开为指示变量。
-              </p>
-              <small>glm / xgboost</small>
-            </article>
-            <article>
-              <span>RECIPE B</span>
-              <h3>保留因子变量</h3>
-              <p>Random Forest、LightGBM 与 Naive Bayes 直接接收分类字段。</p>
-              <small>ranger / lightgbm / klaR</small>
-            </article>
-            <div class="recipe-shared">
-              <strong>共同步骤</strong>
-              <p>未知水平处理 → 零方差移除 → 训练折内 1:1 上采样</p>
-            </div>
-          </div>
-          <div class="code-evidence">
-            <div>
-              <span>R / SPLIT</span>
-              <h3>先锁定留出集</h3>
-              <p>seed 404713359 与 churn 分层保证流程可以复查。</p>
-              <dl>
-                <div><dt>训练</dt><dd>156,800</dd></div><div>
-                  <dt>测试</dt><dd>39,200</dd>
-                </div>
-              </dl>
-            </div>
-            <RCodeShowcase {...codeSnippets.split} />
-            <div>
-              <span>R / RECIPE</span>
-              <h3>再把上采样限制在训练折</h3>
-              <p>验证折和测试集维持原类别比例，指标因此仍对应自然分布。</p>
-              <dl>
-                <div><dt>CV</dt><dd>5 folds</dd></div><div>
-                  <dt>样本</dt><dd>30,000</dd>
-                </div>
-              </dl>
-            </div>
-            <RCodeShowcase {...codeSnippets.recipes} />
-          </div>
-          <p class="bridge-copy">
-            当五个模型使用同一份交叉验证设计后，比较才有意义。真正困难的部分不是找出每列最高值，而是理解四项指标为什么给出不同答案。
-          </p>
         </section>
 
-        <section id="comparison" class="case-section case-section--wide" data-reveal>
-          <div class="section-intro">
-            <CaseSectionMarker kind="compare" label="Compare" />
-            <p class="section-number">05</p>
-            <h2>五个模型到底差在哪里？</h2>
-            <p class="section-lead">
-              LightGBM 的 Accuracy 最高，Naive Bayes 的 Sensitivity 最高，XGBoost 的
-              Specificity 最高，而 Logistic Regression 的 AUC
-              最高。没有一个模型包揽四项指标。
+        <section class="chapter" data-reveal>
+          <div class="chapter-heading">
+            <span>07</span><div>
+              <p>LEAKAGE CONTROL</p><h2>为什么上采样必须发生在每一个 fold 内部？</h2>
+            </div>
+          </div>
+          <div class="prose">
+            <p>
+              churned 约占三成。若模型直接在这一分布上优化整体正确率，更容易偏向
+              retained。recipe 使用
+              <code>step_upsample(churn, over_ratio = 1)</code>，在每个 analysis fold
+              内复制少数类，直到两类达到 1:1；assessment fold
+              与最终留出集仍保持自然比例。
+            </p>
+            <p>
+              顺序比动作本身更重要。如果先在全数据上复制 churned，再切分
+              folds，同一条或完全相同的复制记录可能同时出现在拟合与验证侧，模型相当于提前见过答案。把上采样置于
+              recipe 内，让它随每个 resample 独立 prep，阻断这条泄漏路径。
+            </p>
+            <p>
+              下采样会丢弃大量 retained 记录；SMOTE
+              会新增插值样本并扩大方法复杂度。面对约 30/70
+              的中等不平衡，折内随机上采样提供了更直接、可审计的处理，同时保留验证分布的真实性。
+            </p>
+          </div>
+          <div class="balance-diagram" aria-label="折内上采样前后结构">
+            <div>
+              <span>Analysis fold · before</span><i
+                ><b style="--part:69%">retained ≈ 69%</b><b style="--part:31%"
+                  >churned ≈ 31%</b
+                ></i
+              ><small>约 24,000 条</small>
+            </div>
+            <em>recipe</em>
+            <div>
+              <span>Analysis fold · after</span><i
+                ><b style="--part:50%">retained 50%</b><b style="--part:50%"
+                  >churned 50%</b
+                ></i
+              ><small>仅用于该折拟合</small>
+            </div>
+            <em>evaluate</em>
+            <div>
+              <span>Assessment fold</span><i
+                ><b style="--part:69%">retained ≈ 69%</b><b style="--part:31%"
+                  >churned ≈ 31%</b
+                ></i
+              ><small>约 6,000 条，未上采样</small>
+            </div>
+          </div>
+          <RCodeShowcase
+            title="两类模型 recipe 与折内上采样"
+            code={codeSnippets.recipes}
+          />
+        </section>
+
+        <section class="chapter" data-reveal>
+          <div class="chapter-heading">
+            <span>08</span><div>
+              <p>MODEL FAMILIES</p><h2>五个模型在学习什么不同的关系？</h2>
+            </div>
+          </div>
+          <div class="prose">
+            <p>
+              Logistic Regression 把七个输入组合成加性的 log-odds；Naive Bayes
+              从各类别下的条件分布计算概率；Random Forest 通过 500 棵去相关树进行
+              bagging；XGBoost 与 LightGBM
+              则让后续树持续修正前序错误。它们不是五种同义实现，而是用不同结构回答同一个二分类问题。
+            </p>
+            <p>
+              输入要求也不同。<code>glm</code> 与 <code>xgboost</code> 使用 Dummy 编码后的数值矩阵；<code
+                >ranger</code
+              >、<code>lightgbm</code> 与
+              <code>klaR</code> 保留 factor。五个 workflow 共享同一组 folds 和四项指标，因此结果差异来自模型与配套
+              recipe，而不是不同验证样本。
+            </p>
+          </div>
+          <div class="model-family-map">
+            {
+              modelResults.map((model) => (
+                <article>
+                  <>
+                    <span>{model.family}</span>
+                    <h3>{model.name}</h3>
+                    <code>{model.engine}</code>
+                    <p>{model.input}</p>
+                    <strong>{model.parameters}</strong>
+                  </>
+                </article>
+              ))
+            }
+          </div>
+          <RCodeShowcase title="五种模型规格" code={codeSnippets.models} />
+        </section>
+
+        <section id="models" class="chapter chapter--wide" data-reveal>
+          <div class="chapter-heading">
+            <span>09</span><div>
+              <p>MODEL COMPARISON</p><h2>五个模型的表现到底差在哪里？</h2>
+            </div>
+          </div>
+          <div class="prose">
+            <p>
+              单看 Accuracy，LightGBM 以 0.8199 排名第一；单看 Sensitivity，Naive Bayes
+              以 0.8318 领先；单看 Specificity，XGBoost 以 0.8370 领先；但 AUC
+              排名第一的是 Logistic Regression，达到
+              0.9024。四个“第一名”分属四个不同模型，正说明选择不能压缩成单一排行榜。
+            </p>
+            <p>
+              交叉验证代码保存了每折预测并检查每折指标，但逐折结果对象没有作为最终成果保留。因此这里展示可复核的五折平均值，不制造标准差、范围或稳定性点图。模型稳定性的判断只停留在已保留证据能够支持的层级。
             </p>
           </div>
           <ModelComparisonLab />
-          <div class="decision-quote">
-            <span aria-hidden="true">↳</span>
-            <p>
-              <strong>为什么不是 Accuracy 最高的 LightGBM？</strong> 0.8199 与 Logistic Regression
-              的 0.8136 相差 0.0063；与此同时，Logistic Regression 的 AUC 高 0.0069，Sensitivity
-              高 0.0287，并能继续解释变量方向。
-            </p>
-          </div>
-          <p class="bridge-copy">
-            交叉验证决定候选模型，留出集决定这个选择能否站住。下一步不再看均值排名，而是直接查看
-            39,200 条未见记录中的正确分类与两类错误。
-          </p>
         </section>
 
-        <section id="evaluation" class="case-section case-section--wide" data-reveal>
-          <div class="section-intro">
-            <CaseSectionMarker kind="evaluate" label="Evaluate" />
-            <p class="section-number">06</p>
-            <h2>最终模型识别了多少流失客户，又漏掉了多少？</h2>
-            <p class="section-lead">
-              Logistic Regression 在留出集上取得 0.9053
-              AUC。混淆矩阵说明错误落在哪里，ROC 说明跨阈值排序能力，odds ratio
-              则把模型结果还原为变量方向。
+        <section class="chapter" data-reveal>
+          <div class="chapter-heading">
+            <span>10</span><div>
+              <p>THE DECISION</p><h2>为什么 Accuracy 最高的模型没有被选中？</h2>
+            </div>
+          </div>
+          <div class="decision-essay">
+            <div>
+              <strong>LightGBM</strong><span>Accuracy 0.8199</span><p>
+                总体正确率最高，但 AUC 0.8955、Sensitivity 0.7994 均未领先。
+              </p>
+            </div>
+            <div>
+              <strong>Naive Bayes</strong><span>Sensitivity 0.8318</span><p>
+                找回流失客户最多，但 Specificity 0.7999 最低，整体区分能力也略低。
+              </p>
+            </div>
+            <div>
+              <strong>XGBoost</strong><span>Specificity 0.8370</span><p>
+                最少错标 retained，却只识别 76.32% 的真实 churned。
+              </p>
+            </div>
+            <div class="decision-essay__winner">
+              <strong>Logistic Regression</strong><span>AUC 0.9024</span><p>
+                跨阈值区分能力最高，Sensitivity 距最高值仅
+                0.0037，同时能把系数转成明确风险方向。
+              </p>
+            </div>
+          </div>
+          <div class="prose">
+            <p>
+              False Negative 是实际 churned 却被判断为 retained；False Positive 是实际
+              retained 却被判断为
+              churned。两类错误不是同一个后果：前者让潜在流失客户离开筛查范围，后者扩大需要进一步核查的客户范围。Sensitivity
+              和 Specificity 分别对应这两个方向，Accuracy 则把它们混在一个比例中。
+            </p>
+            <p>
+              最终选择以 mean AUC 为首要标准，并在接近时检查 Sensitivity。Logistic
+              Regression 的 AUC 第一，Sensitivity 接近 Naive
+              Bayes，同时比树集成保留更直接的解释结构。这个决定不是“线性模型更简单所以更好”，而是判别力、漏判控制和解释成本在本问题中的共同取舍。
+            </p>
+          </div>
+          <RCodeShowcase
+            title="按 mean AUC 选择 workflow"
+            code={codeSnippets.selection}
+          />
+        </section>
+
+        <section id="evaluation" class="chapter chapter--wide" data-reveal>
+          <div class="chapter-heading">
+            <span>11–14</span><div>
+              <p>HOLD-OUT EVALUATION</p><h2>
+                最终模型在 39,200 条未参与选择的记录上怎样犯错？
+              </h2>
+            </div>
+          </div>
+          <div class="prose">
+            <p>
+              一次性留出评估得到 Accuracy 0.8142、AUC 0.9053、Sensitivity 0.8331 和
+              Specificity 0.8058。AUC 比 CV 平均值 0.9024
+              略高，说明模型在隔离数据上的整体排序能力与选择阶段相近；但真正决定筛查行为的是混淆矩阵中
+              31,917 个正确判断和 7,283 个错误判断。
+            </p>
+            <p>
+              2,022 个 False Negative 对应 16.69% 的实际 churned；5,261 个 False
+              Positive 对应 19.42% 的实际 retained。前者解释为什么 Sensitivity 没有达到
+              1，后者解释为什么 Specificity 低于 Accuracy。分别阅读两类错误，比把 81.42%
+              正确率视为单一结论更有价值。
             </p>
           </div>
           <ModelEvaluation />
-          <p class="bridge-copy">
-            图表回答了“结果是什么”，代码还要回答“结果从哪里产生”。主页面只保留与样本边界、模型选择和最终评价直接相关的五段
-            R 代码。
+          <RCodeShowcase
+            title="从留出预测生成混淆矩阵与 ROC"
+            code={codeSnippets.finalEvaluation}
+          />
+        </section>
+
+        <section id="interpretation" class="chapter chapter--wide" data-reveal>
+          <div class="chapter-heading">
+            <span>15</span><div>
+              <p>INTERPRETATION</p><h2>哪些变量最明显改变 churn odds？</h2>
+            </div>
+          </div>
+          <div class="prose">
+            <p>
+              解释模型使用自然类别分布重新拟合，不带上采样。这样做是因为把类别人为变成
+              1:1 会改变截距，并可能改变 odds ratio 的业务解释。系数通过 <code
+                >exp(beta)</code
+              > 转成 odds ratio，并为每项系数计算 95% confidence interval；虚线 OR = 1 表示在其他变量相同时没有方向变化。
+            </p>
+            <p>
+              支付失败是最强信号：Yes 相对 No 的 OR 约为 15.9。退款申请的 OR 约
+              2.5；距上次充电每增加一周，OR 约
+              2.01。应用崩溃、等待时间和故障率的单单位效应较小，但单位必须读清：一次崩溃、一分钟、一个百分点分别对应
+              1.18、1.10 和 1.08。
+            </p>
+            <p>
+              计划层级以 Basic 为参照，Plus 与 Pro 的 OR 分别约 0.62 和 0.38。小于 1
+              表示在控制其他六个输入后与更低的流失 odds
+              相关。所有解释都是已拟合模型内的条件关联，不能把它们写成支付、等待或计划对流失的因果证明。
+            </p>
+          </div>
+          <ChurnEvidenceFigure
+            number="FIG 11"
+            title="Odds ratio 与 95% 区间把方向和不确定性放在同一轴上"
+            src={projectImages.oddsRatioCi}
+            alt="Logistic Regression 八项系数的 odds ratio 与 95% confidence interval 图，参照线为 1"
+            caption="Basic 是 plan_tier 的参照；二元变量为 Yes 相对 No；数值变量按原始单位增加 1。"
+            reading="应该看哪里：支付失败远离 OR=1，Plus 与 Pro 位于保护方向；服务变量靠近 1，但它们按一分钟、一次崩溃或一个百分点计量，不能仅凭条形长度判断实际影响。区间用于判断估计精度，点值用于说明方向与单位。"
+          />
+          <RiskSignalExplorer />
+          <RCodeShowcase
+            title="自然分布下计算 odds ratio 与 95% 区间"
+            code={codeSnippets.oddsRatios}
+          />
+        </section>
+
+        <section class="chapter" data-reveal>
+          <div class="chapter-heading">
+            <span>16</span><div>
+              <p>WHAT THE EVIDENCE SUPPORTS</p><h2>
+                从数据筛选到模型解释，结论如何闭合？
+              </h2>
+            </div>
+          </div>
+          <ol class="closing-findings">
+            <li>
+              <strong>总体先于算法。</strong><span
+                >200,000 条记录排除 4,000 条 Fleet 后，模型明确服务于 196,000
+                条个人客户观察。</span
+              >
+            </li>
+            <li>
+              <strong>七个变量覆盖四种风险来源。</strong><span
+                >服务质量、商业摩擦、不活跃程度和会员结构进入同一个可解释输入集合；signup
+                周数因 0.88 相关性被移除。</span
+              >
+            </li>
+            <li>
+              <strong>验证边界完整隔离。</strong><span
+                >156,800 条训练记录承担比较与重拟合，39,200
+                条留出记录只参与最终一次评估；30,000 条 CV 样本仅来自训练部分。</span
+              >
+            </li>
+            <li>
+              <strong>五模型没有共同的“第一”。</strong><span
+                >LightGBM 领先 Accuracy，Naive Bayes 领先 Sensitivity，XGBoost 领先
+                Specificity，Logistic Regression 领先 AUC。</span
+              >
+            </li>
+            <li>
+              <strong>最终选择是多目标取舍。</strong><span
+                >Logistic Regression 的 CV AUC 为 0.9024，留出 AUC 为 0.9053；它同时保留
+                0.8331 的流失召回与系数解释。</span
+              >
+            </li>
+            <li>
+              <strong>错误结构和风险信号可以继续行动化。</strong><span
+                >2,022 个漏判与 5,261 个误报界定筛查边界；支付失败 OR
+                15.9、距上次充电每周 OR 2.01 是最明显的模型信号。</span
+              >
+            </li>
+          </ol>
+        </section>
+
+        <section class="chapter chapter--deep-dives" data-reveal>
+          <div class="chapter-heading">
+            <span>TECH</span><div>
+              <p>TECHNICAL DEEP DIVES</p><h2>
+                主项目给出完整判断链，技术专篇进入实现细节
+              </h2>
+            </div>
+          </div>
+          <p class="deep-dive-intro">
+            五篇专文分别负责数据与验证、五模型基准、模型选择与错误、Logistic Regression
+            解释和独立神经网络实验。每篇只展开自己的技术问题，不把主项目重新复述一遍。
           </p>
-        </section>
-
-        <section id="code" class="case-section case-section--wide" data-reveal>
-          <div class="section-intro">
-            <CaseSectionMarker kind="code" label="R Code" />
-            <p class="section-number">07</p>
-            <h2>每段 R 代码都对应一个可见结果</h2>
-            <p class="section-lead">
-              代码不按文件顺序堆叠，而是对应前文的判断：如何定义指标方向、如何选择模型，以及如何生成混淆矩阵和
-              ROC。
-            </p>
-          </div>
-          <div class="code-narrative">
-            <article>
-              <div>
-                <span>01</span><h3>定义正类与评价指标</h3><p>
-                  <code>churned</code> 是第二水平，Sensitivity 与 Specificity 都按这一方向计算。
-                </p><strong>对应输出：五折四指标比较</strong>
-              </div>
-              <RCodeShowcase {...codeSnippets.metricSet} />
-            </article>
-            <article>
-              <div>
-                <span>02</span><h3>按 AUC 选择候选模型</h3><p>
-                  比较完成后才把获选 workflow 拟合到完整训练部分。
-                </p><strong>对应输出：Logistic Regression</strong>
-              </div>
-              <RCodeShowcase {...codeSnippets.finalFit} />
-            </article>
-            <article>
-              <div>
-                <span>03</span><h3>生成误判结构与 ROC</h3><p>
-                  同一组留出集预测同时进入混淆矩阵与 AUC 计算。
-                </p><strong>对应输出：39,200 条矩阵与 AUC 0.9053</strong>
-              </div>
-              <RCodeShowcase {...codeSnippets.confusion} />
-            </article>
-            <article>
-              <div>
-                <span>04</span><h3>重新拟合解释模型</h3><p>
-                  解释用 Logistic Regression 保持自然类别比例，避免上采样改变截距与 OR
-                  量级。
-                </p><strong>对应输出：八项 odds ratio</strong>
-              </div>
-              <RCodeShowcase {...codeSnippets.oddsRatio} />
-            </article>
-          </div>
-        </section>
-
-        <section id="deep-dives" class="case-section case-section--deep" data-reveal>
-          <div class="section-intro">
-            <CaseSectionMarker kind="detail" label="Deep Dive" />
-            <p class="section-number">08</p>
-            <h2>主页面给出判断链，技术页展开实现细节</h2>
-            <p class="section-lead">
-              四个专题分别处理流程、模型比较、预测评价，以及与客户流失分析分开的神经网络实验。
-            </p>
-          </div>
           <TechnicalDeepDiveNav />
         </section>
 
-        <section class="case-section case-section--boundary" data-reveal>
-          <div class="boundary-copy">
-            <p class="case-kicker">ANALYSIS BOUNDARY</p>
-            <h2>这些结果能说明什么，不能说明什么？</h2>
+        <section class="chapter related-projects" data-reveal>
+          <div class="chapter-heading">
+            <span>NEXT</span><div>
+              <p>RELATED PROJECTS</p><h2>继续查看其他分析项目</h2>
+            </div>
           </div>
-          <div class="boundary-notes">
-            <p>
-              <strong>数据边界</strong
-              >客户记录是合成数据，结论适用于当前字段定义和样本结构。
-            </p>
-            <p>
-              <strong>阈值边界</strong>混淆矩阵对应既定分类阈值；页面没有推演其他阈值。
-            </p>
-            <p>
-              <strong>使用边界</strong
-              >结果用于比较分类方法和解释风险信号，不代表已经接入实际客户系统。
-            </p>
-          </div>
-        </section>
-
-        <footer class="case-footer" data-reveal>
-          <div>
-            <p class="case-kicker">CONTINUE READING</p>
-            <h2>继续查看其他分析项目</h2>
-          </div>
-          <ul>
+          <div class="related-projects__grid">
             {
               relatedProjects.map((project) => (
-                <li>
-                  <a href={getLocalizedPath(`/projects/${project.data.slug}/`, "zh")}>
-                    <>
-                      <span>{project.data.topic}</span>
-                      <strong>{project.data.title}</strong>
-                      <i aria-hidden="true">↗</i>
-                    </>
-                  </a>
-                </li>
+                <a href={getLocalizedPath(`/projects/${project.data.slug}/`, "zh")}>
+                  <>
+                    <span>{project.data.topic}</span>
+                    <strong>{project.data.title}</strong>
+                    <p>{project.data.summary}</p>
+                  </>
+                </a>
               ))
             }
-          </ul>
+          </div>
           <ContextBack
             locale="zh"
             fallbackPath="/projects/"
             label={{ en: "Back to projects", zh: "返回项目列表" }}
           />
-        </footer>
+        </section>
       </div>
     </article>
   </main>
@@ -414,680 +681,510 @@ const relatedProjects = (await getCollection("projects"))
 
 <style>
   .churn-case {
-    width: 100%;
-    min-width: 0;
     overflow: clip;
+    background: var(--colour-page);
   }
-
   .churn-case > article {
-    display: block;
     width: 100%;
-    min-width: 0;
-    max-width: none;
-    margin: 0;
   }
-
   .case-shell {
-    width: min(calc(100% - clamp(1.25rem, 5vw, 5rem)), 82rem);
+    width: min(100% - 2rem, 84rem);
     margin-inline: auto;
   }
-
   .case-hero {
-    min-width: 0;
-    padding: clamp(2rem, 5vw, 4rem) 0 clamp(2.5rem, 7vw, 5.5rem);
-    border-bottom: 1px solid var(--colour-border-strong);
+    padding: clamp(2rem, 6vw, 5rem) 0 0;
+    border-bottom: 1px solid var(--colour-border);
     background:
       linear-gradient(
-        135deg,
-        color-mix(in srgb, var(--colour-primary) 7%, transparent),
-        transparent 52%
+        155deg,
+        color-mix(in srgb, var(--colour-secondary) 8%, transparent),
+        transparent 50%
       ),
       var(--colour-page);
   }
-
   .case-hero__grid {
     display: grid;
-    grid-template-columns: minmax(0, 1.05fr) minmax(28rem, 0.95fr);
-    gap: clamp(3rem, 7vw, 7rem);
+    grid-template-columns: minmax(0, 1.35fr) minmax(19rem, 0.65fr);
+    gap: clamp(2rem, 7vw, 6rem);
     align-items: end;
-    min-height: min(38rem, calc(100svh - var(--header-height) - 8rem));
-    padding-top: clamp(3rem, 8vw, 7rem);
+    padding-block: clamp(3rem, 8vw, 7rem);
   }
-
-  .case-hero__copy {
-    min-width: 0;
-  }
-
   .case-kicker,
-  .case-hero h1,
-  .case-hero__summary,
-  .case-hero__decision p,
-  .section-intro p,
-  .section-intro h2,
-  .question-grid h3,
-  .question-grid p,
-  .bridge-copy,
-  .recipe-contrast h3,
-  .recipe-contrast p,
-  .code-evidence h3,
-  .code-evidence p,
-  .decision-quote p,
-  .code-narrative h3,
-  .code-narrative p,
-  .boundary-copy h2,
-  .boundary-notes p,
-  .case-footer h2 {
+  .chapter-heading p {
     margin: 0;
-  }
-
-  .case-kicker,
-  .case-hero__copy > .case-kicker {
     color: var(--colour-accent);
     font: 700 0.72rem/1 var(--font-mono);
-    letter-spacing: 0.12em;
+    letter-spacing: 0.1em;
   }
-
   .case-hero h1 {
-    max-width: 13ch;
-    margin-top: 1.1rem;
-    font-size: clamp(3rem, 6.2vw, 6rem);
-    line-height: 0.98;
-    letter-spacing: -0.055em;
-    text-wrap: balance;
+    max-width: 100%;
+    margin: 0.8rem 0 0;
+    font-size: clamp(2.8rem, 5vw, 4.5rem);
+    line-height: 1.04;
+    letter-spacing: -0.04em;
   }
-
-  .case-hero__summary {
-    max-width: 58ch;
-    margin-top: 1.5rem;
+  .case-hero h1 span {
+    display: block;
+  }
+  .case-hero__lead {
+    max-width: 66ch;
+    margin: 1.4rem 0 0;
     color: var(--colour-text-muted);
-    font-size: clamp(1rem, 1.4vw, 1.18rem);
-    line-height: 1.75;
+    font-size: clamp(1.05rem, 2vw, 1.28rem);
+    line-height: 1.72;
   }
-
   .case-tags {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: 0.55rem;
     margin: 1.5rem 0 0;
     padding: 0;
     list-style: none;
   }
-
   .case-tags li {
-    padding: 0.4rem 0.7rem;
-    border: 1px solid var(--colour-border-strong);
+    padding: 0.42rem 0.7rem;
+    border: 1px solid var(--colour-border);
     border-radius: 999px;
     color: var(--colour-text-muted);
-    font-size: 0.78rem;
+    font-size: 0.76rem;
   }
-
-  .case-hero__signal {
-    position: relative;
-    min-width: 0;
-    padding: clamp(1.5rem, 4vw, 2.5rem);
-    border-block: 1px solid var(--colour-border-strong);
-  }
-
-  .signal-route svg {
-    display: block;
-    width: 100%;
-    overflow: visible;
-  }
-
-  .signal-route path {
-    fill: none;
-    stroke-linecap: round;
-  }
-
-  .signal-route__base {
-    stroke: var(--colour-border);
-    stroke-width: 2;
-  }
-
-  .signal-route__active {
-    stroke: var(--colour-primary);
-    stroke-width: 3;
-  }
-
-  .signal-route circle {
-    fill: var(--colour-page);
-    stroke: var(--colour-accent);
-    stroke-width: 3;
-  }
-
-  .case-hero__signal ol {
+  .case-hero__brief {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 1rem;
-    margin: -1.2rem 0 0;
-    padding: 0;
-    list-style: none;
+    border-top: 1px solid var(--colour-border-strong);
   }
-
-  .case-hero__signal li {
+  .case-hero__brief div {
     display: grid;
-    gap: 0.3rem;
-  }
-
-  .case-hero__signal li span {
-    color: var(--colour-accent);
-    font: 700 0.7rem/1 var(--font-mono);
-  }
-
-  .case-hero__signal li strong {
-    font: 750 clamp(1.2rem, 2.8vw, 1.8rem)/1 var(--font-display);
-    font-variant-numeric: tabular-nums;
-  }
-
-  .case-hero__signal li small {
-    color: var(--colour-text-muted);
-  }
-
-  .case-hero__decision {
-    display: grid;
-    grid-template-columns: auto auto minmax(0, 1fr);
-    gap: 1.25rem;
-    align-items: baseline;
-    margin-top: clamp(2rem, 5vw, 3.5rem);
-    padding-top: 1.2rem;
-    border-top: 1px solid var(--colour-border);
-  }
-
-  .case-hero__decision span {
-    color: var(--colour-text-muted);
-    font-size: 0.78rem;
-  }
-
-  .case-hero__decision strong {
-    color: var(--colour-primary-strong);
-    font: 750 1.05rem/1 var(--font-display);
-  }
-
-  .case-hero__decision p {
-    color: var(--colour-text-muted);
-  }
-
-  .case-toc {
-    position: sticky;
-    top: var(--header-height);
-    z-index: var(--z-raised);
+    grid-template-columns: 7rem minmax(0, 1fr);
+    gap: 0.2rem 1rem;
+    padding: 1rem 0;
     border-bottom: 1px solid var(--colour-border);
-    background: color-mix(in srgb, var(--colour-page) 92%, transparent);
-    backdrop-filter: blur(14px);
   }
-
-  .case-toc .case-shell {
-    display: flex;
-    gap: 1.4rem;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-
-  .case-toc a {
-    flex: 0 0 auto;
-    padding: 0.9rem 0;
+  .case-hero__brief span,
+  .case-hero__brief small {
     color: var(--colour-text-muted);
-    text-decoration: none;
-    font-size: 0.78rem;
+    font-size: 0.75rem;
   }
-
-  .case-toc a:hover,
-  .case-toc a:focus-visible {
-    color: var(--colour-text);
+  .case-hero__brief strong {
+    font: 750 clamp(1.3rem, 3vw, 1.8rem)/1 var(--font-display);
   }
-
-  .case-body {
-    padding-bottom: clamp(4rem, 10vw, 8rem);
-  }
-
-  .case-section {
-    scroll-margin-top: calc(var(--header-height) + 4rem);
-    padding-block: clamp(4.5rem, 10vw, 9rem);
-    border-bottom: 1px solid var(--colour-border-strong);
-  }
-
-  .section-intro {
-    display: grid;
-    grid-template-columns: minmax(8rem, 0.3fr) minmax(0, 1.7fr);
-    gap: 0 2rem;
-    max-width: 72rem;
-    margin-bottom: clamp(2.5rem, 6vw, 5rem);
-  }
-
-  .section-intro :global(.case-marker) {
-    grid-column: 1;
-    grid-row: 1;
-  }
-
-  .section-number {
-    grid-column: 1;
-    grid-row: 2 / 4;
-    margin-top: 1rem !important;
-    color: var(--colour-border-strong);
-    font: 750 clamp(3rem, 8vw, 6.5rem)/0.9 var(--font-display);
-  }
-
-  .section-intro h2,
-  .section-lead {
+  .case-hero__brief small {
     grid-column: 2;
   }
-
-  .section-intro h2 {
-    max-width: 22ch;
-    font-size: clamp(2rem, 4.7vw, 4.2rem);
-    line-height: 1.04;
-    letter-spacing: -0.04em;
-    text-wrap: balance;
-  }
-
-  .section-lead {
-    max-width: 68ch;
-    margin-top: 1.25rem !important;
-    color: var(--colour-text-muted);
-    font-size: clamp(1rem, 1.5vw, 1.16rem);
-    line-height: 1.8;
-  }
-
-  .question-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    border-block: 1px solid var(--colour-border);
-  }
-
-  .question-grid article {
-    display: grid;
-    grid-template-columns: 2.5rem minmax(0, 1fr);
-    gap: 0.5rem 1rem;
-    padding: 1.75rem 1.5rem;
-    border-right: 1px solid var(--colour-border);
-    border-bottom: 1px solid var(--colour-border);
-  }
-
-  .question-grid article:nth-child(2n) {
-    border-right: 0;
-  }
-
-  .question-grid article:nth-last-child(-n + 2) {
-    border-bottom: 0;
-  }
-
-  .question-grid span {
-    grid-row: 1 / 3;
-    color: var(--colour-accent);
-    font: 700 0.75rem/1 var(--font-mono);
-  }
-
-  .question-grid h3 {
-    font-size: 1.08rem;
-  }
-
-  .question-grid p {
-    color: var(--colour-text-muted);
-  }
-
-  .bridge-copy {
-    max-width: 72ch;
-    margin-top: clamp(2.5rem, 6vw, 5rem);
-    margin-left: auto;
-    padding: 1.25rem 0 0 1.25rem;
-    border-top: 1px solid var(--colour-border);
-    border-left: 3px solid var(--colour-accent);
-    color: var(--colour-text-muted);
-    font-size: 1.05rem;
-  }
-
-  .code-evidence {
-    display: grid;
-    grid-template-columns: minmax(15rem, 0.65fr) minmax(0, 1.35fr);
-    gap: 0;
-    margin-top: clamp(2.5rem, 6vw, 4rem);
-    border-block: 1px solid var(--colour-border);
-  }
-
-  .code-evidence > div {
-    padding: 1.5rem;
-    border-right: 1px solid var(--colour-border);
-  }
-
-  .code-evidence > div:nth-of-type(2) {
-    border-top: 1px solid var(--colour-border);
-  }
-
-  .code-evidence > span,
-  .code-evidence span,
-  .code-narrative article > div > span,
-  .recipe-contrast article > span {
-    color: var(--colour-accent);
-    font: 700 0.7rem/1 var(--font-mono);
-    letter-spacing: 0.08em;
-  }
-
-  .code-evidence h3 {
-    margin-top: 0.55rem;
-  }
-
-  .code-evidence p {
-    margin-top: 0.65rem;
-    color: var(--colour-text-muted);
-  }
-
-  .code-evidence dl {
+  .case-toc {
     display: flex;
-    gap: 1.5rem;
-    margin: 1.25rem 0 0;
+    gap: 0;
+    overflow-x: auto;
+    border-top: 1px solid var(--colour-border);
   }
-
-  .code-evidence dl div {
-    display: grid;
-    gap: 0.25rem;
-  }
-
-  .code-evidence dt,
-  .code-evidence dd {
-    margin: 0;
-  }
-
-  .code-evidence dt {
+  .case-toc a {
+    flex: 0 0 auto;
+    padding: 0.9rem 1.15rem;
+    border-right: 1px solid var(--colour-border);
     color: var(--colour-text-muted);
-    font-size: 0.72rem;
+    text-decoration: none;
+    font-size: 0.82rem;
   }
-
-  .code-evidence dd {
+  .case-toc a:hover {
+    color: var(--colour-text);
+    background: var(--colour-surface);
+  }
+  .case-article {
+    padding-block: clamp(4rem, 9vw, 9rem);
+  }
+  .chapter {
+    display: grid;
+    gap: clamp(1.8rem, 4vw, 3.5rem);
+    padding-block: clamp(3.5rem, 8vw, 7rem);
+    border-bottom: 1px solid var(--colour-border);
+    scroll-margin-top: 6rem;
+  }
+  .chapter:first-child {
+    padding-top: 0;
+  }
+  .chapter-heading {
+    display: grid;
+    grid-template-columns: 4rem minmax(0, 1fr);
+    gap: 1rem;
+    align-items: start;
+  }
+  .chapter-heading > span {
+    color: var(--colour-primary-strong);
     font: 700 0.9rem/1 var(--font-mono);
   }
-
-  .code-evidence :global(.r-code) {
+  .chapter-heading h2 {
+    max-width: 25ch;
+    margin: 0.55rem 0 0;
+    font-size: clamp(2rem, 5vw, 4.15rem);
+    line-height: 1.04;
+    letter-spacing: -0.025em;
+  }
+  .prose {
+    max-width: 76ch;
+    margin-left: 5rem;
+  }
+  .prose p {
     margin: 0;
-    border: 0;
-    border-bottom: 1px solid var(--colour-border);
-    border-radius: 0;
-  }
-
-  .code-evidence :global(.r-code:last-child) {
-    border-bottom: 0;
-  }
-
-  .recipe-contrast {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    margin-top: 2rem;
-    border-block: 1px solid var(--colour-border);
-  }
-
-  .recipe-contrast article {
-    padding: 1.5rem;
-    border-right: 1px solid var(--colour-border);
-  }
-
-  .recipe-contrast article:nth-child(2) {
-    border-right: 0;
-  }
-
-  .recipe-contrast h3 {
-    margin-top: 0.5rem;
-  }
-
-  .recipe-contrast p {
-    margin-top: 0.65rem;
     color: var(--colour-text-muted);
+    font-size: clamp(1rem, 1.4vw, 1.08rem);
+    line-height: 1.88;
   }
-
-  .recipe-contrast small {
-    display: block;
-    margin-top: 1rem;
+  .prose p + p {
+    margin-top: 1.15rem;
+  }
+  .prose--lead p:first-child {
+    color: var(--colour-text);
+    font-size: clamp(1.08rem, 1.8vw, 1.25rem);
+  }
+  code {
+    overflow-wrap: anywhere;
     color: var(--colour-primary-strong);
-    font-family: var(--font-mono);
   }
-
-  .recipe-shared {
-    grid-column: 1 / -1;
-    display: flex;
-    gap: 1rem;
-    padding: 1rem 1.5rem;
-    border-top: 1px solid var(--colour-border);
+  figure {
+    margin: 0;
+    min-width: 0;
   }
-
-  .recipe-shared p {
-    color: var(--colour-text-muted);
-  }
-
-  .decision-quote {
+  figure > figcaption {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
     gap: 1rem;
-    max-width: 76ch;
-    margin: clamp(2rem, 5vw, 4rem) 0 0 auto;
-    padding-top: 1.25rem;
-    border-top: 1px solid var(--colour-border-strong);
+    margin-bottom: 1.3rem;
   }
-
-  .decision-quote > span {
-    color: var(--colour-accent);
-    font-size: 1.5rem;
-  }
-
-  .decision-quote p {
-    color: var(--colour-text-muted);
-  }
-
-  .decision-quote strong {
-    color: var(--colour-text);
-  }
-
-  .code-narrative {
-    display: grid;
-    gap: 0;
-    border-top: 1px solid var(--colour-border);
-  }
-
-  .code-narrative article {
-    display: grid;
-    grid-template-columns: minmax(15rem, 0.65fr) minmax(0, 1.35fr);
-    border-bottom: 1px solid var(--colour-border);
-  }
-
-  .code-narrative article > div {
-    padding: 1.5rem;
-    border-right: 1px solid var(--colour-border);
-  }
-
-  .code-narrative h3 {
-    margin-top: 0.55rem;
-  }
-
-  .code-narrative p {
-    margin-top: 0.65rem;
-    color: var(--colour-text-muted);
-  }
-
-  .code-narrative article > div > strong {
-    display: block;
-    margin-top: 1rem;
+  figure > figcaption > span {
+    height: max-content;
+    padding: 0.5rem 0.7rem;
+    border: 1px solid var(--colour-border);
+    border-radius: 999px;
     color: var(--colour-primary-strong);
-    font-size: 0.82rem;
+    font: 700 0.7rem/1 var(--font-mono);
   }
-
-  .code-narrative :global(.r-code) {
+  figure h3,
+  figure p {
     margin: 0;
-    border: 0;
-    border-radius: 0;
   }
-
-  .case-section--boundary {
-    display: grid;
-    grid-template-columns: minmax(15rem, 0.6fr) minmax(0, 1.4fr);
-    gap: clamp(2rem, 6vw, 5rem);
+  figure h3 {
+    max-width: 30ch;
+    font-size: clamp(1.45rem, 3vw, 2.3rem);
+    line-height: 1.14;
   }
-
-  .boundary-copy h2 {
-    max-width: 18ch;
-    margin-top: 0.7rem;
-    font-size: clamp(1.7rem, 3.5vw, 2.8rem);
-    line-height: 1.1;
-  }
-
-  .boundary-notes {
-    display: grid;
-    gap: 0;
-    border-top: 1px solid var(--colour-border);
-  }
-
-  .boundary-notes p {
-    display: grid;
-    grid-template-columns: 6rem minmax(0, 1fr);
-    gap: 1rem;
-    padding: 1rem 0;
-    border-bottom: 1px solid var(--colour-border);
-    color: var(--colour-text-muted);
-  }
-
-  .boundary-notes strong {
-    color: var(--colour-text);
-  }
-
-  .case-footer {
-    padding-top: clamp(4rem, 9vw, 7rem);
-  }
-
-  .case-footer h2 {
+  figure figcaption p,
+  .figure-reading {
+    max-width: 74ch;
     margin-top: 0.6rem;
-    font-size: clamp(1.7rem, 3.5vw, 2.7rem);
+    color: var(--colour-text-muted);
+    line-height: 1.72;
   }
-
-  .case-footer ul {
-    display: grid;
-    margin: 2rem 0 2.5rem;
-    padding: 0;
-    border-top: 1px solid var(--colour-border);
-    list-style: none;
+  .figure-reading {
+    padding-left: 1rem;
+    border-left: 3px solid var(--colour-accent);
   }
-
-  .case-footer a {
+  .class-bars {
     display: grid;
-    grid-template-columns: 7rem minmax(0, 1fr) auto;
+    gap: 1rem;
+  }
+  .class-bars > div {
+    display: grid;
+    grid-template-columns: 8rem minmax(0, 1fr) 7rem 4rem;
     gap: 1rem;
     align-items: center;
-    padding: 1.1rem 0;
+  }
+  .class-bars i {
+    height: 2.8rem;
+    background: linear-gradient(
+      90deg,
+      var(--colour-primary) var(--share),
+      var(--colour-surface-raised) var(--share)
+    );
+    border: 1px solid var(--colour-border);
+  }
+  .class-bars strong {
+    font: 750 1.35rem/1 var(--font-display);
+    text-align: right;
+  }
+  .class-bars small {
+    color: var(--colour-text-muted);
+  }
+  .sample-flow__rows {
+    display: grid;
+    gap: 1px;
+    background: var(--colour-border);
+    border: 1px solid var(--colour-border);
+  }
+  .sample-flow__rows > div {
+    display: grid;
+    grid-template-columns: 2.5rem minmax(11rem, 0.65fr) minmax(12rem, 1fr) 7rem;
+    gap: 1rem;
+    align-items: center;
+    padding: 1rem;
+    background: var(--colour-surface);
+  }
+  .sample-flow b {
+    color: var(--colour-accent);
+    font-family: var(--font-mono);
+  }
+  .sample-flow span {
+    display: grid;
+    gap: 0.2rem;
+  }
+  .sample-flow small {
+    color: var(--colour-text-muted);
+  }
+  .sample-flow i {
+    height: 0.7rem;
+    background: linear-gradient(
+      90deg,
+      var(--colour-primary) var(--width),
+      var(--colour-surface-raised) var(--width)
+    );
+  }
+  .sample-flow em {
+    font: normal 700 0.9rem/1 var(--font-mono);
+    text-align: right;
+  }
+  .predictor-ledger {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-top: 1px solid var(--colour-border);
+  }
+  .predictor-ledger > div {
+    display: grid;
+    grid-template-columns: 2rem minmax(0, 1fr);
+    gap: 0.35rem 1rem;
+    padding: 1rem;
+    border-right: 1px solid var(--colour-border);
     border-bottom: 1px solid var(--colour-border);
+  }
+  .predictor-ledger span {
+    grid-row: 1 / 4;
+    color: var(--colour-accent);
+    font: 700 0.75rem/1 var(--font-mono);
+  }
+  .predictor-ledger code,
+  .predictor-ledger small {
+    color: var(--colour-text-muted);
+    font-size: 0.75rem;
+  }
+  .balance-diagram {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr auto 1fr;
+    gap: 1rem;
+    align-items: center;
+  }
+  .balance-diagram > div {
+    display: grid;
+    gap: 0.65rem;
+    min-width: 0;
+  }
+  .balance-diagram span,
+  .balance-diagram small {
+    color: var(--colour-text-muted);
+    font-size: 0.75rem;
+  }
+  .balance-diagram i {
+    display: flex;
+    height: 4.2rem;
+    overflow: hidden;
+    border: 1px solid var(--colour-border);
+    font-style: normal;
+  }
+  .balance-diagram b {
+    display: grid;
+    place-items: center;
+    width: var(--part);
+    padding: 0.4rem;
+    background: var(--colour-primary);
+    color: var(--colour-primary-contrast);
+    font-size: 0.7rem;
+    text-align: center;
+  }
+  .balance-diagram b + b {
+    background: var(--colour-accent);
+    color: var(--colour-text);
+  }
+  .balance-diagram em {
+    color: var(--colour-primary-strong);
+    font: normal 700 0.72rem/1 var(--font-mono);
+  }
+  .model-family-map {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 1px;
+    background: var(--colour-border);
+    border: 1px solid var(--colour-border);
+  }
+  .model-family-map article {
+    display: grid;
+    align-content: start;
+    gap: 0.65rem;
+    min-width: 0;
+    padding: 1rem;
+    background: var(--colour-surface);
+  }
+  .model-family-map span {
+    color: var(--colour-accent);
+    font-size: 0.7rem;
+  }
+  .model-family-map h3 {
+    margin: 0;
+    font-size: 1.1rem;
+  }
+  .model-family-map p {
+    margin: 0;
+    color: var(--colour-text-muted);
+    font-size: 0.78rem;
+    line-height: 1.6;
+  }
+  .model-family-map strong {
+    font-size: 0.72rem;
+  }
+  .decision-essay {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1px;
+    background: var(--colour-border);
+    border: 1px solid var(--colour-border);
+  }
+  .decision-essay > div {
+    display: grid;
+    align-content: start;
+    gap: 0.65rem;
+    padding: 1rem;
+    background: var(--colour-surface);
+  }
+  .decision-essay span {
+    color: var(--colour-primary-strong);
+    font: 700 0.8rem/1 var(--font-mono);
+  }
+  .decision-essay p {
+    margin: 0;
+    color: var(--colour-text-muted);
+    line-height: 1.6;
+  }
+  .decision-essay__winner {
+    box-shadow: inset 0 3px 0 var(--colour-primary);
+  }
+  .closing-findings {
+    display: grid;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: findings;
+  }
+  .closing-findings li {
+    display: grid;
+    grid-template-columns: minmax(13rem, 0.4fr) minmax(0, 1fr);
+    gap: 2rem;
+    padding: 1.25rem 0;
+    border-top: 1px solid var(--colour-border);
+    counter-increment: findings;
+  }
+  .closing-findings strong::before {
+    content: counter(findings, decimal-leading-zero) " · ";
+    color: var(--colour-accent);
+    font-family: var(--font-mono);
+  }
+  .closing-findings span,
+  .deep-dive-intro {
+    color: var(--colour-text-muted);
+    line-height: 1.72;
+  }
+  .deep-dive-intro {
+    max-width: 72ch;
+    margin: 0 0 0 5rem;
+  }
+  .related-projects__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1px;
+    background: var(--colour-border);
+    border: 1px solid var(--colour-border);
+  }
+  .related-projects__grid a {
+    display: grid;
+    gap: 0.7rem;
+    padding: 1.2rem;
+    background: var(--colour-surface);
     color: var(--colour-text);
     text-decoration: none;
   }
-
-  .case-footer a span {
-    color: var(--colour-text-muted);
-    font-size: 0.78rem;
-  }
-
-  .case-footer a i {
+  .related-projects__grid span {
     color: var(--colour-accent);
-    font-style: normal;
+    font-size: 0.72rem;
+    text-transform: uppercase;
   }
-
+  .related-projects__grid p {
+    margin: 0;
+    color: var(--colour-text-muted);
+    line-height: 1.6;
+  }
   @media (max-width: 980px) {
-    .case-hero__grid {
-      grid-template-columns: 1fr;
-      min-height: auto;
-    }
-
-    .case-hero h1 {
-      max-width: 15ch;
-    }
-
-    .case-hero__signal {
-      max-width: 44rem;
-    }
-
-    .code-evidence,
-    .code-narrative article {
-      grid-template-columns: 1fr;
-    }
-
-    .code-evidence > div,
-    .code-narrative article > div {
-      border-right: 0;
-      border-bottom: 1px solid var(--colour-border);
-    }
-  }
-
-  @media (max-width: 720px) {
-    .case-shell {
-      width: min(calc(100% - 1.25rem), 82rem);
-    }
-
-    .case-hero__grid {
-      padding-top: 2.5rem;
-    }
-
-    .case-hero h1 {
-      max-width: none;
-      font-size: clamp(2.65rem, 13vw, 4.25rem);
-      overflow-wrap: anywhere;
-    }
-
-    .case-hero__signal ol {
+    .model-family-map {
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      margin-top: 0;
     }
-
-    .case-hero__decision,
-    .section-intro,
-    .case-section--boundary {
-      grid-template-columns: 1fr;
-    }
-
-    .case-hero__decision {
-      gap: 0.45rem;
-    }
-
-    .section-intro :global(.case-marker),
-    .section-number,
-    .section-intro h2,
-    .section-lead {
-      grid-column: 1;
-    }
-
-    .section-number {
-      grid-row: auto;
-      margin-top: 1.3rem !important;
-      font-size: 3.5rem;
-    }
-
-    .section-intro h2 {
-      margin-top: 0.75rem;
-    }
-
-    .question-grid,
-    .recipe-contrast {
-      grid-template-columns: 1fr;
-    }
-
-    .question-grid article,
-    .question-grid article:nth-child(2n),
-    .question-grid article:nth-last-child(-n + 2),
-    .recipe-contrast article {
-      border-right: 0;
-      border-bottom: 1px solid var(--colour-border);
-    }
-
-    .question-grid article:last-child,
-    .recipe-contrast article:nth-child(2) {
-      border-bottom: 0;
-    }
-
-    .recipe-shared {
-      display: grid;
-    }
-
-    .boundary-notes p,
-    .case-footer a {
-      grid-template-columns: 1fr;
-      gap: 0.4rem;
+    .decision-essay {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
-
+  @media (max-width: 820px) {
+    .case-hero__grid {
+      grid-template-columns: 1fr;
+    }
+    .balance-diagram {
+      grid-template-columns: 1fr;
+    }
+    .balance-diagram em {
+      transform: rotate(90deg);
+      justify-self: center;
+    }
+    .related-projects__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (max-width: 620px) {
+    .case-shell {
+      width: min(100% - 1.25rem, 84rem);
+    }
+    .case-hero h1 {
+      font-size: clamp(2.25rem, 9.5vw, 3.15rem);
+    }
+    .chapter-heading {
+      grid-template-columns: 2.8rem minmax(0, 1fr);
+    }
+    .prose,
+    .deep-dive-intro {
+      margin-left: 0;
+    }
+    figure > figcaption {
+      grid-template-columns: 1fr;
+    }
+    figure > figcaption > span {
+      width: max-content;
+    }
+    .class-bars > div {
+      grid-template-columns: 6rem minmax(0, 1fr) 5.2rem;
+    }
+    .class-bars small {
+      grid-column: 2;
+    }
+    .sample-flow__rows > div {
+      grid-template-columns: 2rem minmax(0, 1fr) 5.8rem;
+    }
+    .sample-flow i {
+      grid-column: 2 / -1;
+    }
+    .predictor-ledger,
+    .model-family-map,
+    .decision-essay {
+      grid-template-columns: 1fr;
+    }
+    .closing-findings li {
+      grid-template-columns: 1fr;
+      gap: 0.5rem;
+    }
+  }
   @media (prefers-reduced-motion: reduce) {
-    .signal-route__active {
-      animation: none;
+    .case-toc {
+      scroll-behavior: auto;
     }
   }
 </style>

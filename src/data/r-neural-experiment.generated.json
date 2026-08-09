@@ -1,0 +1,7374 @@
+{
+  "provenance": {
+    "data_seed": 321,
+    "split_seed": 6262,
+    "fit_seed": 987,
+    "rows": 3000,
+    "train_rows": 2399,
+    "test_rows": 601,
+    "epochs": 1000,
+    "hidden_units": 2,
+    "engine": "nnet"
+  },
+  "class_counts": {
+    "all": [
+      {
+        "Var1": "Class1",
+        "Freq": 1329
+      },
+      {
+        "Var1": "Class2",
+        "Freq": 1671
+      }
+    ],
+    "train": [
+      {
+        "Var1": "Class1",
+        "Freq": 1063
+      },
+      {
+        "Var1": "Class2",
+        "Freq": 1336
+      }
+    ],
+    "test": [
+      {
+        "Var1": "Class1",
+        "Freq": 266
+      },
+      {
+        "Var1": "Class2",
+        "Freq": 335
+      }
+    ]
+  },
+  "normalisation": [
+    {
+      "variable": "A",
+      "mean": 1.0151049872,
+      "sd": 0.99427726332
+    },
+    {
+      "variable": "B",
+      "mean": 0.043275668109,
+      "sd": 1.4121475977
+    }
+  ],
+  "metrics": {
+    "accuracy": 0.88019966722,
+    "auc": 0.95621142408
+  },
+  "confusion": {
+    "class1_as_class1": 225,
+    "class2_as_class1": 31,
+    "class1_as_class2": 41,
+    "class2_as_class2": 304
+  },
+  "test_points": [
+    {
+      "A": 2.8433192012,
+      "B": 1.9971286031,
+      "truth": "Class2",
+      "predicted": "Class1",
+      "probability_class1": 0.50804528801
+    },
+    {
+      "A": -0.021752210544,
+      "B": -0.70444904165,
+      "truth": "Class2",
+      "predicted": "Class1",
+      "probability_class1": 0.52813071132
+    },
+    {
+      "A": 0.97714572346,
+      "B": 1.2675987413,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.52047836704
+    },
+    {
+      "A": 0.82166108505,
+      "B": 0.67769772321,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.31223519564
+    },
+    {
+      "A": 0.48142499453,
+      "B": -0.6867307879,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.38583355579
+    },
+    {
+      "A": 0.40916630644,
+      "B": 0.90481237764,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.48139463403
+    },
+    {
+      "A": 2.0153356344,
+      "B": 2.0425694627,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.70595317374
+    },
+    {
+      "A": 2.4209947685,
+      "B": 3.4901976673,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73105351389
+    },
+    {
+      "A": 2.7565826895,
+      "B": 0.68086622206,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27014596076
+    },
+    {
+      "A": -0.58669451734,
+      "B": -3.210844048,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73105749874
+    },
+    {
+      "A": 1.1795200197,
+      "B": -0.91254495309,
+      "truth": "Class1",
+      "predicted": "Class2",
+      "probability_class1": 0.3302287653
+    },
+    {
+      "A": 2.837935817,
+      "B": 1.8804856844,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.40869077425
+    },
+    {
+      "A": -0.99287109768,
+      "B": -1.6294641047,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73050118879
+    },
+    {
+      "A": -0.12871769178,
+      "B": -1.1197955972,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.68225180273
+    },
+    {
+      "A": 1.0364196756,
+      "B": 0.57078629703,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.28937711045
+    },
+    {
+      "A": 1.5650738456,
+      "B": 0.3802770852,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27428286942
+    },
+    {
+      "A": -0.31285700481,
+      "B": -1.3325696996,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.71828866464
+    },
+    {
+      "A": 1.8332652826,
+      "B": -0.5834419186,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27682955116
+    },
+    {
+      "A": 0.22631951504,
+      "B": 0.093793291962,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.33817210387
+    },
+    {
+      "A": 0.49705160928,
+      "B": -1.0001389317,
+      "truth": "Class2",
+      "predicted": "Class1",
+      "probability_class1": 0.50316779116
+    },
+    {
+      "A": -0.21170443658,
+      "B": -1.9288149344,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73013095926
+    },
+    {
+      "A": 2.0005431697,
+      "B": 0.69168045592,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27293828338
+    },
+    {
+      "A": 2.7106599049,
+      "B": 1.0777796281,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27231390266
+    },
+    {
+      "A": -1.7738204353,
+      "B": -0.60142447149,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.72826107347
+    },
+    {
+      "A": 1.233821328,
+      "B": -0.27317868731,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.28090701219
+    },
+    {
+      "A": 0.88967090937,
+      "B": 0.95469780558,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.36362506452
+    },
+    {
+      "A": 0.14243207143,
+      "B": -0.043251223175,
+      "truth": "Class1",
+      "predicted": "Class2",
+      "probability_class1": 0.35311139237
+    },
+    {
+      "A": 1.2255542596,
+      "B": 1.5486581787,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.63846377027
+    },
+    {
+      "A": 3.160162218,
+      "B": -0.091355382741,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.26958037139
+    },
+    {
+      "A": 0.92737047141,
+      "B": 1.6280654488,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.70707956495
+    },
+    {
+      "A": 1.8177092856,
+      "B": 2.6982690221,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73094773837
+    },
+    {
+      "A": 2.8092640141,
+      "B": 2.834590018,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73060899224
+    },
+    {
+      "A": 0.89304845607,
+      "B": -0.53257737404,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.30619282883
+    },
+    {
+      "A": 2.4851929392,
+      "B": 1.8335520124,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.47613685778
+    },
+    {
+      "A": 0.15121222501,
+      "B": -0.7841718829,
+      "truth": "Class2",
+      "predicted": "Class1",
+      "probability_class1": 0.507850429
+    },
+    {
+      "A": 1.2489393713,
+      "B": -1.2793884733,
+      "truth": "Class1",
+      "predicted": "Class2",
+      "probability_class1": 0.43591558145
+    },
+    {
+      "A": 1.1633121748,
+      "B": -0.41051762267,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.2862222173
+    },
+    {
+      "A": 1.5861505782,
+      "B": 0.44982890336,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27449355732
+    },
+    {
+      "A": 2.513653033,
+      "B": 0.50056185873,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27028149354
+    },
+    {
+      "A": 1.4535925749,
+      "B": 1.4244870397,
+      "truth": "Class1",
+      "predicted": "Class2",
+      "probability_class1": 0.47489281618
+    },
+    {
+      "A": -1.8412400971,
+      "B": -1.7964059481,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73102795457
+    },
+    {
+      "A": 0.18105626137,
+      "B": -0.6371788756,
+      "truth": "Class1",
+      "predicted": "Class2",
+      "probability_class1": 0.44350091952
+    },
+    {
+      "A": 0.29390814333,
+      "B": -1.426128532,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.69446610135
+    },
+    {
+      "A": 0.65640481443,
+      "B": 1.2074774512,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.58827945375
+    },
+    {
+      "A": -1.0729980929,
+      "B": -1.0844045052,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.72610438841
+    },
+    {
+      "A": 1.5150193614,
+      "B": 2.3724787311,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73055824058
+    },
+    {
+      "A": 1.6104324827,
+      "B": 2.2975114035,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.72993285765
+    },
+    {
+      "A": 0.16733129931,
+      "B": -0.56489141238,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.42459784896
+    },
+    {
+      "A": 1.0850339088,
+      "B": 0.093334103943,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.28045298348
+    },
+    {
+      "A": 2.6150210193,
+      "B": 1.7402357285,
+      "truth": "Class1",
+      "predicted": "Class2",
+      "probability_class1": 0.37043669714
+    },
+    {
+      "A": 0.91589355085,
+      "B": 0.015576837177,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.28527036669
+    },
+    {
+      "A": 0.51978233041,
+      "B": 2.7744659204,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.7310531961
+    },
+    {
+      "A": 3.1066803137,
+      "B": 3.7814200795,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73105459059
+    },
+    {
+      "A": 0.00023269356858,
+      "B": -1.3758458836,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.70824288661
+    },
+    {
+      "A": 0.38567329721,
+      "B": -1.1269151741,
+      "truth": "Class2",
+      "predicted": "Class1",
+      "probability_class1": 0.59243301542
+    },
+    {
+      "A": 0.86142601667,
+      "B": 2.2946529023,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73090196542
+    },
+    {
+      "A": 0.88623399888,
+      "B": -1.7373081169,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.69651288397
+    },
+    {
+      "A": 1.9505531481,
+      "B": 0.17741246932,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27152553787
+    },
+    {
+      "A": 0.067097623821,
+      "B": -0.44220038733,
+      "truth": "Class1",
+      "predicted": "Class2",
+      "probability_class1": 0.41853267589
+    },
+    {
+      "A": -0.10089402453,
+      "B": -1.1229338052,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.67962602078
+    },
+    {
+      "A": 0.96825185977,
+      "B": 0.27415755656,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.28425194462
+    },
+    {
+      "A": 1.0826800747,
+      "B": -2.1137610917,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.72246400697
+    },
+    {
+      "A": 0.37321815288,
+      "B": -0.24025300186,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.3302596704
+    },
+    {
+      "A": 0.025259016434,
+      "B": 1.0492822574,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.671572993
+    },
+    {
+      "A": 2.0620663292,
+      "B": 1.4800787473,
+      "truth": "Class1",
+      "predicted": "Class2",
+      "probability_class1": 0.34877536487
+    },
+    {
+      "A": -0.47116558697,
+      "B": -1.5202967393,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.72747030728
+    },
+    {
+      "A": 0.87024395696,
+      "B": -1.6034367765,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.6702545439
+    },
+    {
+      "A": -1.0321654626,
+      "B": -2.4378927311,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.7310471585
+    },
+    {
+      "A": 0.91875945595,
+      "B": -0.78000208563,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.33602067898
+    },
+    {
+      "A": 0.1298713428,
+      "B": -0.45763150031,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.40618584546
+    },
+    {
+      "A": 0.67122876646,
+      "B": -1.9202195756,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.72252638014
+    },
+    {
+      "A": 0.20354582988,
+      "B": -0.53676749352,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.40766450931
+    },
+    {
+      "A": 0.76773302383,
+      "B": -2.2324822326,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.72889060727
+    },
+    {
+      "A": 1.6093364611,
+      "B": 0.85618141706,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.28210063385
+    },
+    {
+      "A": 0.95660275711,
+      "B": 1.9649816108,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.72889801196
+    },
+    {
+      "A": -1.4487597282,
+      "B": 0.88336557816,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73026751019
+    },
+    {
+      "A": 2.8301102304,
+      "B": 1.1740879942,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27278382204
+    },
+    {
+      "A": -1.1255100405,
+      "B": -0.95620649891,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.72410170967
+    },
+    {
+      "A": 1.0853353686,
+      "B": 0.031801477217,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.28062604643
+    },
+    {
+      "A": -0.094619570567,
+      "B": -0.26458882646,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.42719770337
+    },
+    {
+      "A": 0.86120134849,
+      "B": -1.1093188766,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.45432344842
+    },
+    {
+      "A": 2.169209409,
+      "B": 0.90802259972,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27408956798
+    },
+    {
+      "A": 0.63354911175,
+      "B": -0.58821974321,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.33871337408
+    },
+    {
+      "A": 0.021026484574,
+      "B": -2.0975971046,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73035868786
+    },
+    {
+      "A": 0.6848109985,
+      "B": -0.17513121878,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.29893815637
+    },
+    {
+      "A": 0.03440247154,
+      "B": -1.0375954417,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.63692877283
+    },
+    {
+      "A": 1.4950119804,
+      "B": 0.57578967587,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27697881842
+    },
+    {
+      "A": -0.42563071006,
+      "B": -1.2632884573,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.71803386349
+    },
+    {
+      "A": 1.1578446255,
+      "B": -0.59365790993,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.29513335493
+    },
+    {
+      "A": 3.0481574293,
+      "B": 0.22674503597,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.26956114419
+    },
+    {
+      "A": 1.1319322039,
+      "B": -1.8035755314,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.68703494379
+    },
+    {
+      "A": 0.86552878926,
+      "B": -0.69205587326,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.32724690144
+    },
+    {
+      "A": 2.1868751703,
+      "B": -0.7447911558,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27560455375
+    },
+    {
+      "A": 0.95726739557,
+      "B": 0.64467425916,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.29800566134
+    },
+    {
+      "A": 0.5903548322,
+      "B": -1.3193785822,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.62476399491
+    },
+    {
+      "A": 1.8046070778,
+      "B": 2.5746308388,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73081067981
+    },
+    {
+      "A": 1.2148511874,
+      "B": -0.54511159617,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.28993787845
+    },
+    {
+      "A": 1.2665190473,
+      "B": -0.095964412107,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27802942557
+    },
+    {
+      "A": 1.7810386136,
+      "B": -1.9934328169,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.6567307183
+    },
+    {
+      "A": -0.12358690649,
+      "B": -2.2408268209,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73082082548
+    },
+    {
+      "A": 0.27986226583,
+      "B": -1.6452338839,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.71820680435
+    },
+    {
+      "A": 1.3241823813,
+      "B": 0.30140100799,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27671715149
+    },
+    {
+      "A": -0.53875068725,
+      "B": -0.25542386649,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.5684654245
+    },
+    {
+      "A": 0.59328574571,
+      "B": 0.92179441237,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.42762328128
+    },
+    {
+      "A": 0.86945451225,
+      "B": 0.22684011852,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.28713027744
+    },
+    {
+      "A": 0.79270530398,
+      "B": -0.88863532798,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.38300911781
+    },
+    {
+      "A": 0.37638374445,
+      "B": -1.0235780428,
+      "truth": "Class2",
+      "predicted": "Class1",
+      "probability_class1": 0.54861928117
+    },
+    {
+      "A": 0.18853212561,
+      "B": -0.64006080368,
+      "truth": "Class1",
+      "predicted": "Class2",
+      "probability_class1": 0.44240403904
+    },
+    {
+      "A": 0.92723512119,
+      "B": 1.6055694298,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.70298323898
+    },
+    {
+      "A": 3.0441490582,
+      "B": 1.0440138787,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27070763146
+    },
+    {
+      "A": 1.3461038046,
+      "B": -0.5327549486,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.28504094188
+    },
+    {
+      "A": 1.6112133637,
+      "B": 1.1495512568,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.31078350187
+    },
+    {
+      "A": -0.85788862846,
+      "B": -2.5561065102,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73104879228
+    },
+    {
+      "A": 0.20225013513,
+      "B": 1.5929105447,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.72780958456
+    },
+    {
+      "A": 1.7386623669,
+      "B": 1.5553285622,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.48428950811
+    },
+    {
+      "A": -0.21450080686,
+      "B": 0.040503062796,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.43984678394
+    },
+    {
+      "A": 0.46246102786,
+      "B": -2.3139567073,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73038386224
+    },
+    {
+      "A": -0.90309478811,
+      "B": -0.69218241752,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.7007908111
+    },
+    {
+      "A": 0.40527194407,
+      "B": -3.0551622149,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73104392111
+    },
+    {
+      "A": 0.87140689103,
+      "B": 1.7859260851,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.72465803904
+    },
+    {
+      "A": 1.6982723874,
+      "B": 2.1960722702,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.72793678876
+    },
+    {
+      "A": -0.8919053726,
+      "B": -1.980606372,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.7309246193
+    },
+    {
+      "A": 1.0394559492,
+      "B": -0.77177224321,
+      "truth": "Class1",
+      "predicted": "Class2",
+      "probability_class1": 0.32134224615
+    },
+    {
+      "A": 0.48612614539,
+      "B": -0.91396906523,
+      "truth": "Class1",
+      "predicted": "Class2",
+      "probability_class1": 0.4666886824
+    },
+    {
+      "A": 1.4165091549,
+      "B": 2.3598905047,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.7306357469
+    },
+    {
+      "A": 0.99601835979,
+      "B": 1.664779919,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.70843715334
+    },
+    {
+      "A": 1.0665112859,
+      "B": 0.19018982301,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.28097998055
+    },
+    {
+      "A": 1.1774563079,
+      "B": -0.89867872901,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.32792106735
+    },
+    {
+      "A": 1.5149999126,
+      "B": 0.43304854224,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27513441741
+    },
+    {
+      "A": 1.7461382528,
+      "B": 0.33278713685,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27270055065
+    },
+    {
+      "A": 0.72608431387,
+      "B": -0.29161449902,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.30122137038
+    },
+    {
+      "A": 0.060953543557,
+      "B": -0.80069969012,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.54140785082
+    },
+    {
+      "A": 1.590354124,
+      "B": 0.064673459453,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27362891414
+    },
+    {
+      "A": 1.511673255,
+      "B": 2.4830386184,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73083207599
+    },
+    {
+      "A": 0.9539242079,
+      "B": 1.5792423529,
+      "truth": "Class2",
+      "predicted": "Class1",
+      "probability_class1": 0.69466301973
+    },
+    {
+      "A": 2.3813994093,
+      "B": 0.79218039452,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27155962021
+    },
+    {
+      "A": 1.1565906093,
+      "B": -0.20182060259,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.28139982535
+    },
+    {
+      "A": 1.3859992536,
+      "B": 2.4099289155,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73078455641
+    },
+    {
+      "A": 0.62556026993,
+      "B": 0.398683196,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.30573726629
+    },
+    {
+      "A": 0.51895259208,
+      "B": 0.54351789305,
+      "truth": "Class1",
+      "predicted": "Class2",
+      "probability_class1": 0.33071801852
+    },
+    {
+      "A": 1.3149261259,
+      "B": 1.7679698378,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.70389555105
+    },
+    {
+      "A": 0.54876986842,
+      "B": -2.5360414108,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73079499434
+    },
+    {
+      "A": 0.63502166875,
+      "B": -0.51153437789,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.32739863046
+    },
+    {
+      "A": 2.8008417813,
+      "B": 2.7320831089,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.7301112269
+    },
+    {
+      "A": 0.94100063012,
+      "B": -0.95637735254,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.37592903654
+    },
+    {
+      "A": -0.5397164584,
+      "B": -0.93765302535,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.69548007419
+    },
+    {
+      "A": 1.8505840322,
+      "B": -0.72302364675,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27975604315
+    },
+    {
+      "A": 3.0051284339,
+      "B": 0.1368944856,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.26960168978
+    },
+    {
+      "A": 0.45884588175,
+      "B": -0.40997468159,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.33621254908
+    },
+    {
+      "A": 2.194045384,
+      "B": 0.94660953277,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27448498197
+    },
+    {
+      "A": 0.46137016597,
+      "B": 0.086061209984,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.31036283237
+    },
+    {
+      "A": -0.12725699396,
+      "B": -1.1268244797,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.68339557814
+    },
+    {
+      "A": 1.6124808478,
+      "B": -0.18850888547,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27448709205
+    },
+    {
+      "A": 0.7401623516,
+      "B": 0.54165851191,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.30599121364
+    },
+    {
+      "A": 2.4536496507,
+      "B": -1.0094825572,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27804999272
+    },
+    {
+      "A": 0.84592429523,
+      "B": 0.2297006633,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.28807128488
+    },
+    {
+      "A": 0.67797614282,
+      "B": -0.67337227339,
+      "truth": "Class1",
+      "predicted": "Class2",
+      "probability_class1": 0.34792216905
+    },
+    {
+      "A": 1.7882917374,
+      "B": 0.73906715881,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27551372812
+    },
+    {
+      "A": 0.96428131167,
+      "B": -0.59482580335,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.30667108575
+    },
+    {
+      "A": 1.020290389,
+      "B": -0.38098542828,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.29024686395
+    },
+    {
+      "A": 0.25497873107,
+      "B": 0.20257282013,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.33704450455
+    },
+    {
+      "A": -0.10193833435,
+      "B": -1.4401333346,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.71778432477
+    },
+    {
+      "A": 1.2159452203,
+      "B": -0.89904594154,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.32398247741
+    },
+    {
+      "A": 2.7605381907,
+      "B": -0.011643450326,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.26987868953
+    },
+    {
+      "A": -0.1006073906,
+      "B": -2.0834842342,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73050061039
+    },
+    {
+      "A": 2.4543399368,
+      "B": 2.815843808,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73083860145
+    },
+    {
+      "A": -1.0237146975,
+      "B": -2.0887538987,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73100033401
+    },
+    {
+      "A": 0.55917643438,
+      "B": -1.2480369032,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.60269325601
+    },
+    {
+      "A": 0.63901150903,
+      "B": -2.0794080126,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.72755713636
+    },
+    {
+      "A": 0.14532853756,
+      "B": -0.40165648806,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.39067259382
+    },
+    {
+      "A": 2.6721283408,
+      "B": -0.32805527906,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27040823004
+    },
+    {
+      "A": 1.2364373327,
+      "B": 1.1017204416,
+      "truth": "Class1",
+      "predicted": "Class2",
+      "probability_class1": 0.34814124578
+    },
+    {
+      "A": 1.2146461597,
+      "B": -0.4130585433,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.28475488439
+    },
+    {
+      "A": 1.2438096706,
+      "B": 0.010123328684,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27772565173
+    },
+    {
+      "A": -0.66727818652,
+      "B": -2.2615549984,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73099952133
+    },
+    {
+      "A": 0.49575399229,
+      "B": -3.1206131487,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.7310454781
+    },
+    {
+      "A": 0.082556648553,
+      "B": -0.46714398632,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.42050949831
+    },
+    {
+      "A": -0.17428949796,
+      "B": -0.52823455855,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.51426175872
+    },
+    {
+      "A": 3.1836743238,
+      "B": 1.4975809613,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27693410502
+    },
+    {
+      "A": 0.89183075946,
+      "B": 1.2450386011,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.53412651544
+    },
+    {
+      "A": 1.5454292423,
+      "B": -0.23116169306,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27549328152
+    },
+    {
+      "A": 0.71323036819,
+      "B": 0.38512040302,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.29861506488
+    },
+    {
+      "A": 1.7246152959,
+      "B": 0.37589716835,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27296885473
+    },
+    {
+      "A": 0.38823278796,
+      "B": -1.3317146198,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.6638788498
+    },
+    {
+      "A": 1.7239972342,
+      "B": 3.0404813461,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73104576545
+    },
+    {
+      "A": 1.6379691969,
+      "B": -0.29232127188,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27509104389
+    },
+    {
+      "A": 1.4595210295,
+      "B": -0.50577112578,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.28135243512
+    },
+    {
+      "A": 0.48466115197,
+      "B": -0.52176531426,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.3488638781
+    },
+    {
+      "A": 0.87708514191,
+      "B": 0.25833461498,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.2872052263
+    },
+    {
+      "A": 0.64091138188,
+      "B": -1.032718666,
+      "truth": "Class1",
+      "predicted": "Class2",
+      "probability_class1": 0.47789094283
+    },
+    {
+      "A": 1.51386,
+      "B": 1.646743735,
+      "truth": "Class2",
+      "predicted": "Class1",
+      "probability_class1": 0.62681037998
+    },
+    {
+      "A": 0.8070617152,
+      "B": 0.4884617283,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.29753425542
+    },
+    {
+      "A": 0.66409903857,
+      "B": -1.0263320777,
+      "truth": "Class1",
+      "predicted": "Class2",
+      "probability_class1": 0.46845776671
+    },
+    {
+      "A": 0.7672920816,
+      "B": 0.24083579776,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.29166451902
+    },
+    {
+      "A": 2.3480548071,
+      "B": -0.74030337817,
+      "truth": "Class1",
+      "predicted": "Class2",
+      "probability_class1": 0.27409262045
+    },
+    {
+      "A": 0.092175277378,
+      "B": 0.92040545993,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.60296027606
+    },
+    {
+      "A": 1.1397029262,
+      "B": 1.2724869923,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.46655533526
+    },
+    {
+      "A": -0.63499413626,
+      "B": -0.67030137856,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.66680584753
+    },
+    {
+      "A": -0.13129409909,
+      "B": -3.1093894776,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73105475685
+    },
+    {
+      "A": 2.2156122138,
+      "B": 0.57303533519,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27121018465
+    },
+    {
+      "A": -1.247119231,
+      "B": -3.4882409585,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73105843107
+    },
+    {
+      "A": 1.9991459408,
+      "B": -0.31652234423,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27256859643
+    },
+    {
+      "A": 0.37792572343,
+      "B": 1.530518258,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.72220166037
+    },
+    {
+      "A": -0.502707244,
+      "B": -0.78050516994,
+      "truth": "Class2",
+      "predicted": "Class1",
+      "probability_class1": 0.66609325174
+    },
+    {
+      "A": 2.9756860205,
+      "B": 2.0561091417,
+      "truth": "Class2",
+      "predicted": "Class1",
+      "probability_class1": 0.51986573174
+    },
+    {
+      "A": 1.6039839827,
+      "B": -0.0056340370391,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27368385719
+    },
+    {
+      "A": 2.0297628688,
+      "B": 0.77998214876,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27359682083
+    },
+    {
+      "A": 1.9450107726,
+      "B": 0.040075880531,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27164137433
+    },
+    {
+      "A": 2.5824423967,
+      "B": 1.7173644101,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.36457165394
+    },
+    {
+      "A": 1.9505374957,
+      "B": 0.074655952106,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27157885979
+    },
+    {
+      "A": 3.5008796901,
+      "B": 4.1311149872,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73105666111
+    },
+    {
+      "A": 0.95226925837,
+      "B": -0.55708929164,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.3041797184
+    },
+    {
+      "A": 0.88641947865,
+      "B": -1.4093744871,
+      "truth": "Class2",
+      "predicted": "Class1",
+      "probability_class1": 0.59767340833
+    },
+    {
+      "A": -0.45090331053,
+      "B": 1.2239967593,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.72663569992
+    },
+    {
+      "A": 1.4205147375,
+      "B": 4.3465132992,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73105822113
+    },
+    {
+      "A": 0.90194386479,
+      "B": -1.0698669383,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.42623072807
+    },
+    {
+      "A": 0.7956846266,
+      "B": -2.6242982779,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73075760792
+    },
+    {
+      "A": 0.76327877918,
+      "B": -1.5420852438,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.66815947101
+    },
+    {
+      "A": 0.88901376075,
+      "B": 2.4988968529,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73101258551
+    },
+    {
+      "A": 0.48259663801,
+      "B": -0.93978733347,
+      "truth": "Class1",
+      "predicted": "Class2",
+      "probability_class1": 0.47921773676
+    },
+    {
+      "A": 0.1997384715,
+      "B": 0.34004582786,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.35749331711
+    },
+    {
+      "A": 1.8040036465,
+      "B": 0.99515409627,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.28320638527
+    },
+    {
+      "A": -0.71577003133,
+      "B": -2.9794152255,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73105644906
+    },
+    {
+      "A": 2.4274014985,
+      "B": 0.495523588,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27044648601
+    },
+    {
+      "A": 1.668330764,
+      "B": -2.0462194606,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.68477044505
+    },
+    {
+      "A": 1.7008068082,
+      "B": 0.63868404569,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27509836834
+    },
+    {
+      "A": -1.2016410968,
+      "B": -2.7451646472,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73105639891
+    },
+    {
+      "A": 1.3132253667,
+      "B": 0.30038994615,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.2768730458
+    },
+    {
+      "A": -0.32350960041,
+      "B": 0.22695683189,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.49284510699
+    },
+    {
+      "A": 1.2366810459,
+      "B": 0.13736916863,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27756907238
+    },
+    {
+      "A": 2.2120051415,
+      "B": 0.39110754708,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27082160495
+    },
+    {
+      "A": 0.359207605,
+      "B": 2.2909828299,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73101327543
+    },
+    {
+      "A": 1.344922655,
+      "B": -1.5261525787,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.54031913048
+    },
+    {
+      "A": -0.17422886305,
+      "B": -1.5634391664,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.72485479042
+    },
+    {
+      "A": 0.96890902749,
+      "B": 0.027488116095,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.28358839006
+    },
+    {
+      "A": 1.0528004448,
+      "B": 0.33223167906,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.28249287917
+    },
+    {
+      "A": 0.66855167244,
+      "B": -0.50122796009,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.32249701646
+    },
+    {
+      "A": 0.39881918028,
+      "B": -0.28356575776,
+      "truth": "Class1",
+      "predicted": "Class2",
+      "probability_class1": 0.33062409907
+    },
+    {
+      "A": 0.43131968773,
+      "B": 0.0059488159066,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.3135560622
+    },
+    {
+      "A": 2.0831526723,
+      "B": 0.54149791186,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27161949582
+    },
+    {
+      "A": 2.1041700149,
+      "B": 1.2380689234,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.29003254456
+    },
+    {
+      "A": 1.820771602,
+      "B": 0.62772891837,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27377289654
+    },
+    {
+      "A": -0.439509307,
+      "B": -0.29933032078,
+      "truth": "Class2",
+      "predicted": "Class1",
+      "probability_class1": 0.54339287978
+    },
+    {
+      "A": -0.79458477106,
+      "B": -2.0428723506,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73093296827
+    },
+    {
+      "A": 2.2257793531,
+      "B": -0.66684973608,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27412464519
+    },
+    {
+      "A": -0.016519302793,
+      "B": 2.0740098012,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73099453561
+    },
+    {
+      "A": -0.15024589484,
+      "B": 1.6815339916,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73049361656
+    },
+    {
+      "A": 1.3837597132,
+      "B": -0.08835596515,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27627637566
+    },
+    {
+      "A": 1.861089384,
+      "B": -2.4338502854,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.72049148522
+    },
+    {
+      "A": 0.58536492898,
+      "B": -1.82524446,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.71990855452
+    },
+    {
+      "A": 0.3648799313,
+      "B": -2.1573370777,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.72986216781
+    },
+    {
+      "A": -1.2094208918,
+      "B": -2.6428804993,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73105531721
+    },
+    {
+      "A": 2.6609926015,
+      "B": 0.35035499668,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.26993684484
+    },
+    {
+      "A": 1.8685902704,
+      "B": 0.24474036788,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.2719002432
+    },
+    {
+      "A": 1.3670911543,
+      "B": 1.0952610824,
+      "truth": "Class1",
+      "predicted": "Class2",
+      "probability_class1": 0.32610827865
+    },
+    {
+      "A": 0.20226141517,
+      "B": -1.1738616309,
+      "truth": "Class2",
+      "predicted": "Class1",
+      "probability_class1": 0.64818892028
+    },
+    {
+      "A": 0.8886157844,
+      "B": -1.492885672,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.63205042723
+    },
+    {
+      "A": 1.4136177127,
+      "B": 2.8230565992,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73103641909
+    },
+    {
+      "A": 3.1193551709,
+      "B": 1.6405536083,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.28817580097
+    },
+    {
+      "A": 0.57050700687,
+      "B": 0.54150957644,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.32355612331
+    },
+    {
+      "A": 1.917456834,
+      "B": 0.12958624285,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27167229168
+    },
+    {
+      "A": 1.2839202156,
+      "B": -1.3144734415,
+      "truth": "Class1",
+      "predicted": "Class2",
+      "probability_class1": 0.44405441619
+    },
+    {
+      "A": 0.92786126728,
+      "B": -3.7591818767,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.7310566853
+    },
+    {
+      "A": 1.5817548955,
+      "B": 1.1172172813,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.30757235072
+    },
+    {
+      "A": 0.082287659742,
+      "B": -1.2808578071,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.68930629251
+    },
+    {
+      "A": 0.297213273,
+      "B": -1.1160890094,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.60897398981
+    },
+    {
+      "A": 2.7656955641,
+      "B": 2.5041533735,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.72589121455
+    },
+    {
+      "A": 0.56590974575,
+      "B": -0.561653871,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.34361188971
+    },
+    {
+      "A": 0.024446044517,
+      "B": -0.78588767904,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.54612234841
+    },
+    {
+      "A": 0.69694335002,
+      "B": -1.0472270064,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.46925169425
+    },
+    {
+      "A": 1.2717573419,
+      "B": 1.3461219784,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.47628010972
+    },
+    {
+      "A": -0.8087517091,
+      "B": -2.7492011708,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73105392983
+    },
+    {
+      "A": 0.56808980943,
+      "B": -0.79029262894,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.39835549357
+    },
+    {
+      "A": 1.7984570688,
+      "B": 1.4790607209,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.40735756204
+    },
+    {
+      "A": 0.83578529802,
+      "B": 0.34281588651,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.29048043048
+    },
+    {
+      "A": 1.3689543699,
+      "B": -0.9618106593,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.319551098
+    },
+    {
+      "A": 0.6192602813,
+      "B": -1.767198276,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.71497091001
+    },
+    {
+      "A": 1.9394124681,
+      "B": -0.58508410719,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27561944021
+    },
+    {
+      "A": 1.3842762183,
+      "B": 1.4113712744,
+      "truth": "Class1",
+      "predicted": "Class2",
+      "probability_class1": 0.48840294151
+    },
+    {
+      "A": 2.1855759799,
+      "B": 1.2007582646,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.28387624096
+    },
+    {
+      "A": 1.5249001429,
+      "B": 1.1747195521,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.3261677247
+    },
+    {
+      "A": 2.3025404704,
+      "B": 0.11088386282,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27051480151
+    },
+    {
+      "A": -0.71307699142,
+      "B": -0.92208142223,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.70694025789
+    },
+    {
+      "A": -0.37922615126,
+      "B": -1.7192258117,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.7293260976
+    },
+    {
+      "A": 1.2004316047,
+      "B": -2.4243247953,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.72878514282
+    },
+    {
+      "A": 3.0841053799,
+      "B": -0.54796719234,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27021864146
+    },
+    {
+      "A": 0.9386345859,
+      "B": 3.9568295654,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73105814665
+    },
+    {
+      "A": 0.331297577,
+      "B": -2.7340910072,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73100022488
+    },
+    {
+      "A": 0.89902139387,
+      "B": -2.3081290744,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.72904748675
+    },
+    {
+      "A": 0.92829346487,
+      "B": 1.3017508435,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.56300472916
+    },
+    {
+      "A": 0.39127687249,
+      "B": 0.36870066737,
+      "truth": "Class1",
+      "predicted": "Class2",
+      "probability_class1": 0.32874433808
+    },
+    {
+      "A": 1.8173895256,
+      "B": 1.015794364,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.28395061377
+    },
+    {
+      "A": 2.7171536169,
+      "B": 1.0815767131,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27231902405
+    },
+    {
+      "A": 0.60133353555,
+      "B": -0.27025849158,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.30906588612
+    },
+    {
+      "A": 0.70241856724,
+      "B": 0.26412201814,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.29550122615
+    },
+    {
+      "A": 0.77964603153,
+      "B": -0.76299679017,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.35165693825
+    },
+    {
+      "A": 1.6989530662,
+      "B": -0.2041704109,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.2738569701
+    },
+    {
+      "A": 2.4431683028,
+      "B": 2.7593416052,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73073963624
+    },
+    {
+      "A": 1.8052382537,
+      "B": 4.1210599508,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73105802107
+    },
+    {
+      "A": 1.5168567908,
+      "B": -0.958521248,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.30728458016
+    },
+    {
+      "A": -0.38505926943,
+      "B": -1.4407103522,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.72456211665
+    },
+    {
+      "A": 1.9365100135,
+      "B": 0.50306109942,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27217507368
+    },
+    {
+      "A": 1.7178566753,
+      "B": -1.03505124,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.30312518773
+    },
+    {
+      "A": -1.0491941655,
+      "B": 0.29249667913,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.69630812446
+    },
+    {
+      "A": 0.9287576933,
+      "B": -1.1111612744,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.43774770221
+    },
+    {
+      "A": 1.6411298663,
+      "B": 0.10620080417,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27319945767
+    },
+    {
+      "A": 1.3603317212,
+      "B": 0.57452834904,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27940152992
+    },
+    {
+      "A": 0.49333066999,
+      "B": -2.8871732823,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73101891402
+    },
+    {
+      "A": 1.988825134,
+      "B": 0.93002601384,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27671720298
+    },
+    {
+      "A": 1.6726263496,
+      "B": -2.5075751235,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.72646776514
+    },
+    {
+      "A": 3.0683479633,
+      "B": 1.1210691347,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27108924765
+    },
+    {
+      "A": 0.44476207183,
+      "B": 0.059333843325,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.31187738434
+    },
+    {
+      "A": -0.053735143703,
+      "B": -1.3804634719,
+      "truth": "Class2",
+      "predicted": "Class1",
+      "probability_class1": 0.71145602479
+    },
+    {
+      "A": 0.56082186958,
+      "B": -0.36666034543,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.31974681532
+    },
+    {
+      "A": 1.5993966082,
+      "B": 0.058494877253,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27356938119
+    },
+    {
+      "A": 1.0174621388,
+      "B": -1.8230988826,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.69995628299
+    },
+    {
+      "A": 1.6043453723,
+      "B": 1.3513335449,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.38073299454
+    },
+    {
+      "A": 2.3843768361,
+      "B": 2.8535133418,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73091390986
+    },
+    {
+      "A": 1.4505966302,
+      "B": 0.83784946421,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.28630233927
+    },
+    {
+      "A": -0.23669136313,
+      "B": -1.6745478835,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.72796623419
+    },
+    {
+      "A": -1.1729622724,
+      "B": -1.607748124,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73067133396
+    },
+    {
+      "A": 1.3638044896,
+      "B": -1.9491774038,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.69370811077
+    },
+    {
+      "A": 0.64990001304,
+      "B": -0.37819848224,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.31238632476
+    },
+    {
+      "A": 1.0075333887,
+      "B": -2.8522957269,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73090515176
+    },
+    {
+      "A": 1.8660091163,
+      "B": -1.1165271847,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.30330667636
+    },
+    {
+      "A": 1.7544316162,
+      "B": 0.85996909717,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27882701132
+    },
+    {
+      "A": 0.37430722486,
+      "B": -0.41613399871,
+      "truth": "Class1",
+      "predicted": "Class2",
+      "probability_class1": 0.34929986249
+    },
+    {
+      "A": 1.9436370218,
+      "B": -0.6963664709,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27760910822
+    },
+    {
+      "A": 2.503181237,
+      "B": 0.73020623564,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27083683937
+    },
+    {
+      "A": 2.2486333939,
+      "B": -0.8507715814,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27694870557
+    },
+    {
+      "A": 1.5933431978,
+      "B": 2.0187803336,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.72189866347
+    },
+    {
+      "A": 1.6418339598,
+      "B": -2.5199218839,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.72706321871
+    },
+    {
+      "A": 0.34254831104,
+      "B": -0.45148783734,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.36017572332
+    },
+    {
+      "A": 0.78131107779,
+      "B": -0.75064736751,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.34870652045
+    },
+    {
+      "A": 0.37597752665,
+      "B": -0.56206015488,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.37583973067
+    },
+    {
+      "A": 0.9760345903,
+      "B": -0.84383702341,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.34135241166
+    },
+    {
+      "A": 0.46436688532,
+      "B": -1.5732875532,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.70302855682
+    },
+    {
+      "A": 1.4088146274,
+      "B": -0.25356687585,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27747282334
+    },
+    {
+      "A": -0.38045990623,
+      "B": -2.5194733759,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73102552958
+    },
+    {
+      "A": -0.18609925646,
+      "B": -0.87804731186,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.63244927499
+    },
+    {
+      "A": 0.88251595517,
+      "B": 1.8992550685,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.72822119838
+    },
+    {
+      "A": 1.5203637689,
+      "B": 0.38919017348,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27478157044
+    },
+    {
+      "A": 1.9328189025,
+      "B": 0.80233637815,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27484131994
+    },
+    {
+      "A": 2.2672850494,
+      "B": 2.2026742,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.71649228507
+    },
+    {
+      "A": 1.2124837982,
+      "B": 0.093765117679,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27799234018
+    },
+    {
+      "A": 1.6179616356,
+      "B": -1.1380446912,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.32632422635
+    },
+    {
+      "A": 1.2908308223,
+      "B": 2.3128092817,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73063333298
+    },
+    {
+      "A": 0.92473799404,
+      "B": -1.3736204243,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.57130317151
+    },
+    {
+      "A": 0.26084891843,
+      "B": -0.35299426218,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.35921499001
+    },
+    {
+      "A": -1.2288091538,
+      "B": -1.3891148039,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.7301593891
+    },
+    {
+      "A": 0.93822255333,
+      "B": 0.26956550682,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.28516821889
+    },
+    {
+      "A": 0.95773113823,
+      "B": 0.64588328407,
+      "truth": "Class1",
+      "predicted": "Class2",
+      "probability_class1": 0.29806729164
+    },
+    {
+      "A": 0.019804864344,
+      "B": -2.0678861529,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73024650055
+    },
+    {
+      "A": 0.79910314993,
+      "B": 3.0926395507,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73105611267
+    },
+    {
+      "A": 2.3119717643,
+      "B": 3.6863784832,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.7310563753
+    },
+    {
+      "A": -0.42355296005,
+      "B": -0.71879864944,
+      "truth": "Class2",
+      "predicted": "Class1",
+      "probability_class1": 0.63847120775
+    },
+    {
+      "A": 1.8956574884,
+      "B": 1.7596515398,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.602240772
+    },
+    {
+      "A": 0.0068003058091,
+      "B": -1.7028709201,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.72610696492
+    },
+    {
+      "A": 1.3459936803,
+      "B": 1.080826221,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.32524436731
+    },
+    {
+      "A": -0.17738522693,
+      "B": -0.86229958929,
+      "truth": "Class2",
+      "predicted": "Class1",
+      "probability_class1": 0.62587488007
+    },
+    {
+      "A": 0.30376035763,
+      "B": -1.2835241274,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.66323923616
+    },
+    {
+      "A": 0.55825147406,
+      "B": 0.12364631824,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.30270686902
+    },
+    {
+      "A": 0.12894155775,
+      "B": -0.76298529772,
+      "truth": "Class2",
+      "predicted": "Class1",
+      "probability_class1": 0.50582027534
+    },
+    {
+      "A": 0.29428635388,
+      "B": 0.37845254723,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.34455525596
+    },
+    {
+      "A": 1.3071685514,
+      "B": -1.690396742,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.62852994033
+    },
+    {
+      "A": 1.6980995427,
+      "B": 0.62837222988,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27499979647
+    },
+    {
+      "A": 0.55739802006,
+      "B": -1.8758970029,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.72296547413
+    },
+    {
+      "A": 0.072997866746,
+      "B": -2.0991887901,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73026989656
+    },
+    {
+      "A": 0.6356708546,
+      "B": 0.50062493312,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.31203871487
+    },
+    {
+      "A": 2.0157894057,
+      "B": 2.6399012028,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73079519003
+    },
+    {
+      "A": 0.67345036956,
+      "B": -0.17878090546,
+      "truth": "Class1",
+      "predicted": "Class2",
+      "probability_class1": 0.29976070918
+    },
+    {
+      "A": 0.22902811527,
+      "B": -0.99092043399,
+      "truth": "Class2",
+      "predicted": "Class1",
+      "probability_class1": 0.57429020282
+    },
+    {
+      "A": 3.1906898476,
+      "B": 1.8948194409,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.34264998822
+    },
+    {
+      "A": 0.06755944557,
+      "B": 0.17772318131,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.37010605322
+    },
+    {
+      "A": 0.34792919258,
+      "B": 1.1754873487,
+      "truth": "Class2",
+      "predicted": "Class1",
+      "probability_class1": 0.65395474384
+    },
+    {
+      "A": 2.3164490313,
+      "B": 0.5869402308,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27092222017
+    },
+    {
+      "A": -0.4092172069,
+      "B": -1.8781093885,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73032746372
+    },
+    {
+      "A": 2.9805454775,
+      "B": 0.59118954885,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.26974122281
+    },
+    {
+      "A": 1.6981433828,
+      "B": 2.5539534611,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73083834214
+    },
+    {
+      "A": 0.044197449397,
+      "B": 0.28495656049,
+      "truth": "Class1",
+      "predicted": "Class2",
+      "probability_class1": 0.38543804779
+    },
+    {
+      "A": -1.2012685646,
+      "B": -0.77906283026,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.72090379306
+    },
+    {
+      "A": 2.1546432696,
+      "B": -0.22410989364,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27147350806
+    },
+    {
+      "A": 1.1909013001,
+      "B": -0.26031093787,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.2816267938
+    },
+    {
+      "A": 0.91375402836,
+      "B": 0.91466828131,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.34596556829
+    },
+    {
+      "A": 1.1090282934,
+      "B": 2.1080108336,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.72990501529
+    },
+    {
+      "A": 1.7662065193,
+      "B": 0.54118623386,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27351663412
+    },
+    {
+      "A": -0.36307634304,
+      "B": -0.36138818309,
+      "truth": "Class2",
+      "predicted": "Class1",
+      "probability_class1": 0.53066804012
+    },
+    {
+      "A": 1.1996728269,
+      "B": 1.1212982051,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.36261013734
+    },
+    {
+      "A": 2.1616096555,
+      "B": 0.73388709001,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27225585149
+    },
+    {
+      "A": 1.0609825246,
+      "B": -1.0959742899,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.400503011
+    },
+    {
+      "A": -0.36047291149,
+      "B": -1.0639561288,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.69626999326
+    },
+    {
+      "A": 0.2599097237,
+      "B": 0.052782215754,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.33307175121
+    },
+    {
+      "A": 0.90804186772,
+      "B": -0.19161730035,
+      "truth": "Class1",
+      "predicted": "Class2",
+      "probability_class1": 0.28860231125
+    },
+    {
+      "A": 0.89464627045,
+      "B": 0.35206969513,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.28814992045
+    },
+    {
+      "A": 0.67543745036,
+      "B": 0.70326742417,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.33430494634
+    },
+    {
+      "A": 1.4908088529,
+      "B": 0.19040817705,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27442572708
+    },
+    {
+      "A": 1.2701163872,
+      "B": 0.13844402181,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27705213673
+    },
+    {
+      "A": -1.2468265248,
+      "B": -0.46632230178,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.7117991759
+    },
+    {
+      "A": 0.91564706176,
+      "B": -0.48167595248,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.30078826935
+    },
+    {
+      "A": 1.8067587661,
+      "B": 1.6278618543,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.52298326923
+    },
+    {
+      "A": 1.9726420819,
+      "B": 0.90309934575,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27629633558
+    },
+    {
+      "A": 1.9949107154,
+      "B": 0.46555726301,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27175090974
+    },
+    {
+      "A": 0.55150755533,
+      "B": 0.48345201059,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.31941938468
+    },
+    {
+      "A": 1.7274460568,
+      "B": 0.52669486825,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27373427389
+    },
+    {
+      "A": 1.2783637725,
+      "B": 0.68305140515,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.28485182796
+    },
+    {
+      "A": 0.8821030328,
+      "B": 1.0921466228,
+      "truth": "Class1",
+      "predicted": "Class2",
+      "probability_class1": 0.43148777603
+    },
+    {
+      "A": 1.9789731983,
+      "B": 2.4951544765,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73037466302
+    },
+    {
+      "A": 1.9713972445,
+      "B": 0.30102549308,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27151056786
+    },
+    {
+      "A": 0.88422069982,
+      "B": -0.28940579416,
+      "truth": "Class1",
+      "predicted": "Class2",
+      "probability_class1": 0.29253831338
+    },
+    {
+      "A": 1.3676358629,
+      "B": 1.2079027944,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.36404198966
+    },
+    {
+      "A": 1.4369050449,
+      "B": 2.4231577363,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73077406621
+    },
+    {
+      "A": -0.46393128669,
+      "B": 0.083306498129,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.52784450375
+    },
+    {
+      "A": 1.9226647454,
+      "B": -0.31235406062,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27298647576
+    },
+    {
+      "A": -0.50422520729,
+      "B": 1.4524080671,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73023172069
+    },
+    {
+      "A": 0.80524220073,
+      "B": 1.2100591084,
+      "truth": "Class2",
+      "predicted": "Class1",
+      "probability_class1": 0.53943975393
+    },
+    {
+      "A": 1.1840985788,
+      "B": -1.3171929711,
+      "truth": "Class1",
+      "predicted": "Class2",
+      "probability_class1": 0.47141436433
+    },
+    {
+      "A": 1.488889175,
+      "B": 1.3381296167,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.40258002562
+    },
+    {
+      "A": 0.74073907882,
+      "B": 0.85678393867,
+      "truth": "Class1",
+      "predicted": "Class2",
+      "probability_class1": 0.36149942136
+    },
+    {
+      "A": 0.73222647454,
+      "B": -0.86522022357,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.38768801661
+    },
+    {
+      "A": 0.83328371804,
+      "B": -2.7737920691,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73090609988
+    },
+    {
+      "A": 1.2026832242,
+      "B": -0.7456561158,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.30492702578
+    },
+    {
+      "A": -1.0990809242,
+      "B": -1.3426427299,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.72949496123
+    },
+    {
+      "A": 0.41402483116,
+      "B": -1.8680173111,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.72512211505
+    },
+    {
+      "A": 1.7647040972,
+      "B": 2.6382127071,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73091283241
+    },
+    {
+      "A": -0.66048448144,
+      "B": -0.43698139128,
+      "truth": "Class2",
+      "predicted": "Class1",
+      "probability_class1": 0.63127858681
+    },
+    {
+      "A": 2.2256401599,
+      "B": 0.24634325904,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27067421399
+    },
+    {
+      "A": 1.6338965907,
+      "B": -0.50798730449,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27819999848
+    },
+    {
+      "A": -1.1331368503,
+      "B": -0.29335345034,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.69625157309
+    },
+    {
+      "A": 0.65643086106,
+      "B": 0.66517427889,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.33014716126
+    },
+    {
+      "A": -0.39721071084,
+      "B": -0.21426127044,
+      "truth": "Class2",
+      "predicted": "Class1",
+      "probability_class1": 0.51589727441
+    },
+    {
+      "A": 0.80149878872,
+      "B": 0.90552085361,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.36498873485
+    },
+    {
+      "A": -0.36424969655,
+      "B": 1.1615006085,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.72223192784
+    },
+    {
+      "A": 1.7319932008,
+      "B": -0.46429826674,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27612560096
+    },
+    {
+      "A": 0.47763502623,
+      "B": 0.021548502252,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.3091800331
+    },
+    {
+      "A": 0.8499562669,
+      "B": 1.811861212,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.7261142646
+    },
+    {
+      "A": 0.99381518165,
+      "B": -1.9376542286,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.71416531649
+    },
+    {
+      "A": 2.3370333935,
+      "B": 1.1321877523,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27714917291
+    },
+    {
+      "A": -0.0096277825833,
+      "B": -1.1832861819,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.68088554506
+    },
+    {
+      "A": 2.3068765627,
+      "B": -0.21336840931,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27096222284
+    },
+    {
+      "A": 2.0689025752,
+      "B": 0.60484446872,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27196025717
+    },
+    {
+      "A": 2.1833950313,
+      "B": 1.6465880146,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.41633843949
+    },
+    {
+      "A": 1.4257861644,
+      "B": -0.98420397614,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.31795720104
+    },
+    {
+      "A": 0.12245904272,
+      "B": -3.4002330112,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73105673486
+    },
+    {
+      "A": 1.8252113512,
+      "B": 1.2319086922,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.3069453214
+    },
+    {
+      "A": 1.0414814013,
+      "B": 1.016669517,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.35485735322
+    },
+    {
+      "A": 1.6160155319,
+      "B": -0.41311277019,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27680413269
+    },
+    {
+      "A": -1.5192655317,
+      "B": -2.8914726415,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73105788091
+    },
+    {
+      "A": -0.85823386297,
+      "B": 1.2320127691,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73007134506
+    },
+    {
+      "A": 0.48806257981,
+      "B": -1.5565367264,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.69908096264
+    },
+    {
+      "A": 0.77558444065,
+      "B": -0.52969001153,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.3153106201
+    },
+    {
+      "A": 0.44067463635,
+      "B": -2.1897684654,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.72984077709
+    },
+    {
+      "A": 0.79370219026,
+      "B": 0.74568859347,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.32552496835
+    },
+    {
+      "A": 1.4560840984,
+      "B": -0.78132712908,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.29404660502
+    },
+    {
+      "A": 0.59034400434,
+      "B": -1.4580676253,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.66919523099
+    },
+    {
+      "A": 1.3352248765,
+      "B": -1.3286950728,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.43815615955
+    },
+    {
+      "A": 2.0625910563,
+      "B": 0.64741193873,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27223055421
+    },
+    {
+      "A": 0.03191637643,
+      "B": -0.47859048643,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.43721258134
+    },
+    {
+      "A": 1.2358273998,
+      "B": -0.033537043514,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27808519129
+    },
+    {
+      "A": 1.5774544595,
+      "B": 0.05807925452,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27374267431
+    },
+    {
+      "A": -1.6505867827,
+      "B": -1.0519183888,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.72997095081
+    },
+    {
+      "A": 1.2530457489,
+      "B": 0.99027030534,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.31645061508
+    },
+    {
+      "A": -0.12848550072,
+      "B": -0.53785224219,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.5028663205
+    },
+    {
+      "A": 1.4410666799,
+      "B": 0.19995221399,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27493880295
+    },
+    {
+      "A": 1.0201655604,
+      "B": 1.7375937758,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.71673436782
+    },
+    {
+      "A": 1.266680808,
+      "B": -1.8345877728,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.67978682033
+    },
+    {
+      "A": 0.32490475288,
+      "B": -1.0527082548,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.57573391168
+    },
+    {
+      "A": 1.7142987559,
+      "B": 0.1948199075,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27269980345
+    },
+    {
+      "A": 1.1200817307,
+      "B": 0.61984044733,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.28801587171
+    },
+    {
+      "A": 0.68871511025,
+      "B": -2.2501331839,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.7294275957
+    },
+    {
+      "A": 1.6338652387,
+      "B": 0.52250986479,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27458082427
+    },
+    {
+      "A": 0.90821839093,
+      "B": -0.84346635167,
+      "truth": "Class1",
+      "predicted": "Class2",
+      "probability_class1": 0.35077552299
+    },
+    {
+      "A": 0.63342552059,
+      "B": -0.68031292589,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.35625080931
+    },
+    {
+      "A": 0.68352278266,
+      "B": 0.23402972973,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.2959929091
+    },
+    {
+      "A": 0.50462530669,
+      "B": 0.085196648643,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.30666876777
+    },
+    {
+      "A": 1.6133258908,
+      "B": -0.14152889833,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27418563386
+    },
+    {
+      "A": -1.6233661632,
+      "B": -2.816606038,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73105781482
+    },
+    {
+      "A": 1.2154610193,
+      "B": -0.79349638078,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.30920943301
+    },
+    {
+      "A": 1.8159997584,
+      "B": 0.11558210467,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27214664472
+    },
+    {
+      "A": 2.2527537094,
+      "B": 1.012873441,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27513247231
+    },
+    {
+      "A": 0.3053286938,
+      "B": 0.74788564984,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.43657467021
+    },
+    {
+      "A": 1.7364277445,
+      "B": -1.8270182425,
+      "truth": "Class2",
+      "predicted": "Class1",
+      "probability_class1": 0.59831077524
+    },
+    {
+      "A": 1.4585521107,
+      "B": 0.76661224854,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.28263655918
+    },
+    {
+      "A": -0.57129586265,
+      "B": -0.42616747941,
+      "truth": "Class2",
+      "predicted": "Class1",
+      "probability_class1": 0.60711177641
+    },
+    {
+      "A": 1.2669859685,
+      "B": -0.2650413106,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.28007764102
+    },
+    {
+      "A": 0.92586690546,
+      "B": 0.51020973554,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.29188290633
+    },
+    {
+      "A": 1.7270830914,
+      "B": 1.1859277894,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.30704374273
+    },
+    {
+      "A": 2.7971076631,
+      "B": 1.7859650049,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.35867269541
+    },
+    {
+      "A": 2.6997252727,
+      "B": 0.9030462399,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27099739164
+    },
+    {
+      "A": 1.1487243917,
+      "B": -0.53645250675,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.29217842846
+    },
+    {
+      "A": 1.4884406325,
+      "B": 0.44842310925,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27557390297
+    },
+    {
+      "A": 0.21315021171,
+      "B": -1.4360695347,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.70205750832
+    },
+    {
+      "A": 1.3459035739,
+      "B": 1.9553975388,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.7237738425
+    },
+    {
+      "A": 1.1170811976,
+      "B": 0.84817901659,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.30673999786
+    },
+    {
+      "A": 1.4174098889,
+      "B": -0.0058296748393,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27544797649
+    },
+    {
+      "A": 2.9136801718,
+      "B": 1.2759380031,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27385785337
+    },
+    {
+      "A": 1.7021462022,
+      "B": -0.15418820869,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27354648812
+    },
+    {
+      "A": 1.6354924916,
+      "B": 0.2385308767,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27326682171
+    },
+    {
+      "A": 1.7382293866,
+      "B": -0.092743716922,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27302396806
+    },
+    {
+      "A": -0.2349676009,
+      "B": -3.1310420903,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73105572857
+    },
+    {
+      "A": -0.20038747042,
+      "B": -2.7523279073,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73104219127
+    },
+    {
+      "A": 2.5185995276,
+      "B": 0.36530397387,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27014665282
+    },
+    {
+      "A": 0.9187961082,
+      "B": -0.45235933968,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.29868807136
+    },
+    {
+      "A": 0.86228287735,
+      "B": -0.23769643281,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.29175836156
+    },
+    {
+      "A": 1.0507114794,
+      "B": 0.5444925603,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.28768365075
+    },
+    {
+      "A": 0.41241731757,
+      "B": -0.27586790478,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.32829187032
+    },
+    {
+      "A": 0.98591772584,
+      "B": 3.8548710582,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73105807077
+    },
+    {
+      "A": -0.029646633608,
+      "B": 0.92649196978,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.63983348718
+    },
+    {
+      "A": 1.6980173745,
+      "B": 0.31098892562,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27296213544
+    },
+    {
+      "A": 0.28085881262,
+      "B": -2.9080635497,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.7310361663
+    },
+    {
+      "A": 1.0041601284,
+      "B": -0.35740658223,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.28997633935
+    },
+    {
+      "A": 2.1834993216,
+      "B": 3.0931389942,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73103624431
+    },
+    {
+      "A": -0.1355449341,
+      "B": 2.6761194142,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73105597675
+    },
+    {
+      "A": 1.0192768795,
+      "B": -0.48962578824,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.29556159241
+    },
+    {
+      "A": 0.78999346688,
+      "B": -3.6510943285,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73105629417
+    },
+    {
+      "A": 0.47976332685,
+      "B": -1.6092860945,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.7064702826
+    },
+    {
+      "A": 0.6358747032,
+      "B": -0.25295339358,
+      "truth": "Class1",
+      "predicted": "Class2",
+      "probability_class1": 0.30545766947
+    },
+    {
+      "A": 1.5866185709,
+      "B": 1.6526111707,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.6117714377
+    },
+    {
+      "A": 1.7078445517,
+      "B": 0.66940196936,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27543278056
+    },
+    {
+      "A": 0.71742694117,
+      "B": -1.5201036994,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.66846234098
+    },
+    {
+      "A": 0.60987524976,
+      "B": -1.899990469,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.7229152861
+    },
+    {
+      "A": 2.6159350009,
+      "B": 1.834211998,
+      "truth": "Class1",
+      "predicted": "Class2",
+      "probability_class1": 0.43548542317
+    },
+    {
+      "A": -0.51029038317,
+      "B": 0.28810191583,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.57179659476
+    },
+    {
+      "A": -0.28227849956,
+      "B": -1.3817864674,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.72000786243
+    },
+    {
+      "A": 1.721265718,
+      "B": -0.40437698002,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27544738163
+    },
+    {
+      "A": 0.79050088446,
+      "B": 0.32847701439,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.29229955139
+    },
+    {
+      "A": 0.91743032913,
+      "B": -2.4926522638,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73025835695
+    },
+    {
+      "A": -0.10107473353,
+      "B": 0.50484229387,
+      "truth": "Class1",
+      "predicted": "Class2",
+      "probability_class1": 0.48140634369
+    },
+    {
+      "A": 0.16205826286,
+      "B": -1.099569201,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.63192396234
+    },
+    {
+      "A": 2.4258702001,
+      "B": 3.4353221142,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73105218025
+    },
+    {
+      "A": 0.97574856045,
+      "B": 1.3044442623,
+      "truth": "Class2",
+      "predicted": "Class1",
+      "probability_class1": 0.54869380725
+    },
+    {
+      "A": -0.86774058573,
+      "B": -0.25799606471,
+      "truth": "Class2",
+      "predicted": "Class1",
+      "probability_class1": 0.65504562355
+    },
+    {
+      "A": 0.74556371848,
+      "B": -1.4510262071,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.64318677897
+    },
+    {
+      "A": 0.28409872945,
+      "B": 0.78881521969,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.46334268731
+    },
+    {
+      "A": 2.7073776094,
+      "B": 2.019423398,
+      "truth": "Class2",
+      "predicted": "Class1",
+      "probability_class1": 0.5721247386
+    },
+    {
+      "A": 0.94167687763,
+      "B": -1.7203851803,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.68876378562
+    },
+    {
+      "A": 2.214894562,
+      "B": 1.2529736654,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.28675860498
+    },
+    {
+      "A": 0.064011872775,
+      "B": -0.28603324212,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.3896222208
+    },
+    {
+      "A": 1.4756169094,
+      "B": 1.3801784044,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.43421880062
+    },
+    {
+      "A": 1.20584841,
+      "B": -0.1618590402,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27979039152
+    },
+    {
+      "A": 1.64625334,
+      "B": 0.92212767259,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.28417562144
+    },
+    {
+      "A": 1.0885216456,
+      "B": -0.93794639756,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.34699484177
+    },
+    {
+      "A": 1.808828389,
+      "B": 2.8655588993,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73101997296
+    },
+    {
+      "A": 1.007146168,
+      "B": -0.61018663009,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.30509103564
+    },
+    {
+      "A": 0.2332590127,
+      "B": -1.0410710203,
+      "truth": "Class2",
+      "predicted": "Class1",
+      "probability_class1": 0.59415035616
+    },
+    {
+      "A": 1.3557726978,
+      "B": 0.97503902141,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.30426345309
+    },
+    {
+      "A": -0.15438384576,
+      "B": -3.3039780154,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73105694587
+    },
+    {
+      "A": 0.67673760491,
+      "B": -2.8921045669,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73100003449
+    },
+    {
+      "A": 1.2783760904,
+      "B": -0.15098577148,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27834595551
+    },
+    {
+      "A": 0.72120995522,
+      "B": -0.23669135374,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.29903504167
+    },
+    {
+      "A": 1.1238857809,
+      "B": 0.45710558533,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.2826712537
+    },
+    {
+      "A": 1.5531737327,
+      "B": 0.62841180904,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27692769022
+    },
+    {
+      "A": 1.7434288887,
+      "B": 0.54465897164,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27373224199
+    },
+    {
+      "A": 2.2199036294,
+      "B": 3.0056240365,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73101942333
+    },
+    {
+      "A": 0.26987276721,
+      "B": 2.5160363406,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73104766109
+    },
+    {
+      "A": 0.55895966797,
+      "B": 0.82211387633,
+      "truth": "Class1",
+      "predicted": "Class2",
+      "probability_class1": 0.39219151846
+    },
+    {
+      "A": 0.51022655413,
+      "B": 0.36300050008,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.31423917501
+    },
+    {
+      "A": 1.3453992496,
+      "B": 0.090283294883,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27604913473
+    },
+    {
+      "A": 2.3020121609,
+      "B": -1.0114104173,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.28062738084
+    },
+    {
+      "A": 1.535467074,
+      "B": -0.52214222766,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.28022682498
+    },
+    {
+      "A": 0.16800481902,
+      "B": -0.88308289147,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.54482196539
+    },
+    {
+      "A": 0.93158306151,
+      "B": -1.9386268203,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.71654441384
+    },
+    {
+      "A": 1.8892230901,
+      "B": 1.4026983765,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.34677168308
+    },
+    {
+      "A": 2.385636643,
+      "B": 0.036850124837,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27039393731
+    },
+    {
+      "A": 1.1263754716,
+      "B": 0.37304375824,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.28113847882
+    },
+    {
+      "A": 0.076702681198,
+      "B": -1.9579965256,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.72942188776
+    },
+    {
+      "A": -0.68581584634,
+      "B": -2.5587942009,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73104458187
+    },
+    {
+      "A": 1.3863248861,
+      "B": -0.91012934745,
+      "truth": "Class1",
+      "predicted": "Class2",
+      "probability_class1": 0.31069262292
+    },
+    {
+      "A": -0.63728295124,
+      "B": -2.1917158639,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73096972009
+    },
+    {
+      "A": 1.6834545081,
+      "B": 2.5834086286,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.7308849124
+    },
+    {
+      "A": 2.168618542,
+      "B": 0.24063588321,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27081982858
+    },
+    {
+      "A": 0.72982311389,
+      "B": 1.1790446509,
+      "truth": "Class2",
+      "predicted": "Class1",
+      "probability_class1": 0.54416480774
+    },
+    {
+      "A": -0.30156825274,
+      "B": -0.64006101005,
+      "truth": "Class2",
+      "predicted": "Class1",
+      "probability_class1": 0.58740888975
+    },
+    {
+      "A": 0.55811448834,
+      "B": 0.92694335561,
+      "truth": "Class1",
+      "predicted": "Class2",
+      "probability_class1": 0.44180293623
+    },
+    {
+      "A": 2.3742551139,
+      "B": 2.2235996825,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.71446803448
+    },
+    {
+      "A": 2.1356465306,
+      "B": 0.014105036894,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27101383819
+    },
+    {
+      "A": 1.7435302115,
+      "B": 0.71820320593,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27573871032
+    },
+    {
+      "A": 0.83526776116,
+      "B": -0.44606364206,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.30341740923
+    },
+    {
+      "A": 0.95886411944,
+      "B": -1.0937114616,
+      "truth": "Class1",
+      "predicted": "Class2",
+      "probability_class1": 0.42271286582
+    },
+    {
+      "A": 0.91660948687,
+      "B": -2.122657862,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.72555536849
+    },
+    {
+      "A": 1.3979725055,
+      "B": 1.6057426573,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.63035023481
+    },
+    {
+      "A": 1.8342120072,
+      "B": 1.9085545728,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.68955984943
+    },
+    {
+      "A": 1.6255378749,
+      "B": 1.0229400975,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.29233381649
+    },
+    {
+      "A": 1.7176589654,
+      "B": 0.53411358668,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27387527421
+    },
+    {
+      "A": 0.8103733307,
+      "B": -2.3679468189,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.72987289506
+    },
+    {
+      "A": 1.9267360564,
+      "B": -0.86338809201,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.28296651519
+    },
+    {
+      "A": -1.9072594361,
+      "B": -2.9502583655,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.7310582782
+    },
+    {
+      "A": 0.36734449006,
+      "B": -2.8129553867,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73101561176
+    },
+    {
+      "A": 0.046363812468,
+      "B": -0.56941177354,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.45964604986
+    },
+    {
+      "A": -0.095624367248,
+      "B": -0.0998726913,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.40901671057
+    },
+    {
+      "A": 2.0482648474,
+      "B": 2.0228271162,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.69915555885
+    },
+    {
+      "A": 1.749451278,
+      "B": 2.1136677694,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.72420742936
+    },
+    {
+      "A": 2.2387607085,
+      "B": 0.88936667649,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27323563773
+    },
+    {
+      "A": 3.221599988,
+      "B": 1.2085067047,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27118904439
+    },
+    {
+      "A": -0.21513713301,
+      "B": -2.0769728112,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73062310717
+    },
+    {
+      "A": 0.60624922371,
+      "B": 0.95100981084,
+      "truth": "Class1",
+      "predicted": "Class2",
+      "probability_class1": 0.43910110171
+    },
+    {
+      "A": 0.35579855025,
+      "B": -1.8937745898,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.72653989632
+    },
+    {
+      "A": -0.28734594286,
+      "B": -1.9594739862,
+      "truth": "Class1",
+      "predicted": "Class1",
+      "probability_class1": 0.73039968081
+    },
+    {
+      "A": 2.4818576024,
+      "B": 1.8304507091,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.47446366413
+    },
+    {
+      "A": 1.5907254921,
+      "B": 0.027698206778,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.27370029841
+    },
+    {
+      "A": 1.6604467519,
+      "B": 1.5351640839,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.49421363554
+    },
+    {
+      "A": -0.029379982874,
+      "B": -0.46598972012,
+      "truth": "Class2",
+      "predicted": "Class2",
+      "probability_class1": 0.45142258552
+    }
+  ],
+  "boundary": [
+    {
+      "level": 0.5,
+      "x": [
+        2.8342907119, 2.8190261079, 2.8055768547, 2.8031393449, 2.7871544968,
+        2.7717278308, 2.7563210492, 2.7412843131, 2.7403624644, 2.7241091172,
+        2.7084613066, 2.6928688751, 2.6769917714, 2.6767645743, 2.6602537103,
+        2.6443688709, 2.6285458951, 2.6126992298, 2.6121947755, 2.595442562,
+        2.5793041874, 2.5631989239, 2.5484066882, 2.5464851354, 2.5295075502,
+        2.5130916407, 2.496636847, 2.4841141466, 2.4794494144, 2.4622531918,
+        2.4455171934, 2.4286166227, 2.419821605, 2.4108782233, 2.3934463134,
+        2.3763117645, 2.3588193176, 2.3555290634, 2.3405263656, 2.3227951867,
+        2.3051208402, 2.2912365218, 2.2866936873, 2.2680847622, 2.24990901,
+        2.2314492873, 2.2269439802, 2.2120419475, 2.1931235999, 2.1742217234,
+        2.1626514386, 2.15438467, 2.1345570258, 2.1149832288, 2.098358897, 2.0947051828,
+        2.0738674468, 2.0534425172, 2.0340663554, 2.0324909902, 2.0105899314,
+        1.9891601658, 1.9697738138, 1.9671412575, 1.9441363771, 1.9215304991,
+        1.9054812722, 1.8979617331, 1.8737645396, 1.8497217235, 1.8411887306,
+        1.8241060489, 1.7984793171, 1.776896189, 1.7721945513, 1.7444058191,
+        1.7167994606, 1.7126036474, 1.6868411992, 1.6569856496, 1.6483111057,
+        1.6246668217, 1.5919837945, 1.5840185641, 1.5562192059, 1.5199976816,
+        1.5197260225, 1.4789975451, 1.4554334809, 1.4355253003, 1.3911409393,
+        1.3884689621, 1.3334754142, 1.3268483977, 1.2680107145, 1.2625558561,
+        1.1982633145, 1.1774959687, 1.1339707729, 1.0696782313, 1.0053856897,
+        0.94109314808, 0.87680060647, 0.84913704634, 0.81250806487, 0.76023541821,
+        0.74821552326, 0.69541990324, 0.68392298165, 0.64168295803, 0.61963044005,
+        0.59404397575, 0.55533789844, 0.55028515191, 0.51091081386, 0.49104535683,
+        0.47338667126, 0.43797903038, 0.42675281523, 0.4043381541, 0.37184795467,
+        0.36246027362, 0.34072480058, 0.31048609411, 0.29816773202, 0.28104866689,
+        0.25257743724, 0.23387519041, 0.22434188414, 0.19723494783, 0.16999836321,
+        0.1695826488, 0.14386398799, 0.11787910208, 0.1052901072, 0.092089711216,
+        0.067025383573, 0.041738065236, 0.04099756559, 0.017217869301, -0.0071440964722,
+        -0.023294976017, -0.031622095022, -0.0554111576, -0.079297234381,
+        -0.087587517623, -0.10304984835, -0.12633445676, -0.14989345408, -0.15188005923,
+        -0.17301861479, -0.19593719411, -0.21617260084, -0.21917225141, -0.24185479553,
+        -0.26450399091, -0.28046514244, -0.28741704963, -0.30980183778, -0.33225022223,
+        -0.34475768405, -0.35488865148, -0.37704490342, -0.39934187312, -0.40905022565,
+        -0.42174776684, -0.44372700171, -0.46590864637, -0.47334276726, -0.48811886197,
+        -0.50995990796, -0.53205294559, -0.53763530887, -0.55409934008, -0.57583178984,
+        -0.59785624298, -0.60192785047, -0.61976605327, -0.64141268495, -0.66338372676,
+        -0.66622039208, -0.68518003168, -0.70675853082, -0.728687776, -0.73051293369,
+        -0.75038998828, -0.77191419017, -0.79381060991, -0.79480547529, -0.8154349615,
+        -0.83691575973, -0.85878633867, -0.8590980169, -0.88034633643, -0.90179235593,
+        -0.92339055851, -0.92363711306, -0.94514940907, -0.96656751071, -0.98768310011,
+        -0.98838569198, -1.0098646089, -1.0312602718, -1.0519756417, -1.0530566585
+      ],
+      "y": [
+        4.3218516682, 4.2351594583, 4.1613133776, 4.1484672485, 4.0617750387,
+        3.9750828289, 3.888390619, 3.8064910291, 3.8016984092, 3.7150061994,
+        3.6283139895, 3.5416217797, 3.4560942603, 3.4549295699, 3.36823736,
+        3.2815451502, 3.1948529404, 3.1107091983, 3.1081607306, 3.0214685207,
+        2.9347763109, 2.8480841011, 2.7709518654, 2.7613918912, 2.6746996814,
+        2.5880074716, 2.5013152617, 2.4374585015, 2.4146230519, 2.3279308421,
+        2.2412386322, 2.1545464224, 2.1108887442, 2.0678542126, 1.9811620028,
+        1.8944697929, 1.8077775831, 1.7919576072, 1.7210853733, 1.6343931634,
+        1.5477009536, 1.4816173662, 1.4610087438, 1.3743165339, 1.2876243241,
+        1.2009321143, 1.1803992263, 1.1142399045, 1.0275476946, 0.94085548479,
+        0.8893254716, 0.85416327496, 0.76747106513, 0.6807788553, 0.60895631116,
+        0.59408664547, 0.50739443564, 0.42070222581, 0.34013217284, 0.33401001598,
+        0.24731780615, 0.16062559632, 0.083675120092, 0.073933386489, -0.012758823341,
+        -0.099451033172, -0.15974627234, -0.186143243, -0.27283545283, -0.35952766266,
+        -0.38960876293, -0.44621987249, -0.53291208232, -0.60515488126, -0.61960429215,
+        -0.70629650198, -0.79298871182, -0.80592059587, -0.87968092165, -0.96637313148,
+        -0.99118788093, -1.0530653413, -1.1397575511, -1.1606317664, -1.226449761,
+        -1.3131419708, -1.3137852579, -1.3998341806, -1.4498806466, -1.4865263905,
+        -1.5690340168, -1.5732186003, -1.6599108101, -1.6703990219, -1.7466030199,
+        -1.7537131123, -1.818463101, -1.8332952298, -1.864481564, -1.8913348762,
+        -1.8988440173, -1.8867343368, -1.8550775777, -1.8332952298, -1.8037174037,
+        -1.7466030199, -1.7331576661, -1.6599108101, -1.6436463945, -1.5732186003,
+        -1.5358577945, -1.4865263905, -1.4107758203, -1.3998341806, -1.3131419708,
+        -1.2690840656, -1.226449761, -1.1397575511, -1.1122148026, -1.0530653413,
+        -0.96637313148, -0.94135053365, -0.87968092165, -0.79298871182, -0.75780688944,
+        -0.70629650198, -0.61960429215, -0.56298292737, -0.53291208232, -0.44621987249,
+        -0.35952766266, -0.35821078258, -0.27283545283, -0.186143243, -0.1445584539,
+        -0.099451033172, -0.012758823341, 0.073933386489, 0.076453846535, 0.16062559632,
+        0.24731780615, 0.30405545072, 0.33401001598, 0.42070222581, 0.50739443564,
+        0.53710746516, 0.59408664547, 0.6807788553, 0.76747106513, 0.7747074935,
+        0.85416327496, 0.94085548479, 1.0162297678, 1.0275476946, 1.1142399045,
+        1.2009321143, 1.261039005, 1.2876243241, 1.3743165339, 1.4610087438,
+        1.5085290993, 1.5477009536, 1.6343931634, 1.7210853733, 1.7582372156,
+        1.8077775831, 1.8944697929, 1.9811620028, 2.0097774723, 2.0678542126,
+        2.1545464224, 2.2412386322, 2.2628284638, 2.3279308421, 2.4146230519,
+        2.5013152617, 2.5171230205, 2.5880074716, 2.6746996814, 2.7613918912,
+        2.7724395883, 2.8480841011, 2.9347763109, 3.0214685207, 3.0285948882,
+        3.1081607306, 3.1948529404, 3.2815451502, 3.2854376531, 3.36823736,
+        3.4549295699, 3.5416217797, 3.542843296, 3.6283139895, 3.7150061994,
+        3.8007166655, 3.8016984092, 3.888390619, 3.9750828289, 4.0589732867,
+        4.0617750387, 4.1484672485, 4.2351594583, 4.3175356467, 4.3218516682
+      ]
+    }
+  ],
+  "roc": [
+    {
+      "threshold": 0.26956114419,
+      "specificity": 0,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.26958037139,
+      "specificity": 0.0029850746269,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.26960168978,
+      "specificity": 0.0059701492537,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.26974122281,
+      "specificity": 0.0089552238806,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.26987868953,
+      "specificity": 0.011940298507,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.26993684484,
+      "specificity": 0.014925373134,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27014596076,
+      "specificity": 0.017910447761,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27014665282,
+      "specificity": 0.020895522388,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27021864146,
+      "specificity": 0.023880597015,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27028149354,
+      "specificity": 0.026865671642,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27039393731,
+      "specificity": 0.029850746269,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27040823004,
+      "specificity": 0.032835820896,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27044648601,
+      "specificity": 0.035820895522,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27051480151,
+      "specificity": 0.038805970149,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27067421399,
+      "specificity": 0.041791044776,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27070763146,
+      "specificity": 0.044776119403,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27081982858,
+      "specificity": 0.04776119403,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27082160495,
+      "specificity": 0.050746268657,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27083683937,
+      "specificity": 0.053731343284,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27092222017,
+      "specificity": 0.05671641791,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27096222284,
+      "specificity": 0.059701492537,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27099739164,
+      "specificity": 0.062686567164,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27101383819,
+      "specificity": 0.065671641791,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27108924765,
+      "specificity": 0.068656716418,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27118904439,
+      "specificity": 0.071641791045,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27121018465,
+      "specificity": 0.074626865672,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27147350806,
+      "specificity": 0.077611940299,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27151056786,
+      "specificity": 0.080597014925,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27152553787,
+      "specificity": 0.083582089552,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27155962021,
+      "specificity": 0.086567164179,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27157885979,
+      "specificity": 0.089552238806,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27161949582,
+      "specificity": 0.092537313433,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27164137433,
+      "specificity": 0.09552238806,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27167229168,
+      "specificity": 0.098507462687,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27175090974,
+      "specificity": 0.10149253731,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.2719002432,
+      "specificity": 0.10447761194,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27196025717,
+      "specificity": 0.10746268657,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27214664472,
+      "specificity": 0.11044776119,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27217507368,
+      "specificity": 0.11343283582,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27223055421,
+      "specificity": 0.11641791045,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27225585149,
+      "specificity": 0.11940298507,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27231390266,
+      "specificity": 0.1223880597,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27231902405,
+      "specificity": 0.12537313433,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27256859643,
+      "specificity": 0.12835820896,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27269980345,
+      "specificity": 0.13134328358,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27270055065,
+      "specificity": 0.13432835821,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27278382204,
+      "specificity": 0.13731343284,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27293828338,
+      "specificity": 0.14029850746,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27296213544,
+      "specificity": 0.14328358209,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27296885473,
+      "specificity": 0.14626865672,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27298647576,
+      "specificity": 0.14925373134,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27302396806,
+      "specificity": 0.15223880597,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27319945767,
+      "specificity": 0.1552238806,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27323563773,
+      "specificity": 0.15820895522,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27326682171,
+      "specificity": 0.16119402985,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27351663412,
+      "specificity": 0.16417910448,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27354648812,
+      "specificity": 0.1671641791,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27356938119,
+      "specificity": 0.17014925373,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27359682083,
+      "specificity": 0.17313432836,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27362891414,
+      "specificity": 0.17611940299,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27368385719,
+      "specificity": 0.17910447761,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27370029841,
+      "specificity": 0.18208955224,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27373224199,
+      "specificity": 0.18507462687,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27373427389,
+      "specificity": 0.18805970149,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27374267431,
+      "specificity": 0.19104477612,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27377289654,
+      "specificity": 0.19402985075,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.2738569701,
+      "specificity": 0.19701492537,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27385785337,
+      "specificity": 0.2,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27387527421,
+      "specificity": 0.20298507463,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27408956798,
+      "specificity": 0.20597014925,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27409262045,
+      "specificity": 0.20895522388,
+      "sensitivity": 1
+    },
+    {
+      "threshold": 0.27412464519,
+      "specificity": 0.20895522388,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27418563386,
+      "specificity": 0.21194029851,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27428286942,
+      "specificity": 0.21492537313,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27442572708,
+      "specificity": 0.21791044776,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27448498197,
+      "specificity": 0.22089552239,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27448709205,
+      "specificity": 0.22388059701,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27449355732,
+      "specificity": 0.22686567164,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27458082427,
+      "specificity": 0.22985074627,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27478157044,
+      "specificity": 0.2328358209,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27484131994,
+      "specificity": 0.23582089552,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27493880295,
+      "specificity": 0.23880597015,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27499979647,
+      "specificity": 0.24179104478,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27509104389,
+      "specificity": 0.2447761194,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27509836834,
+      "specificity": 0.24776119403,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27513247231,
+      "specificity": 0.25074626866,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27513441741,
+      "specificity": 0.25373134328,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27543278056,
+      "specificity": 0.25671641791,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27544738163,
+      "specificity": 0.25970149254,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27544797649,
+      "specificity": 0.26268656716,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27549328152,
+      "specificity": 0.26567164179,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27551372812,
+      "specificity": 0.26865671642,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27557390297,
+      "specificity": 0.27164179104,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27560455375,
+      "specificity": 0.27462686567,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27561944021,
+      "specificity": 0.2776119403,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27573871032,
+      "specificity": 0.28059701493,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27604913473,
+      "specificity": 0.28358208955,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27612560096,
+      "specificity": 0.28656716418,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27627637566,
+      "specificity": 0.28955223881,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27629633558,
+      "specificity": 0.29253731343,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27671715149,
+      "specificity": 0.29552238806,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27671720298,
+      "specificity": 0.29850746269,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27680413269,
+      "specificity": 0.30149253731,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27682955116,
+      "specificity": 0.30447761194,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.2768730458,
+      "specificity": 0.30746268657,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27692769022,
+      "specificity": 0.31044776119,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27693410502,
+      "specificity": 0.31343283582,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27694870557,
+      "specificity": 0.31641791045,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27697881842,
+      "specificity": 0.31940298507,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27705213673,
+      "specificity": 0.3223880597,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27714917291,
+      "specificity": 0.32537313433,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27747282334,
+      "specificity": 0.32835820896,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27756907238,
+      "specificity": 0.33134328358,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27760910822,
+      "specificity": 0.33432835821,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27772565173,
+      "specificity": 0.33731343284,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27799234018,
+      "specificity": 0.34029850746,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27802942557,
+      "specificity": 0.34328358209,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27804999272,
+      "specificity": 0.34626865672,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27808519129,
+      "specificity": 0.34925373134,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27819999848,
+      "specificity": 0.35223880597,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27834595551,
+      "specificity": 0.3552238806,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27882701132,
+      "specificity": 0.35820895522,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27940152992,
+      "specificity": 0.36119402985,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27975604315,
+      "specificity": 0.36417910448,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.27979039152,
+      "specificity": 0.3671641791,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.28007764102,
+      "specificity": 0.37014925373,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.28022682498,
+      "specificity": 0.37313432836,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.28045298348,
+      "specificity": 0.37611940299,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.28062604643,
+      "specificity": 0.37910447761,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.28062738084,
+      "specificity": 0.38208955224,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.28090701219,
+      "specificity": 0.38507462687,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.28097998055,
+      "specificity": 0.38805970149,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.28113847882,
+      "specificity": 0.39104477612,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.28135243512,
+      "specificity": 0.39402985075,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.28139982535,
+      "specificity": 0.39701492537,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.2816267938,
+      "specificity": 0.4,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.28210063385,
+      "specificity": 0.40298507463,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.28249287917,
+      "specificity": 0.40597014925,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.28263655918,
+      "specificity": 0.40895522388,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.2826712537,
+      "specificity": 0.41194029851,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.28296651519,
+      "specificity": 0.41492537313,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.28320638527,
+      "specificity": 0.41791044776,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.28358839006,
+      "specificity": 0.42089552239,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.28387624096,
+      "specificity": 0.42388059701,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.28395061377,
+      "specificity": 0.42686567164,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.28417562144,
+      "specificity": 0.42985074627,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.28425194462,
+      "specificity": 0.4328358209,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.28475488439,
+      "specificity": 0.43582089552,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.28485182796,
+      "specificity": 0.43880597015,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.28504094188,
+      "specificity": 0.44179104478,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.28516821889,
+      "specificity": 0.4447761194,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.28527036669,
+      "specificity": 0.44776119403,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.2862222173,
+      "specificity": 0.45074626866,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.28630233927,
+      "specificity": 0.45373134328,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.28675860498,
+      "specificity": 0.45671641791,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.28713027744,
+      "specificity": 0.45970149254,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.2872052263,
+      "specificity": 0.46268656716,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.28768365075,
+      "specificity": 0.46567164179,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.28801587171,
+      "specificity": 0.46865671642,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.28807128488,
+      "specificity": 0.47164179104,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.28814992045,
+      "specificity": 0.47462686567,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.28817580097,
+      "specificity": 0.4776119403,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.28860231125,
+      "specificity": 0.48059701493,
+      "sensitivity": 0.9962406015
+    },
+    {
+      "threshold": 0.28937711045,
+      "specificity": 0.48059701493,
+      "sensitivity": 0.99248120301
+    },
+    {
+      "threshold": 0.28993787845,
+      "specificity": 0.48358208955,
+      "sensitivity": 0.99248120301
+    },
+    {
+      "threshold": 0.28997633935,
+      "specificity": 0.48656716418,
+      "sensitivity": 0.99248120301
+    },
+    {
+      "threshold": 0.29003254456,
+      "specificity": 0.48955223881,
+      "sensitivity": 0.99248120301
+    },
+    {
+      "threshold": 0.29024686395,
+      "specificity": 0.49253731343,
+      "sensitivity": 0.99248120301
+    },
+    {
+      "threshold": 0.29048043048,
+      "specificity": 0.49552238806,
+      "sensitivity": 0.99248120301
+    },
+    {
+      "threshold": 0.29166451902,
+      "specificity": 0.49850746269,
+      "sensitivity": 0.99248120301
+    },
+    {
+      "threshold": 0.29175836156,
+      "specificity": 0.50149253731,
+      "sensitivity": 0.99248120301
+    },
+    {
+      "threshold": 0.29188290633,
+      "specificity": 0.50447761194,
+      "sensitivity": 0.99248120301
+    },
+    {
+      "threshold": 0.29217842846,
+      "specificity": 0.50746268657,
+      "sensitivity": 0.99248120301
+    },
+    {
+      "threshold": 0.29229955139,
+      "specificity": 0.51044776119,
+      "sensitivity": 0.99248120301
+    },
+    {
+      "threshold": 0.29233381649,
+      "specificity": 0.51343283582,
+      "sensitivity": 0.99248120301
+    },
+    {
+      "threshold": 0.29253831338,
+      "specificity": 0.51641791045,
+      "sensitivity": 0.99248120301
+    },
+    {
+      "threshold": 0.29404660502,
+      "specificity": 0.51641791045,
+      "sensitivity": 0.98872180451
+    },
+    {
+      "threshold": 0.29513335493,
+      "specificity": 0.51940298507,
+      "sensitivity": 0.98872180451
+    },
+    {
+      "threshold": 0.29550122615,
+      "specificity": 0.5223880597,
+      "sensitivity": 0.98872180451
+    },
+    {
+      "threshold": 0.29556159241,
+      "specificity": 0.52537313433,
+      "sensitivity": 0.98872180451
+    },
+    {
+      "threshold": 0.2959929091,
+      "specificity": 0.52835820896,
+      "sensitivity": 0.98872180451
+    },
+    {
+      "threshold": 0.29753425542,
+      "specificity": 0.53134328358,
+      "sensitivity": 0.98872180451
+    },
+    {
+      "threshold": 0.29800566134,
+      "specificity": 0.53432835821,
+      "sensitivity": 0.98872180451
+    },
+    {
+      "threshold": 0.29806729164,
+      "specificity": 0.53731343284,
+      "sensitivity": 0.98872180451
+    },
+    {
+      "threshold": 0.29861506488,
+      "specificity": 0.53731343284,
+      "sensitivity": 0.98496240602
+    },
+    {
+      "threshold": 0.29868807136,
+      "specificity": 0.54029850746,
+      "sensitivity": 0.98496240602
+    },
+    {
+      "threshold": 0.29893815637,
+      "specificity": 0.54328358209,
+      "sensitivity": 0.98496240602
+    },
+    {
+      "threshold": 0.29903504167,
+      "specificity": 0.54626865672,
+      "sensitivity": 0.98496240602
+    },
+    {
+      "threshold": 0.29976070918,
+      "specificity": 0.54925373134,
+      "sensitivity": 0.98496240602
+    },
+    {
+      "threshold": 0.30078826935,
+      "specificity": 0.54925373134,
+      "sensitivity": 0.98120300752
+    },
+    {
+      "threshold": 0.30122137038,
+      "specificity": 0.55223880597,
+      "sensitivity": 0.98120300752
+    },
+    {
+      "threshold": 0.30270686902,
+      "specificity": 0.5552238806,
+      "sensitivity": 0.98120300752
+    },
+    {
+      "threshold": 0.30312518773,
+      "specificity": 0.55820895522,
+      "sensitivity": 0.98120300752
+    },
+    {
+      "threshold": 0.30330667636,
+      "specificity": 0.56119402985,
+      "sensitivity": 0.98120300752
+    },
+    {
+      "threshold": 0.30341740923,
+      "specificity": 0.56417910448,
+      "sensitivity": 0.98120300752
+    },
+    {
+      "threshold": 0.3041797184,
+      "specificity": 0.5671641791,
+      "sensitivity": 0.98120300752
+    },
+    {
+      "threshold": 0.30426345309,
+      "specificity": 0.57014925373,
+      "sensitivity": 0.98120300752
+    },
+    {
+      "threshold": 0.30492702578,
+      "specificity": 0.57313432836,
+      "sensitivity": 0.98120300752
+    },
+    {
+      "threshold": 0.30509103564,
+      "specificity": 0.57611940299,
+      "sensitivity": 0.98120300752
+    },
+    {
+      "threshold": 0.30545766947,
+      "specificity": 0.57910447761,
+      "sensitivity": 0.98120300752
+    },
+    {
+      "threshold": 0.30573726629,
+      "specificity": 0.57910447761,
+      "sensitivity": 0.97744360902
+    },
+    {
+      "threshold": 0.30599121364,
+      "specificity": 0.58208955224,
+      "sensitivity": 0.97744360902
+    },
+    {
+      "threshold": 0.30619282883,
+      "specificity": 0.58507462687,
+      "sensitivity": 0.97744360902
+    },
+    {
+      "threshold": 0.30666876777,
+      "specificity": 0.58805970149,
+      "sensitivity": 0.97744360902
+    },
+    {
+      "threshold": 0.30667108575,
+      "specificity": 0.59104477612,
+      "sensitivity": 0.97744360902
+    },
+    {
+      "threshold": 0.30673999786,
+      "specificity": 0.59402985075,
+      "sensitivity": 0.97744360902
+    },
+    {
+      "threshold": 0.3069453214,
+      "specificity": 0.59701492537,
+      "sensitivity": 0.97744360902
+    },
+    {
+      "threshold": 0.30704374273,
+      "specificity": 0.6,
+      "sensitivity": 0.97744360902
+    },
+    {
+      "threshold": 0.30728458016,
+      "specificity": 0.60298507463,
+      "sensitivity": 0.97744360902
+    },
+    {
+      "threshold": 0.30757235072,
+      "specificity": 0.60597014925,
+      "sensitivity": 0.97744360902
+    },
+    {
+      "threshold": 0.30906588612,
+      "specificity": 0.60895522388,
+      "sensitivity": 0.97744360902
+    },
+    {
+      "threshold": 0.3091800331,
+      "specificity": 0.61194029851,
+      "sensitivity": 0.97744360902
+    },
+    {
+      "threshold": 0.30920943301,
+      "specificity": 0.61492537313,
+      "sensitivity": 0.97744360902
+    },
+    {
+      "threshold": 0.31036283237,
+      "specificity": 0.61791044776,
+      "sensitivity": 0.97744360902
+    },
+    {
+      "threshold": 0.31069262292,
+      "specificity": 0.62089552239,
+      "sensitivity": 0.97744360902
+    },
+    {
+      "threshold": 0.31078350187,
+      "specificity": 0.62089552239,
+      "sensitivity": 0.97368421053
+    },
+    {
+      "threshold": 0.31187738434,
+      "specificity": 0.62388059701,
+      "sensitivity": 0.97368421053
+    },
+    {
+      "threshold": 0.31203871487,
+      "specificity": 0.62686567164,
+      "sensitivity": 0.97368421053
+    },
+    {
+      "threshold": 0.31223519564,
+      "specificity": 0.62985074627,
+      "sensitivity": 0.97368421053
+    },
+    {
+      "threshold": 0.31238632476,
+      "specificity": 0.6328358209,
+      "sensitivity": 0.97368421053
+    },
+    {
+      "threshold": 0.3135560622,
+      "specificity": 0.63582089552,
+      "sensitivity": 0.97368421053
+    },
+    {
+      "threshold": 0.31423917501,
+      "specificity": 0.63880597015,
+      "sensitivity": 0.97368421053
+    },
+    {
+      "threshold": 0.3153106201,
+      "specificity": 0.64179104478,
+      "sensitivity": 0.97368421053
+    },
+    {
+      "threshold": 0.31645061508,
+      "specificity": 0.6447761194,
+      "sensitivity": 0.97368421053
+    },
+    {
+      "threshold": 0.31795720104,
+      "specificity": 0.64776119403,
+      "sensitivity": 0.97368421053
+    },
+    {
+      "threshold": 0.31941938468,
+      "specificity": 0.65074626866,
+      "sensitivity": 0.97368421053
+    },
+    {
+      "threshold": 0.319551098,
+      "specificity": 0.65373134328,
+      "sensitivity": 0.97368421053
+    },
+    {
+      "threshold": 0.31974681532,
+      "specificity": 0.65671641791,
+      "sensitivity": 0.97368421053
+    },
+    {
+      "threshold": 0.32134224615,
+      "specificity": 0.65970149254,
+      "sensitivity": 0.97368421053
+    },
+    {
+      "threshold": 0.32249701646,
+      "specificity": 0.65970149254,
+      "sensitivity": 0.96992481203
+    },
+    {
+      "threshold": 0.32355612331,
+      "specificity": 0.66268656716,
+      "sensitivity": 0.96992481203
+    },
+    {
+      "threshold": 0.32398247741,
+      "specificity": 0.66567164179,
+      "sensitivity": 0.96992481203
+    },
+    {
+      "threshold": 0.32524436731,
+      "specificity": 0.66865671642,
+      "sensitivity": 0.96992481203
+    },
+    {
+      "threshold": 0.32552496835,
+      "specificity": 0.67164179104,
+      "sensitivity": 0.96992481203
+    },
+    {
+      "threshold": 0.32610827865,
+      "specificity": 0.67462686567,
+      "sensitivity": 0.96992481203
+    },
+    {
+      "threshold": 0.3261677247,
+      "specificity": 0.67462686567,
+      "sensitivity": 0.96616541353
+    },
+    {
+      "threshold": 0.32632422635,
+      "specificity": 0.6776119403,
+      "sensitivity": 0.96616541353
+    },
+    {
+      "threshold": 0.32724690144,
+      "specificity": 0.68059701493,
+      "sensitivity": 0.96616541353
+    },
+    {
+      "threshold": 0.32739863046,
+      "specificity": 0.68358208955,
+      "sensitivity": 0.96616541353
+    },
+    {
+      "threshold": 0.32792106735,
+      "specificity": 0.68656716418,
+      "sensitivity": 0.96616541353
+    },
+    {
+      "threshold": 0.32829187032,
+      "specificity": 0.68955223881,
+      "sensitivity": 0.96616541353
+    },
+    {
+      "threshold": 0.32874433808,
+      "specificity": 0.69253731343,
+      "sensitivity": 0.96616541353
+    },
+    {
+      "threshold": 0.33014716126,
+      "specificity": 0.69253731343,
+      "sensitivity": 0.96240601504
+    },
+    {
+      "threshold": 0.3302287653,
+      "specificity": 0.69552238806,
+      "sensitivity": 0.96240601504
+    },
+    {
+      "threshold": 0.3302596704,
+      "specificity": 0.69552238806,
+      "sensitivity": 0.95864661654
+    },
+    {
+      "threshold": 0.33062409907,
+      "specificity": 0.69850746269,
+      "sensitivity": 0.95864661654
+    },
+    {
+      "threshold": 0.33071801852,
+      "specificity": 0.69850746269,
+      "sensitivity": 0.95488721805
+    },
+    {
+      "threshold": 0.33307175121,
+      "specificity": 0.69850746269,
+      "sensitivity": 0.95112781955
+    },
+    {
+      "threshold": 0.33430494634,
+      "specificity": 0.70149253731,
+      "sensitivity": 0.95112781955
+    },
+    {
+      "threshold": 0.33602067898,
+      "specificity": 0.70447761194,
+      "sensitivity": 0.95112781955
+    },
+    {
+      "threshold": 0.33621254908,
+      "specificity": 0.70746268657,
+      "sensitivity": 0.95112781955
+    },
+    {
+      "threshold": 0.33704450455,
+      "specificity": 0.71044776119,
+      "sensitivity": 0.95112781955
+    },
+    {
+      "threshold": 0.33817210387,
+      "specificity": 0.71343283582,
+      "sensitivity": 0.95112781955
+    },
+    {
+      "threshold": 0.33871337408,
+      "specificity": 0.71641791045,
+      "sensitivity": 0.95112781955
+    },
+    {
+      "threshold": 0.34135241166,
+      "specificity": 0.71940298507,
+      "sensitivity": 0.95112781955
+    },
+    {
+      "threshold": 0.34264998822,
+      "specificity": 0.7223880597,
+      "sensitivity": 0.95112781955
+    },
+    {
+      "threshold": 0.34361188971,
+      "specificity": 0.72537313433,
+      "sensitivity": 0.95112781955
+    },
+    {
+      "threshold": 0.34455525596,
+      "specificity": 0.72835820896,
+      "sensitivity": 0.95112781955
+    },
+    {
+      "threshold": 0.34596556829,
+      "specificity": 0.73134328358,
+      "sensitivity": 0.95112781955
+    },
+    {
+      "threshold": 0.34677168308,
+      "specificity": 0.73432835821,
+      "sensitivity": 0.95112781955
+    },
+    {
+      "threshold": 0.34699484177,
+      "specificity": 0.73731343284,
+      "sensitivity": 0.95112781955
+    },
+    {
+      "threshold": 0.34792216905,
+      "specificity": 0.74029850746,
+      "sensitivity": 0.95112781955
+    },
+    {
+      "threshold": 0.34814124578,
+      "specificity": 0.74029850746,
+      "sensitivity": 0.94736842105
+    },
+    {
+      "threshold": 0.34870652045,
+      "specificity": 0.74029850746,
+      "sensitivity": 0.94360902256
+    },
+    {
+      "threshold": 0.34877536487,
+      "specificity": 0.74328358209,
+      "sensitivity": 0.94360902256
+    },
+    {
+      "threshold": 0.3488638781,
+      "specificity": 0.74328358209,
+      "sensitivity": 0.93984962406
+    },
+    {
+      "threshold": 0.34929986249,
+      "specificity": 0.74626865672,
+      "sensitivity": 0.93984962406
+    },
+    {
+      "threshold": 0.35077552299,
+      "specificity": 0.74626865672,
+      "sensitivity": 0.93609022556
+    },
+    {
+      "threshold": 0.35165693825,
+      "specificity": 0.74626865672,
+      "sensitivity": 0.93233082707
+    },
+    {
+      "threshold": 0.35311139237,
+      "specificity": 0.74925373134,
+      "sensitivity": 0.93233082707
+    },
+    {
+      "threshold": 0.35485735322,
+      "specificity": 0.74925373134,
+      "sensitivity": 0.92857142857
+    },
+    {
+      "threshold": 0.35625080931,
+      "specificity": 0.75223880597,
+      "sensitivity": 0.92857142857
+    },
+    {
+      "threshold": 0.35749331711,
+      "specificity": 0.7552238806,
+      "sensitivity": 0.92857142857
+    },
+    {
+      "threshold": 0.35867269541,
+      "specificity": 0.75820895522,
+      "sensitivity": 0.92857142857
+    },
+    {
+      "threshold": 0.35921499001,
+      "specificity": 0.76119402985,
+      "sensitivity": 0.92857142857
+    },
+    {
+      "threshold": 0.36017572332,
+      "specificity": 0.76417910448,
+      "sensitivity": 0.92857142857
+    },
+    {
+      "threshold": 0.36149942136,
+      "specificity": 0.7671641791,
+      "sensitivity": 0.92857142857
+    },
+    {
+      "threshold": 0.36261013734,
+      "specificity": 0.7671641791,
+      "sensitivity": 0.92481203008
+    },
+    {
+      "threshold": 0.36362506452,
+      "specificity": 0.77014925373,
+      "sensitivity": 0.92481203008
+    },
+    {
+      "threshold": 0.36404198966,
+      "specificity": 0.77313432836,
+      "sensitivity": 0.92481203008
+    },
+    {
+      "threshold": 0.36457165394,
+      "specificity": 0.77611940299,
+      "sensitivity": 0.92481203008
+    },
+    {
+      "threshold": 0.36498873485,
+      "specificity": 0.77910447761,
+      "sensitivity": 0.92481203008
+    },
+    {
+      "threshold": 0.37010605322,
+      "specificity": 0.78208955224,
+      "sensitivity": 0.92481203008
+    },
+    {
+      "threshold": 0.37043669714,
+      "specificity": 0.78507462687,
+      "sensitivity": 0.92481203008
+    },
+    {
+      "threshold": 0.37583973067,
+      "specificity": 0.78507462687,
+      "sensitivity": 0.92105263158
+    },
+    {
+      "threshold": 0.37592903654,
+      "specificity": 0.78805970149,
+      "sensitivity": 0.92105263158
+    },
+    {
+      "threshold": 0.38073299454,
+      "specificity": 0.79104477612,
+      "sensitivity": 0.92105263158
+    },
+    {
+      "threshold": 0.38300911781,
+      "specificity": 0.79402985075,
+      "sensitivity": 0.92105263158
+    },
+    {
+      "threshold": 0.38543804779,
+      "specificity": 0.79701492537,
+      "sensitivity": 0.92105263158
+    },
+    {
+      "threshold": 0.38583355579,
+      "specificity": 0.79701492537,
+      "sensitivity": 0.91729323308
+    },
+    {
+      "threshold": 0.38768801661,
+      "specificity": 0.8,
+      "sensitivity": 0.91729323308
+    },
+    {
+      "threshold": 0.3896222208,
+      "specificity": 0.80298507463,
+      "sensitivity": 0.91729323308
+    },
+    {
+      "threshold": 0.39067259382,
+      "specificity": 0.80597014925,
+      "sensitivity": 0.91729323308
+    },
+    {
+      "threshold": 0.39219151846,
+      "specificity": 0.80895522388,
+      "sensitivity": 0.91729323308
+    },
+    {
+      "threshold": 0.39835549357,
+      "specificity": 0.80895522388,
+      "sensitivity": 0.91353383459
+    },
+    {
+      "threshold": 0.400503011,
+      "specificity": 0.81194029851,
+      "sensitivity": 0.91353383459
+    },
+    {
+      "threshold": 0.40258002562,
+      "specificity": 0.81492537313,
+      "sensitivity": 0.91353383459
+    },
+    {
+      "threshold": 0.40618584546,
+      "specificity": 0.81791044776,
+      "sensitivity": 0.91353383459
+    },
+    {
+      "threshold": 0.40735756204,
+      "specificity": 0.82089552239,
+      "sensitivity": 0.91353383459
+    },
+    {
+      "threshold": 0.40766450931,
+      "specificity": 0.82388059701,
+      "sensitivity": 0.91353383459
+    },
+    {
+      "threshold": 0.40869077425,
+      "specificity": 0.82686567164,
+      "sensitivity": 0.91353383459
+    },
+    {
+      "threshold": 0.40901671057,
+      "specificity": 0.82985074627,
+      "sensitivity": 0.91353383459
+    },
+    {
+      "threshold": 0.41633843949,
+      "specificity": 0.8328358209,
+      "sensitivity": 0.91353383459
+    },
+    {
+      "threshold": 0.41853267589,
+      "specificity": 0.83582089552,
+      "sensitivity": 0.91353383459
+    },
+    {
+      "threshold": 0.42050949831,
+      "specificity": 0.83582089552,
+      "sensitivity": 0.90977443609
+    },
+    {
+      "threshold": 0.42271286582,
+      "specificity": 0.83880597015,
+      "sensitivity": 0.90977443609
+    },
+    {
+      "threshold": 0.42459784896,
+      "specificity": 0.83880597015,
+      "sensitivity": 0.90601503759
+    },
+    {
+      "threshold": 0.42623072807,
+      "specificity": 0.84179104478,
+      "sensitivity": 0.90601503759
+    },
+    {
+      "threshold": 0.42719770337,
+      "specificity": 0.8447761194,
+      "sensitivity": 0.90601503759
+    },
+    {
+      "threshold": 0.42762328128,
+      "specificity": 0.84776119403,
+      "sensitivity": 0.90601503759
+    },
+    {
+      "threshold": 0.43148777603,
+      "specificity": 0.85074626866,
+      "sensitivity": 0.90601503759
+    },
+    {
+      "threshold": 0.43421880062,
+      "specificity": 0.85074626866,
+      "sensitivity": 0.9022556391
+    },
+    {
+      "threshold": 0.43548542317,
+      "specificity": 0.85373134328,
+      "sensitivity": 0.9022556391
+    },
+    {
+      "threshold": 0.43591558145,
+      "specificity": 0.85373134328,
+      "sensitivity": 0.8984962406
+    },
+    {
+      "threshold": 0.43657467021,
+      "specificity": 0.85373134328,
+      "sensitivity": 0.89473684211
+    },
+    {
+      "threshold": 0.43721258134,
+      "specificity": 0.85671641791,
+      "sensitivity": 0.89473684211
+    },
+    {
+      "threshold": 0.43774770221,
+      "specificity": 0.85970149254,
+      "sensitivity": 0.89473684211
+    },
+    {
+      "threshold": 0.43815615955,
+      "specificity": 0.86268656716,
+      "sensitivity": 0.89473684211
+    },
+    {
+      "threshold": 0.43910110171,
+      "specificity": 0.86567164179,
+      "sensitivity": 0.89473684211
+    },
+    {
+      "threshold": 0.43984678394,
+      "specificity": 0.86567164179,
+      "sensitivity": 0.89097744361
+    },
+    {
+      "threshold": 0.44180293623,
+      "specificity": 0.86865671642,
+      "sensitivity": 0.89097744361
+    },
+    {
+      "threshold": 0.44240403904,
+      "specificity": 0.86865671642,
+      "sensitivity": 0.88721804511
+    },
+    {
+      "threshold": 0.44350091952,
+      "specificity": 0.86865671642,
+      "sensitivity": 0.88345864662
+    },
+    {
+      "threshold": 0.44405441619,
+      "specificity": 0.86865671642,
+      "sensitivity": 0.87969924812
+    },
+    {
+      "threshold": 0.45142258552,
+      "specificity": 0.86865671642,
+      "sensitivity": 0.87593984962
+    },
+    {
+      "threshold": 0.45432344842,
+      "specificity": 0.87164179104,
+      "sensitivity": 0.87593984962
+    },
+    {
+      "threshold": 0.45964604986,
+      "specificity": 0.87462686567,
+      "sensitivity": 0.87593984962
+    },
+    {
+      "threshold": 0.46334268731,
+      "specificity": 0.8776119403,
+      "sensitivity": 0.87593984962
+    },
+    {
+      "threshold": 0.46655533526,
+      "specificity": 0.88059701493,
+      "sensitivity": 0.87593984962
+    },
+    {
+      "threshold": 0.4666886824,
+      "specificity": 0.88358208955,
+      "sensitivity": 0.87593984962
+    },
+    {
+      "threshold": 0.46845776671,
+      "specificity": 0.88358208955,
+      "sensitivity": 0.87218045113
+    },
+    {
+      "threshold": 0.46925169425,
+      "specificity": 0.88358208955,
+      "sensitivity": 0.86842105263
+    },
+    {
+      "threshold": 0.47141436433,
+      "specificity": 0.88656716418,
+      "sensitivity": 0.86842105263
+    },
+    {
+      "threshold": 0.47446366413,
+      "specificity": 0.88656716418,
+      "sensitivity": 0.86466165414
+    },
+    {
+      "threshold": 0.47489281618,
+      "specificity": 0.88955223881,
+      "sensitivity": 0.86466165414
+    },
+    {
+      "threshold": 0.47613685778,
+      "specificity": 0.88955223881,
+      "sensitivity": 0.86090225564
+    },
+    {
+      "threshold": 0.47628010972,
+      "specificity": 0.89253731343,
+      "sensitivity": 0.86090225564
+    },
+    {
+      "threshold": 0.47789094283,
+      "specificity": 0.89552238806,
+      "sensitivity": 0.86090225564
+    },
+    {
+      "threshold": 0.47921773676,
+      "specificity": 0.89552238806,
+      "sensitivity": 0.85714285714
+    },
+    {
+      "threshold": 0.48139463403,
+      "specificity": 0.89552238806,
+      "sensitivity": 0.85338345865
+    },
+    {
+      "threshold": 0.48140634369,
+      "specificity": 0.89850746269,
+      "sensitivity": 0.85338345865
+    },
+    {
+      "threshold": 0.48428950811,
+      "specificity": 0.89850746269,
+      "sensitivity": 0.84962406015
+    },
+    {
+      "threshold": 0.48840294151,
+      "specificity": 0.90149253731,
+      "sensitivity": 0.84962406015
+    },
+    {
+      "threshold": 0.49284510699,
+      "specificity": 0.90149253731,
+      "sensitivity": 0.84586466165
+    },
+    {
+      "threshold": 0.49421363554,
+      "specificity": 0.90447761194,
+      "sensitivity": 0.84586466165
+    },
+    {
+      "threshold": 0.5028663205,
+      "specificity": 0.90746268657,
+      "sensitivity": 0.84586466165
+    },
+    {
+      "threshold": 0.50316779116,
+      "specificity": 0.90746268657,
+      "sensitivity": 0.84210526316
+    },
+    {
+      "threshold": 0.50582027534,
+      "specificity": 0.91044776119,
+      "sensitivity": 0.84210526316
+    },
+    {
+      "threshold": 0.507850429,
+      "specificity": 0.91343283582,
+      "sensitivity": 0.84210526316
+    },
+    {
+      "threshold": 0.50804528801,
+      "specificity": 0.91641791045,
+      "sensitivity": 0.84210526316
+    },
+    {
+      "threshold": 0.51426175872,
+      "specificity": 0.91940298507,
+      "sensitivity": 0.84210526316
+    },
+    {
+      "threshold": 0.51589727441,
+      "specificity": 0.91940298507,
+      "sensitivity": 0.83834586466
+    },
+    {
+      "threshold": 0.51986573174,
+      "specificity": 0.9223880597,
+      "sensitivity": 0.83834586466
+    },
+    {
+      "threshold": 0.52047836704,
+      "specificity": 0.92537313433,
+      "sensitivity": 0.83834586466
+    },
+    {
+      "threshold": 0.52298326923,
+      "specificity": 0.92537313433,
+      "sensitivity": 0.83458646617
+    },
+    {
+      "threshold": 0.52784450375,
+      "specificity": 0.92537313433,
+      "sensitivity": 0.83082706767
+    },
+    {
+      "threshold": 0.52813071132,
+      "specificity": 0.92537313433,
+      "sensitivity": 0.82706766917
+    },
+    {
+      "threshold": 0.53066804012,
+      "specificity": 0.92835820896,
+      "sensitivity": 0.82706766917
+    },
+    {
+      "threshold": 0.53412651544,
+      "specificity": 0.93134328358,
+      "sensitivity": 0.82706766917
+    },
+    {
+      "threshold": 0.53943975393,
+      "specificity": 0.93134328358,
+      "sensitivity": 0.82330827068
+    },
+    {
+      "threshold": 0.54031913048,
+      "specificity": 0.93432835821,
+      "sensitivity": 0.82330827068
+    },
+    {
+      "threshold": 0.54140785082,
+      "specificity": 0.93432835821,
+      "sensitivity": 0.81954887218
+    },
+    {
+      "threshold": 0.54339287978,
+      "specificity": 0.93432835821,
+      "sensitivity": 0.81578947368
+    },
+    {
+      "threshold": 0.54416480774,
+      "specificity": 0.93731343284,
+      "sensitivity": 0.81578947368
+    },
+    {
+      "threshold": 0.54482196539,
+      "specificity": 0.94029850746,
+      "sensitivity": 0.81578947368
+    },
+    {
+      "threshold": 0.54612234841,
+      "specificity": 0.94029850746,
+      "sensitivity": 0.81203007519
+    },
+    {
+      "threshold": 0.54861928117,
+      "specificity": 0.94029850746,
+      "sensitivity": 0.80827067669
+    },
+    {
+      "threshold": 0.54869380725,
+      "specificity": 0.94328358209,
+      "sensitivity": 0.80827067669
+    },
+    {
+      "threshold": 0.56300472916,
+      "specificity": 0.94626865672,
+      "sensitivity": 0.80827067669
+    },
+    {
+      "threshold": 0.5684654245,
+      "specificity": 0.94626865672,
+      "sensitivity": 0.8045112782
+    },
+    {
+      "threshold": 0.57130317151,
+      "specificity": 0.94626865672,
+      "sensitivity": 0.8007518797
+    },
+    {
+      "threshold": 0.57179659476,
+      "specificity": 0.94626865672,
+      "sensitivity": 0.7969924812
+    },
+    {
+      "threshold": 0.5721247386,
+      "specificity": 0.94626865672,
+      "sensitivity": 0.79323308271
+    },
+    {
+      "threshold": 0.57429020282,
+      "specificity": 0.94925373134,
+      "sensitivity": 0.79323308271
+    },
+    {
+      "threshold": 0.57573391168,
+      "specificity": 0.95223880597,
+      "sensitivity": 0.79323308271
+    },
+    {
+      "threshold": 0.58740888975,
+      "specificity": 0.95223880597,
+      "sensitivity": 0.78947368421
+    },
+    {
+      "threshold": 0.58827945375,
+      "specificity": 0.9552238806,
+      "sensitivity": 0.78947368421
+    },
+    {
+      "threshold": 0.59243301542,
+      "specificity": 0.9552238806,
+      "sensitivity": 0.78571428571
+    },
+    {
+      "threshold": 0.59415035616,
+      "specificity": 0.95820895522,
+      "sensitivity": 0.78571428571
+    },
+    {
+      "threshold": 0.59767340833,
+      "specificity": 0.96119402985,
+      "sensitivity": 0.78571428571
+    },
+    {
+      "threshold": 0.59831077524,
+      "specificity": 0.96417910448,
+      "sensitivity": 0.78571428571
+    },
+    {
+      "threshold": 0.602240772,
+      "specificity": 0.9671641791,
+      "sensitivity": 0.78571428571
+    },
+    {
+      "threshold": 0.60269325601,
+      "specificity": 0.9671641791,
+      "sensitivity": 0.78195488722
+    },
+    {
+      "threshold": 0.60296027606,
+      "specificity": 0.9671641791,
+      "sensitivity": 0.77819548872
+    },
+    {
+      "threshold": 0.60711177641,
+      "specificity": 0.9671641791,
+      "sensitivity": 0.77443609023
+    },
+    {
+      "threshold": 0.60897398981,
+      "specificity": 0.97014925373,
+      "sensitivity": 0.77443609023
+    },
+    {
+      "threshold": 0.6117714377,
+      "specificity": 0.97014925373,
+      "sensitivity": 0.77067669173
+    },
+    {
+      "threshold": 0.62476399491,
+      "specificity": 0.97014925373,
+      "sensitivity": 0.76691729323
+    },
+    {
+      "threshold": 0.62587488007,
+      "specificity": 0.97014925373,
+      "sensitivity": 0.76315789474
+    },
+    {
+      "threshold": 0.62681037998,
+      "specificity": 0.97313432836,
+      "sensitivity": 0.76315789474
+    },
+    {
+      "threshold": 0.62852994033,
+      "specificity": 0.97611940299,
+      "sensitivity": 0.76315789474
+    },
+    {
+      "threshold": 0.63035023481,
+      "specificity": 0.97611940299,
+      "sensitivity": 0.75939849624
+    },
+    {
+      "threshold": 0.63127858681,
+      "specificity": 0.97611940299,
+      "sensitivity": 0.75563909774
+    },
+    {
+      "threshold": 0.63192396234,
+      "specificity": 0.97910447761,
+      "sensitivity": 0.75563909774
+    },
+    {
+      "threshold": 0.63205042723,
+      "specificity": 0.97910447761,
+      "sensitivity": 0.75187969925
+    },
+    {
+      "threshold": 0.63244927499,
+      "specificity": 0.97910447761,
+      "sensitivity": 0.74812030075
+    },
+    {
+      "threshold": 0.63692877283,
+      "specificity": 0.97910447761,
+      "sensitivity": 0.74436090226
+    },
+    {
+      "threshold": 0.63846377027,
+      "specificity": 0.97910447761,
+      "sensitivity": 0.74060150376
+    },
+    {
+      "threshold": 0.63847120775,
+      "specificity": 0.97910447761,
+      "sensitivity": 0.73684210526
+    },
+    {
+      "threshold": 0.63983348718,
+      "specificity": 0.98208955224,
+      "sensitivity": 0.73684210526
+    },
+    {
+      "threshold": 0.64318677897,
+      "specificity": 0.98208955224,
+      "sensitivity": 0.73308270677
+    },
+    {
+      "threshold": 0.64818892028,
+      "specificity": 0.98208955224,
+      "sensitivity": 0.72932330827
+    },
+    {
+      "threshold": 0.65395474384,
+      "specificity": 0.98507462687,
+      "sensitivity": 0.72932330827
+    },
+    {
+      "threshold": 0.65504562355,
+      "specificity": 0.98805970149,
+      "sensitivity": 0.72932330827
+    },
+    {
+      "threshold": 0.6567307183,
+      "specificity": 0.99104477612,
+      "sensitivity": 0.72932330827
+    },
+    {
+      "threshold": 0.66323923616,
+      "specificity": 0.99104477612,
+      "sensitivity": 0.72556390977
+    },
+    {
+      "threshold": 0.6638788498,
+      "specificity": 0.99104477612,
+      "sensitivity": 0.72180451128
+    },
+    {
+      "threshold": 0.66609325174,
+      "specificity": 0.99104477612,
+      "sensitivity": 0.71804511278
+    },
+    {
+      "threshold": 0.66680584753,
+      "specificity": 0.99402985075,
+      "sensitivity": 0.71804511278
+    },
+    {
+      "threshold": 0.66815947101,
+      "specificity": 0.99402985075,
+      "sensitivity": 0.71428571429
+    },
+    {
+      "threshold": 0.66846234098,
+      "specificity": 0.99402985075,
+      "sensitivity": 0.71052631579
+    },
+    {
+      "threshold": 0.66919523099,
+      "specificity": 0.99402985075,
+      "sensitivity": 0.70676691729
+    },
+    {
+      "threshold": 0.6702545439,
+      "specificity": 0.99402985075,
+      "sensitivity": 0.7030075188
+    },
+    {
+      "threshold": 0.671572993,
+      "specificity": 0.99402985075,
+      "sensitivity": 0.6992481203
+    },
+    {
+      "threshold": 0.67962602078,
+      "specificity": 0.99402985075,
+      "sensitivity": 0.6954887218
+    },
+    {
+      "threshold": 0.67978682033,
+      "specificity": 0.99402985075,
+      "sensitivity": 0.69172932331
+    },
+    {
+      "threshold": 0.68088554506,
+      "specificity": 0.99402985075,
+      "sensitivity": 0.68796992481
+    },
+    {
+      "threshold": 0.68225180273,
+      "specificity": 0.99402985075,
+      "sensitivity": 0.68421052632
+    },
+    {
+      "threshold": 0.68339557814,
+      "specificity": 0.99402985075,
+      "sensitivity": 0.68045112782
+    },
+    {
+      "threshold": 0.68477044505,
+      "specificity": 0.99402985075,
+      "sensitivity": 0.67669172932
+    },
+    {
+      "threshold": 0.68703494379,
+      "specificity": 0.99402985075,
+      "sensitivity": 0.67293233083
+    },
+    {
+      "threshold": 0.68876378562,
+      "specificity": 0.99402985075,
+      "sensitivity": 0.66917293233
+    },
+    {
+      "threshold": 0.68930629251,
+      "specificity": 0.99402985075,
+      "sensitivity": 0.66541353383
+    },
+    {
+      "threshold": 0.68955984943,
+      "specificity": 0.99402985075,
+      "sensitivity": 0.66165413534
+    },
+    {
+      "threshold": 0.69370811077,
+      "specificity": 0.99402985075,
+      "sensitivity": 0.65789473684
+    },
+    {
+      "threshold": 0.69446610135,
+      "specificity": 0.99402985075,
+      "sensitivity": 0.65413533835
+    },
+    {
+      "threshold": 0.69466301973,
+      "specificity": 0.99402985075,
+      "sensitivity": 0.65037593985
+    },
+    {
+      "threshold": 0.69548007419,
+      "specificity": 0.99701492537,
+      "sensitivity": 0.65037593985
+    },
+    {
+      "threshold": 0.69625157309,
+      "specificity": 0.99701492537,
+      "sensitivity": 0.64661654135
+    },
+    {
+      "threshold": 0.69626999326,
+      "specificity": 0.99701492537,
+      "sensitivity": 0.64285714286
+    },
+    {
+      "threshold": 0.69630812446,
+      "specificity": 0.99701492537,
+      "sensitivity": 0.63909774436
+    },
+    {
+      "threshold": 0.69651288397,
+      "specificity": 0.99701492537,
+      "sensitivity": 0.63533834586
+    },
+    {
+      "threshold": 0.69908096264,
+      "specificity": 0.99701492537,
+      "sensitivity": 0.63157894737
+    },
+    {
+      "threshold": 0.69915555885,
+      "specificity": 0.99701492537,
+      "sensitivity": 0.62781954887
+    },
+    {
+      "threshold": 0.69995628299,
+      "specificity": 0.99701492537,
+      "sensitivity": 0.62406015038
+    },
+    {
+      "threshold": 0.7007908111,
+      "specificity": 0.99701492537,
+      "sensitivity": 0.62030075188
+    },
+    {
+      "threshold": 0.70205750832,
+      "specificity": 0.99701492537,
+      "sensitivity": 0.61654135338
+    },
+    {
+      "threshold": 0.70298323898,
+      "specificity": 0.99701492537,
+      "sensitivity": 0.61278195489
+    },
+    {
+      "threshold": 0.70302855682,
+      "specificity": 0.99701492537,
+      "sensitivity": 0.60902255639
+    },
+    {
+      "threshold": 0.70389555105,
+      "specificity": 0.99701492537,
+      "sensitivity": 0.60526315789
+    },
+    {
+      "threshold": 0.70595317374,
+      "specificity": 0.99701492537,
+      "sensitivity": 0.6015037594
+    },
+    {
+      "threshold": 0.7064702826,
+      "specificity": 0.99701492537,
+      "sensitivity": 0.5977443609
+    },
+    {
+      "threshold": 0.70694025789,
+      "specificity": 0.99701492537,
+      "sensitivity": 0.59398496241
+    },
+    {
+      "threshold": 0.70707956495,
+      "specificity": 0.99701492537,
+      "sensitivity": 0.59022556391
+    },
+    {
+      "threshold": 0.70824288661,
+      "specificity": 0.99701492537,
+      "sensitivity": 0.58646616541
+    },
+    {
+      "threshold": 0.70843715334,
+      "specificity": 0.99701492537,
+      "sensitivity": 0.58270676692
+    },
+    {
+      "threshold": 0.71145602479,
+      "specificity": 0.99701492537,
+      "sensitivity": 0.57894736842
+    },
+    {
+      "threshold": 0.7117991759,
+      "specificity": 1,
+      "sensitivity": 0.57894736842
+    },
+    {
+      "threshold": 0.71416531649,
+      "specificity": 1,
+      "sensitivity": 0.57518796992
+    },
+    {
+      "threshold": 0.71446803448,
+      "specificity": 1,
+      "sensitivity": 0.57142857143
+    },
+    {
+      "threshold": 0.71497091001,
+      "specificity": 1,
+      "sensitivity": 0.56766917293
+    },
+    {
+      "threshold": 0.71649228507,
+      "specificity": 1,
+      "sensitivity": 0.56390977444
+    },
+    {
+      "threshold": 0.71654441384,
+      "specificity": 1,
+      "sensitivity": 0.56015037594
+    },
+    {
+      "threshold": 0.71673436782,
+      "specificity": 1,
+      "sensitivity": 0.55639097744
+    },
+    {
+      "threshold": 0.71778432477,
+      "specificity": 1,
+      "sensitivity": 0.55263157895
+    },
+    {
+      "threshold": 0.71803386349,
+      "specificity": 1,
+      "sensitivity": 0.54887218045
+    },
+    {
+      "threshold": 0.71820680435,
+      "specificity": 1,
+      "sensitivity": 0.54511278195
+    },
+    {
+      "threshold": 0.71828866464,
+      "specificity": 1,
+      "sensitivity": 0.54135338346
+    },
+    {
+      "threshold": 0.71990855452,
+      "specificity": 1,
+      "sensitivity": 0.53759398496
+    },
+    {
+      "threshold": 0.72000786243,
+      "specificity": 1,
+      "sensitivity": 0.53383458647
+    },
+    {
+      "threshold": 0.72049148522,
+      "specificity": 1,
+      "sensitivity": 0.53007518797
+    },
+    {
+      "threshold": 0.72090379306,
+      "specificity": 1,
+      "sensitivity": 0.52631578947
+    },
+    {
+      "threshold": 0.72189866347,
+      "specificity": 1,
+      "sensitivity": 0.52255639098
+    },
+    {
+      "threshold": 0.72220166037,
+      "specificity": 1,
+      "sensitivity": 0.51879699248
+    },
+    {
+      "threshold": 0.72223192784,
+      "specificity": 1,
+      "sensitivity": 0.51503759398
+    },
+    {
+      "threshold": 0.72246400697,
+      "specificity": 1,
+      "sensitivity": 0.51127819549
+    },
+    {
+      "threshold": 0.72252638014,
+      "specificity": 1,
+      "sensitivity": 0.50751879699
+    },
+    {
+      "threshold": 0.7229152861,
+      "specificity": 1,
+      "sensitivity": 0.5037593985
+    },
+    {
+      "threshold": 0.72296547413,
+      "specificity": 1,
+      "sensitivity": 0.5
+    },
+    {
+      "threshold": 0.7237738425,
+      "specificity": 1,
+      "sensitivity": 0.4962406015
+    },
+    {
+      "threshold": 0.72410170967,
+      "specificity": 1,
+      "sensitivity": 0.49248120301
+    },
+    {
+      "threshold": 0.72420742936,
+      "specificity": 1,
+      "sensitivity": 0.48872180451
+    },
+    {
+      "threshold": 0.72456211665,
+      "specificity": 1,
+      "sensitivity": 0.48496240602
+    },
+    {
+      "threshold": 0.72465803904,
+      "specificity": 1,
+      "sensitivity": 0.48120300752
+    },
+    {
+      "threshold": 0.72485479042,
+      "specificity": 1,
+      "sensitivity": 0.47744360902
+    },
+    {
+      "threshold": 0.72512211505,
+      "specificity": 1,
+      "sensitivity": 0.47368421053
+    },
+    {
+      "threshold": 0.72555536849,
+      "specificity": 1,
+      "sensitivity": 0.46992481203
+    },
+    {
+      "threshold": 0.72589121455,
+      "specificity": 1,
+      "sensitivity": 0.46616541353
+    },
+    {
+      "threshold": 0.72610438841,
+      "specificity": 1,
+      "sensitivity": 0.46240601504
+    },
+    {
+      "threshold": 0.72610696492,
+      "specificity": 1,
+      "sensitivity": 0.45864661654
+    },
+    {
+      "threshold": 0.7261142646,
+      "specificity": 1,
+      "sensitivity": 0.45488721805
+    },
+    {
+      "threshold": 0.72646776514,
+      "specificity": 1,
+      "sensitivity": 0.45112781955
+    },
+    {
+      "threshold": 0.72653989632,
+      "specificity": 1,
+      "sensitivity": 0.44736842105
+    },
+    {
+      "threshold": 0.72663569992,
+      "specificity": 1,
+      "sensitivity": 0.44360902256
+    },
+    {
+      "threshold": 0.72706321871,
+      "specificity": 1,
+      "sensitivity": 0.43984962406
+    },
+    {
+      "threshold": 0.72747030728,
+      "specificity": 1,
+      "sensitivity": 0.43609022556
+    },
+    {
+      "threshold": 0.72755713636,
+      "specificity": 1,
+      "sensitivity": 0.43233082707
+    },
+    {
+      "threshold": 0.72780958456,
+      "specificity": 1,
+      "sensitivity": 0.42857142857
+    },
+    {
+      "threshold": 0.72793678876,
+      "specificity": 1,
+      "sensitivity": 0.42481203008
+    },
+    {
+      "threshold": 0.72796623419,
+      "specificity": 1,
+      "sensitivity": 0.42105263158
+    },
+    {
+      "threshold": 0.72822119838,
+      "specificity": 1,
+      "sensitivity": 0.41729323308
+    },
+    {
+      "threshold": 0.72826107347,
+      "specificity": 1,
+      "sensitivity": 0.41353383459
+    },
+    {
+      "threshold": 0.72878514282,
+      "specificity": 1,
+      "sensitivity": 0.40977443609
+    },
+    {
+      "threshold": 0.72889060727,
+      "specificity": 1,
+      "sensitivity": 0.40601503759
+    },
+    {
+      "threshold": 0.72889801196,
+      "specificity": 1,
+      "sensitivity": 0.4022556391
+    },
+    {
+      "threshold": 0.72904748675,
+      "specificity": 1,
+      "sensitivity": 0.3984962406
+    },
+    {
+      "threshold": 0.7293260976,
+      "specificity": 1,
+      "sensitivity": 0.39473684211
+    },
+    {
+      "threshold": 0.72942188776,
+      "specificity": 1,
+      "sensitivity": 0.39097744361
+    },
+    {
+      "threshold": 0.7294275957,
+      "specificity": 1,
+      "sensitivity": 0.38721804511
+    },
+    {
+      "threshold": 0.72949496123,
+      "specificity": 1,
+      "sensitivity": 0.38345864662
+    },
+    {
+      "threshold": 0.72984077709,
+      "specificity": 1,
+      "sensitivity": 0.37969924812
+    },
+    {
+      "threshold": 0.72986216781,
+      "specificity": 1,
+      "sensitivity": 0.37593984962
+    },
+    {
+      "threshold": 0.72987289506,
+      "specificity": 1,
+      "sensitivity": 0.37218045113
+    },
+    {
+      "threshold": 0.72990501529,
+      "specificity": 1,
+      "sensitivity": 0.36842105263
+    },
+    {
+      "threshold": 0.72993285765,
+      "specificity": 1,
+      "sensitivity": 0.36466165414
+    },
+    {
+      "threshold": 0.72997095081,
+      "specificity": 1,
+      "sensitivity": 0.36090225564
+    },
+    {
+      "threshold": 0.73007134506,
+      "specificity": 1,
+      "sensitivity": 0.35714285714
+    },
+    {
+      "threshold": 0.7301112269,
+      "specificity": 1,
+      "sensitivity": 0.35338345865
+    },
+    {
+      "threshold": 0.73013095926,
+      "specificity": 1,
+      "sensitivity": 0.34962406015
+    },
+    {
+      "threshold": 0.7301593891,
+      "specificity": 1,
+      "sensitivity": 0.34586466165
+    },
+    {
+      "threshold": 0.73023172069,
+      "specificity": 1,
+      "sensitivity": 0.34210526316
+    },
+    {
+      "threshold": 0.73024650055,
+      "specificity": 1,
+      "sensitivity": 0.33834586466
+    },
+    {
+      "threshold": 0.73025835695,
+      "specificity": 1,
+      "sensitivity": 0.33458646617
+    },
+    {
+      "threshold": 0.73026751019,
+      "specificity": 1,
+      "sensitivity": 0.33082706767
+    },
+    {
+      "threshold": 0.73026989656,
+      "specificity": 1,
+      "sensitivity": 0.32706766917
+    },
+    {
+      "threshold": 0.73032746372,
+      "specificity": 1,
+      "sensitivity": 0.32330827068
+    },
+    {
+      "threshold": 0.73035868786,
+      "specificity": 1,
+      "sensitivity": 0.31954887218
+    },
+    {
+      "threshold": 0.73037466302,
+      "specificity": 1,
+      "sensitivity": 0.31578947368
+    },
+    {
+      "threshold": 0.73038386224,
+      "specificity": 1,
+      "sensitivity": 0.31203007519
+    },
+    {
+      "threshold": 0.73039968081,
+      "specificity": 1,
+      "sensitivity": 0.30827067669
+    },
+    {
+      "threshold": 0.73049361656,
+      "specificity": 1,
+      "sensitivity": 0.3045112782
+    },
+    {
+      "threshold": 0.73050061039,
+      "specificity": 1,
+      "sensitivity": 0.3007518797
+    },
+    {
+      "threshold": 0.73050118879,
+      "specificity": 1,
+      "sensitivity": 0.2969924812
+    },
+    {
+      "threshold": 0.73055824058,
+      "specificity": 1,
+      "sensitivity": 0.29323308271
+    },
+    {
+      "threshold": 0.73060899224,
+      "specificity": 1,
+      "sensitivity": 0.28947368421
+    },
+    {
+      "threshold": 0.73062310717,
+      "specificity": 1,
+      "sensitivity": 0.28571428571
+    },
+    {
+      "threshold": 0.73063333298,
+      "specificity": 1,
+      "sensitivity": 0.28195488722
+    },
+    {
+      "threshold": 0.7306357469,
+      "specificity": 1,
+      "sensitivity": 0.27819548872
+    },
+    {
+      "threshold": 0.73067133396,
+      "specificity": 1,
+      "sensitivity": 0.27443609023
+    },
+    {
+      "threshold": 0.73073963624,
+      "specificity": 1,
+      "sensitivity": 0.27067669173
+    },
+    {
+      "threshold": 0.73075760792,
+      "specificity": 1,
+      "sensitivity": 0.26691729323
+    },
+    {
+      "threshold": 0.73077406621,
+      "specificity": 1,
+      "sensitivity": 0.26315789474
+    },
+    {
+      "threshold": 0.73078455641,
+      "specificity": 1,
+      "sensitivity": 0.25939849624
+    },
+    {
+      "threshold": 0.73079499434,
+      "specificity": 1,
+      "sensitivity": 0.25563909774
+    },
+    {
+      "threshold": 0.73079519003,
+      "specificity": 1,
+      "sensitivity": 0.25187969925
+    },
+    {
+      "threshold": 0.73081067981,
+      "specificity": 1,
+      "sensitivity": 0.24812030075
+    },
+    {
+      "threshold": 0.73082082548,
+      "specificity": 1,
+      "sensitivity": 0.24436090226
+    },
+    {
+      "threshold": 0.73083207599,
+      "specificity": 1,
+      "sensitivity": 0.24060150376
+    },
+    {
+      "threshold": 0.73083834214,
+      "specificity": 1,
+      "sensitivity": 0.23684210526
+    },
+    {
+      "threshold": 0.73083860145,
+      "specificity": 1,
+      "sensitivity": 0.23308270677
+    },
+    {
+      "threshold": 0.7308849124,
+      "specificity": 1,
+      "sensitivity": 0.22932330827
+    },
+    {
+      "threshold": 0.73090196542,
+      "specificity": 1,
+      "sensitivity": 0.22556390977
+    },
+    {
+      "threshold": 0.73090515176,
+      "specificity": 1,
+      "sensitivity": 0.22180451128
+    },
+    {
+      "threshold": 0.73090609988,
+      "specificity": 1,
+      "sensitivity": 0.21804511278
+    },
+    {
+      "threshold": 0.73091283241,
+      "specificity": 1,
+      "sensitivity": 0.21428571429
+    },
+    {
+      "threshold": 0.73091390986,
+      "specificity": 1,
+      "sensitivity": 0.21052631579
+    },
+    {
+      "threshold": 0.7309246193,
+      "specificity": 1,
+      "sensitivity": 0.20676691729
+    },
+    {
+      "threshold": 0.73093296827,
+      "specificity": 1,
+      "sensitivity": 0.2030075188
+    },
+    {
+      "threshold": 0.73094773837,
+      "specificity": 1,
+      "sensitivity": 0.1992481203
+    },
+    {
+      "threshold": 0.73096972009,
+      "specificity": 1,
+      "sensitivity": 0.1954887218
+    },
+    {
+      "threshold": 0.73099453561,
+      "specificity": 1,
+      "sensitivity": 0.19172932331
+    },
+    {
+      "threshold": 0.73099952133,
+      "specificity": 1,
+      "sensitivity": 0.18796992481
+    },
+    {
+      "threshold": 0.73100003449,
+      "specificity": 1,
+      "sensitivity": 0.18421052632
+    },
+    {
+      "threshold": 0.73100022488,
+      "specificity": 1,
+      "sensitivity": 0.18045112782
+    },
+    {
+      "threshold": 0.73100033401,
+      "specificity": 1,
+      "sensitivity": 0.17669172932
+    },
+    {
+      "threshold": 0.73101258551,
+      "specificity": 1,
+      "sensitivity": 0.17293233083
+    },
+    {
+      "threshold": 0.73101327543,
+      "specificity": 1,
+      "sensitivity": 0.16917293233
+    },
+    {
+      "threshold": 0.73101561176,
+      "specificity": 1,
+      "sensitivity": 0.16541353383
+    },
+    {
+      "threshold": 0.73101891402,
+      "specificity": 1,
+      "sensitivity": 0.16165413534
+    },
+    {
+      "threshold": 0.73101942333,
+      "specificity": 1,
+      "sensitivity": 0.15789473684
+    },
+    {
+      "threshold": 0.73101997296,
+      "specificity": 1,
+      "sensitivity": 0.15413533835
+    },
+    {
+      "threshold": 0.73102552958,
+      "specificity": 1,
+      "sensitivity": 0.15037593985
+    },
+    {
+      "threshold": 0.73102795457,
+      "specificity": 1,
+      "sensitivity": 0.14661654135
+    },
+    {
+      "threshold": 0.7310361663,
+      "specificity": 1,
+      "sensitivity": 0.14285714286
+    },
+    {
+      "threshold": 0.73103624431,
+      "specificity": 1,
+      "sensitivity": 0.13909774436
+    },
+    {
+      "threshold": 0.73103641909,
+      "specificity": 1,
+      "sensitivity": 0.13533834586
+    },
+    {
+      "threshold": 0.73104219127,
+      "specificity": 1,
+      "sensitivity": 0.13157894737
+    },
+    {
+      "threshold": 0.73104392111,
+      "specificity": 1,
+      "sensitivity": 0.12781954887
+    },
+    {
+      "threshold": 0.73104458187,
+      "specificity": 1,
+      "sensitivity": 0.12406015038
+    },
+    {
+      "threshold": 0.7310454781,
+      "specificity": 1,
+      "sensitivity": 0.12030075188
+    },
+    {
+      "threshold": 0.73104576545,
+      "specificity": 1,
+      "sensitivity": 0.11654135338
+    },
+    {
+      "threshold": 0.7310471585,
+      "specificity": 1,
+      "sensitivity": 0.11278195489
+    },
+    {
+      "threshold": 0.73104766109,
+      "specificity": 1,
+      "sensitivity": 0.10902255639
+    },
+    {
+      "threshold": 0.73104879228,
+      "specificity": 1,
+      "sensitivity": 0.10526315789
+    },
+    {
+      "threshold": 0.73105218025,
+      "specificity": 1,
+      "sensitivity": 0.1015037594
+    },
+    {
+      "threshold": 0.7310531961,
+      "specificity": 1,
+      "sensitivity": 0.097744360902
+    },
+    {
+      "threshold": 0.73105351389,
+      "specificity": 1,
+      "sensitivity": 0.093984962406
+    },
+    {
+      "threshold": 0.73105392983,
+      "specificity": 1,
+      "sensitivity": 0.09022556391
+    },
+    {
+      "threshold": 0.73105459059,
+      "specificity": 1,
+      "sensitivity": 0.086466165414
+    },
+    {
+      "threshold": 0.73105475685,
+      "specificity": 1,
+      "sensitivity": 0.082706766917
+    },
+    {
+      "threshold": 0.73105531721,
+      "specificity": 1,
+      "sensitivity": 0.078947368421
+    },
+    {
+      "threshold": 0.73105572857,
+      "specificity": 1,
+      "sensitivity": 0.075187969925
+    },
+    {
+      "threshold": 0.73105597675,
+      "specificity": 1,
+      "sensitivity": 0.071428571429
+    },
+    {
+      "threshold": 0.73105611267,
+      "specificity": 1,
+      "sensitivity": 0.067669172932
+    },
+    {
+      "threshold": 0.73105629417,
+      "specificity": 1,
+      "sensitivity": 0.063909774436
+    },
+    {
+      "threshold": 0.7310563753,
+      "specificity": 1,
+      "sensitivity": 0.06015037594
+    },
+    {
+      "threshold": 0.73105639891,
+      "specificity": 1,
+      "sensitivity": 0.056390977444
+    },
+    {
+      "threshold": 0.73105644906,
+      "specificity": 1,
+      "sensitivity": 0.052631578947
+    },
+    {
+      "threshold": 0.73105666111,
+      "specificity": 1,
+      "sensitivity": 0.048872180451
+    },
+    {
+      "threshold": 0.7310566853,
+      "specificity": 1,
+      "sensitivity": 0.045112781955
+    },
+    {
+      "threshold": 0.73105673486,
+      "specificity": 1,
+      "sensitivity": 0.041353383459
+    },
+    {
+      "threshold": 0.73105694587,
+      "specificity": 1,
+      "sensitivity": 0.037593984962
+    },
+    {
+      "threshold": 0.73105749874,
+      "specificity": 1,
+      "sensitivity": 0.033834586466
+    },
+    {
+      "threshold": 0.73105781482,
+      "specificity": 1,
+      "sensitivity": 0.03007518797
+    },
+    {
+      "threshold": 0.73105788091,
+      "specificity": 1,
+      "sensitivity": 0.026315789474
+    },
+    {
+      "threshold": 0.73105802107,
+      "specificity": 1,
+      "sensitivity": 0.022556390977
+    },
+    {
+      "threshold": 0.73105807077,
+      "specificity": 1,
+      "sensitivity": 0.018796992481
+    },
+    {
+      "threshold": 0.73105814665,
+      "specificity": 1,
+      "sensitivity": 0.015037593985
+    },
+    {
+      "threshold": 0.73105822113,
+      "specificity": 1,
+      "sensitivity": 0.011278195489
+    },
+    {
+      "threshold": 0.7310582782,
+      "specificity": 1,
+      "sensitivity": 0.0075187969925
+    },
+    {
+      "threshold": 0.73105843107,
+      "specificity": 1,
+      "sensitivity": 0.0037593984962
+    }
+  ]
+}

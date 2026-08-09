@@ -1,5 +1,6 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import neuralData from "../src/data/r-neural-experiment.generated.json";
 import {
   behaviourComparisons,
   confusionMatrix,
@@ -11,7 +12,8 @@ import {
   modelResults,
   pipelineSteps,
   predictors,
-  rocTrace,
+  projectImages,
+  rawFieldGroups,
   sampleFlow,
 } from "../src/data/r-machine-learning";
 
@@ -21,17 +23,25 @@ describe("R machine learning flagship project", () => {
     "utf8",
   );
   const mainPage = readFileSync("src/components/RMachineLearningProject.astro", "utf8");
-  const deepDivePage = readFileSync(
-    "src/components/RMachineLearningDeepDive.astro",
+  const dataValidation = readFileSync(
+    "src/components/RDataValidationDeepDive.astro",
     "utf8",
   );
+  const benchmark = readFileSync(
+    "src/components/RModelBenchmarkDeepDive.astro",
+    "utf8",
+  );
+  const selection = readFileSync(
+    "src/components/RModelSelectionDeepDive.astro",
+    "utf8",
+  );
+  const interpretation = readFileSync(
+    "src/components/RLogisticInterpretationDeepDive.astro",
+    "utf8",
+  );
+  const neural = readFileSync("src/components/RNeuralNetworkDeepDive.astro", "utf8");
   const comparison = readFileSync("src/components/ModelComparisonLab.astro", "utf8");
   const evaluation = readFileSync("src/components/ModelEvaluation.astro", "utf8");
-  const dataStory = readFileSync("src/components/ChurnDataStory.astro", "utf8");
-  const featureStory = readFileSync(
-    "src/components/FeatureSelectionStory.astro",
-    "utf8",
-  );
   const route = readFileSync("src/pages/zh/projects/[slug].astro", "utf8");
   const deepDiveRoute = readFileSync(
     "src/pages/zh/projects/customer-churn-machine-learning/[deepDive].astro",
@@ -39,6 +49,17 @@ describe("R machine learning flagship project", () => {
   );
   const search = readFileSync("src/components/GlobalSearch.astro", "utf8");
   const card = readFileSync("src/components/ProjectCard.astro", "utf8");
+  const publicSource = [
+    entry,
+    mainPage,
+    dataValidation,
+    benchmark,
+    selection,
+    interpretation,
+    neural,
+    comparison,
+    evaluation,
+  ].join("\n");
 
   it("publishes one indexable Chinese flagship project", () => {
     expect(entry).toContain("translationKey: customer-churn-machine-learning");
@@ -48,19 +69,31 @@ describe("R machine learning flagship project", () => {
     expect(card.match(/customer-churn-machine-learning/g)).toHaveLength(1);
   });
 
-  it("defines four searchable deep dives without extra project entries", () => {
+  it("defines five independent searchable deep dives", () => {
     expect(deepDives.map((item) => item.slug)).toEqual([
-      "workflow",
+      "data-validation",
       "model-comparison",
+      "model-selection-error-analysis",
+      "logistic-interpretation",
       "neural-network",
-      "prediction-evaluation",
     ]);
     expect(deepDiveRoute).toContain("getStaticPaths");
     expect(search).toContain("...deepDives.map");
-    expect(search).toContain("projectBasePath");
+    expect(search).toContain("deepDive.titleZh");
+    expect(
+      existsSync(
+        "src/pages/zh/projects/customer-churn-machine-learning/workflow.astro",
+      ),
+    ).toBe(true);
+    expect(
+      existsSync(
+        "src/pages/zh/projects/customer-churn-machine-learning/prediction-evaluation.astro",
+      ),
+    ).toBe(true);
   });
 
-  it("uses the seven verified predictors and an auditable sample flow", () => {
+  it("uses the verified schema, predictors and sample flow", () => {
+    expect(rawFieldGroups.flatMap((group) => group.fields)).toHaveLength(25);
     expect(predictors).toHaveLength(7);
     expect(predictors.map((item) => item.name)).toContain("payment_failure_last4w");
     expect(predictors.map((item) => item.name)).not.toContain("weeks_since_signup");
@@ -78,7 +111,7 @@ describe("R machine learning flagship project", () => {
     );
   });
 
-  it("keeps the five fixed cross-validation model results", () => {
+  it("keeps the five verified cross-validation means and model specifications", () => {
     expect(modelResults).toHaveLength(5);
     expect(modelResults.map((model) => model.name)).toEqual([
       "Logistic Regression",
@@ -87,13 +120,16 @@ describe("R machine learning flagship project", () => {
       "LightGBM",
       "XGBoost",
     ]);
-    expect(modelResults[0].auc).toBe(0.9024);
+    expect(modelResults[0]?.auc).toBe(0.9024);
     expect(modelResults.find((model) => model.id === "lightgbm")?.accuracy).toBe(
       0.8199,
     );
+    expect(modelResults.find((model) => model.id === "xgboost")?.sensitivity).toBe(
+      0.7632,
+    );
   });
 
-  it("preserves the verified hold-out matrix and metrics", () => {
+  it("preserves the verified hold-out matrix and real result images", () => {
     expect(confusionMatrix.total).toBe(39200);
     expect(
       confusionMatrix.trueNegative +
@@ -102,44 +138,73 @@ describe("R machine learning flagship project", () => {
         confusionMatrix.truePositive,
     ).toBe(confusionMatrix.total);
     expect(confusionMatrix.auc).toBe(0.9053);
-    expect(confusionMatrix.sensitivity).toBe(0.8332);
-    expect(rocTrace[0]).toEqual([0, 0]);
-    expect(rocTrace.at(-1)).toEqual([1, 1]);
+    expect(confusionMatrix.sensitivity).toBe(0.8331);
+    Object.values(projectImages).forEach((image) => {
+      expect(existsSync(`public${image}`)).toBe(true);
+    });
+    expect(evaluation).toContain("projectImages.holdoutRoc");
+    expect(interpretation).toContain("projectImages.oddsRatioCi");
   });
 
-  it("provides keyboard-friendly evidence, comparison and R code", () => {
+  it("provides keyboard-friendly pipeline, model, matrix, risk and code interactions", () => {
     expect(mainPage).toContain("<AnalysisPipeline");
-    expect(mainPage).toContain("<ChurnDataStory");
     expect(mainPage).toContain("<FeatureSelectionStory");
     expect(mainPage).toContain("<ModelComparisonLab");
     expect(mainPage).toContain("<ModelEvaluation");
-    expect(mainPage).toContain("<RCodeShowcase");
-    expect(dataStory).toContain('role="img"');
-    expect(featureStory).toContain("data-feature-selection-story");
+    expect(mainPage).toContain("<RiskSignalExplorer");
     expect(comparison).toContain("data-model-metric");
     expect(comparison).toContain("metric-matrix");
     expect(evaluation).toContain("data-matrix-cell");
-    expect(evaluation).toContain("roc-figure");
-    expect(evaluation).toContain("forest-plot");
-    expect(pipelineSteps.every((step) => step.evidence && step.nextQuestion)).toBe(
-      true,
-    );
-    expect(deepDivePage).toContain("<NeuralNetworkDiagram");
+    expect(pipelineSteps).toHaveLength(10);
+    expect(
+      pipelineSteps.every(
+        (step) => step.input && step.action && step.output && step.why && step.codeKey,
+      ),
+    ).toBe(true);
   });
 
-  it("separates the neural network experiment from churn model metrics", () => {
+  it("reproduces the neural experiment with original seeds and fixed architecture", () => {
     expect(modelResults.some((model) => /neural/i.test(model.name))).toBe(false);
-    const neural = deepDives.find((item) => item.slug === "neural-network");
-    expect(neural?.summary).toContain("独立二维分类实验");
-    expect(deepDivePage).toContain("一个独立实验，用来观察非线性分类边界");
-    expect(deepDivePage).toContain("隐藏节点");
-    expect(deepDivePage).toContain("1000");
+    expect(neuralData.provenance).toMatchObject({
+      data_seed: 321,
+      split_seed: 6262,
+      fit_seed: 987,
+      rows: 3000,
+      train_rows: 2399,
+      test_rows: 601,
+      epochs: 1000,
+      hidden_units: 2,
+      engine: "nnet",
+    });
+    expect(neuralData.metrics.accuracy).toBeCloseTo(0.8801996672, 9);
+    expect(neuralData.metrics.auc).toBeCloseTo(0.9562114241, 9);
+    expect(
+      neuralData.confusion.class1_as_class1 +
+        neuralData.confusion.class2_as_class1 +
+        neuralData.confusion.class1_as_class2 +
+        neuralData.confusion.class2_as_class2,
+    ).toBe(601);
+    expect(neuralData.test_points).toHaveLength(601);
+    expect(neuralData.boundary.length).toBeGreaterThan(0);
   });
 
-  it("excludes internal labels, identity, paths and false runtime claims", () => {
-    const publicSource = `${entry}\n${mainPage}\n${deepDivePage}\n${comparison}\n${evaluation}\n${dataStory}\n${featureStory}`;
+  it("keeps each technical article substantive and non-overlapping", () => {
+    const sectionCount = (source: string) => source.match(/<section\b/g)?.length ?? 0;
+    expect(sectionCount(dataValidation)).toBeGreaterThanOrEqual(10);
+    expect(sectionCount(benchmark)).toBeGreaterThanOrEqual(9);
+    expect(sectionCount(selection)).toBeGreaterThanOrEqual(8);
+    expect(sectionCount(interpretation)).toBeGreaterThanOrEqual(9);
+    expect(sectionCount(neural)).toBeGreaterThanOrEqual(8);
+    expect(dataValidation).toContain("30,000 条样本只用于候选模型比较");
+    expect(benchmark).toContain("五模型比较的目的不是寻找最复杂算法");
+    expect(selection).toContain("阈值分析需要哪些预测证据");
+    expect(interpretation).toContain("解释模型为什么去掉上采样");
+    expect(neural).toContain("不是 churn benchmark 的第六个模型");
+  });
+
+  it("excludes prohibited public terms, identity, paths and false runtime claims", () => {
     expect(publicSource).not.toMatch(
-      /BUSINFO704|Assignment|Task [1-4]|Submission|课程项目|课程报告|样板页|试点|暂不索引|V1\.0|正式版|固定结果|保存的固定结果|不会触发训练|浏览器本地计算|源文件|内部核实|匿名访问|课程文件|正式版 V3|稍后补充/,
+      /BUSINFO704|Assignment|Task [1-4]|Submission|课程项目|课程报告|样板页|试点页|暂不索引|V1\.0|正式版|固定结果|保存的固定结果|不会触发训练|浏览器本地计算|源文件|内部核实|匿名访问|课程文件|正式版 V3|稍后补充/,
     );
     expect(publicSource).not.toMatch(
       /在线训练 R|实时机器学习|实时模型训练|浏览器运行 R|[A-Z]:\\/,

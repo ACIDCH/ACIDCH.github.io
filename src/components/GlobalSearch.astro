@@ -99,12 +99,12 @@ const index: SearchItem[] = [
     ].join(" "),
   })),
   ...deepDives.map((deepDive) => ({
-    title: deepDive.title,
+    title: deepDive.titleZh,
     description: deepDive.summary,
     path: `${projectBasePath}${deepDive.slug}/`,
     locale: "zh" as const,
     group: "project" as const,
-    searchText: `${deepDive.title} ${deepDive.summary} ${deepDive.keywords}`,
+    searchText: `${deepDive.titleZh} ${deepDive.title} ${deepDive.summary} R tidymodels classification supervised learning customer churn 客户流失 模型比较`,
   })),
   ...notes.map((entry) => ({
     title: entry.data.title,

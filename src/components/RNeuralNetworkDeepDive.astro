@@ -1,0 +1,316 @@
+---
+import neuralData from "../data/r-neural-experiment.generated.json";
+import { deepDives, codeSnippets } from "../data/r-machine-learning";
+import RDeepDiveShell from "./RDeepDiveShell.astro";
+import NeuralBoundaryExplorer from "./NeuralBoundaryExplorer.astro";
+import NeuralNetworkDiagram from "./NeuralNetworkDiagram.astro";
+import RCodeShowcase from "./RCodeShowcase.astro";
+
+const deepDive = deepDives.find((item) => item.slug === "neural-network")!;
+---
+
+<RDeepDiveShell deepDive={deepDive}>
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>01</span><div>
+        <p>POSITION</p><h2>
+          这是一项独立非线性分类实验，不是 churn benchmark 的第六个模型
+        </h2>
+      </div>
+    </div>
+    <div class="r-deep-prose">
+      <p>
+        客户流失主项目使用七变量和五个候选模型；本实验只使用 A、B
+        两个数值输入，目标是检验一个小型神经网络能否学习弯曲决策边界。数据生成、切分、recipe、训练和评估都独立完成，指标不能与
+        churn 模型表直接横向排名。
+      </p>
+      <p>
+        把它单独成篇，是为了进入主项目没有覆盖的技术问题：非线性类别如何生成；为什么两个输入需要标准化；两个隐藏节点怎样形成弯曲边界；边界附近的错误如何出现在混淆矩阵和
+        ROC 中。
+      </p>
+      <p>
+        实验严格使用原参数：数据 seed 321、分层切分 seed 6262、拟合 seed
+        987、一个隐藏层、两个隐藏节点、1,000 epochs。没有增加节点、调整 decay、改变
+        split 或搜索更高指标。
+      </p>
+    </div>
+    <div class="r-deep-grid">
+      <article>
+        <h3>数据</h3><p>3,000 条二维合成观察<br />A + B → Class1 / Class2</p>
+      </article>
+      <article>
+        <h3>切分</h3><p>2,399 train · 601 test<br />stratified by class</p>
+      </article>
+      <article>
+        <h3>网络</h3><p>2 inputs · 2 hidden nodes<br />1 binary output · 9 weights</p>
+      </article>
+      <article>
+        <h3>训练</h3><p>nnet engine · entropy fitting<br />1,000 epochs</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>02</span><div>
+        <p>DATA GENERATION</p><h2>3,000 条数据如何形成一条二次边界？</h2>
+      </div>
+    </div>
+    <div class="r-deep-prose">
+      <p>
+        A 与 B 先从二维正态分布生成，均值分别为 1 和 0，协方差矩阵为
+        <code>[[1, 0.7], [0.7, 2]]</code>。因此 A 的标准差约为 1，B
+        的方差更大，两者存在正协方差。数据 seed 321 固定这 3,000 个坐标。
+      </p>
+      <p>
+        生成函数先为每个坐标计算连续概率，再按该概率抽取类别。因而散点中的类别不是由一条硬边界机械切开：即便两个坐标完全相同，也存在抽到不同类别的可能。
+        这使实验同时包含可学习的二次结构和不可由坐标完全消除的随机性，更适合观察概率分类，而不是只验证网络能否记住两块分离区域。
+      </p>
+      <p>
+        类别概率由 <code>z = -1 - 2A - 0.2A² + 2B²</code> 经过 logistic 转换得到。A² 与 B²
+        让等概率线不再是一条直线；相同 A 下，B 的正负方向都可能提高同一类别概率。随后用固定随机抽样把概率转为
+        Class1 / Class2，因此边界附近会自然出现类别交叠，而不是两块完全可分区域。
+      </p>
+      <p>
+        全部 3,000 条数据中，Class1 有 1,329 条，Class2 有 1,671
+        条。分层切分后，训练集为 1,063 / 1,336，测试集为 266 /
+        335。两侧比例接近，评估不会因为一次随机切分而明显偏向某类。
+      </p>
+    </div>
+    <div class="r-deep-table" tabindex="0">
+      <table>
+        <caption>类别计数</caption><thead
+          ><tr><th>数据部分</th><th>Class1</th><th>Class2</th><th>Total</th></tr></thead
+        ><tbody>
+          <tr><th>All</th><td>1,329</td><td>1,671</td><td>3,000</td></tr>
+          <tr><th>Train</th><td>1,063</td><td>1,336</td><td>2,399</td></tr>
+          <tr><th>Test</th><td>266</td><td>335</td><td>601</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <RCodeShowcase
+      title="生成数据并按类别分层切分"
+      code={codeSnippets.neuralData}
+      open
+    />
+  </section>
+
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>03</span><div>
+        <p>NORMALISATION</p><h2>标准化让两个输入在网络优化中处于可比尺度</h2>
+      </div>
+    </div>
+    <div class="r-deep-prose">
+      <p>
+        recipe 对所有 predictor 执行 <code>step_normalize()</code>。训练数据中 A
+        的均值为
+        {neuralData.normalisation[0]?.mean.toFixed(4)}、标准差为 {
+          neuralData.normalisation[0]?.sd.toFixed(4)
+        }；B 的均值为
+        {neuralData.normalisation[1]?.mean.toFixed(4)}、标准差为 {
+          neuralData.normalisation[1]?.sd.toFixed(4)
+        }。每个值减去训练均值，再除以训练标准差。
+      </p>
+      <p>
+        这些统计量只从训练部分学习，再应用到测试数据和边界网格。这样，测试坐标不会影响网络看到的中心与尺度。标准化不会改变类别边界的拓扑，只把
+        A、B 映射到更适合权重优化的数值范围。
+      </p>
+      <p>
+        这与 churn 五模型不标准化形成明确对照：树模型按分裂排序，不需要同尺度；Logistic
+        Regression 保留原单位用于 OR
+        解释；神经网络使用梯度迭代，输入尺度会影响权重更新，因此标准化属于模型专用预处理。
+      </p>
+    </div>
+  </section>
+
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>04</span><div>
+        <p>NETWORK</p><h2>2–2–1 结构用九个权重组合两条非线性响应</h2>
+      </div>
+    </div>
+    <div class="r-deep-prose">
+      <p>
+        网络接收 A、B 两个输入，只有一个隐藏层和两个隐藏节点，输出一个二分类概率。nnet
+        拟合对象报告
+        <code>2-2-1 network with 9 weights</code
+        >：输入到隐藏层的连接、隐藏节点偏置、隐藏到输出的连接与输出偏置共同构成九个可学习参数。
+      </p>
+      <p>
+        两个隐藏节点不是两个可直接命名的业务变量。每个节点先组合标准化后的
+        A、B，再通过引擎的非线性响应传向输出。两个节点的组合足以弯曲一条线性分界，但容量仍然受限，因而适合观察最小网络如何逼近二次边界。
+      </p>
+      <p>
+        第一层把 A、B 的线性组合投向两个隐藏响应，第二层再把这两个响应组合为 Class1
+        概率。单个隐藏响应仍只提供一个方向；两个响应叠加后，可以在平面上形成弯曲的等概率线。九个权重因此描述的是整体几何边界，而不是九个可以逐项解释的风险系数。
+      </p>
+      <p>
+        模型使用 <code>mlp(epochs = 1000, hidden_units = 2)</code> 与 <code>nnet</code>
+        引擎，拟合对象记录 entropy fitting。原实验没有设置额外 decay 或隐藏层搜索，本次重跑保持同样规格，不把参数默认值包装成调优结果。
+      </p>
+    </div>
+    <NeuralNetworkDiagram />
+    <RCodeShowcase
+      title="标准化 recipe 与 2-node MLP"
+      code={codeSnippets.neuralModel}
+      open
+    />
+  </section>
+
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>05</span><div>
+        <p>DECISION SURFACE</p><h2>真实类别与预测类别如何沿弯曲边界分开？</h2>
+      </div>
+    </div>
+    <div class="r-deep-prose">
+      <p>
+        训练完成后，在 A、B 的训练范围上建立 100 × 100 网格，计算每个网格点的 Class1
+        概率，并提取 P(Class1) = 0.5 的等值线。黑色曲线因此来自同一个 fitted
+        nnet，不是手绘边界。
+      </p>
+      <p>
+        测试点按真实类别着色时，可以看到两类围绕二次边界交叠；切换为预测类别后，网络把边界一侧统一归入相同预测。错误点会加深描边，主要靠近概率
+        0.5 曲线，说明模型在最不确定的区域更容易翻转类别。
+      </p>
+    </div>
+    <NeuralBoundaryExplorer />
+  </section>
+
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>06</span><div>
+        <p>TEST METRICS</p><h2>601 条测试记录得到 Accuracy 0.8802 与 AUC 0.9562</h2>
+      </div>
+    </div>
+    <div class="r-deep-prose">
+      <p>
+        测试集中 225 个 Class1 和 304 个 Class2 被正确分类，共 529 个正确判断；41 个
+        Class1 被判断为 Class2，31 个 Class2 被判断为 Class1，共 72 个错误。529 / 601
+        得到 Accuracy {neuralData.metrics.accuracy.toFixed(4)}。
+      </p>
+      <p>
+        按真实类别拆分，Class1 的识别率为 <code>225 / 266 = 84.59%</code>，Class2 为
+        <code>304 / 335 = 90.75%</code>。按预测类别观察，预测为 Class1 的 256 个点中有
+        225 个正确，预测为 Class2 的 345 个点中有 304 个正确。两侧都存在错误，但 Class1
+        一侧的漏分比例更高。
+      </p>
+      <p>
+        ROC AUC 为 {
+          neuralData.metrics.auc.toFixed(4)
+        }。它衡量网络输出概率对两类的整体排序，而不是 0.5 边界下的正确比例。较高 AUC
+        与仍存在 72 个类别错误并不矛盾：排序可以很好，但边界附近仍会因概率交叠而错分。
+      </p>
+      <p>
+        这些数字使用数据、split 与 fit 的既定 seed 得出，网络结构和 epochs
+        保持不变。结果属于这一个 synthetic experiment，不能用来声称 churn
+        模型也获得相同表现。
+      </p>
+    </div>
+    <RCodeShowcase
+      title="测试预测、AUC、Accuracy 与混淆矩阵"
+      code={codeSnippets.neuralEvaluation}
+    />
+    <div class="r-deep-table" tabindex="0">
+      <table>
+        <caption>神经网络测试混淆矩阵</caption><thead
+          ><tr><th>Predicted \ Truth</th><th>Class1</th><th>Class2</th></tr></thead
+        ><tbody
+          ><tr><th>Class1</th><td>225</td><td>31</td></tr><tr
+            ><th>Class2</th><td>41</td><td>304</td></tr
+          ></tbody
+        >
+      </table>
+    </div>
+  </section>
+
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>07</span><div>
+        <p>PREDICTION READING</p><h2>概率面、类别和错误必须分别阅读</h2>
+      </div>
+    </div>
+    <div class="r-deep-prose">
+      <p>
+        概率面表示每个 A、B 位置的 P(Class1)。类别预测只是在 0.5
+        位置把连续概率切成两侧；真实类别又包含生成过程中的随机抽样，因此即使网络精确学习概率函数，边界附近也不会完全无错。
+      </p>
+      <p>
+        测试表中的 P(Class1) 让单个点可以回到概率尺度。接近 0.5
+        的预测更容易因轻微位置差异跨边界；远离 0.5
+        的点具有更明确的模型方向。互动图把真实 / 预测切换、边界和 tooltip
+        放在同一坐标系，帮助判断错误是结构性还是集中在不确定区域。
+      </p>
+      <p>
+        互动图使用同一次 R 拟合的测试预测和网格概率。真实 /
+        预测切换改变的是观察角度，tooltip
+        则把坐标、类别和概率放回同一个测试点，便于沿边界检查判断差异。
+      </p>
+      <p>
+        观察错误点时，应同时看位置与概率：靠近 0.5
+        的错误通常对应类别交叠；若远离边界仍出现成片错误，才更像网络容量或训练不足造成的结构偏差。
+        当前图中错误主要沿弯曲边界分布，而两侧高置信区域大多判断一致，这与 AUC 0.9562 和
+        72 个阈值错误同时成立。
+      </p>
+    </div>
+  </section>
+
+  <section class="r-deep-section" data-reveal>
+    <div class="r-deep-section__heading">
+      <span>08</span><div>
+        <p>WHAT THIS EXPERIMENT SHOWS</p><h2>
+          一个最小网络已经能够表达线性模型无法直接给出的弯曲边界
+        </h2>
+      </div>
+    </div>
+    <div class="r-deep-prose">
+      <p>
+        这项实验真正回答的是“一个容量很小的网络能否从两维坐标中恢复弯曲概率结构”。答案不能只看
+        Accuracy：散点显示类别交叠，边界显示网络学到的几何形状， ROC
+        检查概率排序，混淆矩阵再检查 0.5
+        边界下两类错误。四种证据指向同一个判断，才说明结果不是由单一数字支撑。
+      </p>
+      <p>
+        它与客户流失分析的联系停留在建模方法，而不是数据或指标。两者都区分训练与测试、把预处理放入
+        workflow、同时读取概率指标与类别错误；
+        但本实验只有两个合成输入，神经网络的隐藏响应也不能解释为客户风险信号。正因数据结构不同，实验结果不进入五模型排名，也不参与
+        Logistic Regression 的最终选择。
+      </p>
+      <p>
+        2–2–1
+        结构仍有清晰边界：它展示少量隐藏节点已经能表达非线性，却没有证明更多节点一定更好。既定实验没有进行网络宽度、decay
+        或 epoch 搜索，
+        因而结论只覆盖这一组参数。若改变结构，必须重新建立独立验证，不能沿用上述 0.8802
+        与 0.9562 作为预期结果。
+      </p>
+    </div>
+    <ol class="r-deep-evidence-list">
+      <li>
+        <strong>生成结构</strong><span
+          >A² 与 B² 项使 P(Class1)=0.5 成为二次曲线，不可由单一直线完整分开。</span
+        >
+      </li>
+      <li>
+        <strong>验证结构</strong><span
+          >3,000 条数据按类别分层为 2,399 train 与 601 test，归一化统计只来自 train。</span
+        >
+      </li>
+      <li>
+        <strong>模型容量</strong><span
+          >2–2–1 网络用两个隐藏节点和九个权重形成弯曲决策面，没有增加隐藏节点或调参。</span
+        >
+      </li>
+      <li>
+        <strong>真实结果</strong><span
+          >测试 Accuracy 0.8802、AUC 0.9562；混淆矩阵共 72 个错误。</span
+        >
+      </li>
+      <li>
+        <strong>项目边界</strong><span
+          >这是二维非线性监督学习实验，与客户流失五模型 benchmark 相互独立。</span
+        >
+      </li>
+    </ol>
+  </section>
+</RDeepDiveShell>
