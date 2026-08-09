@@ -16,6 +16,19 @@ describe("production deployment contracts", () => {
     expect(workflow).toContain("needs.quality.outputs.deploy_sha");
   });
 
+  it("keeps 关于我 consistent across public About entry points", async () => {
+    const home = await source("src/components/HomePage.astro");
+    const search = await source("src/components/GlobalSearch.astro");
+    const legacy = await source("src/components/LegacyRoute.astro");
+
+    expect(home).toContain('aboutAction: "关于我"');
+    expect(home).not.toContain('aboutAction: "简介"');
+    expect(search).toContain('title: "关于我"');
+    expect(search).toContain('searchText: "关于我 个人概况');
+    expect(legacy).toContain('前往关于我');
+    expect(legacy).not.toContain('前往简介');
+  });
+
   it("checks the built flagship before deployment", async () => {
     const packageJson = await source("package.json");
     const verifier = await source("scripts/verify-built-churn.mjs");
