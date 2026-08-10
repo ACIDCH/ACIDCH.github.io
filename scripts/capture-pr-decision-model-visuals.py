@@ -41,43 +41,55 @@ def navigate_path(browser: object, path: str) -> None:
     time.sleep(0.5)
 
 
-def capture_desktop(browser: object) -> None:
-    browser.set_viewport(1440, 1000, mobile=False)
-
+def folder_proofs(browser: object, mobile: bool) -> None:
+    suffix = "mobile" if mobile else "desktop"
     navigate_path(browser, "/zh/notes/")
-    browser.require('[data-learning-folder="decision-models"]')
-    browser.wait_for_text('[data-learning-folder="decision-models"]', "供应链与优化")
-    browser.wait_for_text('[data-learning-folder="decision-models"]', "10 篇已发布")
-    browser.scroll_to('[data-learning-folder="decision-models"]')
-    browser.screenshot("dm-folder-index-desktop.png")
+    folder = '[data-learning-folder="decision-models"]'
+    browser.require(folder)
+    browser.wait_for_text(folder, "供应链与优化")
+    browser.wait_for_text(folder, "10 篇已发布")
+    browser.scroll_to(folder)
+    browser.screenshot(f"dm-folder-index-{suffix}.png")
 
     browser.navigate("series/decision-models")
-    browser.require('[data-note-folder="decision-models"]')
-    browser.wait_for_text('[data-note-folder="decision-models"]', "供应链与优化")
-    browser.wait_for_text('[data-note-folder="decision-models"]', "10 篇已发布笔记")
+    series = '[data-note-folder="decision-models"]'
+    browser.require(series)
+    browser.wait_for_text(series, "供应链与优化")
+    browser.wait_for_text(series, "10 篇已发布笔记")
     browser.scroll_to('[data-folder-module="DM 01"]')
-    browser.screenshot("dm-folder-series-desktop.png")
+    browser.screenshot(f"dm-folder-series-{suffix}.png")
+
+
+def common_topic_proofs(browser: object, mobile: bool) -> None:
+    suffix = "mobile" if mobile else "desktop"
 
     browser.navigate("optimisation-model-anatomy")
     browser.assert_toc_targets()
     browser.scroll_to("[data-optimisation-anatomy]")
-    browser.click('[data-anatomy-choice="hub"]')
-    browser.wait_for_text("[data-anatomy-question]", "网络结构")
-    browser.screenshot("dm01-anatomy-hub-desktop.png")
+    choice = "carrier" if mobile else "hub"
+    expected = "运输商" if mobile else "网络结构"
+    browser.click(f'[data-anatomy-choice="{choice}"]')
+    browser.wait_for_text("[data-anatomy-question]", expected)
+    browser.screenshot(f"dm01-anatomy-{choice}-{suffix}.png")
 
     browser.navigate("unconstrained-optimisation")
     browser.assert_toc_targets()
     browser.scroll_to("[data-unconstrained-lab]")
-    set_value(browser, "[data-capacity-slider]", "575")
+    capacity = "625" if mobile else "575"
+    set_value(browser, "[data-capacity-slider]", capacity)
     browser.wait_for_text("[data-gap-value]", "50")
-    browser.screenshot("dm02-unconstrained-575-desktop.png")
+    browser.screenshot(f"dm02-unconstrained-{capacity}-{suffix}.png")
 
     browser.navigate("constrained-optimisation")
     browser.assert_toc_targets()
     browser.scroll_to("[data-feasible-lab]")
-    set_value(browser, "[data-material-capacity]", "260")
-    browser.wait_for_text("[data-material-total]", "260")
-    browser.screenshot("dm03-feasible-sensitivity-desktop.png")
+    if mobile:
+        set_value(browser, "[data-labour-capacity]", "230")
+        browser.wait_for_text("[data-labour-total]", "230")
+    else:
+        set_value(browser, "[data-material-capacity]", "260")
+        browser.wait_for_text("[data-material-total]", "260")
+    browser.screenshot(f"dm03-feasible-sensitivity-{suffix}.png")
 
     browser.navigate("optimisation-sensitivity-analysis")
     browser.assert_toc_targets()
@@ -88,23 +100,28 @@ def capture_desktop(browser: object) -> None:
     browser.scroll_to("[data-milp-lab]")
     browser.click('[data-hub-toggle="harbour"]')
     browser.wait_for_text("[data-open-count]", "2")
-    browser.wait_for_text("[data-open-capacity]", "1100")
-    browser.screenshot("dm05-milp-two-hubs-desktop.png")
+    if not mobile:
+        browser.wait_for_text("[data-open-capacity]", "1100")
+    browser.screenshot(f"dm05-milp-two-hubs-{suffix}.png")
 
     browser.navigate("sets-indices-model-scale")
     browser.assert_toc_targets()
     browser.scroll_to("[data-scale-lab]")
-    set_value(browser, "[data-scale-t]", "4")
+    periods, variables = ("12", "288") if mobile else ("4", "96")
+    set_value(browser, "[data-scale-t]", periods)
     browser.wait_for_text("[data-scale-dim]", "4D")
-    browser.wait_for_text("[data-scale-vars]", "96")
-    browser.screenshot("dm06-scale-4d-desktop.png")
+    browser.wait_for_text("[data-scale-vars]", variables)
+    browser.screenshot(f"dm06-scale-4d-{suffix}.png")
 
     browser.navigate("pulp-model-architecture")
     browser.assert_toc_targets()
     browser.scroll_to("[data-pulp-lab]")
     browser.click('[data-pulp-step="constraints"]')
-    browser.wait_for_text("[data-pulp-math]", "capacity")
-    browser.screenshot("dm07-pulp-constraints-desktop.png")
+    if mobile:
+        browser.wait_for_text("[data-pulp-code]", "for k in K")
+    else:
+        browser.wait_for_text("[data-pulp-math]", "cap[k]")
+    browser.screenshot(f"dm07-pulp-constraints-{suffix}.png")
 
     browser.navigate("multidimensional-optimisation")
     browser.assert_toc_targets()
@@ -113,95 +130,23 @@ def capture_desktop(browser: object) -> None:
     browser.navigate("transportation-models")
     browser.assert_toc_targets()
     browser.scroll_to("[data-horizon-lab]")
-    browser.click('[data-horizon-choice="Tactical"]')
-    browser.wait_for_text("[data-horizon-decision]", "capacity")
-    browser.screenshot("dm09-horizon-tactical-desktop.png")
-    browser.scroll_to("[data-flow-panel=\"carrier\"]")
+    horizon = "Operational" if mobile else "Tactical"
+    horizon_text = "short-term" if mobile else "capacity"
+    browser.click(f'[data-horizon-choice="{horizon}"]')
+    browser.wait_for_text("[data-horizon-decision]", horizon_text)
+    browser.screenshot(f"dm09-horizon-{horizon.lower()}-{suffix}.png")
+    browser.scroll_to('[data-flow-panel="carrier"]')
     browser.wait_for_text("[data-carrier-status]", "Feasible")
-    browser.screenshot("dm09-carrier-allocation-desktop.png")
+    browser.screenshot(f"dm09-carrier-allocation-{suffix}.png")
 
     browser.navigate("multi-period-production-inventory")
     browser.assert_toc_targets()
-    browser.scroll_to("[data-flow-panel=\"period\"]")
+    browser.scroll_to('[data-flow-panel="period"]')
     browser.click('[data-production-plan="batch"]')
     browser.wait_for_text("[data-period-cost]", "12324")
-    browser.wait_for_text("[data-period-setups]", "2")
-    browser.screenshot("dm10-two-batch-plan-desktop.png")
-
-
-def capture_mobile(browser: object) -> None:
-    browser.set_viewport(390, 844, mobile=True)
-
-    navigate_path(browser, "/zh/notes/")
-    browser.require('[data-learning-folder="decision-models"]')
-    browser.wait_for_text('[data-learning-folder="decision-models"]', "供应链与优化")
-    browser.scroll_to('[data-learning-folder="decision-models"]')
-    browser.screenshot("dm-folder-index-mobile.png")
-
-    browser.navigate("series/decision-models")
-    browser.require('[data-note-folder="decision-models"]')
-    browser.wait_for_text('[data-note-folder="decision-models"]', "10 篇已发布笔记")
-    browser.scroll_to('[data-folder-module="DM 01"]')
-    browser.screenshot("dm-folder-series-mobile.png")
-
-    browser.navigate("optimisation-model-anatomy")
-    browser.assert_toc_targets()
-    browser.scroll_to("[data-optimisation-anatomy]")
-    browser.click('[data-anatomy-choice="carrier"]')
-    browser.wait_for_text("[data-anatomy-question]", "运输商")
-    browser.screenshot("dm01-anatomy-carrier-mobile.png")
-
-    browser.navigate("unconstrained-optimisation")
-    browser.assert_toc_targets()
-    browser.scroll_to("[data-unconstrained-lab]")
-    set_value(browser, "[data-capacity-slider]", "625")
-    browser.wait_for_text("[data-gap-value]", "50")
-    browser.screenshot("dm02-unconstrained-625-mobile.png")
-
-    browser.navigate("constrained-optimisation")
-    browser.assert_toc_targets()
-    browser.scroll_to("[data-feasible-lab]")
-    set_value(browser, "[data-labour-capacity]", "230")
-    browser.wait_for_text("[data-labour-total]", "230")
-    browser.screenshot("dm03-feasible-sensitivity-mobile.png")
-
-    browser.navigate("binary-milp-decisions")
-    browser.assert_toc_targets()
-    browser.scroll_to("[data-milp-lab]")
-    browser.click('[data-hub-toggle="harbour"]')
-    browser.wait_for_text("[data-open-count]", "2")
-    browser.screenshot("dm05-milp-two-hubs-mobile.png")
-
-    browser.navigate("sets-indices-model-scale")
-    browser.assert_toc_targets()
-    browser.scroll_to("[data-scale-lab]")
-    set_value(browser, "[data-scale-t]", "12")
-    browser.wait_for_text("[data-scale-vars]", "288")
-    browser.screenshot("dm06-scale-4d-mobile.png")
-
-    browser.navigate("pulp-model-architecture")
-    browser.assert_toc_targets()
-    browser.scroll_to("[data-pulp-lab]")
-    browser.click('[data-pulp-step="constraints"]')
-    browser.wait_for_text("[data-pulp-code]", "for k in K")
-    browser.screenshot("dm07-pulp-constraints-mobile.png")
-
-    browser.navigate("transportation-models")
-    browser.assert_toc_targets()
-    browser.scroll_to("[data-horizon-lab]")
-    browser.click('[data-horizon-choice="Operational"]')
-    browser.wait_for_text("[data-horizon-decision]", "short-term")
-    browser.screenshot("dm09-horizon-operational-mobile.png")
-    browser.scroll_to("[data-flow-panel=\"carrier\"]")
-    browser.wait_for_text("[data-carrier-status]", "Feasible")
-    browser.screenshot("dm09-carrier-allocation-mobile.png")
-
-    browser.navigate("multi-period-production-inventory")
-    browser.assert_toc_targets()
-    browser.scroll_to("[data-flow-panel=\"period\"]")
-    browser.click('[data-production-plan="batch"]')
-    browser.wait_for_text("[data-period-cost]", "12324")
-    browser.screenshot("dm10-two-batch-plan-mobile.png")
+    if not mobile:
+        browser.wait_for_text("[data-period-setups]", "2")
+    browser.screenshot(f"dm10-two-batch-plan-{suffix}.png")
 
 
 def main() -> None:
@@ -228,8 +173,12 @@ def main() -> None:
     try:
         base.wait_for_driver(driver_base, driver)
         browser = base.BrowserSession(driver_base, f"http://127.0.0.1:{site_port}")
-        capture_desktop(browser)
-        capture_mobile(browser)
+        browser.set_viewport(1440, 1000, mobile=False)
+        folder_proofs(browser, mobile=False)
+        common_topic_proofs(browser, mobile=False)
+        browser.set_viewport(390, 844, mobile=True)
+        folder_proofs(browser, mobile=True)
+        common_topic_proofs(browser, mobile=True)
     finally:
         if browser is not None:
             browser.close()
