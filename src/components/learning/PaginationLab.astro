@@ -1,0 +1,776 @@
+---
+import { sqlLearningSeedSql, sqlOrders } from "../../data/sql-learning";
+
+const payload = JSON.stringify({ orders: sqlOrders, seedSql: sqlLearningSeedSql }).replace(
+  /</g,
+  "\\u003c",
+);
+---
+
+<section class="pagination-lab" data-pagination-lab aria-labelledby="pagination-lab-title">
+  <div class="pagination-lab__intro">
+    <p class="learning-note-kicker">互动实验 · Page Window Contract</p>
+    <h3 id="pagination-lab-title">页码改变时，LIMIT、OFFSET 与结果窗口怎样一起变化？</h3>
+    <p>
+      统一 orders 先按 <code>order_value DESC, order_id ASC</code> 建立稳定顺序，再由 pageSize 与 pageIndex 计算窗口。下半部分可直接在浏览器 SQLite 中执行生成的查询。
+    </p>
+  </div>
+
+  <div class="pagination-lab__controls">
+    <label for="pagination-page-size">
+      <span>pageSize</span>
+      <select id="pagination-page-size" data-pagination-page-size>
+        <option value="2" selected>2 rows</option>
+        <option value="3">3 rows</option>
+      </select>
+    </label>
+    <label for="pagination-page-index">
+      <span>pageIndex</span>
+      <input id="pagination-page-index" data-pagination-page-index type="number" min="1" max="6" value="1" />
+    </label>
+    <div class="pagination-lab__actions" aria-label="Pagination navigation">
+      <button type="button" class="button button--secondary" data-pagination-prev>上一页</button>
+      <button type="button" class="button button--secondary" data-pagination-next>下一页</button>
+    </div>
+  </div>
+
+  <div class="pagination-lab__formula" aria-live="polite">
+    <span>OFFSET</span>
+    <code data-pagination-formula>2 × (1 - 1) = 0</code>
+  </div>
+
+  <div class="pagination-lab__metrics" aria-live="polite">
+    <div><span>Total rows</span><strong data-pagination-total>4</strong></div>
+    <div><span>Page size</span><strong data-pagination-size>2</strong></div>
+    <div><span>Total pages</span><strong data-pagination-pages>2</strong></div>
+    <div><span>Offset</span><strong data-pagination-offset>0</strong></div>
+  </div>
+
+  <div class="pagination-lab__window" aria-labelledby="pagination-window-title">
+    <div class="pagination-lab__window-head">
+      <h4 id="pagination-window-title">完整排序结果与当前窗口</h4>
+      <span data-pagination-range>positions 1–2</span>
+    </div>
+    <div class="pagination-lab__rail" data-pagination-rail></div>
+  </div>
+
+  <div class="pagination-lab__statement">
+    <span>SQL</span>
+    <pre><code data-pagination-sql>SELECT
+  order_id,
+  customer_id,
+  order_date,
+  order_value
+FROM orders
+ORDER BY order_value DESC, order_id ASC
+LIMIT 2 OFFSET 0;</code></pre>
+  </div>
+
+  <div class="pagination-lab__table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>position</th>
+          <th>order_id</th>
+          <th>customer_id</th>
+          <th>order_date</th>
+          <th>order_value</th>
+        </tr>
+      </thead>
+      <tbody data-pagination-body></tbody>
+    </table>
+  </div>
+
+  <div class="pagination-lab__cards" data-pagination-cards aria-label="Pagination mobile records"></div>
+
+  <p class="pagination-lab__reading" data-pagination-reading aria-live="polite">
+    Page 1 使用 OFFSET 0，从稳定排序结果开头最多返回 2 行。
+  </p>
+
+  <div class="pagination-lab__runner" aria-labelledby="pagination-runner-title">
+    <div class="pagination-lab__runner-intro">
+      <p class="learning-note-kicker">浏览器实验 · SQLite</p>
+      <h4 id="pagination-runner-title">执行当前页面查询，核对窗口计算与数据库结果</h4>
+    </div>
+    <div class="pagination-lab__runner-toolbar">
+      <button type="button" class="button" data-pagination-run>运行当前 SQL</button>
+      <button type="button" class="button button--secondary" data-pagination-demo-beyond>查看越界页</button>
+    </div>
+    <div class="pagination-lab__status" data-pagination-status aria-live="polite">运行环境尚未加载。</div>
+    <div class="pagination-lab__summary" data-pagination-summary aria-live="polite">尚未运行查询。</div>
+    <div class="pagination-lab__output" data-pagination-output aria-live="polite">
+      <p>运行后，SQLite 返回结果会显示在这里。</p>
+    </div>
+  </div>
+
+  <script is:inline type="application/json" data-pagination-source set:html={payload} />
+</section>
+
+<style>
+  .pagination-lab {
+    margin: var(--space-12) 0;
+    padding: var(--space-7) 0 var(--space-8);
+    border-top: 1px solid var(--colour-border-strong);
+    border-bottom: 1px solid var(--colour-border-strong);
+  }
+
+  .pagination-lab__intro,
+  .pagination-lab__reading,
+  .pagination-lab__runner-intro {
+    max-width: 58rem;
+  }
+
+  .pagination-lab__intro h3,
+  .pagination-lab__runner-intro h4 {
+    margin: var(--space-2) 0 var(--space-3);
+    line-height: 1.35;
+  }
+
+  .pagination-lab__intro h3 {
+    font-size: clamp(1.35rem, 1.5vw, 1.8rem);
+  }
+
+  .pagination-lab__runner-intro h4 {
+    font-size: clamp(1.15rem, 1.3vw, 1.45rem);
+  }
+
+  .pagination-lab__intro p:last-child,
+  .pagination-lab__metrics span,
+  .pagination-lab__reading,
+  .pagination-lab__status,
+  .pagination-lab__summary,
+  .pagination-lab__output > p,
+  .pagination-lab__window-head span {
+    color: var(--colour-text-muted);
+  }
+
+  .pagination-lab__controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+    gap: var(--space-4);
+    align-items: end;
+    margin: var(--space-6) 0 var(--space-4);
+  }
+
+  .pagination-lab__controls label {
+    display: grid;
+    gap: var(--space-2);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+  }
+
+  .pagination-lab__controls select,
+  .pagination-lab__controls input {
+    width: 100%;
+    padding: 0.7rem 0.8rem;
+    border: 1px solid var(--colour-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--colour-surface);
+    color: var(--colour-text);
+    font: inherit;
+  }
+
+  .pagination-lab__actions,
+  .pagination-lab__runner-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .pagination-lab__formula,
+  .pagination-lab__statement {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-3);
+    align-items: baseline;
+    padding: var(--space-4);
+    border: 1px solid var(--colour-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--colour-surface-subtle);
+  }
+
+  .pagination-lab__formula > span,
+  .pagination-lab__statement > span {
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .pagination-lab__statement {
+    margin-top: var(--space-5);
+    align-items: start;
+  }
+
+  .pagination-lab__statement pre {
+    margin: 0;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .pagination-lab__metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-3);
+    margin: var(--space-4) 0 var(--space-5);
+  }
+
+  .pagination-lab__metrics > div {
+    display: grid;
+    gap: var(--space-1);
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--colour-border);
+  }
+
+  .pagination-lab__metrics span {
+    font-size: var(--font-size-xs);
+  }
+
+  .pagination-lab__metrics strong {
+    font-family: var(--font-mono);
+  }
+
+  .pagination-lab__window {
+    margin: var(--space-4) 0 var(--space-5);
+  }
+
+  .pagination-lab__window-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+  }
+
+  .pagination-lab__window-head h4 {
+    margin: 0;
+    font-size: 1rem;
+  }
+
+  .pagination-lab__rail {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-2);
+  }
+
+  .pagination-lab__rail :global(article) {
+    display: grid;
+    gap: 0.2rem;
+    min-width: 0;
+    padding: var(--space-3);
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-md);
+    background: var(--colour-surface);
+  }
+
+  .pagination-lab__rail :global(article[data-active="true"]) {
+    border-color: var(--colour-primary);
+    background: var(--colour-surface-subtle);
+  }
+
+  .pagination-lab__rail :global(small) {
+    color: var(--colour-text-muted);
+  }
+
+  .pagination-lab__rail :global(strong),
+  .pagination-lab__rail :global(span) {
+    overflow-wrap: anywhere;
+  }
+
+  .pagination-lab__table-wrap {
+    overflow-x: auto;
+    margin-top: var(--space-4);
+  }
+
+  .pagination-lab table,
+  .pagination-lab__output table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-sm);
+  }
+
+  .pagination-lab th,
+  .pagination-lab td,
+  .pagination-lab__output th,
+  .pagination-lab__output td {
+    padding: 0.7rem 0.75rem;
+    border-bottom: 1px solid var(--colour-border);
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  .pagination-lab th,
+  .pagination-lab__output th {
+    color: var(--colour-text-muted);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .pagination-lab__cards {
+    display: none;
+  }
+
+  .pagination-lab__reading {
+    margin: var(--space-4) 0 0;
+    line-height: 1.75;
+  }
+
+  .pagination-lab__runner {
+    margin-top: var(--space-9, 4rem);
+    padding-top: var(--space-7);
+    border-top: 1px solid var(--colour-border-strong);
+  }
+
+  .pagination-lab__runner-toolbar {
+    margin: var(--space-5) 0 var(--space-3);
+  }
+
+  .pagination-lab__status {
+    margin: var(--space-3) 0 var(--space-2);
+    font-size: var(--font-size-sm);
+  }
+
+  .pagination-lab__status[data-state="error"] {
+    color: var(--colour-danger, #9a3f38);
+  }
+
+  .pagination-lab__summary {
+    display: inline-block;
+    margin-bottom: var(--space-3);
+    padding: 0.35rem 0.55rem;
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-xs);
+  }
+
+  .pagination-lab__output {
+    overflow-x: auto;
+    border-top: 1px solid var(--colour-border);
+    padding-top: var(--space-4);
+  }
+
+  @media (max-width: 48rem) {
+    .pagination-lab__controls {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .pagination-lab__actions {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .pagination-lab__metrics {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .pagination-lab__rail {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 42rem) {
+    .pagination-lab__formula,
+    .pagination-lab__statement {
+      grid-template-columns: 1fr;
+    }
+
+    .pagination-lab__table-wrap {
+      display: none;
+    }
+
+    .pagination-lab__cards {
+      display: grid;
+      gap: var(--space-3);
+      margin-top: var(--space-4);
+    }
+
+    .pagination-lab__cards :global(article) {
+      padding: var(--space-4);
+      border: 1px solid var(--colour-border);
+      border-radius: var(--radius-md);
+      background: var(--colour-surface);
+    }
+
+    .pagination-lab__cards :global(dl) {
+      display: grid;
+      grid-template-columns: minmax(6rem, 0.8fr) minmax(0, 1.2fr);
+      gap: var(--space-2) var(--space-3);
+      margin: 0;
+      font-size: var(--font-size-sm);
+    }
+
+    .pagination-lab__cards :global(dt) {
+      color: var(--colour-text-muted);
+    }
+
+    .pagination-lab__cards :global(dd) {
+      margin: 0;
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .pagination-lab__runner-toolbar {
+      display: grid;
+      grid-template-columns: 1fr;
+    }
+
+    .pagination-lab__runner-toolbar .button {
+      width: 100%;
+    }
+
+    .pagination-lab__output th,
+    .pagination-lab__output td {
+      padding-inline: 0.5rem;
+      font-size: 0.78rem;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+  }
+</style>
+
+<script>
+  type Order = {
+    order_id: number;
+    customer_id: number;
+    order_date: string;
+    order_value: number;
+  };
+  type Source = { orders: Order[]; seedSql: string };
+  type SqlResult = { columns: string[]; values: Array<Array<string | number | null>> };
+  type SqlDatabase = {
+    run: (sql: string) => void;
+    exec: (sql: string) => SqlResult[];
+    close: () => void;
+  };
+  type SqlModule = { Database: new () => SqlDatabase };
+  type InitSqlJs = (config: { locateFile: (filename: string) => string }) => Promise<SqlModule>;
+
+  let paginationCleanup: (() => void) | undefined;
+  let sqlModulePromise: Promise<SqlModule> | undefined;
+  const cdnBase = "https://cdn.jsdelivr.net/npm/sql.js@1.14.1/dist/";
+
+  function getInitSqlJs(): Promise<InitSqlJs> {
+    const existing = Reflect.get(window, "initSqlJs");
+    if (typeof existing === "function") return Promise.resolve(existing as InitSqlJs);
+
+    return new Promise((resolve, reject) => {
+      const prior = document.querySelector<HTMLScriptElement>('script[data-sqljs-loader="true"]');
+      if (prior) {
+        prior.addEventListener(
+          "load",
+          () => {
+            const loaded = Reflect.get(window, "initSqlJs");
+            if (typeof loaded === "function") resolve(loaded as InitSqlJs);
+            else reject(new Error("SQLite loader did not expose initSqlJs."));
+          },
+          { once: true },
+        );
+        prior.addEventListener("error", () => reject(new Error("SQLite loader failed.")), {
+          once: true,
+        });
+        return;
+      }
+
+      const script = document.createElement("script");
+      script.src = `${cdnBase}sql-wasm.js`;
+      script.async = true;
+      script.dataset.sqljsLoader = "true";
+      script.addEventListener(
+        "load",
+        () => {
+          const loaded = Reflect.get(window, "initSqlJs");
+          if (typeof loaded === "function") resolve(loaded as InitSqlJs);
+          else reject(new Error("SQLite loader did not expose initSqlJs."));
+        },
+        { once: true },
+      );
+      script.addEventListener("error", () => reject(new Error("SQLite loader failed.")), {
+        once: true,
+      });
+      document.head.append(script);
+    });
+  }
+
+  async function getSqlModule() {
+    if (!sqlModulePromise) {
+      sqlModulePromise = getInitSqlJs().then((initSqlJs) =>
+        initSqlJs({ locateFile: (filename) => `${cdnBase}${filename}` }),
+      );
+    }
+    return sqlModulePromise;
+  }
+
+  function initPaginationLab() {
+    paginationCleanup?.();
+    const root = document.querySelector<HTMLElement>("[data-pagination-lab]");
+    if (!root) return;
+
+    const sourceNode = root.querySelector<HTMLScriptElement>("[data-pagination-source]");
+    const pageSizeSelect = root.querySelector<HTMLSelectElement>("[data-pagination-page-size]");
+    const pageIndexInput = root.querySelector<HTMLInputElement>("[data-pagination-page-index]");
+    const prevButton = root.querySelector<HTMLButtonElement>("[data-pagination-prev]");
+    const nextButton = root.querySelector<HTMLButtonElement>("[data-pagination-next]");
+    const beyondButton = root.querySelector<HTMLButtonElement>("[data-pagination-demo-beyond]");
+    const runButton = root.querySelector<HTMLButtonElement>("[data-pagination-run]");
+    const formula = root.querySelector<HTMLElement>("[data-pagination-formula]");
+    const totalMetric = root.querySelector<HTMLElement>("[data-pagination-total]");
+    const sizeMetric = root.querySelector<HTMLElement>("[data-pagination-size]");
+    const pagesMetric = root.querySelector<HTMLElement>("[data-pagination-pages]");
+    const offsetMetric = root.querySelector<HTMLElement>("[data-pagination-offset]");
+    const range = root.querySelector<HTMLElement>("[data-pagination-range]");
+    const rail = root.querySelector<HTMLElement>("[data-pagination-rail]");
+    const sql = root.querySelector<HTMLElement>("[data-pagination-sql]");
+    const body = root.querySelector<HTMLTableSectionElement>("[data-pagination-body]");
+    const cards = root.querySelector<HTMLElement>("[data-pagination-cards]");
+    const reading = root.querySelector<HTMLElement>("[data-pagination-reading]");
+    const status = root.querySelector<HTMLElement>("[data-pagination-status]");
+    const summary = root.querySelector<HTMLElement>("[data-pagination-summary]");
+    const output = root.querySelector<HTMLElement>("[data-pagination-output]");
+
+    if (
+      !sourceNode ||
+      !pageSizeSelect ||
+      !pageIndexInput ||
+      !prevButton ||
+      !nextButton ||
+      !beyondButton ||
+      !runButton ||
+      !formula ||
+      !totalMetric ||
+      !sizeMetric ||
+      !pagesMetric ||
+      !offsetMetric ||
+      !range ||
+      !rail ||
+      !sql ||
+      !body ||
+      !cards ||
+      !reading ||
+      !status ||
+      !summary ||
+      !output
+    )
+      return;
+
+    const source = JSON.parse(sourceNode.textContent || "{}") as Source;
+    const ordered = [...source.orders].sort(
+      (a, b) => b.order_value - a.order_value || a.order_id - b.order_id,
+    );
+    const controller = new AbortController();
+    let db: SqlDatabase | undefined;
+
+    function pageSize() {
+      const parsed = Number(pageSizeSelect.value);
+      return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : 2;
+    }
+
+    function pageIndex() {
+      const parsed = Number(pageIndexInput.value);
+      return Number.isFinite(parsed) && parsed >= 1 ? Math.floor(parsed) : 1;
+    }
+
+    function queryFor(size: number, offset: number) {
+      return `SELECT\n  order_id,\n  customer_id,\n  order_date,\n  order_value\nFROM orders\nORDER BY order_value DESC, order_id ASC\nLIMIT ${size} OFFSET ${offset};`;
+    }
+
+    function renderRail(size: number, offset: number) {
+      rail.replaceChildren();
+      ordered.forEach((order, index) => {
+        const article = document.createElement("article");
+        article.dataset.active = String(index >= offset && index < offset + size);
+        const position = document.createElement("small");
+        position.textContent = `#${index + 1}`;
+        const id = document.createElement("strong");
+        id.textContent = String(order.order_id);
+        const value = document.createElement("span");
+        value.textContent = `value ${order.order_value}`;
+        article.append(position, id, value);
+        rail.append(article);
+      });
+    }
+
+    function renderRows(rows: Array<{ order: Order; position: number }>) {
+      body.replaceChildren();
+      cards.replaceChildren();
+
+      rows.forEach(({ order, position }) => {
+        const tr = document.createElement("tr");
+        [position, order.order_id, order.customer_id, order.order_date, order.order_value].forEach(
+          (value) => {
+            const td = document.createElement("td");
+            td.textContent = String(value);
+            tr.append(td);
+          },
+        );
+        body.append(tr);
+
+        const article = document.createElement("article");
+        const dl = document.createElement("dl");
+        const entries = [
+          ["position", position],
+          ["order_id", order.order_id],
+          ["customer_id", order.customer_id],
+          ["order_date", order.order_date],
+          ["order_value", order.order_value],
+        ] as const;
+        entries.forEach(([label, value]) => {
+          const dt = document.createElement("dt");
+          dt.textContent = label;
+          const dd = document.createElement("dd");
+          dd.textContent = String(value);
+          dl.append(dt, dd);
+        });
+        article.append(dl);
+        cards.append(article);
+      });
+    }
+
+    function render() {
+      const size = pageSize();
+      const index = pageIndex();
+      const offset = size * (index - 1);
+      const totalPages = Math.ceil(ordered.length / size);
+      const rows = ordered.slice(offset, offset + size).map((order, localIndex) => ({
+        order,
+        position: offset + localIndex + 1,
+      }));
+
+      formula.textContent = `${size} × (${index} - 1) = ${offset}`;
+      totalMetric.textContent = String(ordered.length);
+      sizeMetric.textContent = String(size);
+      pagesMetric.textContent = String(totalPages);
+      offsetMetric.textContent = String(offset);
+      sql.textContent = queryFor(size, offset);
+      renderRail(size, offset);
+      renderRows(rows);
+
+      if (rows.length === 0) {
+        range.textContent = `offset ${offset} · empty window`;
+        reading.textContent = `Page ${index} 的 OFFSET ${offset} 已越过当前 ${ordered.length} 条记录，SQL 会返回空结果集，而不是补齐不存在的记录。`;
+      } else {
+        const start = offset + 1;
+        const end = offset + rows.length;
+        range.textContent = `positions ${start}–${end}`;
+        reading.textContent = `Page ${index} 使用 OFFSET ${offset}，从稳定排序结果的 position ${start} 开始，最多返回 ${size} 行。`;
+      }
+
+      prevButton.disabled = index <= 1;
+    }
+
+    function renderSqlResults(results: SqlResult[]) {
+      output.replaceChildren();
+      if (results.length === 0) {
+        summary.textContent = "0 result sets · statement completed";
+        const p = document.createElement("p");
+        p.textContent = "SQL 执行成功，但没有返回结果集。";
+        output.append(p);
+        return;
+      }
+
+      const result = results[0];
+      summary.textContent = `${result.values.length} rows × ${result.columns.length} columns`;
+      const table = document.createElement("table");
+      const thead = document.createElement("thead");
+      const hr = document.createElement("tr");
+      result.columns.forEach((column) => {
+        const th = document.createElement("th");
+        th.textContent = column;
+        hr.append(th);
+      });
+      thead.append(hr);
+      table.append(thead);
+      const tbody = document.createElement("tbody");
+      result.values.forEach((row) => {
+        const tr = document.createElement("tr");
+        row.forEach((value) => {
+          const td = document.createElement("td");
+          td.textContent = value === null ? "NULL" : String(value);
+          tr.append(td);
+        });
+        tbody.append(tr);
+      });
+      table.append(tbody);
+      output.append(table);
+    }
+
+    async function runQuery() {
+      runButton.disabled = true;
+      try {
+        status.textContent = "正在加载并执行 SQLite…";
+        status.dataset.state = "running";
+        const SQL = await getSqlModule();
+        db?.close();
+        db = new SQL.Database();
+        db.run(source.seedSql);
+        const results = db.exec(sql.textContent || "");
+        renderSqlResults(results);
+        status.textContent = "SQLite 执行完成，结果窗口与当前分页参数一致。";
+        status.dataset.state = "success";
+      } catch (error) {
+        const p = document.createElement("p");
+        p.textContent = error instanceof Error ? error.message : String(error);
+        output.replaceChildren(p);
+        summary.textContent = "query failed";
+        status.textContent = "SQLite 执行失败。";
+        status.dataset.state = "error";
+      } finally {
+        runButton.disabled = false;
+      }
+    }
+
+    pageSizeSelect.addEventListener(
+      "change",
+      () => {
+        pageIndexInput.value = "1";
+        render();
+      },
+      { signal: controller.signal },
+    );
+    pageIndexInput.addEventListener(
+      "input",
+      () => {
+        if (Number(pageIndexInput.value) < 1) pageIndexInput.value = "1";
+        render();
+      },
+      { signal: controller.signal },
+    );
+    prevButton.addEventListener(
+      "click",
+      () => {
+        pageIndexInput.value = String(Math.max(1, pageIndex() - 1));
+        render();
+      },
+      { signal: controller.signal },
+    );
+    nextButton.addEventListener(
+      "click",
+      () => {
+        pageIndexInput.value = String(pageIndex() + 1);
+        render();
+      },
+      { signal: controller.signal },
+    );
+    beyondButton.addEventListener(
+      "click",
+      () => {
+        pageSizeSelect.value = "2";
+        pageIndexInput.value = "3";
+        render();
+      },
+      { signal: controller.signal },
+    );
+    runButton.addEventListener("click", () => void runQuery(), { signal: controller.signal });
+
+    render();
+    paginationCleanup = () => {
+      controller.abort();
+      db?.close();
+    };
+  }
+
+  document.addEventListener("astro:before-swap", () => paginationCleanup?.());
+  document.addEventListener("astro:page-load", initPaginationLab);
+  initPaginationLab();
+</script>
