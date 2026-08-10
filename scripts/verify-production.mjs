@@ -49,7 +49,7 @@ const pageChecks = [
   },
   {
     path: "zh/notes/",
-    markers: ["学习笔记", "统计学与 R", "SQL 与关系数据", "主键", "外键"],
+    markers: ["学习笔记", "统计学与 R", "SQL 与关系数据", "主键", "外键", "表关系"],
     forbiddenMarkers: [">简介<"],
   },
   {
@@ -73,7 +73,7 @@ const pageChecks = [
       "data-primary-key-lab",
       "data-sql-playground",
     ],
-    forbiddenMarkers: ["data-foreign-key-lab", ">简介<"],
+    forbiddenMarkers: ["data-foreign-key-lab", "data-relationship-cardinality-lab", ">简介<"],
   },
   {
     path: "zh/notes/sql-foreign-key/",
@@ -84,7 +84,19 @@ const pageChecks = [
       "data-foreign-key-lab",
       "data-sql-playground",
     ],
-    forbiddenMarkers: ["data-primary-key-lab", ">简介<"],
+    forbiddenMarkers: ["data-primary-key-lab", "data-relationship-cardinality-lab", ">简介<"],
+  },
+  {
+    path: "zh/notes/sql-relationships/",
+    markers: [
+      "表关系：一对多、多对多与一对一应该怎样建模",
+      "One-to-Many",
+      "Many-to-Many",
+      "One-to-One",
+      "order_items",
+      "data-relationship-cardinality-lab",
+    ],
+    forbiddenMarkers: ["data-primary-key-lab", "data-foreign-key-lab", "data-sql-playground", ">简介<"],
   },
   {
     path: "zh/projects/customer-churn-machine-learning/",
