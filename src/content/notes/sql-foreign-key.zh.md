@@ -3,7 +3,7 @@ translationKey: sql-foreign-key
 locale: zh
 slug: sql-foreign-key
 title: 外键：如何让两张业务表保持可靠的引用关系
-summary: 从客户与订单的引用关系出发，理解外键如何连接父表与子表、保护引用完整性，并识别无效引用、逻辑外键与数据库约束之间的区别。
+summary: 从客户与订单的引用关系出发，理解外键如何连接父表与子表、保护引用完整性，并识别无效引用、逻辑外键、命名约束与不同数据库 DDL 之间的区别。
 tags:
   - 外键
   - 关系模型
@@ -28,13 +28,14 @@ relatedProjects:
   - sales-profitability-warehouse
 relatedNotes:
   - sql-primary-key
+  - sql-relationships
 ---
 
 ## 主键解决“是谁”，外键解决“和谁有关”
 
 主键为一条记录建立稳定身份，但真实业务数据很少只存在于一张表中。
 
-例如，客户表保存客户：
+统一数据集中的客户表：
 
 | customer_id | customer_name | segment |
 |---:|---|---|
@@ -42,19 +43,20 @@ relatedNotes:
 | 1002 | Coast Foods | Wholesale |
 | 1003 | Alpine Labs | Enterprise |
 
-订单表保存订单：
+订单表：
 
 | order_id | customer_id | order_date | order_value |
 |---:|---:|---|---:|
 | 50001 | 1001 | 2026-07-03 | 420.00 |
 | 50002 | 1001 | 2026-07-05 | 185.00 |
 | 50003 | 1002 | 2026-07-06 | 760.00 |
+| 50004 | 1003 | 2026-07-09 | 510.00 |
 
 在 `customers` 中：
 
 ```text
 customer_id
-→ 客户记录的主键
+→ 客户记录的 Primary Key
 ```
 
 在 `orders` 中：
@@ -64,46 +66,36 @@ customer_id
 → 这张订单属于哪个客户
 ```
 
-第二个 `customer_id` 承担的就是外键角色。
+第二个 `customer_id` 承担外键角色：
 
 ```text
-orders.customer_id
+orders.customer_id · FK
         │
-        └────────────→ customers.customer_id
-              FK                    PK
+        └────────────→ customers.customer_id · PK
 ```
 
 因此，主键关注记录身份，外键关注记录之间的引用关系。
 
 ## 外键不是因为列名相同才成立
 
-两张表都有一个叫 `customer_id` 的字段，并不会自动产生数据库关系。
+两张表都有一个叫 `customer_id` 的字段，并不会自动产生数据库约束。
 
-下面两个字段即使名称相同：
-
-```text
-customers.customer_id
-orders.customer_id
-```
-
-数据库仍然需要明确知道：
+关系真正来自：
 
 ```text
-orders.customer_id
+FOREIGN KEY
++
 REFERENCES
-customers.customer_id
 ```
 
-关系的关键不在列名，而在约束定义。
-
-例如建表时可以写：
+例如：
 
 ```sql
 CREATE TABLE orders (
   order_id INTEGER PRIMARY KEY,
   customer_id INTEGER NOT NULL,
   order_date TEXT NOT NULL,
-  order_value REAL NOT NULL,
+  order_value NUMERIC NOT NULL,
   FOREIGN KEY (customer_id)
     REFERENCES customers (customer_id)
 );
@@ -115,31 +107,29 @@ CREATE TABLE orders (
 FOREIGN KEY (customer_id)
 ```
 
-指定 `orders.customer_id` 是外键字段。
-
-而：
+声明 `orders.customer_id` 是引用列；
 
 ```sql
 REFERENCES customers (customer_id)
 ```
 
-指定这个值必须引用 `customers.customer_id` 中已经存在的记录。
+声明目标是 `customers.customer_id`。
+
+列名相同只是本系列的命名习惯，不是数据库判断外键关系的依据。
 
 ## 父表与子表怎样理解？
 
-在这组关系中：
+这组关系可以表示为：
 
 ```text
 customers
 → 被引用
-→ 父表 Parent Table
+→ Parent Table
 
 orders
 → 保存引用
-→ 子表 Child Table
+→ Child Table
 ```
-
-父表提供可以被引用的稳定身份，子表保存指向这些身份的值。
 
 例如：
 
@@ -147,7 +137,7 @@ orders
 orders.customer_id = 1002
 ```
 
-意味着这张订单指向：
+指向：
 
 ```text
 customers.customer_id = 1002
@@ -155,11 +145,11 @@ customers.customer_id = 1002
 
 也就是 `Coast Foods`。
 
-这种设计避免在每张订单中重复保存完整客户资料，同时保留订单与客户之间的连接。
+订单不必重复保存完整客户资料，只要保留稳定的客户 ID，就可以在需要时通过 JOIN 取回客户属性。
 
 ## 什么叫引用完整性？
 
-假设订单表准备插入一条新记录：
+假设准备插入：
 
 ```text
 order_id = 50999
@@ -175,26 +165,24 @@ order_value = 99.00
 1003
 ```
 
-此时 `customer_id = 9999` 找不到对应客户。
-
-这条订单就形成了一个无效引用：
+此时 `9999` 找不到父表目标：
 
 ```text
 orders.customer_id = 9999
         │
         └──────X────→ customers.customer_id
-                    不存在 9999
+                       no match
 ```
 
-如果数据库启用了外键约束，这次插入应被拒绝。
+如果数据库启用了外键检查，这次写入应该被拒绝。
 
-外键约束保护的就是这种 **Referential Integrity（引用完整性）**：子表中的引用值必须能够在被引用表中找到合法目标。
+外键约束保护的就是 **Referential Integrity（引用完整性）**：子表中的引用必须满足数据库声明的关系规则。
 
 <div data-learning-slot="foreign-key-lab"></div>
 
 ## 外键约束如何阻止无效订单？
 
-下面的表结构启用了外键：
+当前浏览器实验使用 SQLite/sql.js，表结构中直接声明外键：
 
 ```sql
 CREATE TABLE customers (
@@ -205,55 +193,98 @@ CREATE TABLE customers (
 CREATE TABLE orders (
   order_id INTEGER PRIMARY KEY,
   customer_id INTEGER NOT NULL,
-  order_value REAL NOT NULL,
+  order_value NUMERIC NOT NULL,
   FOREIGN KEY (customer_id)
     REFERENCES customers (customer_id)
 );
 ```
 
-如果客户 `1001` 已经存在：
+并且运行：
+
+```sql
+PRAGMA foreign_keys = ON;
+```
+
+这是一个非常重要的 SQLite 细节：**不能只看到表结构里写了 `FOREIGN KEY` 就假设当前连接一定正在执行外键检查。** 本系列的 sql.js 初始化脚本会显式启用它。
+
+合法引用：
 
 ```sql
 INSERT INTO orders (
   order_id,
   customer_id,
+  order_date,
   order_value
 )
 VALUES (
   50010,
   1001,
+  '2026-08-10',
   250.00
 );
 ```
 
-引用有效，因此可以插入。
-
-如果客户 `9999` 不存在：
+无效引用：
 
 ```sql
 INSERT INTO orders (
   order_id,
   customer_id,
+  order_date,
   order_value
 )
 VALUES (
-  50011,
+  50999,
   9999,
-  250.00
+  '2026-08-10',
+  99.00
 );
 ```
 
-启用外键约束后，数据库会拒绝这条记录。
-
-这种错误比后续分析阶段才发现“订单没有客户”更容易定位，因为问题在数据写入时就被阻止。
+第二条会在当前实验环境中触发外键约束错误。
 
 <div data-learning-slot="sql-playground"></div>
 
+## 外键也可以后加，但语法取决于数据库
+
+外键不一定只能在首次 `CREATE TABLE` 时声明。
+
+在支持相应 `ALTER TABLE` 语法的数据库中，可以给约束命名。例如常见的 MySQL 风格写法是：
+
+```sql
+ALTER TABLE orders
+ADD CONSTRAINT fk_orders_customer
+FOREIGN KEY (customer_id)
+REFERENCES customers (customer_id);
+```
+
+这里：
+
+```text
+fk_orders_customer
+```
+
+是约束名称。给约束命名的好处是以后检查、迁移或删除时更容易明确操作对象。
+
+但这段语法不能不加说明地复制到所有数据库。
+
+### SQLite 为什么不同？
+
+SQLite 的 `ALTER TABLE` 支持范围比 MySQL/PostgreSQL 受限，不能用一个通用：
+
+```sql
+ALTER TABLE ... ADD CONSTRAINT ... FOREIGN KEY ...
+```
+
+直接给已有表添加外键约束。
+
+需要修改这类表级约束时，SQLite 常见做法是创建新表、复制数据、替换旧表，并在迁移过程中重新检查 schema 与引用完整性。
+
+因此，本系列浏览器实验直接在 `CREATE TABLE` 阶段声明外键，而不是假装所有数据库的 ALTER 语法完全相同。
+
 ## 为什么必须先有父表记录？
 
-外键关系意味着子表记录依赖一个已经存在的引用目标。
-
-例如：
+外键关系意味着子表记录依赖合法目标。
 
 ```text
 先有 customers.customer_id = 1001
@@ -261,92 +292,93 @@ VALUES (
 再插入 orders.customer_id = 1001
 ```
 
-如果顺序反过来，在客户尚不存在时先插入订单，外键检查就无法通过。
+如果客户尚不存在就先插入订单，启用外键检查时无法满足引用完整性。
 
-这种依赖关系说明数据库写入顺序并不是完全随意的。
+这会影响：
 
-在数据导入、系统迁移或批量初始化时，通常需要先建立被引用的数据，再写入依赖这些数据的记录。
+- 初始化数据库；
+- 批量导入；
+- 系统迁移；
+- 测试数据构造；
+- DELETE / UPDATE 的执行顺序。
+
+外键不是一条孤立语法，而是在建立记录之间的生命周期依赖。
 
 ## 外键列可以重复吗？
 
 可以。
 
-外键与主键承担不同职责。
-
-客户 `1001` 可以拥有多张订单：
+统一数据集中，客户 `1001` 有两张订单：
 
 | order_id | customer_id |
 |---:|---:|
 | 50001 | 1001 |
 | 50002 | 1001 |
-| 50008 | 1001 |
 
-这里：
+`orders.customer_id = 1001` 出现两次并没有违反外键规则。
 
-```text
-orders.customer_id = 1001
-```
+原因是外键只要求每个非空引用值能够找到合法目标，并不要求这个值在子表中唯一。
 
-出现多次并没有违反外键规则。
-
-原因是外键只要求：
-
-> 每一个非空引用值都能够找到合法目标。
-
-它并不要求这个值在子表中唯一。
-
-这也是一对多关系能够成立的基础之一。关系的基数与更多结构形式会在下一篇单独展开。
+这正是一对多关系能够成立的基础。
 
 ## 外键可以为空吗？
 
-是否允许为空取决于字段定义和业务规则。
-
-例如：
+是否允许 `NULL` 取决于字段约束和业务语义。
 
 ```sql
 customer_id INTEGER NOT NULL
 ```
 
-表示每张订单都必须属于一个客户。
+表示每张订单都必须引用客户。
 
-如果字段允许 `NULL`：
+如果写成：
 
 ```sql
 customer_id INTEGER
 ```
 
-则可能出现“当前没有客户引用”的记录。
+则字段本身允许 `NULL`。多数关系数据库的普通外键约束不会要求 `NULL` 必须匹配父表中的某一行，因为 `NULL` 表示没有已知引用值。
 
-是否应该允许这种情况，需要由业务语义决定，而不能只从 SQL 语法判断。
+因此必须分别判断两个问题：
 
-对于订单这类通常必须有客户归属的记录，`NOT NULL` 往往更清楚。
+```text
+是否允许没有引用？
+→ NULL / NOT NULL
 
-## 逻辑外键与数据库外键约束不是同一件事
+非空引用是否合法？
+→ FOREIGN KEY
+```
 
-有些系统会保存类似：
+对于本系列的订单数据，业务规则设定为每张订单必须属于一个客户，所以使用 `NOT NULL`。
+
+## 逻辑外键与数据库约束不是同一件事
+
+有些系统保留：
 
 ```text
 orders.customer_id
 ```
 
-并在程序逻辑中把它当成对 `customers.customer_id` 的引用，但数据库本身并没有声明 `FOREIGN KEY` 约束。
+并在应用逻辑或数据管道中把它视为对客户表的引用，但数据库 schema 并没有声明 `FOREIGN KEY`。
 
-这种字段仍然具有“逻辑外键”的含义，但数据库无法自动阻止：
+这种字段仍然具有“逻辑外键”的业务含义，但数据库本身不会自动阻止：
 
 ```text
 customer_id = 9999
 ```
 
-这样的孤立引用进入表中。
+进入表中。
 
-两种做法可以这样区分：
+可以这样区分：
 
-| 方式 | 数据库是否检查引用 | 主要责任位置 |
+| 方式 | 数据库自动检查引用 | 主要责任位置 |
 |---|---|---|
-| 声明 FOREIGN KEY | 是 | 数据库约束 + 应用逻辑 |
-| 仅保留逻辑引用字段 | 否 | 应用逻辑 / 数据管道 |
+| 声明 `FOREIGN KEY` | 是（且当前连接启用相应检查时） | 数据库 + 应用 |
+| 只有逻辑引用字段 | 否 | 应用 / 数据管道 / 数据质量测试 |
 
-在学习数据模型和强调数据完整性的场景中，显式外键约束更容易展示关系规则，也更容易在错误发生时及时暴露问题。
+不能简单地说“所有系统都必须使用数据库外键”，也不能说“高性能系统就一定不使用外键”。是否使用数据库级约束需要结合写入吞吐、分库架构、迁移策略、数据治理和故障模式判断。
+
+学习关系模型时，显式外键最容易把引用规则展示清楚；真实系统设计则需要在完整架构上下文中权衡。
 
 ## 删除外键约束不等于删除字段
 
@@ -355,40 +387,40 @@ customer_id = 9999
 ```text
 customer_id 这一列
 +
-这列上的 FOREIGN KEY 约束
+这列上的 FOREIGN KEY constraint
 ```
 
-删除约束时，字段本身仍然可以保留。
-
-例如某些数据库中可以通过类似：
+在支持命名约束删除的数据库中，可能使用类似：
 
 ```sql
 ALTER TABLE orders
 DROP CONSTRAINT fk_orders_customer;
 ```
 
-移除约束。
+某些数据库使用的具体关键字会不同。
 
-具体语法会因数据库系统而不同，但概念保持一致：
+概念保持一致：
 
 ```text
-删除约束
+删除 constraint
 ≠
-删除列
+删除 customer_id column
 ```
 
-约束消失后，`customer_id` 仍然可以继续保存数据，只是数据库不再自动保证它一定能找到合法客户。
+约束消失后，字段仍然存在，只是数据库不再通过这条约束自动保证引用合法。
+
+SQLite 修改已有外键结构时同样需要遵循它自己的 ALTER TABLE / table rebuild 规则。
 
 ## 外键为什么会直接影响分析质量？
 
-假设订单表存在孤立引用：
+假设没有数据库约束，也没有数据质量检查，订单中混入：
 
 | order_id | customer_id | order_value |
 |---:|---:|---:|
 | 50001 | 1001 | 420.00 |
-| 50002 | 9999 | 185.00 |
+| 50999 | 9999 | 99.00 |
 
-而客户表中不存在 `9999`。
+客户表不存在 `9999`。
 
 执行：
 
@@ -402,47 +434,48 @@ JOIN customers AS c
   ON o.customer_id = c.customer_id;
 ```
 
-使用普通 `INNER JOIN` 时，无法匹配的订单可能不会出现在结果中。
+普通 `INNER JOIN` 不会为 9999 产生匹配行。
 
-于是就可能出现：
+于是可能出现：
 
 ```text
-订单表金额总计
+orders 原表金额总计
 ≠
-连接客户表后的金额总计
+INNER JOIN customers 后的金额总计
 ```
 
-这会进一步影响：
+这会继续影响：
 
-- 客户收入汇总；
-- 客户分群 KPI；
-- segment 级销售分析；
-- 客户留存或价值分析；
-- 数据仓库事实表与维度表连接。
+- 客户收入；
+- segment KPI；
+- 客户价值分析；
+- 事实表与维度表连接；
+- 下游报表与模型训练数据。
 
-因此，外键不仅是数据库结构问题，也是一项重要的数据质量控制机制。
+因此，引用完整性既是数据库设计问题，也是分析数据质量问题。
 
 ## 检查外键关系时可以问什么？
 
-面对两张需要连接的业务表，可以依次检查：
+面对两张需要连接的表，可以依次检查：
 
-1. **子表中的字段到底在引用哪张表？**
-2. **被引用字段是否具有稳定且唯一的记录身份？**
-3. **每一个引用值是否都能找到目标记录？**
-4. **外键字段是否允许 `NULL`？**
-5. **父表记录是否需要先于子表写入？**
-6. **数据库是否真正声明了外键约束，还是只有逻辑引用？**
-7. **出现孤立引用时，会怎样影响后续 JOIN 和 KPI？**
+1. **子表中的字段引用哪张表、哪一列？**
+2. **目标列是否具有稳定且唯一的记录身份？**
+3. **每一个非空引用值是否都能找到目标？**
+4. **引用字段是否允许 `NULL`？**
+5. **父表数据是否需要先写入？**
+6. **数据库真的声明并启用了约束，还是只有逻辑引用？**
+7. **当前数据库支持怎样的 ADD / DROP constraint 语法？**
+8. **出现孤立引用时，JOIN 与 KPI 会受到什么影响？**
 
-这套检查可以把“字段看起来能连上”提升为“关系在结构和数据上都可靠”。
+这套检查把“字段看起来能连上”提升为“关系在结构、运行时和数据上都可靠”。
 
 ## 本篇的核心判断
 
 外键可以归结为一句话：
 
-> **外键不是为了让两个字段名称看起来一致，而是为了明确一条记录引用另一条记录的规则。**
+> **外键不是让两个字段名称看起来一样，而是明确一条记录可以怎样引用另一张表中的记录。**
 
-关系模型中的两个基本问题因此可以分开：
+关系模型中的两个问题因此分开：
 
 ```text
 Primary Key
@@ -452,24 +485,23 @@ Foreign Key
 → 这条记录和谁有关？
 ```
 
-当身份和引用都清楚以后，多张业务表才具备稳定组合的基础。
+当身份和引用都清楚以后，才进入下一层：一条记录究竟可以对应多少条另一侧记录。
 
 ## 下一步：关系到底是一对多还是多对多？
 
-外键已经建立了表之间的引用，但还需要继续判断：
+SQL 04 将继续回答：
 
 ```text
 一个客户可以有多少张订单？
+一张订单可以有多少个产品？
 一个产品可以出现在多少张订单中？
-两个实体之间是否需要中间表？
+什么时候需要中间表？
 ```
 
-下一篇 SQL 04 将进入：
+也就是：
 
 ```text
 One-to-Many
 Many-to-Many
 One-to-One
 ```
-
-也就是关系模型中的基数与关联结构。
