@@ -1,0 +1,208 @@
+<section class="correlation-lab" data-correlation-lab aria-labelledby="correlation-lab-title">
+  <div class="correlation-lab__intro">
+    <p class="learning-note-kicker">互动图表 · 相关性</p>
+    <h3 id="correlation-lab-title">同样的数据点，相关强度改变时散点图会怎样变化？</h3>
+    <p>
+      调整目标相关系数，散点图会从明显负相关逐步过渡到弱相关和明显正相关。相关系数描述线性关系强弱，但不能代替因果解释。
+    </p>
+  </div>
+
+  <label class="correlation-lab__control" for="correlation-target">
+    <span>目标相关方向：<output data-correlation-target-output>0.70</output></span>
+    <input id="correlation-target" data-correlation-target type="range" min="-90" max="90" step="5" value="70" />
+  </label>
+
+  <div class="correlation-lab__summary" aria-live="polite">
+    <span>Pearson r</span>
+    <strong data-correlation-r>0.70</strong>
+    <small data-correlation-reading>明显正线性关系</small>
+  </div>
+
+  <figure>
+    <svg viewBox="0 0 760 420" role="img" aria-label="可交互相关性散点图" data-correlation-svg></svg>
+    <figcaption>
+      每个点代表一条业务观察。横轴可理解为服务负荷，纵轴可理解为等待时间；这里只用固定教学数据展示相关系数与散点形态之间的关系。
+    </figcaption>
+  </figure>
+</section>
+
+<style>
+  .correlation-lab {
+    margin: var(--space-12) 0;
+    padding: var(--space-7) 0 var(--space-8);
+    border-top: 1px solid var(--colour-border-strong);
+    border-bottom: 1px solid var(--colour-border-strong);
+  }
+
+  .correlation-lab__intro {
+    max-width: 58rem;
+  }
+
+  .correlation-lab__intro h3 {
+    margin: var(--space-2) 0 var(--space-3);
+    font-size: clamp(1.35rem, 1.5vw, 1.8rem);
+    line-height: 1.35;
+  }
+
+  .correlation-lab__intro p:last-child,
+  .correlation-lab figcaption,
+  .correlation-lab__summary small {
+    color: var(--colour-text-muted);
+  }
+
+  .correlation-lab__control {
+    display: grid;
+    gap: var(--space-2);
+    max-width: 38rem;
+    margin: var(--space-6) 0;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+  }
+
+  .correlation-lab__control input {
+    width: 100%;
+  }
+
+  .correlation-lab__summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2) var(--space-5);
+    margin-bottom: var(--space-4);
+  }
+
+  .correlation-lab__summary span {
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-sm);
+  }
+
+  .correlation-lab__summary strong {
+    font-size: clamp(1.8rem, 3vw, 2.6rem);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .correlation-lab figure {
+    margin: 0;
+  }
+
+  .correlation-lab svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    color: var(--colour-text-muted);
+  }
+
+  .correlation-lab figcaption {
+    max-width: 58rem;
+    margin-top: var(--space-3);
+    font-size: var(--font-size-sm);
+    line-height: 1.75;
+  }
+</style>
+
+<script>
+  let correlationCleanup: (() => void) | undefined;
+
+  function initCorrelationLab() {
+    correlationCleanup?.();
+    const root = document.querySelector<HTMLElement>("[data-correlation-lab]");
+    if (!root) return;
+    const input = root.querySelector<HTMLInputElement>("[data-correlation-target]");
+    const targetOutput = root.querySelector<HTMLOutputElement>("[data-correlation-target-output]");
+    const rOutput = root.querySelector<HTMLElement>("[data-correlation-r]");
+    const reading = root.querySelector<HTMLElement>("[data-correlation-reading]");
+    const svg = root.querySelector<SVGSVGElement>("[data-correlation-svg]");
+    if (!input || !targetOutput || !rOutput || !reading || !svg) return;
+
+    const controller = new AbortController();
+    const ns = "http://www.w3.org/2000/svg";
+    const xRaw = [-2.1, -1.9, -1.7, -1.45, -1.25, -1.05, -0.9, -0.72, -0.5, -0.32, -0.12, 0.08, 0.27, 0.46, 0.68, 0.86, 1.08, 1.28, 1.5, 1.72, 1.92, 2.12];
+    const noiseRaw = [0.1, 1.3, -0.8, 0.7, -1.5, 0.25, 1.05, -0.55, 1.5, -1.15, 0.4, -0.25, 1.2, -1.35, 0.82, -0.62, 1.42, -0.92, 0.55, -1.45, 0.18, 0.98];
+    const standardize = (source: number[]) => {
+      const mean = source.reduce((sum, value) => sum + value, 0) / source.length;
+      const sd = Math.sqrt(source.reduce((sum, value) => sum + (value - mean) ** 2, 0) / (source.length - 1));
+      return source.map((value) => (value - mean) / sd);
+    };
+    const x = standardize(xRaw);
+    let noise = standardize(noiseRaw);
+    const projection = x.reduce((sum, value, index) => sum + value * noise[index], 0) / x.reduce((sum, value) => sum + value * value, 0);
+    noise = standardize(noise.map((value, index) => value - projection * x[index]));
+    const correlation = (a: number[], b: number[]) => {
+      const am = a.reduce((sum, value) => sum + value, 0) / a.length;
+      const bm = b.reduce((sum, value) => sum + value, 0) / b.length;
+      const numerator = a.reduce((sum, value, index) => sum + (value - am) * (b[index] - bm), 0);
+      const denominator = Math.sqrt(
+        a.reduce((sum, value) => sum + (value - am) ** 2, 0) * b.reduce((sum, value) => sum + (value - bm) ** 2, 0),
+      );
+      return numerator / denominator;
+    };
+    const make = (tag: string, attrs: Record<string, string | number>) => {
+      const node = document.createElementNS(ns, tag);
+      Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, String(value)));
+      svg.append(node);
+      return node;
+    };
+
+    const draw = () => {
+      const target = Number(input.value) / 100;
+      const residualWeight = Math.sqrt(Math.max(0, 1 - target ** 2));
+      const y = x.map((value, index) => target * value + residualWeight * noise[index]);
+      const actual = correlation(x, y);
+      targetOutput.value = target.toFixed(2);
+      rOutput.textContent = actual.toFixed(2);
+      const magnitude = Math.abs(actual);
+      reading.textContent = magnitude >= 0.7
+        ? `${actual >= 0 ? "明显正" : "明显负"}线性关系`
+        : magnitude >= 0.35
+          ? `${actual >= 0 ? "中等正" : "中等负"}线性关系`
+          : "线性关系较弱";
+
+      svg.replaceChildren();
+      const left = 62;
+      const right = 720;
+      const top = 28;
+      const bottom = 354;
+      const xScale = (value: number) => left + ((value + 3) / 6) * (right - left);
+      const yScale = (value: number) => bottom - ((value + 3) / 6) * (bottom - top);
+      make("line", { x1: left, y1: bottom, x2: right, y2: bottom, stroke: "var(--colour-border-strong)" });
+      make("line", { x1: left, y1: top, x2: left, y2: bottom, stroke: "var(--colour-border-strong)" });
+      [-2, -1, 0, 1, 2].forEach((tick) => {
+        make("line", { x1: xScale(tick), y1: bottom, x2: xScale(tick), y2: bottom + 6, stroke: "var(--colour-border)" });
+        make("line", { x1: left - 6, y1: yScale(tick), x2: left, y2: yScale(tick), stroke: "var(--colour-border)" });
+      });
+      const xMean = x.reduce((sum, value) => sum + value, 0) / x.length;
+      const yMean = y.reduce((sum, value) => sum + value, 0) / y.length;
+      const slope = x.reduce((sum, value, index) => sum + (value - xMean) * (y[index] - yMean), 0) / x.reduce((sum, value) => sum + (value - xMean) ** 2, 0);
+      const intercept = yMean - slope * xMean;
+      make("line", {
+        x1: xScale(-2.7),
+        y1: yScale(intercept + slope * -2.7),
+        x2: xScale(2.7),
+        y2: yScale(intercept + slope * 2.7),
+        stroke: "var(--colour-primary)",
+        "stroke-width": 2.5,
+      });
+      x.forEach((value, index) => {
+        make("circle", {
+          cx: xScale(value),
+          cy: yScale(y[index]),
+          r: 5.5,
+          fill: "var(--colour-primary)",
+          opacity: 0.7,
+        });
+      });
+      const xLabel = make("text", { x: 390, y: 397, fill: "currentColor", "font-size": 12, "text-anchor": "middle" });
+      xLabel.textContent = "标准化服务负荷";
+      const yLabel = make("text", { x: 18, y: 190, fill: "currentColor", "font-size": 12, transform: "rotate(-90 18 190)", "text-anchor": "middle" });
+      yLabel.textContent = "标准化等待时间";
+    };
+
+    input.addEventListener("input", draw, { signal: controller.signal });
+    draw();
+    correlationCleanup = () => controller.abort();
+  }
+
+  document.addEventListener("astro:before-swap", () => correlationCleanup?.());
+  document.addEventListener("astro:page-load", initCorrelationLab);
+  initCorrelationLab();
+</script>

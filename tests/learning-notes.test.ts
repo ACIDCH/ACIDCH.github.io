@@ -6,6 +6,9 @@ const layout = readFileSync("src/layouts/NoteLayout.astro", "utf8");
 const hero = readFileSync("src/components/learning/LearningNoteHero.astro", "utf8");
 const toc = readFileSync("src/components/learning/LearningNoteToc.astro", "utf8");
 const editorialCss = readFileSync("src/styles/learning-note-editorial.css", "utf8");
+const normalLab = readFileSync("src/components/learning/NormalDistributionLab.astro", "utf8");
+const correlationLab = readFileSync("src/components/learning/CorrelationLab.astro", "utf8");
+const regressionLab = readFileSync("src/components/learning/RegressionLab.astro", "utf8");
 const zhRoute = readFileSync("src/pages/zh/notes/[slug].astro", "utf8");
 const index = readFileSync("src/pages/zh/notes/index.astro", "utf8");
 
@@ -13,7 +16,6 @@ describe("R and Statistics Learning Note handbook", () => {
   it("publishes the Chinese handbook with stable series metadata", () => {
     expect(note).toContain("locale: zh");
     expect(note).toContain("slug: descriptive-statistics");
-    expect(note).toContain("统计学与 R：从描述统计到多元分析的完整学习手册");
     expect(note).toContain("status: published");
     expect(note).toContain("draft: false");
     expect(note).toContain("seriesSlug: r-statistics");
@@ -21,7 +23,6 @@ describe("R and Statistics Learning Note handbook", () => {
 
   it("covers the full R and statistics handbook sequence", () => {
     [
-      "## 写在前面",
       "## 描述性统计量",
       "## 概率相关内容",
       "## 估计",
@@ -73,16 +74,20 @@ describe("R and Statistics Learning Note handbook", () => {
     expect(zhRoute).toContain("includeDrafts || !entry.data.draft");
   });
 
-  it("uses a simple handbook header instead of a dashboard hero card", () => {
-    expect(layout).toContain("LearningNoteHero");
-    expect(layout).toContain("LearningNoteToc");
-    expect(layout).toContain("DescriptiveStatisticsLab");
-    expect(layout).toContain("fullWidth={isHandbook}");
-    expect(layout).not.toContain("LearningNoteRail");
-    expect(hero).toContain("learning-note-hero__footer");
-    expect(hero).not.toContain("learning-note-hero__facts");
-    expect(editorialCss).toContain("max-width: 28ch");
-    expect(editorialCss).toContain("border-bottom: 1px solid var(--colour-border-strong)");
+  it("shows only the compact visible handbook title", () => {
+    expect(layout).toContain('<LearningNoteHero title="统计学与 R" />');
+    expect(hero).toContain("learning-note-titlebar");
+    expect(hero).not.toContain("LEARNING NOTE");
+    expect(hero).not.toContain("learning-note-hero__footer");
+    expect(hero).not.toContain("summary");
+    expect(hero).not.toContain("tags");
+    expect(hero).not.toContain("tools");
+  });
+
+  it("removes the preface from the visible handbook and its TOC", () => {
+    expect(layout).toContain("removeHandbookPreface");
+    expect(layout).toContain('document.getElementById("写在前面")');
+    expect(layout).not.toContain('{ id: "写在前面", label: "写在前面" }');
   });
 
   it("supports a nested handbook table of contents", () => {
@@ -105,12 +110,27 @@ describe("R and Statistics Learning Note handbook", () => {
     expect(editorialCss).toContain("max-width: 58rem");
   });
 
-  it("places the interactive statistics lab inside descriptive statistics", () => {
+  it("keeps the descriptive statistics lab inside the descriptive section", () => {
     const slotIndex = note.indexOf('data-learning-slot="statistics-lab"');
     expect(slotIndex).toBeGreaterThan(note.indexOf("### 形象化展示"));
     expect(slotIndex).toBeLessThan(note.indexOf("## 概率相关内容"));
     expect(layout).toContain('data-learning-block="statistics-lab"');
     expect(layout).toContain("placeLearningBlocks");
+  });
+
+  it("adds several native interactive visuals through the handbook", () => {
+    expect(layout).toContain("NormalDistributionLab");
+    expect(layout).toContain("CorrelationLab");
+    expect(layout).toContain("RegressionLab");
+    expect(layout).toContain('data-learning-after-heading="连续概率分布"');
+    expect(layout).toContain('data-learning-after-heading="相关性可视化展示"');
+    expect(layout).toContain('data-learning-after-heading="回归分析"');
+    expect(normalLab).toContain("data-normal-threshold");
+    expect(normalLab).toContain("P(X ≤ x)");
+    expect(correlationLab).toContain("data-correlation-target");
+    expect(correlationLab).toContain("Pearson r");
+    expect(regressionLab).toContain("data-regression-noise");
+    expect(regressionLab).toContain("data-regression-r2");
   });
 
   it("keeps formulas, figures and the live R playground readable rather than cramped", () => {
