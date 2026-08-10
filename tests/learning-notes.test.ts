@@ -6,6 +6,7 @@ const layout = readFileSync("src/layouts/NoteLayout.astro", "utf8");
 const hero = readFileSync("src/components/learning/LearningNoteHero.astro", "utf8");
 const toc = readFileSync("src/components/learning/LearningNoteToc.astro", "utf8");
 const editorialCss = readFileSync("src/styles/learning-note-editorial.css", "utf8");
+const wideCss = readFileSync("src/styles/learning-note-wide.css", "utf8");
 const zhRoute = readFileSync("src/pages/zh/notes/[slug].astro", "utf8");
 const index = readFileSync("src/pages/zh/notes/index.astro", "utf8");
 
@@ -88,6 +89,17 @@ describe("Learning Notes sample", () => {
     expect(toc).toContain("IntersectionObserver");
   });
 
+  it("expands the desktop article instead of collapsing into a narrow vertical strip", () => {
+    expect(layout).toContain('import "../styles/learning-note-wide.css"');
+    expect(wideCss).toContain("width: min(112rem");
+    expect(wideCss).toContain("grid-template-columns: minmax(12.5rem, 14rem) minmax(0, 1fr)");
+    expect(wideCss).toContain("justify-content: stretch");
+    expect(wideCss).toContain("max-width: 72rem");
+    expect(wideCss).toContain("width: min(118rem");
+    expect(wideCss).toContain("max-width: 76rem");
+    expect(wideCss).toContain("article.learning-note .statistics-lab");
+  });
+
   it("treats the statistics lab as editorial figures, formulas and a runnable teaching block", () => {
     expect(editorialCss).toContain('content: "FIG 01"');
     expect(editorialCss).toContain('content: "FIG 02"');
@@ -98,9 +110,11 @@ describe("Learning Notes sample", () => {
     expect(editorialCss).toContain('[data-learning-block]:not([data-learning-placed="true"])');
   });
 
-  it("uses only defined spacing tokens in the dedicated Learning Note stylesheet", () => {
-    expect(editorialCss).not.toContain("var(--space-7)");
-    expect(editorialCss).not.toContain("var(--space-9)");
-    expect(editorialCss).not.toContain("var(--space-14)");
+  it("uses only defined spacing tokens in the Learning Note stylesheets", () => {
+    [editorialCss, wideCss].forEach((css) => {
+      expect(css).not.toContain("var(--space-7)");
+      expect(css).not.toContain("var(--space-9)");
+      expect(css).not.toContain("var(--space-14)");
+    });
   });
 });

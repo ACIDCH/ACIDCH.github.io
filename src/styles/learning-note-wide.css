@@ -1,0 +1,103 @@
+@layer components {
+  /*
+   * Wide-screen Learning Note reading layer.
+   * The editorial stylesheet owns the component language; this file only lets
+   * long-form teaching pages use the horizontal space available on desktop.
+   */
+  @media (min-width: 74.001rem) {
+    article.learning-note {
+      width: min(112rem, calc(100% - 2 * var(--space-8)));
+    }
+
+    article.learning-note .learning-note-hero {
+      margin-bottom: var(--space-10);
+      padding-top: var(--space-8);
+    }
+
+    article.learning-note .learning-note-hero__intro {
+      grid-template-columns: minmax(0, 1.15fr) minmax(28rem, 0.85fr);
+      gap: clamp(var(--space-10), 4vw, var(--space-20));
+    }
+
+    article.learning-note .learning-note-hero h1 {
+      max-width: 22ch;
+      font-size: clamp(2.8rem, 3.45vw, 4.45rem);
+    }
+
+    article.learning-note .learning-note-hero__summary {
+      max-width: 46rem;
+    }
+
+    article.learning-note .learning-note__grid {
+      grid-template-columns: minmax(12.5rem, 14rem) minmax(0, 1fr);
+      justify-content: stretch;
+      gap: clamp(var(--space-10), 4vw, var(--space-20));
+    }
+
+    article.learning-note .learning-note__grid > .learning-note__body {
+      width: 100%;
+      max-width: none;
+    }
+
+    article.learning-note .learning-note__body > h2 {
+      max-width: 36ch;
+    }
+
+    article.learning-note .learning-note__body > h3 {
+      max-width: 46ch;
+    }
+
+    article.learning-note .learning-note__body > p,
+    article.learning-note .learning-note__body > ul,
+    article.learning-note .learning-note__body > ol,
+    article.learning-note .learning-note__body > blockquote {
+      max-width: 72rem;
+      font-size: clamp(1.02rem, 0.2vw + 0.99rem, 1.11rem);
+      line-height: 1.84;
+    }
+
+    article.learning-note .learning-note__body > table,
+    article.learning-note .learning-note__body > pre,
+    article.learning-note .statistics-lab,
+    article.learning-note .learning-note__inline-block {
+      width: 100%;
+      max-width: none;
+    }
+
+    article.learning-note .statistics-lab__heading,
+    article.learning-note .statistics-lab__heading > p:last-child {
+      max-width: 66rem;
+    }
+
+    article.learning-note .statistics-lab__visuals {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-10);
+    }
+
+    article.learning-note .statistics-chart:first-child {
+      grid-column: 1 / -1;
+    }
+
+    article.learning-note .r-playground {
+      grid-template-columns: minmax(0, 1fr) minmax(22rem, 0.72fr);
+      column-gap: var(--space-10);
+    }
+  }
+
+  @media (min-width: 100rem) {
+    article.learning-note {
+      width: min(118rem, calc(100% - 2 * var(--space-10)));
+    }
+
+    article.learning-note .learning-note__grid {
+      grid-template-columns: 14rem minmax(0, 1fr);
+    }
+
+    article.learning-note .learning-note__body > p,
+    article.learning-note .learning-note__body > ul,
+    article.learning-note .learning-note__body > ol,
+    article.learning-note .learning-note__body > blockquote {
+      max-width: 76rem;
+    }
+  }
+}
