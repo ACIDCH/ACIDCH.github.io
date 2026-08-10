@@ -87,9 +87,11 @@ jobs:
           sudo apt-get install -y --no-install-recommends fonts-noto-cjk
           fc-cache -f
 
-      - name: Capture SQL visual proofs
+      - name: Capture SQL 01–08 visual proofs
         if: github.event_name == 'pull_request'
-        run: python3 scripts/capture-pr-sql-visuals.py
+        run: |
+          python3 scripts/capture-pr-sql-visuals.py
+          python3 scripts/capture-pr-sql08-visuals.py
 
       - name: Upload pull-request static artifact
         if: github.event_name == 'pull_request'
