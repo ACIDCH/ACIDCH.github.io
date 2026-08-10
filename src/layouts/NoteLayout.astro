@@ -20,12 +20,12 @@ const { Content } = await render(entry);
 const isLearningSample = entry.data.slug === "descriptive-statistics";
 const learningToc = [
   { id: "先确认这组数据回答什么问题", label: "数据口径" },
-  { id: "从一个业务问题开始", label: "从一个业务问题开始" },
-  { id: "中心不是唯一答案", label: "中心不是唯一答案" },
-  { id: "离散程度决定解释边界", label: "离散程度决定解释边界" },
-  { id: "用图读出分布", label: "用图读出分布" },
-  { id: "r-中的最小工作流", label: "R 中的最小工作流" },
-  { id: "把统计量放回决策", label: "把统计量放回决策" },
+  { id: "从一个业务问题开始", label: "业务问题" },
+  { id: "中心不是唯一答案", label: "中心位置" },
+  { id: "离散程度决定解释边界", label: "离散程度" },
+  { id: "用图读出分布", label: "分布图形" },
+  { id: "r-中的最小工作流", label: "R 工作流" },
+  { id: "把统计量放回决策", label: "如何用于决策" },
 ];
 const learningFacts = [
   { label: "教学记录", value: "24 条", note: "一次服务事件 = 一条观察" },
@@ -99,7 +99,12 @@ const noteStructuredData = {
             <LearningNoteToc items={learningToc} />
             <div class="learning-note__body">
               <Content />
-              <DescriptiveStatisticsLab />
+              <div
+                class="learning-note__inline-block"
+                data-learning-block="statistics-lab"
+              >
+                <DescriptiveStatisticsLab />
+              </div>
             </div>
           </div>
         </>
@@ -150,3 +155,28 @@ const noteStructuredData = {
     />
   </article>
 </BaseLayout>
+
+<script>
+  function placeLearningBlocks() {
+    const blocks = Array.from(
+      document.querySelectorAll<HTMLElement>("[data-learning-block]"),
+    );
+    const slots = Array.from(
+      document.querySelectorAll<HTMLElement>("[data-learning-slot]"),
+    );
+
+    blocks.forEach((block) => {
+      const name = block.dataset.learningBlock;
+      const slot = slots.find((candidate) => candidate.dataset.learningSlot === name);
+      if (!name || !slot) {
+        block.dataset.learningPlaced = "true";
+        return;
+      }
+      slot.replaceWith(block);
+      block.dataset.learningPlaced = "true";
+    });
+  }
+
+  document.addEventListener("astro:page-load", placeLearningBlocks);
+  placeLearningBlocks();
+</script>
