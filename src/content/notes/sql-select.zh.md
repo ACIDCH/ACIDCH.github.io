@@ -28,6 +28,7 @@ relatedProjects:
   - sales-profitability-warehouse
 relatedNotes:
   - sql-relationships
+  - sql-where
 ---
 
 ## 从“数据怎样组织”进入“怎样读取数据”
