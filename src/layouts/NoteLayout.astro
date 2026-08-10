@@ -10,6 +10,7 @@ import LearningNoteHero from "../components/learning/LearningNoteHero.astro";
 import LearningNoteToc from "../components/learning/LearningNoteToc.astro";
 import NormalDistributionLab from "../components/learning/NormalDistributionLab.astro";
 import OrderByLab from "../components/learning/OrderByLab.astro";
+import PaginationLab from "../components/learning/PaginationLab.astro";
 import PrimaryKeyLab from "../components/learning/PrimaryKeyLab.astro";
 import ProjectionColumnsLab from "../components/learning/ProjectionColumnsLab.astro";
 import RegressionLab from "../components/learning/RegressionLab.astro";
@@ -39,6 +40,7 @@ const isSqlSelect = entry.data.slug === "sql-select";
 const isSqlWhere = entry.data.slug === "sql-where";
 const isSqlProjection = entry.data.slug === "sql-projection";
 const isSqlOrderBy = entry.data.slug === "sql-order-by";
+const isSqlPagination = entry.data.slug === "sql-pagination";
 const isHandbook = isStatisticsHandbook || isSqlEditorial;
 
 const statisticsToc = [
@@ -187,10 +189,7 @@ const noteStructuredData = {
               {
                 isStatisticsHandbook && (
                   <>
-                    <div
-                      class="learning-note__inline-block"
-                      data-learning-block="statistics-lab"
-                    >
+                    <div class="learning-note__inline-block" data-learning-block="statistics-lab">
                       <DescriptiveStatisticsLab />
                     </div>
                     <div
@@ -238,16 +237,10 @@ const noteStructuredData = {
               {
                 isSqlPrimaryKey && (
                   <>
-                    <div
-                      class="learning-note__inline-block"
-                      data-learning-block="primary-key-lab"
-                    >
+                    <div class="learning-note__inline-block" data-learning-block="primary-key-lab">
                       <PrimaryKeyLab />
                     </div>
-                    <div
-                      class="learning-note__inline-block"
-                      data-learning-block="sql-playground"
-                    >
+                    <div class="learning-note__inline-block" data-learning-block="sql-playground">
                       <SqlPlayground />
                     </div>
                   </>
@@ -256,16 +249,10 @@ const noteStructuredData = {
               {
                 isSqlForeignKey && (
                   <>
-                    <div
-                      class="learning-note__inline-block"
-                      data-learning-block="foreign-key-lab"
-                    >
+                    <div class="learning-note__inline-block" data-learning-block="foreign-key-lab">
                       <ForeignKeyLab />
                     </div>
-                    <div
-                      class="learning-note__inline-block"
-                      data-learning-block="sql-playground"
-                    >
+                    <div class="learning-note__inline-block" data-learning-block="sql-playground">
                       <SqlPlayground />
                     </div>
                   </>
@@ -283,10 +270,7 @@ const noteStructuredData = {
               }
               {
                 isSqlSelect && (
-                  <div
-                    class="learning-note__inline-block"
-                    data-learning-block="sql-playground"
-                  >
+                  <div class="learning-note__inline-block" data-learning-block="sql-playground">
                     <SqlPlayground defaultPreset="customers" />
                   </div>
                 )
@@ -294,16 +278,10 @@ const noteStructuredData = {
               {
                 isSqlWhere && (
                   <>
-                    <div
-                      class="learning-note__inline-block"
-                      data-learning-block="where-filter-lab"
-                    >
+                    <div class="learning-note__inline-block" data-learning-block="where-filter-lab">
                       <WhereFilterLab />
                     </div>
-                    <div
-                      class="learning-note__inline-block"
-                      data-learning-block="sql-playground"
-                    >
+                    <div class="learning-note__inline-block" data-learning-block="sql-playground">
                       <SqlPlayground defaultPreset="where-gte" focus="where" />
                     </div>
                   </>
@@ -318,10 +296,7 @@ const noteStructuredData = {
                     >
                       <ProjectionColumnsLab />
                     </div>
-                    <div
-                      class="learning-note__inline-block"
-                      data-learning-block="sql-playground"
-                    >
+                    <div class="learning-note__inline-block" data-learning-block="sql-playground">
                       <SqlPlayground defaultPreset="projection-columns" focus="projection" />
                     </div>
                   </>
@@ -329,11 +304,15 @@ const noteStructuredData = {
               }
               {
                 isSqlOrderBy && (
-                  <div
-                    class="learning-note__inline-block"
-                    data-learning-block="order-by-lab"
-                  >
+                  <div class="learning-note__inline-block" data-learning-block="order-by-lab">
                     <OrderByLab />
+                  </div>
+                )
+              }
+              {
+                isSqlPagination && (
+                  <div class="learning-note__inline-block" data-learning-block="pagination-lab">
+                    <PaginationLab />
                   </div>
                 )
               }
@@ -423,9 +402,7 @@ const noteStructuredData = {
     const blocks = Array.from(
       document.querySelectorAll<HTMLElement>("[data-learning-block]"),
     );
-    const slots = Array.from(
-      document.querySelectorAll<HTMLElement>("[data-learning-slot]"),
-    );
+    const slots = Array.from(document.querySelectorAll<HTMLElement>("[data-learning-slot]"));
 
     blocks.forEach((block) => {
       const name = block.dataset.learningBlock;
