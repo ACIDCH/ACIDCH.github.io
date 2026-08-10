@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.util
 import subprocess
 import threading
+import time
 from functools import partial
 from pathlib import Path
 
@@ -26,8 +27,36 @@ def set_value(browser: object, selector: str, value: str) -> None:
     )
 
 
+def navigate_path(browser: object, path: str) -> None:
+    base.request_json(
+        "POST",
+        f"{browser.session_base}/url",
+        {"url": f"{browser.site_base}{path}"},
+    )
+    deadline = time.time() + 10
+    while time.time() < deadline:
+        if browser.execute("return document.readyState") == "complete":
+            break
+        time.sleep(0.1)
+    time.sleep(0.5)
+
+
 def capture_desktop(browser: object) -> None:
     browser.set_viewport(1440, 1000, mobile=False)
+
+    navigate_path(browser, "/zh/notes/")
+    browser.require('[data-learning-folder="decision-models"]')
+    browser.wait_for_text('[data-learning-folder="decision-models"]', "供应链与优化")
+    browser.wait_for_text('[data-learning-folder="decision-models"]', "10 篇已发布")
+    browser.scroll_to('[data-learning-folder="decision-models"]')
+    browser.screenshot("dm-folder-index-desktop.png")
+
+    browser.navigate("series/decision-models")
+    browser.require('[data-note-folder="decision-models"]')
+    browser.wait_for_text('[data-note-folder="decision-models"]', "供应链与优化")
+    browser.wait_for_text('[data-note-folder="decision-models"]', "10 篇已发布笔记")
+    browser.scroll_to('[data-folder-module="DM 01"]')
+    browser.screenshot("dm-folder-series-desktop.png")
 
     browser.navigate("optimisation-model-anatomy")
     browser.assert_toc_targets()
@@ -102,6 +131,18 @@ def capture_desktop(browser: object) -> None:
 
 def capture_mobile(browser: object) -> None:
     browser.set_viewport(390, 844, mobile=True)
+
+    navigate_path(browser, "/zh/notes/")
+    browser.require('[data-learning-folder="decision-models"]')
+    browser.wait_for_text('[data-learning-folder="decision-models"]', "供应链与优化")
+    browser.scroll_to('[data-learning-folder="decision-models"]')
+    browser.screenshot("dm-folder-index-mobile.png")
+
+    browser.navigate("series/decision-models")
+    browser.require('[data-note-folder="decision-models"]')
+    browser.wait_for_text('[data-note-folder="decision-models"]', "10 篇已发布笔记")
+    browser.scroll_to('[data-folder-module="DM 01"]')
+    browser.screenshot("dm-folder-series-mobile.png")
 
     browser.navigate("optimisation-model-anatomy")
     browser.assert_toc_targets()
@@ -200,7 +241,7 @@ def main() -> None:
         server.shutdown()
         server.server_close()
 
-    expected = 18
+    expected = 22
     actual = len(list(OUTPUT.glob("*.png")))
     if actual != expected:
         raise RuntimeError(f"Expected {expected} decision-model visual proofs, generated {actual}.")
