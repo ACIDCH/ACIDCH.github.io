@@ -483,11 +483,27 @@ const payload = JSON.stringify({ orders: sqlOrders, seedSql: sqlLearningSeedSql 
     )
       return;
 
+    const statementOutput = statement;
+    const rowCountOutput = rowsOutput;
+    const keyCountOutput = keysOutput;
+    const contractStatusOutput = contractOutput;
+    const tableBody = body;
+    const cardOutput = cards;
+    const readingOutput = reading;
+    const presetSelect = preset;
+    const codeEditor = code;
+    const runControl = runButton;
+    const statusOutput = status;
+    const summaryOutput = summary;
+    const sqlOutput = output;
     const source = JSON.parse(sourceNode.textContent || "{}") as Source;
     const controller = new AbortController();
     let db: SqlDatabase | undefined;
 
-    const rules: Record<Rule, { statement: string; keys: string; contract: string; reading: string; rows: Order[] }> = {
+    const rules: Record<
+      Rule,
+      { statement: string; keys: string; contract: string; reading: string; rows: Order[] }
+    > = {
       observed: {
         statement: "not declared",
         keys: "0",
@@ -549,14 +565,14 @@ const payload = JSON.stringify({ orders: sqlOrders, seedSql: sqlLearningSeedSql 
 
     function renderRule(rule: Rule) {
       const view = rules[rule];
-      statement.textContent = view.statement;
-      rowsOutput.textContent = String(view.rows.length);
-      keysOutput.textContent = view.keys;
-      contractOutput.textContent = view.contract;
-      reading.textContent = view.reading;
+      statementOutput.textContent = view.statement;
+      rowCountOutput.textContent = String(view.rows.length);
+      keyCountOutput.textContent = view.keys;
+      contractStatusOutput.textContent = view.contract;
+      readingOutput.textContent = view.reading;
 
-      body.replaceChildren();
-      cards.replaceChildren();
+      tableBody.replaceChildren();
+      cardOutput.replaceChildren();
       view.rows.forEach((row, index) => {
         const values = [index + 1, row.order_id, row.customer_id, row.order_date, row.order_value];
         const tr = document.createElement("tr");
@@ -565,7 +581,7 @@ const payload = JSON.stringify({ orders: sqlOrders, seedSql: sqlLearningSeedSql 
           td.textContent = String(value);
           tr.append(td);
         });
-        body.append(tr);
+        tableBody.append(tr);
 
         const article = document.createElement("article");
         const list = document.createElement("dl");
@@ -579,7 +595,7 @@ const payload = JSON.stringify({ orders: sqlOrders, seedSql: sqlLearningSeedSql 
           },
         );
         article.append(list);
-        cards.append(article);
+        cardOutput.append(article);
       });
 
       buttons.forEach((button) => {
@@ -597,22 +613,22 @@ const payload = JSON.stringify({ orders: sqlOrders, seedSql: sqlLearningSeedSql 
     };
 
     function setStatus(message: string, state = "ready") {
-      status.textContent = message;
-      status.dataset.state = state;
+      statusOutput.textContent = message;
+      statusOutput.dataset.state = state;
     }
 
     function renderSqlResults(results: SqlResult[]) {
-      output.replaceChildren();
+      sqlOutput.replaceChildren();
       if (results.length === 0) {
-        summary.textContent = "0 result sets · statement completed";
+        summaryOutput.textContent = "0 result sets · statement completed";
         const paragraph = document.createElement("p");
         paragraph.textContent = "SQL 执行成功，没有返回结果集。";
-        output.append(paragraph);
+        sqlOutput.append(paragraph);
         return;
       }
 
       const result = results[0];
-      summary.textContent = `${result.values.length} rows × ${result.columns.length} columns`;
+      summaryOutput.textContent = `${result.values.length} rows × ${result.columns.length} columns`;
       const table = document.createElement("table");
       const thead = document.createElement("thead");
       const headRow = document.createElement("tr");
@@ -635,7 +651,7 @@ const payload = JSON.stringify({ orders: sqlOrders, seedSql: sqlLearningSeedSql 
         tbody.append(tr);
       });
       table.append(tbody);
-      output.append(table);
+      sqlOutput.append(table);
     }
 
     async function resetDatabase() {
@@ -646,21 +662,21 @@ const payload = JSON.stringify({ orders: sqlOrders, seedSql: sqlLearningSeedSql 
     }
 
     async function runSql() {
-      runButton.disabled = true;
+      runControl.disabled = true;
       try {
         setStatus("正在执行 SQLite…", "running");
         if (!db) await resetDatabase();
-        const results = db?.exec(code.value) ?? [];
+        const results = db?.exec(codeEditor.value) ?? [];
         renderSqlResults(results);
         setStatus("SQL 执行完成。", "success");
       } catch (error) {
         const paragraph = document.createElement("p");
         paragraph.textContent = error instanceof Error ? error.message : String(error);
-        output.replaceChildren(paragraph);
-        summary.textContent = "query failed";
+        sqlOutput.replaceChildren(paragraph);
+        summaryOutput.textContent = "query failed";
         setStatus("SQL 执行失败。查看下方错误信息。", "error");
       } finally {
-        runButton.disabled = false;
+        runControl.disabled = false;
       }
     }
 
@@ -672,15 +688,15 @@ const payload = JSON.stringify({ orders: sqlOrders, seedSql: sqlLearningSeedSql 
       );
     });
 
-    preset.addEventListener(
+    presetSelect.addEventListener(
       "change",
       () => {
-        code.value = examples[preset.value] ?? examples["value-desc"];
+        codeEditor.value = examples[presetSelect.value] ?? examples["value-desc"];
       },
       { signal: controller.signal },
     );
-    runButton.addEventListener("click", () => void runSql(), { signal: controller.signal });
-    code.addEventListener(
+    runControl.addEventListener("click", () => void runSql(), { signal: controller.signal });
+    codeEditor.addEventListener(
       "keydown",
       (event) => {
         if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
@@ -691,8 +707,8 @@ const payload = JSON.stringify({ orders: sqlOrders, seedSql: sqlLearningSeedSql 
       { signal: controller.signal },
     );
 
-    preset.value = "value-desc";
-    code.value = examples["value-desc"];
+    presetSelect.value = "value-desc";
+    codeEditor.value = examples["value-desc"];
     renderRule("desc");
     orderLabCleanup = () => {
       controller.abort();
