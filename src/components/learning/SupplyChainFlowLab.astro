@@ -1,9 +1,15 @@
 ---
 import { optimisationUniverse } from "../../data/supply-chain-optimisation";
+
+interface Props {
+  defaultMode?: "carrier" | "period";
+}
+
+const { defaultMode = "carrier" } = Astro.props;
 const payload = JSON.stringify({ carriers: optimisationUniverse.carriers, periods: optimisationUniverse.periods }).replace(/</g, "\\u003c");
 ---
 
-<section class="dm-lab" data-flow-lab aria-labelledby="flow-title">
+<section class="dm-lab" data-flow-lab data-default-mode={defaultMode} aria-labelledby="flow-title">
   <div class="dm-lab__intro">
     <p class="learning-note-kicker">互动实验 · Supply Chain Flow</p>
     <h3 id="flow-title">运输分配与多期库存，为什么都可以看成“流量必须守恒”？</h3>
@@ -11,11 +17,11 @@ const payload = JSON.stringify({ carriers: optimisationUniverse.carriers, period
   </div>
 
   <div class="dm-lab__chips">
-    <button type="button" data-flow-mode="carrier" aria-pressed="true">Carrier allocation</button>
-    <button type="button" data-flow-mode="period" aria-pressed="false">Multi-period flow</button>
+    <button type="button" data-flow-mode="carrier" aria-pressed={defaultMode === "carrier" ? "true" : "false"}>Carrier allocation</button>
+    <button type="button" data-flow-mode="period" aria-pressed={defaultMode === "period" ? "true" : "false"}>Multi-period flow</button>
   </div>
 
-  <div data-flow-panel="carrier">
+  <div data-flow-panel="carrier" hidden={defaultMode !== "carrier"}>
     <div class="dm-lab__equation">min Σ unitCost[s] · volume[s]
 s.t. Σ volume[s] = 860
      min[s] ≤ volume[s] ≤ max[s]</div>
@@ -34,7 +40,7 @@ s.t. Σ volume[s] = 860
     <div class="dm-lab__callout"><strong>Flow interpretation</strong><span data-carrier-reading>总分配正好覆盖需求，并且所有运输商都在承诺区间内。</span></div>
   </div>
 
-  <div data-flow-panel="period" hidden>
+  <div data-flow-panel="period" hidden={defaultMode !== "period"}>
     <div class="dm-lab__actions">
       <button type="button" data-production-plan="match" aria-pressed="true">Demand match</button>
       <button type="button" data-production-plan="smooth" aria-pressed="false">Smooth 225</button>
@@ -64,6 +70,7 @@ beginningInventory[t+1] = endingInventory[t]</div>
   type Carrier = { id: string; name: string; minVolume: number; maxVolume: number; unitCost: number };
   type Period = { period: number; demand: number; productionCost: number; holdingCost: number; setupCost: number };
   let flowCleanup: (() => void) | undefined;
+
   function initFlowLab() {
     flowCleanup?.();
     const root = document.querySelector<HTMLElement>("[data-flow-lab]");
@@ -94,12 +101,20 @@ beginningInventory[t+1] = endingInventory[t]</div>
         bars.replaceChildren();
         data.carriers.forEach((carrier) => {
           const volume = volumes.get(carrier.id) || 0;
-          const row = document.createElement("div"); row.className = "dm-lab__bar-row";
-          const label = document.createElement("span"); label.textContent = `${carrier.name} · ${volume}`;
-          const track = document.createElement("div"); track.className = "dm-lab__bar-track";
-          const fill = document.createElement("div"); fill.className = "dm-lab__bar-fill"; fill.style.setProperty("--bar-width", `${(volume / carrier.maxVolume) * 100}%`);
-          const bound = document.createElement("strong"); bound.textContent = `${carrier.minVolume}–${carrier.maxVolume}`;
-          track.append(fill); row.append(label, track, bound); bars.append(row);
+          const row = document.createElement("div");
+          row.className = "dm-lab__bar-row";
+          const label = document.createElement("span");
+          label.textContent = `${carrier.name} · ${volume}`;
+          const track = document.createElement("div");
+          track.className = "dm-lab__bar-track";
+          const fill = document.createElement("div");
+          fill.className = "dm-lab__bar-fill";
+          fill.style.setProperty("--bar-width", `${(volume / carrier.maxVolume) * 100}%`);
+          const bound = document.createElement("strong");
+          bound.textContent = `${carrier.minVolume}–${carrier.maxVolume}`;
+          track.append(fill);
+          row.append(label, track, bound);
+          bars.append(row);
         });
       }
       field("[data-carrier-reading]")!.textContent = feasible
@@ -122,17 +137,28 @@ beginningInventory[t+1] = endingInventory[t]</div>
 
     function renderPeriod(planId: string) {
       const production = plans[planId];
-      let inventory = 0; let holdingUnits = 0; let setups = 0; let productionCost = 0; let setupCost = 0;
+      let inventory = 0;
+      let holdingUnits = 0;
+      let setups = 0;
+      let productionCost = 0;
+      let setupCost = 0;
       const body = root.querySelector<HTMLTableSectionElement>("[data-period-body]");
       body?.replaceChildren();
       data.periods.forEach((period, index) => {
         const qty = production[index] || 0;
         inventory += qty - period.demand;
         holdingUnits += Math.max(0, inventory);
-        if (qty > 0) { setups += 1; setupCost += period.setupCost; }
+        if (qty > 0) {
+          setups += 1;
+          setupCost += period.setupCost;
+        }
         productionCost += qty * period.productionCost;
         const tr = document.createElement("tr");
-        [period.period, period.demand, qty, inventory].forEach((value) => { const td = document.createElement("td"); td.textContent = String(value); tr.append(td); });
+        [period.period, period.demand, qty, inventory].forEach((value) => {
+          const td = document.createElement("td");
+          td.textContent = String(value);
+          tr.append(td);
+        });
         body?.append(tr);
       });
       const holdingCost = holdingUnits * data.periods[0].holdingCost;
@@ -142,21 +168,44 @@ beginningInventory[t+1] = endingInventory[t]</div>
       field("[data-period-holding]")!.textContent = String(holdingUnits);
       field("[data-period-cost]")!.textContent = totalCost.toFixed(0);
       field("[data-period-reading]")!.textContent = planCopy[planId];
-      root.querySelectorAll<HTMLButtonElement>("[data-production-plan]").forEach((button) => button.setAttribute("aria-pressed", String(button.dataset.productionPlan === planId)));
+      root.querySelectorAll<HTMLButtonElement>("[data-production-plan]").forEach((button) =>
+        button.setAttribute("aria-pressed", String(button.dataset.productionPlan === planId)),
+      );
+    }
+
+    function setMode(mode: string) {
+      root.querySelectorAll<HTMLButtonElement>("[data-flow-mode]").forEach((button) =>
+        button.setAttribute("aria-pressed", String(button.dataset.flowMode === mode)),
+      );
+      root.querySelectorAll<HTMLElement>("[data-flow-panel]").forEach((panel) => {
+        panel.hidden = panel.dataset.flowPanel !== mode;
+      });
     }
 
     root.querySelectorAll<HTMLButtonElement>("[data-flow-mode]").forEach((button) => {
-      button.addEventListener("click", () => {
-        const mode = button.dataset.flowMode;
-        root.querySelectorAll<HTMLButtonElement>("[data-flow-mode]").forEach((candidate) => candidate.setAttribute("aria-pressed", String(candidate === button)));
-        root.querySelectorAll<HTMLElement>("[data-flow-panel]").forEach((panel) => { panel.hidden = panel.dataset.flowPanel !== mode; });
-      }, { signal: controller.signal });
+      button.addEventListener(
+        "click",
+        () => setMode(button.dataset.flowMode || "carrier"),
+        { signal: controller.signal },
+      );
     });
-    root.querySelectorAll<HTMLInputElement>("[data-carrier-input]").forEach((input) => input.addEventListener("input", renderCarriers, { signal: controller.signal }));
-    root.querySelectorAll<HTMLButtonElement>("[data-production-plan]").forEach((button) => button.addEventListener("click", () => renderPeriod(button.dataset.productionPlan || "match"), { signal: controller.signal }));
-    renderCarriers(); renderPeriod("match");
+    root.querySelectorAll<HTMLInputElement>("[data-carrier-input]").forEach((input) =>
+      input.addEventListener("input", renderCarriers, { signal: controller.signal }),
+    );
+    root.querySelectorAll<HTMLButtonElement>("[data-production-plan]").forEach((button) =>
+      button.addEventListener(
+        "click",
+        () => renderPeriod(button.dataset.productionPlan || "match"),
+        { signal: controller.signal },
+      ),
+    );
+
+    renderCarriers();
+    renderPeriod("match");
+    setMode(root.dataset.defaultMode || "carrier");
     flowCleanup = () => controller.abort();
   }
+
   document.addEventListener("astro:before-swap", () => flowCleanup?.());
   document.addEventListener("astro:page-load", initFlowLab);
   initFlowLab();
