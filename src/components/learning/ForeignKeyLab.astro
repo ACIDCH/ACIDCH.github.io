@@ -16,6 +16,12 @@ import { sqlCustomers } from "../../data/sql-learning";
     <button type="button" data-fk-mode="logical" aria-pressed="false">仅逻辑外键</button>
   </div>
 
+  <div class="foreign-key-lab__relation" aria-label="当前引用规则">
+    <span>orders.customer_id</span>
+    <strong data-fk-relation-label>FK → PK</strong>
+    <span>customers.customer_id</span>
+  </div>
+
   <div class="foreign-key-lab__grid">
     <div class="foreign-key-lab__table-wrap">
       <p class="foreign-key-lab__label">父表 · customers</p>
@@ -35,12 +41,6 @@ import { sqlCustomers } from "../../data/sql-learning";
           ))}
         </tbody>
       </table>
-    </div>
-
-    <div class="foreign-key-lab__relation" aria-hidden="true">
-      <span>orders.customer_id</span>
-      <strong data-fk-relation-label>FK → PK</strong>
-      <span>customers.customer_id</span>
     </div>
 
     <aside class="foreign-key-lab__candidate" aria-live="polite">
@@ -118,15 +118,39 @@ import { sqlCustomers } from "../../data/sql-learning";
     color: var(--colour-primary-strong);
   }
 
+  .foreign-key-lab__relation {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    gap: var(--space-3);
+    align-items: center;
+    margin-bottom: var(--space-5);
+    padding: var(--space-3) var(--space-4);
+    border-top: 1px solid var(--colour-border-strong);
+    border-bottom: 1px solid var(--colour-border-strong);
+    color: var(--colour-text-muted);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-xs);
+    text-align: center;
+  }
+
+  .foreign-key-lab__relation strong {
+    padding: 0.3rem 0.65rem;
+    border: 1px solid var(--colour-border);
+    border-radius: 999px;
+    color: var(--colour-text);
+    background: var(--colour-surface-subtle);
+    font-size: var(--font-size-sm);
+  }
+
   .foreign-key-lab__grid {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(9rem, 12rem) minmax(17rem, 22rem);
-    gap: var(--space-5);
-    align-items: center;
+    grid-template-columns: minmax(0, 1fr) minmax(19rem, 0.9fr);
+    gap: var(--space-7);
+    align-items: start;
   }
 
   .foreign-key-lab__table-wrap {
-    overflow-x: auto;
+    min-width: 0;
   }
 
   .foreign-key-lab__label {
@@ -139,6 +163,7 @@ import { sqlCustomers } from "../../data/sql-learning";
   .foreign-key-lab table {
     width: 100%;
     border-collapse: collapse;
+    table-layout: fixed;
     font-size: var(--font-size-sm);
   }
 
@@ -147,30 +172,16 @@ import { sqlCustomers } from "../../data/sql-learning";
     padding: 0.72rem 0.8rem;
     border-bottom: 1px solid var(--colour-border);
     text-align: left;
-    white-space: nowrap;
+  }
+
+  .foreign-key-lab th:first-child,
+  .foreign-key-lab td:first-child {
+    width: 42%;
+    font-family: var(--font-mono);
   }
 
   .foreign-key-lab tr[data-active-parent="true"] td {
     background: var(--colour-surface-subtle);
-  }
-
-  .foreign-key-lab__relation {
-    display: grid;
-    gap: var(--space-2);
-    justify-items: center;
-    text-align: center;
-    color: var(--colour-text-muted);
-    font-size: var(--font-size-xs);
-  }
-
-  .foreign-key-lab__relation strong {
-    width: 100%;
-    padding: 0.55rem 0.7rem;
-    border-top: 1px solid var(--colour-border-strong);
-    border-bottom: 1px solid var(--colour-border-strong);
-    color: var(--colour-text);
-    font-family: var(--font-mono);
-    font-size: var(--font-size-sm);
   }
 
   .foreign-key-lab__candidate {
@@ -237,19 +248,16 @@ import { sqlCustomers } from "../../data/sql-learning";
     font-size: var(--font-size-xs);
   }
 
-  @media (max-width: 64rem) {
-    .foreign-key-lab__grid {
-      grid-template-columns: 1fr;
-      align-items: stretch;
-    }
-
+  @media (max-width: 58rem) {
     .foreign-key-lab__relation {
+      grid-template-columns: 1fr;
       justify-items: start;
       text-align: left;
     }
 
-    .foreign-key-lab__relation strong {
-      max-width: 14rem;
+    .foreign-key-lab__grid {
+      grid-template-columns: 1fr;
+      gap: var(--space-5);
     }
 
     .foreign-key-lab__candidate {
