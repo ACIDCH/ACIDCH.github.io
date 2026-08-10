@@ -91,7 +91,7 @@ describe("production deployment contracts", () => {
     expect(capture).toContain("expected = 30");
   });
 
-  it("verifies the supply-chain folder, ten decision-model routes and twenty-two visual proofs", async () => {
+  it("verifies the compact supply-chain folder, project grids and twenty-six layout proofs", async () => {
     const workflow = await source(".github/workflows/deploy.yml");
     const verifier = await source("scripts/verify-decision-models-production.mjs");
     const capture = await source("scripts/capture-pr-decision-model-visuals.py");
@@ -104,18 +104,20 @@ describe("production deployment contracts", () => {
     expect(verifier).toContain('path: "zh/notes/series/decision-models/"');
     expect(verifier).toContain('path: "zh/notes/optimisation-model-anatomy/"');
     expect(verifier).toContain('path: "zh/notes/multi-period-production-inventory/"');
+    expect(verifier).toContain("按标签浏览");
+    expect(verifier).toContain("按主题进入知识库");
+    expect(verifier).toContain("全部笔记");
+    expect(verifier).toContain("orderedMarkers");
     expect(verifier).toContain("供应链与优化");
-    expect(verifier).toContain("10 篇已发布");
     expect(verifier).toContain("data-optimisation-anatomy");
     expect(verifier).toContain("data-feasible-lab");
     expect(verifier).toContain("data-milp-lab");
     expect(verifier).toContain("data-flow-lab");
-    expect(capture).toContain('suffix = "mobile" if mobile else "desktop"');
     expect(capture).toContain('browser.screenshot(f"dm-folder-index-{suffix}.png")');
-    expect(capture).toContain('browser.screenshot(f"dm-folder-series-{suffix}.png")');
-    expect(capture).toContain('browser.screenshot(f"dm01-anatomy-{choice}-{suffix}.png")');
+    expect(capture).toContain('browser.screenshot(f"project-grid-home-{suffix}.png")');
+    expect(capture).toContain('browser.screenshot(f"project-grid-index-{suffix}.png")');
     expect(capture).toContain('browser.screenshot(f"dm10-two-batch-plan-{suffix}.png")');
-    expect(capture).toContain("expected = 22");
+    expect(capture).toContain("expected = 26");
   });
 
   it("publishes a machine-readable commit status after live verification", async () => {
