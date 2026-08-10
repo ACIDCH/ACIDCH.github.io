@@ -34,7 +34,7 @@
     "webr": "^0.6.0"
   },
   "devDependencies": {
-    "@astrojs/check": "^0.9.9",
+    "@astrojs/check": "^0.9.10",
     "@eslint/js": "^10.0.1",
     "eslint": "^10.8.0",
     "prettier": "^3.9.6",
