@@ -53,9 +53,9 @@ describe("Supply chain optimisation Learning Notes folder", () => {
     expect(productionVerifier).toContain("按主题进入知识库");
     expect(productionVerifier).toContain("全部笔记");
     expect(productionVerifier).toContain("orderedMarkers");
-    expect(productionVerifier).toContain('class=\"tag-cloud-panel\"');
-    expect(productionVerifier).toContain('class=\"learning-series-map\"');
-    expect(productionVerifier).toContain('class=\"notes-results-heading\"');
+    expect(productionVerifier).toContain('class="tag-cloud-panel"');
+    expect(productionVerifier).toContain('class="learning-series-map"');
+    expect(productionVerifier).toContain('class="notes-results-heading"');
     expect(productionVerifier).not.toContain(
       'orderedMarkers: ["按标签浏览", "按主题进入知识库", "全部笔记"]',
     );
