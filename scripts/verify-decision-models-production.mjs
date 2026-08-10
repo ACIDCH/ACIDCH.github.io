@@ -18,8 +18,27 @@ if (!expectedSha) {
 
 const checks = [
   {
+    path: "zh/notes/",
+    markers: [
+      "学习笔记文件夹",
+      "供应链与优化",
+      'data-learning-folder="decision-models"',
+      "10 篇已发布",
+      "打开文件夹",
+    ],
+  },
+  {
     path: "zh/notes/series/decision-models/",
-    markers: ["供应链与决策模型", "DM 01", "DM 10", "PuLP", "多期生产、库存与履约"],
+    markers: [
+      "学习笔记文件夹",
+      "供应链与优化",
+      "10 篇已发布笔记",
+      "DM 01",
+      "DM 10",
+      "已发布 · 点击进入完整笔记",
+      "PuLP",
+      "多期生产、库存与履约",
+    ],
   },
   {
     path: "zh/notes/optimisation-model-anatomy/",
@@ -121,17 +140,17 @@ for (let attempt = 1; attempt <= attempts; attempt += 1) {
   try {
     await verifyDecisionModelsProduction();
     console.log(
-      `Decision-model production verified: ${baseUrl.href} exposes the ten-module supply-chain optimisation series for ${expectedSha}.`,
+      `Supply-chain optimisation folder verified: ${baseUrl.href} exposes the folder entry, ten-module route and published notes for ${expectedSha}.`,
     );
     process.exit(0);
   } catch (error) {
     lastError = error;
     console.warn(
-      `Decision-model production verification attempt ${attempt}/${attempts} failed: ${error.message}`,
+      `Supply-chain optimisation production verification attempt ${attempt}/${attempts} failed: ${error.message}`,
     );
     if (attempt < attempts) await sleep(retryDelayMs);
   }
 }
 
-console.error(`Decision-model production verification failed: ${lastError?.message || "unknown error"}`);
+console.error(`Supply-chain optimisation production verification failed: ${lastError?.message || "unknown error"}`);
 process.exit(1);
