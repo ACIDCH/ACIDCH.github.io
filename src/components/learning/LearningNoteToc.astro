@@ -10,25 +10,35 @@ interface Props {
 }
 
 const { items } = Astro.props;
-
-const renderItems = (entries: Item[], nested = false) => (
-  <ol class:list={[nested && "learning-note-toc__nested"]}>
-    {entries.map((item) => (
-      <li>
-        <a href={`#${item.id}`} data-learning-toc-link>
-          {item.label}
-        </a>
-        {item.children?.length ? renderItems(item.children, true) : null}
-      </li>
-    ))}
-  </ol>
-);
 ---
 
 <nav class="learning-note-toc" aria-label="本页目录" data-learning-note-toc>
   <details open>
     <summary>本页内容</summary>
-    {renderItems(items)}
+    <ol>
+      {
+        items.map((item) => (
+          <li>
+            <a href={`#${item.id}`} data-learning-toc-link>
+              {item.label}
+            </a>
+            {
+              item.children?.length ? (
+                <ol class="learning-note-toc__nested">
+                  {item.children.map((child) => (
+                    <li>
+                      <a href={`#${child.id}`} data-learning-toc-link>
+                        {child.label}
+                      </a>
+                    </li>
+                  ))}
+                </ol>
+              ) : null
+            }
+          </li>
+        ))
+      }
+    </ol>
   </details>
 </nav>
 
