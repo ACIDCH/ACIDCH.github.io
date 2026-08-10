@@ -1,6 +1,11 @@
 import { readFile } from "node:fs/promises";
 import process from "node:process";
 
+const coursePatterns = [
+  /BUSINFO\s*704/i,
+  /(?<![\d.])704(?![\d.])/, 
+  /课程项目|课程报告/,
+];
 const checks = [
   {
     file: "dist/zh/index.html",
@@ -37,7 +42,20 @@ const checks = [
       "holdout-roc.webp",
       "odds-ratio-ci.webp",
     ],
+    forbiddenPatterns: coursePatterns,
   },
+  ...[
+    "data-validation",
+    "model-comparison",
+    "model-selection-error-analysis",
+    "logistic-interpretation",
+    "neural-network",
+  ].map((slug) => ({
+    file: `dist/zh/projects/customer-churn-machine-learning/${slug}/index.html`,
+    markers: ["继续阅读技术专题"],
+    forbidden: [">简介<"],
+    forbiddenPatterns: coursePatterns,
+  })),
 ];
 
 const failures = [];
@@ -56,6 +74,12 @@ for (const check of checks) {
       failures.push(`${check.file} still contains stale marker: ${marker}`);
     }
   }
+
+  for (const pattern of check.forbiddenPatterns ?? []) {
+    if (pattern.test(html)) {
+      failures.push(`${check.file} still contains a course-facing label: ${pattern}`);
+    }
+  }
 }
 
 if (failures.length > 0) {
@@ -65,5 +89,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  "Built Customer Churn acceptance passed: navigation, technology identity, native visuals and raster removal are present in dist/.",
+  "Built Customer Churn acceptance passed: public navigation, technology identity, deep-dive wording, native visuals and raster removal are present in dist/.",
 );

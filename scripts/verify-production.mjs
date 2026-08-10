@@ -24,6 +24,11 @@ const archivedChurnRasterMarkers = [
   "holdout-roc.webp",
   "odds-ratio-ci.webp",
 ];
+const churnCoursePatterns = [
+  /BUSINFO\s*704/i,
+  /(?<![\d.])704(?![\d.])/, 
+  /课程项目|课程报告/,
+];
 
 const pageChecks = [
   {
@@ -54,31 +59,37 @@ const pageChecks = [
       "data-native-or",
     ],
     forbiddenMarkers: [">简介<", ...archivedChurnRasterMarkers],
+    forbiddenPatterns: churnCoursePatterns,
   },
   {
     path: "zh/projects/customer-churn-machine-learning/data-validation/",
-    markers: ["Technical Deep Dive", "30,000"],
+    markers: ["Technical Deep Dive", "30,000", "继续阅读技术专题"],
     forbiddenMarkers: [">简介<"],
+    forbiddenPatterns: churnCoursePatterns,
   },
   {
     path: "zh/projects/customer-churn-machine-learning/model-comparison/",
-    markers: ["Technical Deep Dive", "Logistic Regression"],
+    markers: ["Technical Deep Dive", "Logistic Regression", "继续阅读技术专题"],
     forbiddenMarkers: [">简介<"],
+    forbiddenPatterns: churnCoursePatterns,
   },
   {
     path: "zh/projects/customer-churn-machine-learning/model-selection-error-analysis/",
-    markers: ["Technical Deep Dive", "2,022"],
+    markers: ["Technical Deep Dive", "2,022", "继续阅读技术专题"],
     forbiddenMarkers: [">简介<"],
+    forbiddenPatterns: churnCoursePatterns,
   },
   {
     path: "zh/projects/customer-churn-machine-learning/logistic-interpretation/",
-    markers: ["Technical Deep Dive", "15.9"],
+    markers: ["Technical Deep Dive", "15.9", "继续阅读技术专题"],
     forbiddenMarkers: [">简介<"],
+    forbiddenPatterns: churnCoursePatterns,
   },
   {
     path: "zh/projects/customer-churn-machine-learning/neural-network/",
-    markers: ["Technical Deep Dive", "nnet"],
+    markers: ["Technical Deep Dive", "nnet", "继续阅读技术专题"],
     forbiddenMarkers: [">简介<"],
+    forbiddenPatterns: churnCoursePatterns,
   },
 ];
 
@@ -120,7 +131,12 @@ async function verifyDeploymentIdentity() {
   }
 }
 
-async function verifyPage({ path, markers, forbiddenMarkers = [] }) {
+async function verifyPage({
+  path,
+  markers,
+  forbiddenMarkers = [],
+  forbiddenPatterns = [],
+}) {
   const url = deploymentUrl(path);
   const response = await fetchWithTimeout(url);
   if (!response.ok) {
@@ -146,6 +162,12 @@ async function verifyPage({ path, markers, forbiddenMarkers = [] }) {
       throw new Error(`${path} still contains forbidden/stale marker: ${marker}`);
     }
   }
+
+  for (const pattern of forbiddenPatterns) {
+    if (pattern.test(html)) {
+      throw new Error(`${path} still contains a course-facing label: ${pattern}`);
+    }
+  }
 }
 
 async function verifyProduction() {
@@ -160,7 +182,7 @@ for (let attempt = 1; attempt <= attempts; attempt += 1) {
   try {
     await verifyProduction();
     console.log(
-      `Production verified: ${baseUrl.href} is serving ${expectedSha} and all UI, route and raster contracts passed.`,
+      `Production verified: ${baseUrl.href} is serving ${expectedSha} and all UI, route, public-language and raster contracts passed.`,
     );
     process.exit(0);
   } catch (error) {
