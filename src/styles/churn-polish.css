@@ -5,11 +5,7 @@
       var(--colour-border-strong) 78%,
       transparent
     );
-    --churn-panel-surface: color-mix(
-      in srgb,
-      var(--colour-surface) 94%,
-      transparent
-    );
+    --churn-panel-surface: color-mix(in srgb, var(--colour-surface) 94%, transparent);
     --churn-panel-soft: color-mix(
       in srgb,
       var(--colour-primary) 5%,
@@ -89,11 +85,7 @@
       var(--colour-primary) 42%,
       var(--colour-border-strong)
     );
-    background: color-mix(
-      in srgb,
-      var(--colour-primary) 9%,
-      var(--colour-surface)
-    );
+    background: color-mix(in srgb, var(--colour-primary) 9%, var(--colour-surface));
     box-shadow: inset 3px 0 0 var(--colour-primary);
   }
 
@@ -106,11 +98,7 @@
       .correlation-explorer button,
       .matrix-cell
     ):hover {
-    border-color: color-mix(
-      in srgb,
-      var(--colour-primary) 30%,
-      var(--colour-border)
-    );
+    border-color: color-mix(in srgb, var(--colour-primary) 30%, var(--colour-border));
     transform: translateY(-1px);
   }
 
@@ -135,16 +123,8 @@
 
   :is(.churn-case, .r-deep-dive)
     :is(figure > figcaption > span, .figure-index, .native-or__heading > span) {
-    border-color: color-mix(
-      in srgb,
-      var(--colour-primary) 24%,
-      var(--colour-border)
-    );
-    background: color-mix(
-      in srgb,
-      var(--colour-primary) 5%,
-      var(--colour-surface)
-    );
+    border-color: color-mix(in srgb, var(--colour-primary) 24%, var(--colour-border));
+    background: color-mix(in srgb, var(--colour-primary) 5%, var(--colour-surface));
     box-shadow: inset 0 1px 0 rgb(255 255 255 / 5%);
   }
 
@@ -155,11 +135,7 @@
     padding: 1rem 1.05rem 1rem 1.2rem;
     border-left: 3px solid var(--colour-accent);
     border-radius: 0 0.85rem 0.85rem 0;
-    background: color-mix(
-      in srgb,
-      var(--colour-surface-subtle) 84%,
-      transparent
-    );
+    background: color-mix(in srgb, var(--colour-surface-subtle) 84%, transparent);
     color: var(--colour-text-muted);
     line-height: 1.72;
   }
@@ -177,18 +153,10 @@
     max-width: 76ch;
     margin-top: 1.05rem;
     padding: 0.95rem 1rem;
-    border: 1px solid color-mix(
-      in srgb,
-      var(--colour-accent) 28%,
-      var(--colour-border)
-    );
+    border: 1px solid color-mix(in srgb, var(--colour-accent) 28%, var(--colour-border));
     border-left-width: 3px;
     border-radius: 0.85rem;
-    background: color-mix(
-      in srgb,
-      var(--colour-accent) 4%,
-      var(--colour-surface)
-    );
+    background: color-mix(in srgb, var(--colour-accent) 4%, var(--colour-surface));
   }
 
   :is(.churn-case, .r-deep-dive) .churn-case-note strong {
@@ -217,11 +185,7 @@
   }
 
   :is(.churn-case, .r-deep-dive) .metric-matrix th {
-    background: color-mix(
-      in srgb,
-      var(--colour-surface) 96%,
-      var(--colour-primary) 4%
-    );
+    background: color-mix(in srgb, var(--colour-surface) 96%, var(--colour-primary) 4%);
   }
 
   :is(.churn-case, .r-deep-dive) .risk-number,
@@ -257,11 +221,7 @@
   :is(.churn-case, .r-deep-dive) .selection-chain > div:hover,
   :is(.churn-case, .r-deep-dive) .decision-essay > div:hover,
   :is(.churn-case, .r-deep-dive) .model-family-map article:hover {
-    background: color-mix(
-      in srgb,
-      var(--colour-primary) 5%,
-      var(--colour-surface)
-    );
+    background: color-mix(in srgb, var(--colour-primary) 5%, var(--colour-surface));
     transform: translateY(-1px);
   }
 }

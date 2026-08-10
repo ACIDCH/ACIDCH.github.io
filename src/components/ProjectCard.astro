@@ -37,13 +37,7 @@ const coverBadges = entry.data.tools
 ---
 
 <article class="project-card" data-tilt>
-  <ProjectCover
-    entry={entry}
-    compact
-    showCode
-    code={coverTitle}
-    badges={coverBadges}
-  />
+  <ProjectCover entry={entry} compact showCode code={coverTitle} badges={coverBadges} />
   <div class="cluster cluster--compact project-card__meta">
     <p class="status">{statusLabels[entry.data.status][locale]}</p>
     <span class="tag">{topicLabels[entry.data.topic][locale]}</span>

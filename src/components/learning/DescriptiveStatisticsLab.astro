@@ -1,0 +1,500 @@
+---
+import NoteFormula from "./NoteFormula.astro";
+
+const defaultRCode = `wait_minutes <- c(6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
+18, 19, 20, 21, 23, 24, 25, 27, 29, 34, 52, 68)
+summary(wait_minutes)
+quantile(wait_minutes, c(0.25, 0.5, 0.75))
+round(c(mean = mean(wait_minutes), median = median(wait_minutes), sd = sd(wait_minutes), IQR = IQR(wait_minutes)), 2)`;
+---
+
+<section
+  class="statistics-lab"
+  aria-labelledby="statistics-lab-title"
+  data-statistics-lab
+>
+  <div class="statistics-lab__heading">
+    <p class="learning-note-kicker">用同一组观察值读三张图</p>
+    <h2 id="statistics-lab-title">服务响应时长观察台</h2>
+    <p>
+      24 条记录以分钟计。滑块只调整最后一条 68
+      分钟的观察值；均值、中位数、IQR、样本标准差、CV、z-score
+      与三张图会同步更新。基准值可以随时恢复。
+    </p>
+  </div>
+
+  <div class="statistics-lab__controls" aria-label="数据操作">
+    <label class="statistics-lab__range-label" for="stat-last-value">
+      <span>第 24 条观察值：<output data-stat-selected-value>68</output> 分钟</span>
+      <input
+        id="stat-last-value"
+        data-stat-range
+        type="range"
+        min="34"
+        max="120"
+        step="1"
+        value="68"
+        aria-valuemin="34"
+        aria-valuemax="120"
+        aria-valuenow="68"
+        aria-valuetext="第 24 条观察值，68 分钟"
+      />
+      <small>范围 34–120 分钟；使用方向键微调，Home / End 跳到最小 / 最大值。</small>
+    </label>
+    <button type="button" class="button" data-stat-reset>恢复基准值</button>
+  </div>
+
+  <p class="statistics-lab__status" aria-live="polite" data-stat-status>
+    基准数据：24 条服务事件；均值 20.75 分钟，中位数 17.5 分钟。
+  </p>
+
+  <div class="statistics-lab__metrics" data-stat-metrics>
+    <dl><dt>均值</dt><dd data-stat-mean>20.75 分钟</dd></dl>
+    <dl><dt>中位数</dt><dd data-stat-median>17.5 分钟</dd></dl>
+    <dl><dt>IQR</dt><dd data-stat-iqr>12.5 分钟</dd></dl>
+    <dl><dt>样本标准差</dt><dd data-stat-sd>14.30 分钟</dd></dl>
+    <dl><dt>CV</dt><dd data-stat-cv>68.9%</dd></dl>
+    <dl><dt>第 24 条 z-score</dt><dd data-stat-z>3.30</dd></dl>
+  </div>
+
+  <div class="statistics-lab__visuals">
+    <figure class="statistics-chart">
+      <figcaption>直方图：0–120 分钟，固定 12 个等宽区间（每箱 10 分钟）</figcaption>
+      <svg
+        viewBox="0 0 620 260"
+        role="img"
+        aria-label="服务响应时长直方图"
+        data-stat-histogram></svg>
+      <p>
+        分箱规则保持不变，才能看清最后一条记录改变后，右侧尾部与总体均值如何一起移动。
+      </p>
+    </figure>
+    <figure class="statistics-chart">
+      <figcaption>箱线图：type 7 四分位数、1.5 × IQR 围栏与实际须端点</figcaption>
+      <svg
+        viewBox="0 0 620 160"
+        role="img"
+        aria-label="服务响应时长箱线图"
+        data-stat-boxplot></svg>
+      <p>箱体覆盖 Q1 至 Q3；须端点是围栏内最远的实际记录，围栏外的点单独标记。</p>
+    </figure>
+    <figure class="statistics-chart">
+      <figcaption>ECDF：不超过给定时长的累计比例</figcaption>
+      <svg
+        viewBox="0 0 620 260"
+        role="img"
+        aria-label="服务响应时长经验累积分布函数"
+        data-stat-ecdf></svg>
+      <p>在 20 分钟处读取曲线，可得到不超过该时长的记录比例；基准数据为 62.5%。</p>
+    </figure>
+  </div>
+
+  <div class="statistics-lab__explain" data-stat-explain>
+    <h3>读数提示</h3>
+    <p>均值与中位数同时存在，才能分辨主体位置与长尾影响。</p>
+  </div>
+
+  <div class="statistics-lab__formula-grid">
+    <NoteFormula
+      label="样本均值"
+      formula="x̄ = Σxᵢ / n"
+      description="每条观察值等权进入总体平均水平。"
+    />
+    <NoteFormula
+      label="样本标准差"
+      formula="s = √[Σ(xᵢ − x̄)² / (n − 1)]"
+      description="以 n − 1 为分母；R 的 sd() 使用同一约定。"
+    />
+    <NoteFormula
+      label="标准分数"
+      formula="z = (x − x̄) / s"
+      description="把单条记录写成距离均值多少个样本标准差。"
+    />
+  </div>
+
+  <section class="r-playground" aria-labelledby="r-playground-title" data-r-playground>
+    <div>
+      <p class="learning-note-kicker">R Playground</p>
+      <h3 id="r-playground-title">在页面中运行这段 R 代码</h3>
+      <p>
+        代码在浏览器内的 R 运行环境执行，可修改后再次运行。错误会直接显示为可阅读的 R
+        输出。
+      </p>
+    </div>
+    <label>
+      R 代码
+      <textarea data-r-code rows="10" spellcheck="false">{defaultRCode}</textarea>
+    </label>
+    <div class="r-playground__actions">
+      <button type="button" class="button button--primary" data-r-run
+        >运行 R 代码</button
+      >
+      <button type="button" class="button" data-r-copy>复制代码</button>
+      <button type="button" class="button" data-r-reset>恢复示例</button>
+    </div>
+    <output class="r-playground__output" data-r-output aria-live="polite">
+      尚未运行。示例代码会计算摘要、分位数、均值、中位数、样本标准差和 IQR。
+    </output>
+  </section>
+
+  <noscript>
+    <p class="note-callout note-callout--neutral">
+      JavaScript 未启用时，基准摘要仍可阅读：24 条记录的均值为 20.75 分钟，中位数为 17.5
+      分钟，样本标准差为 14.30 分钟；52 与 68 分钟超过 43 分钟的上围栏。
+    </p>
+  </noscript>
+</section>
+
+<script>
+  let cleanup: (() => void) | undefined;
+
+  function initStatisticsLab() {
+    cleanup?.();
+    const lab = document.querySelector<HTMLElement>("[data-statistics-lab]");
+    if (!lab) return;
+    const baseline = [
+      6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24, 25, 27, 29,
+      34, 52, 68,
+    ];
+    let values = [...baseline];
+    const range = lab.querySelector<HTMLInputElement>("[data-stat-range]");
+    const selectedValue = lab.querySelector<HTMLOutputElement>(
+      "[data-stat-selected-value]",
+    );
+    const status = lab.querySelector<HTMLElement>("[data-stat-status]");
+    const explain = lab.querySelector<HTMLElement>("[data-stat-explain]");
+    const controller = new AbortController();
+    const { signal } = controller;
+    const ns = "http://www.w3.org/2000/svg";
+    const domainMax = 120;
+    const number = (value: number, digits = 2) =>
+      new Intl.NumberFormat("zh-CN", { maximumFractionDigits: digits }).format(value);
+    const quantile = (sorted: number[], p: number) => {
+      const position = (sorted.length - 1) * p;
+      const lower = Math.floor(position);
+      const upper = Math.ceil(position);
+      return sorted[lower] + (sorted[upper] - sorted[lower]) * (position - lower);
+    };
+    const statistics = (source: number[]) => {
+      const sorted = [...source].sort((a, b) => a - b);
+      const mean = source.reduce((sum, value) => sum + value, 0) / source.length;
+      const median = quantile(sorted, 0.5);
+      const q1 = quantile(sorted, 0.25);
+      const q3 = quantile(sorted, 0.75);
+      const iqr = q3 - q1;
+      const variance =
+        source.reduce((sum, value) => sum + (value - mean) ** 2, 0) /
+        (source.length - 1);
+      const sd = Math.sqrt(variance);
+      return {
+        sorted,
+        mean,
+        median,
+        q1,
+        q3,
+        iqr,
+        variance,
+        sd,
+        cv: (sd / mean) * 100,
+        lowerFence: q1 - 1.5 * iqr,
+        upperFence: q3 + 1.5 * iqr,
+      };
+    };
+    const make = (
+      svg: SVGSVGElement,
+      tag: string,
+      attrs: Record<string, string | number> = {},
+    ) => {
+      const node = document.createElementNS(ns, tag);
+      Object.entries(attrs).forEach(([name, value]) =>
+        node.setAttribute(name, String(value)),
+      );
+      svg.append(node);
+      return node;
+    };
+    const addText = (
+      svg: SVGSVGElement,
+      x: number,
+      y: number,
+      value: string,
+      attrs: Record<string, string | number> = {},
+    ) => {
+      const node = make(svg, "text", {
+        x,
+        y,
+        fill: "currentColor",
+        "font-size": 12,
+        ...attrs,
+      });
+      node.textContent = value;
+    };
+    const xScale = (value: number) => 54 + (value / domainMax) * 530;
+    const axes = (svg: SVGSVGElement, height: number, yTicks = false) => {
+      make(svg, "line", {
+        x1: 54,
+        y1: height - 34,
+        x2: 584,
+        y2: height - 34,
+        stroke: "var(--colour-border)",
+      });
+      make(svg, "line", {
+        x1: 54,
+        y1: 20,
+        x2: 54,
+        y2: height - 34,
+        stroke: "var(--colour-border)",
+      });
+      [0, 20, 40, 60, 80, 100, 120].forEach((tick) => {
+        const x = xScale(tick);
+        make(svg, "line", {
+          x1: x,
+          y1: height - 34,
+          x2: x,
+          y2: height - 29,
+          stroke: "var(--colour-border)",
+        });
+        addText(svg, x, height - 13, String(tick), { "text-anchor": "middle" });
+      });
+      if (yTicks)
+        [0, 0.25, 0.5, 0.75, 1].forEach((tick) => {
+          const y = height - 34 - tick * (height - 60);
+          addText(svg, 42, y + 4, `${Math.round(tick * 100)}%`, {
+            "text-anchor": "end",
+          });
+        });
+    };
+    const drawHistogram = () => {
+      const svg = lab.querySelector<SVGSVGElement>("[data-stat-histogram]");
+      if (!svg) return;
+      svg.replaceChildren();
+      const bins = Array.from({ length: 13 }, (_, index) => index * 10);
+      const counts = bins
+        .slice(0, -1)
+        .map(
+          (start, index) =>
+            values.filter(
+              (value) =>
+                value >= start &&
+                (index === 11 ? value <= bins[index + 1] : value < bins[index + 1]),
+            ).length,
+        );
+      const max = Math.max(...counts, 1);
+      axes(svg, 260);
+      counts.forEach((count, index) => {
+        const height = (count / max) * 164;
+        const x = 56 + index * 44.2;
+        make(svg, "rect", {
+          x,
+          y: 226 - height,
+          width: 39,
+          height,
+          rx: 3,
+          fill: "var(--colour-primary)",
+          opacity: 0.82,
+        });
+        addText(svg, x + 19.5, 218 - height, String(count), {
+          "text-anchor": "middle",
+        });
+      });
+      addText(svg, 319, 254, "首次响应时长（分钟）", { "text-anchor": "middle" });
+    };
+    const drawBoxplot = () => {
+      const svg = lab.querySelector<SVGSVGElement>("[data-stat-boxplot]");
+      if (!svg) return;
+      svg.replaceChildren();
+      const stats = statistics(values);
+      const inliers = stats.sorted.filter(
+        (value) => value >= stats.lowerFence && value <= stats.upperFence,
+      );
+      const y = 68;
+      axes(svg, 160);
+      make(svg, "line", {
+        x1: xScale(inliers[0]),
+        y1: y,
+        x2: xScale(inliers.at(-1) ?? inliers[0]),
+        y2: y,
+        stroke: "var(--colour-primary)",
+        "stroke-width": 3,
+      });
+      make(svg, "rect", {
+        x: xScale(stats.q1),
+        y: 42,
+        width: xScale(stats.q3) - xScale(stats.q1),
+        height: 52,
+        rx: 4,
+        fill: "var(--colour-primary)",
+        opacity: 0.22,
+        stroke: "var(--colour-primary)",
+        "stroke-width": 2,
+      });
+      make(svg, "line", {
+        x1: xScale(stats.median),
+        y1: 42,
+        x2: xScale(stats.median),
+        y2: 94,
+        stroke: "var(--colour-accent)",
+        "stroke-width": 3,
+      });
+      [inliers[0], inliers.at(-1) ?? inliers[0]].forEach((value) =>
+        make(svg, "line", {
+          x1: xScale(value),
+          y1: 55,
+          x2: xScale(value),
+          y2: 81,
+          stroke: "var(--colour-primary)",
+        }),
+      );
+      stats.sorted
+        .filter((value) => value < stats.lowerFence || value > stats.upperFence)
+        .forEach((value) =>
+          make(svg, "circle", {
+            cx: xScale(value),
+            cy: y,
+            r: 5,
+            fill: "var(--colour-accent)",
+          }),
+        );
+      addText(svg, xScale(stats.median), 31, `中位数 ${number(stats.median)}`, {
+        "text-anchor": "middle",
+      });
+      addText(svg, 319, 154, "首次响应时长（分钟）", { "text-anchor": "middle" });
+    };
+    const drawEcdf = () => {
+      const svg = lab.querySelector<SVGSVGElement>("[data-stat-ecdf]");
+      if (!svg) return;
+      svg.replaceChildren();
+      const stats = statistics(values);
+      axes(svg, 260, true);
+      const points: [number, number][] = [[54, 226]];
+      stats.sorted.forEach((value, index) => {
+        points.push([xScale(value), 226 - (index / stats.sorted.length) * 166]);
+        points.push([xScale(value), 226 - ((index + 1) / stats.sorted.length) * 166]);
+      });
+      make(svg, "path", {
+        d: `M ${points.map(([x, y]) => `${x} ${y}`).join(" L ")}`,
+        fill: "none",
+        stroke: "var(--colour-primary)",
+        "stroke-width": 3,
+      });
+      const atTwenty = values.filter((value) => value <= 20).length / values.length;
+      const y = 226 - atTwenty * 166;
+      make(svg, "circle", {
+        cx: xScale(20),
+        cy: y,
+        r: 5,
+        fill: "var(--colour-accent)",
+      });
+      addText(svg, xScale(20) + 8, y - 8, `20 分钟：${number(atTwenty * 100, 1)}%`);
+      addText(svg, 319, 254, "首次响应时长（分钟）", { "text-anchor": "middle" });
+    };
+    const render = () => {
+      const stats = statistics(values);
+      const selected = values.at(-1) ?? baseline.at(-1) ?? 68;
+      const outliers = stats.sorted.filter(
+        (value) => value < stats.lowerFence || value > stats.upperFence,
+      );
+      const update = (key: string, value: string) => {
+        const target = lab.querySelector<HTMLElement>(`[data-stat-${key}]`);
+        if (target) target.textContent = value;
+      };
+      update("mean", `${number(stats.mean)} 分钟`);
+      update("median", `${number(stats.median)} 分钟`);
+      update("iqr", `${number(stats.iqr)} 分钟`);
+      update("sd", `${number(stats.sd)} 分钟`);
+      update("cv", `${number(stats.cv, 1)}%`);
+      update("z", number((selected - stats.mean) / stats.sd));
+      if (selectedValue) selectedValue.textContent = String(selected);
+      if (range) {
+        range.setAttribute("aria-valuenow", String(selected));
+        range.setAttribute("aria-valuetext", `第 24 条观察值，${selected} 分钟`);
+      }
+      if (status)
+        status.textContent = `当前第 24 条记录为 ${selected} 分钟；均值 ${number(stats.mean)} 分钟，中位数 ${number(stats.median)} 分钟，IQR ${number(stats.iqr)} 分钟。`;
+      if (explain)
+        explain.innerHTML = `<h3>读数提示</h3><p>均值与中位数相差 ${number(Math.abs(stats.mean - stats.median))} 分钟。上围栏为 ${number(stats.upperFence)} 分钟；${outliers.length ? `围栏外记录为 ${outliers.join("、")} 分钟。` : "当前没有落在 1.5 × IQR 围栏外的记录。"} 直方图的分箱、箱线图的规则和 ECDF 的读法均保持不变，因此变化来自同一条观察值。</p>`;
+      drawHistogram();
+      drawBoxplot();
+      drawEcdf();
+    };
+    range?.addEventListener(
+      "input",
+      () => {
+        values = [...baseline.slice(0, -1), Number(range.value)];
+        render();
+      },
+      { signal },
+    );
+    lab.querySelector<HTMLButtonElement>("[data-stat-reset]")?.addEventListener(
+      "click",
+      () => {
+        values = [...baseline];
+        if (range) range.value = String(baseline.at(-1));
+        render();
+      },
+      { signal },
+    );
+    render();
+
+    const playground = lab.querySelector<HTMLElement>("[data-r-playground]");
+    const code = playground?.querySelector<HTMLTextAreaElement>("[data-r-code]");
+    const output = playground?.querySelector<HTMLOutputElement>("[data-r-output]");
+    const example = code?.value ?? "";
+    let runtime: import("webr").WebR | undefined;
+    const run = playground?.querySelector<HTMLButtonElement>("[data-r-run]");
+    run?.addEventListener(
+      "click",
+      async () => {
+        if (!code || !output || !run) return;
+        run.disabled = true;
+        output.textContent = runtime ? "正在计算…" : "正在加载 R 运行环境…";
+        try {
+          if (!runtime) {
+            const { WebR } = await import("webr");
+            runtime = new WebR();
+            await runtime.init();
+          }
+          const expression = JSON.stringify(code.value);
+          const result = await runtime.evalRString(
+            `paste(capture.output(eval(parse(text = ${expression}))), collapse = "\\n")`,
+          );
+          output.textContent = result || "代码已运行，没有产生文本输出。";
+        } catch (error) {
+          output.textContent = `运行失败：${error instanceof Error ? error.message : String(error)}`;
+        } finally {
+          run.disabled = false;
+        }
+      },
+      { signal },
+    );
+    playground?.querySelector<HTMLButtonElement>("[data-r-copy]")?.addEventListener(
+      "click",
+      async (event) => {
+        if (!code || !output) return;
+        try {
+          await navigator.clipboard.writeText(code.value);
+          output.textContent = "代码已复制。";
+        } catch {
+          output.textContent = "浏览器未授予复制权限，请手动复制代码。";
+        }
+        (event.currentTarget as HTMLButtonElement).focus();
+      },
+      { signal },
+    );
+    playground?.querySelector<HTMLButtonElement>("[data-r-reset]")?.addEventListener(
+      "click",
+      () => {
+        if (code) code.value = example;
+        if (output) output.textContent = "已恢复示例代码；运行后将显示实际计算结果。";
+      },
+      { signal },
+    );
+    cleanup = () => {
+      controller.abort();
+      runtime?.close();
+      runtime = undefined;
+    };
+  }
+  document.addEventListener("astro:before-swap", () => cleanup?.());
+  document.addEventListener("astro:page-load", initStatisticsLab);
+  initStatisticsLab();
+</script>

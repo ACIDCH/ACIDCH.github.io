@@ -1,0 +1,41 @@
+---
+interface Props {
+  title: string;
+  summary: string;
+  series?: string;
+  tags: string[];
+  tools: string[];
+  updatedAt?: Date;
+}
+
+const { title, summary, series, tags, tools, updatedAt } = Astro.props;
+const readingMinutes = 12;
+---
+
+<header class="learning-note-hero" data-learning-note-hero>
+  <p class="learning-note-hero__eyebrow">Learning Note</p>
+  {series && <p class="learning-note-hero__series">{series}</p>}
+  <h1>{title}</h1>
+  <p class="learning-note-hero__summary">{summary}</p>
+  <dl class="learning-note-hero__meta">
+    <div>
+      <dt>阅读</dt>
+      <dd>约 {readingMinutes} 分钟</dd>
+    </div>
+    {
+      updatedAt && (
+        <div>
+          <dt>更新</dt>
+          <dd>{updatedAt.toLocaleDateString("zh-CN")}</dd>
+        </div>
+      )
+    }
+    <div>
+      <dt>工具</dt>
+      <dd>{tools.join(" · ")}</dd>
+    </div>
+  </dl>
+  <div class="learning-note-hero__tags" aria-label="主题标签">
+    {tags.map((tag) => <span class="tag">{tag}</span>)}
+  </div>
+</header>

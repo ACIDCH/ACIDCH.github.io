@@ -18,6 +18,7 @@ const { Content } = await render(entry);
 const relatedNotes = (await getCollection("notes")).filter(
   (note) =>
     note.data.locale === entry.data.locale &&
+    !note.data.draft &&
     note.data.relatedProjects.includes(entry.data.translationKey),
 );
 const statusLabels = {

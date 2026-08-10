@@ -10,8 +10,11 @@ import {
 } from "../../../../utils/pagination";
 
 export async function getStaticPaths() {
+  const includeDrafts = import.meta.env.DEV;
   const notes = (await getCollection("notes"))
-    .filter((entry) => entry.data.locale === "zh")
+    .filter(
+      (entry) => entry.data.locale === "zh" && (includeDrafts || !entry.data.draft),
+    )
     .sort((left, right) => left.data.title.localeCompare(right.data.title, "zh-CN"));
 
   return getGeneratedPageNumbers(notes.length, 9).map((page) => ({

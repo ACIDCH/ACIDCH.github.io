@@ -47,6 +47,8 @@ const notes = defineCollection({
     topics: z.array(z.string()).default([]),
     tools: z.array(z.string()).default([]),
     series: z.string().min(1).optional(),
+    seriesSlug: z.string().min(1).optional(),
+    order: z.number().int().positive().optional(),
     publishedAt: z.coerce.date().optional(),
     updatedAt: z.coerce.date().optional(),
     status: z.enum(["draft", "published"]).default("draft"),

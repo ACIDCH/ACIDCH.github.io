@@ -27,7 +27,7 @@ const archivedChurnRasterMarkers = [
 ];
 const churnCoursePatterns = [
   /BUSINFO\s*704/i,
-  /(?<![\d.])704(?![\d.])/, 
+  /(?<![\d.])704(?![\d.])/,
   /课程项目|课程报告/,
 ];
 
@@ -195,5 +195,7 @@ for (let attempt = 1; attempt <= attempts; attempt += 1) {
   }
 }
 
-console.error(`Production verification failed: ${lastError?.message || "unknown error"}`);
+console.error(
+  `Production verification failed: ${lastError?.message || "unknown error"}`,
+);
 process.exit(1);

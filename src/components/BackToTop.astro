@@ -20,8 +20,8 @@ const label = locale === "en" ? "Back to top" : "返回顶部";
 >
   <span class="back-to-top__surface" aria-hidden="true">
     <svg viewBox="0 0 24 24" focusable="false">
-      <path d="m7 11 5-5 5 5" />
-      <path d="M12 6v12" />
+      <path d="m7 11 5-5 5 5"></path>
+      <path d="M12 6v12"></path>
     </svg>
   </span>
 </button>
@@ -47,7 +47,9 @@ const label = locale === "en" ? "Back to top" : "返回顶部";
       );
       const progress = Math.min(1, Math.max(0, window.scrollY / scrollable));
       button.style.setProperty("--scroll-progress", progress.toFixed(4));
-      button.dataset.visible = String(window.scrollY > Math.min(720, window.innerHeight));
+      button.dataset.visible = String(
+        window.scrollY > Math.min(720, window.innerHeight),
+      );
     };
 
     const scheduleUpdate = () => {

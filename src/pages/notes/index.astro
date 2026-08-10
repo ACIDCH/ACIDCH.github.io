@@ -6,8 +6,9 @@ import ProjectList from "../../components/ProjectList.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { getPaginationPath, getTotalPages } from "../../utils/pagination";
 
+const includeDrafts = import.meta.env.DEV;
 const notes = (await getCollection("notes"))
-  .filter((entry) => entry.data.locale === "en")
+  .filter((entry) => entry.data.locale === "en" && (includeDrafts || !entry.data.draft))
   .sort((left, right) => left.data.title.localeCompare(right.data.title, "en"));
 const relatedProjectKeys = new Set(
   notes.flatMap((entry) => entry.data.relatedProjects),
@@ -28,7 +29,7 @@ const totalPages = getTotalPages(notes.length, 9);
 >
   <PageIntro
     title="Learning Notes"
-    description="A bilingual, searchable knowledge base for verified notes on analytics, optimisation and decision support. Drafts never expose restricted course material."
+    description="A bilingual, searchable knowledge base for analytics, optimisation and decision support."
   />
   <NotesExplorer
     entries={notes}

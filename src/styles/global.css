@@ -4104,3 +4104,540 @@ html[data-motion-ready="true"]
     animation: none;
   }
 }
+
+/* Learning-note sample: long-form reading stays narrow while evidence can expand. */
+.learning-note {
+  margin-inline: auto;
+  max-width: min(100%, 92rem);
+}
+
+.learning-note-hero {
+  width: min(100%, 78ch);
+  margin: var(--space-8) auto var(--space-10);
+  padding: clamp(var(--space-6), 5vw, var(--space-10));
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius-xl);
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--colour-primary) 12%, transparent),
+      transparent 58%
+    ),
+    var(--colour-surface);
+}
+
+.learning-note-hero__eyebrow,
+.learning-note-kicker {
+  margin-bottom: var(--space-2);
+  color: var(--colour-primary-strong);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.learning-note-hero__series {
+  margin-bottom: var(--space-4);
+  color: var(--colour-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.learning-note-hero h1 {
+  max-width: 18ch;
+  margin-bottom: var(--space-5);
+}
+
+.learning-note-hero__summary {
+  max-width: 62ch;
+  font-size: var(--font-size-lg);
+}
+
+.learning-note-hero__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-7);
+  margin-top: var(--space-6);
+}
+
+.learning-note-hero__meta div {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.learning-note-hero__meta dt {
+  color: var(--colour-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.learning-note-hero__meta dd {
+  color: var(--colour-text);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.learning-note-hero__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+}
+
+.learning-note__grid {
+  display: grid;
+  grid-template-columns: minmax(11rem, 14rem) minmax(0, 78ch);
+  justify-content: center;
+  align-items: start;
+  gap: clamp(var(--space-6), 5vw, var(--space-12));
+}
+
+.learning-note-toc {
+  position: sticky;
+  top: calc(var(--header-height) + var(--space-5));
+  max-height: calc(100dvh - var(--header-height) - 2 * var(--space-5));
+  overflow-y: auto;
+  padding-bottom: var(--space-4);
+}
+
+.learning-note-toc details {
+  padding: var(--space-4);
+  border-left: 2px solid var(--colour-primary);
+}
+
+.learning-note-toc summary {
+  color: var(--colour-text);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+}
+
+.learning-note-toc ol {
+  display: grid;
+  gap: var(--space-2);
+  margin: var(--space-3) 0 0;
+  padding-left: var(--space-4);
+}
+
+.learning-note-toc a {
+  color: var(--colour-text-muted);
+  font-size: var(--font-size-sm);
+  text-decoration: none;
+}
+
+.learning-note-toc a:hover,
+.learning-note-toc a:focus-visible {
+  color: var(--colour-primary-strong);
+  text-decoration: underline;
+}
+
+.learning-note-toc a[aria-current="true"] {
+  color: var(--colour-primary-strong);
+  font-weight: var(--font-weight-bold);
+}
+
+.learning-note__body > :is(h2, h3) {
+  scroll-margin-top: calc(var(--header-height) + var(--space-5));
+}
+
+.learning-note__body > h2 {
+  margin-top: var(--space-11);
+  margin-bottom: var(--space-4);
+}
+
+.learning-note__body > h3 {
+  margin-top: var(--space-7);
+  margin-bottom: var(--space-3);
+  font-size: var(--font-size-xl);
+}
+
+.learning-note__body > p,
+.learning-note__body > ul,
+.learning-note__body > ol {
+  margin-block: var(--space-4);
+}
+
+.learning-note__body > pre {
+  margin-block: var(--space-6);
+  padding: var(--space-5);
+  overflow: auto;
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius-lg);
+  background: var(--colour-navy-950);
+  color: #edf3ef;
+}
+
+.statistics-lab {
+  width: min(100%, 88rem);
+  margin: var(--space-10) auto;
+  padding: clamp(var(--space-5), 4vw, var(--space-8));
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius-xl);
+  background: var(--colour-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.statistics-lab__heading {
+  max-width: 70ch;
+}
+
+.statistics-lab__heading h2 {
+  margin-bottom: var(--space-3);
+}
+
+.statistics-lab__controls {
+  display: grid;
+  grid-template-columns: minmax(16rem, 1fr) auto;
+  align-items: end;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
+.statistics-lab__range-label {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.statistics-lab__range-label span {
+  color: var(--colour-text);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.statistics-lab__range-label small {
+  color: var(--colour-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.statistics-lab input[type="range"] {
+  min-height: 2.4rem;
+  padding: 0;
+  accent-color: var(--colour-primary);
+}
+
+.statistics-lab__controls label,
+.r-playground label {
+  display: grid;
+  gap: var(--space-2);
+  color: var(--colour-text);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.statistics-lab :is(select, input, textarea) {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: var(--space-3);
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius-md);
+  background: var(--colour-page);
+  color: var(--colour-text);
+}
+
+.statistics-lab textarea {
+  min-height: 13rem;
+  resize: vertical;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  line-height: 1.55;
+}
+
+.statistics-lab__status {
+  margin-top: var(--space-4);
+  color: var(--colour-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.statistics-lab__metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}
+
+.learning-series-map {
+  margin: 0 auto var(--space-10);
+  padding: clamp(var(--space-5), 4vw, var(--space-8));
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius-xl);
+  background: var(--colour-surface);
+}
+
+.learning-series-map__heading {
+  max-width: 64ch;
+  margin-bottom: var(--space-6);
+}
+
+.learning-series-map__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.learning-series-map__grid article {
+  padding: var(--space-5);
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius-lg);
+  background: var(--colour-surface-subtle);
+}
+
+.learning-series-map__grid h3 {
+  margin-bottom: var(--space-3);
+  font-size: var(--font-size-lg);
+}
+
+.learning-series-map__grid h3 a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.learning-series-map__grid h3 a:hover,
+.learning-series-map__grid h3 a:focus-visible {
+  color: var(--colour-primary-strong);
+  text-decoration: underline;
+}
+
+.learning-series-map__grid p {
+  color: var(--colour-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.learning-series-map__grid ul {
+  display: grid;
+  gap: var(--space-2);
+  margin: var(--space-4) 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--font-size-sm);
+}
+
+.learning-series-map__grid li strong,
+.learning-series-map__grid article > span,
+.learning-series-page__modules p {
+  color: var(--colour-primary-strong);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-label);
+}
+
+.learning-series-page {
+  width: min(100%, 78ch);
+  margin-inline: auto;
+}
+
+.learning-series-page__hero {
+  margin-block: var(--space-8);
+  padding: clamp(var(--space-6), 5vw, var(--space-10));
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius-xl);
+  background: var(--colour-surface);
+}
+
+.learning-series-page__hero > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+}
+
+.learning-series-page__modules {
+  display: grid;
+  gap: var(--space-3);
+  margin: var(--space-5) 0 var(--space-10);
+  padding: 0;
+  list-style: none;
+}
+
+.learning-series-page__modules li {
+  padding: var(--space-5);
+  border-left: 2px solid var(--colour-primary);
+  background: var(--colour-surface-subtle);
+}
+
+.learning-series-page__modules p,
+.learning-series-page__modules h3,
+.learning-series-page__modules span {
+  margin: 0;
+}
+
+.learning-series-page__modules h3 {
+  margin-block: var(--space-2);
+  font-size: var(--font-size-lg);
+}
+
+.learning-series-page__modules span {
+  color: var(--colour-text-muted);
+}
+
+.statistics-lab__metrics dl {
+  padding: var(--space-4);
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius-lg);
+  background: var(--colour-surface-subtle);
+}
+
+.statistics-lab__metrics dt {
+  color: var(--colour-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.statistics-lab__metrics dd {
+  margin-top: var(--space-1);
+  color: var(--colour-text);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.statistics-lab__visuals {
+  display: grid;
+  gap: var(--space-5);
+  margin-top: var(--space-7);
+}
+
+.statistics-chart {
+  padding: var(--space-5);
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius-lg);
+  background: var(--colour-page);
+}
+
+.statistics-chart figcaption {
+  margin-bottom: var(--space-3);
+  color: var(--colour-text);
+  font-weight: var(--font-weight-bold);
+}
+
+.statistics-chart svg {
+  width: 100%;
+  color: var(--colour-text-muted);
+  overflow: visible;
+}
+
+.statistics-chart p {
+  margin-top: var(--space-3);
+  font-size: var(--font-size-sm);
+}
+
+.statistics-lab__explain {
+  margin-top: var(--space-5);
+  padding: var(--space-5);
+  border-left: 3px solid var(--colour-accent);
+  background: color-mix(in srgb, var(--colour-accent) 10%, var(--colour-surface));
+}
+
+.statistics-lab__explain h3 {
+  margin-bottom: var(--space-2);
+  font-size: var(--font-size-lg);
+}
+
+.statistics-lab__formula-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin-top: var(--space-7);
+}
+
+.note-formula {
+  padding: var(--space-4);
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius-lg);
+  background: var(--colour-surface-subtle);
+}
+
+.note-formula figcaption {
+  margin-bottom: var(--space-3);
+  color: var(--colour-text);
+  font-weight: var(--font-weight-semibold);
+}
+
+.note-formula code {
+  display: block;
+  padding: var(--space-3);
+  overflow-x: auto;
+  border-radius: var(--radius-md);
+  background: var(--colour-page);
+  color: var(--colour-primary-strong);
+  white-space: nowrap;
+}
+
+.note-formula p {
+  margin-top: var(--space-3);
+  font-size: var(--font-size-sm);
+}
+
+.r-playground {
+  display: grid;
+  gap: var(--space-4);
+  margin-top: var(--space-8);
+  padding-top: var(--space-7);
+  border-top: 1px solid var(--colour-border);
+}
+
+.r-playground__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.r-playground__output {
+  min-height: 5rem;
+  padding: var(--space-4);
+  overflow: auto;
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius-lg);
+  background: var(--colour-navy-950);
+  color: #edf3ef;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 70rem) {
+  .learning-note__grid {
+    grid-template-columns: minmax(0, 78ch);
+  }
+
+  .learning-note-toc {
+    position: static;
+    max-height: none;
+    order: -1;
+  }
+
+  .learning-note-toc details:not([open]) ol {
+    display: none;
+  }
+
+  .statistics-lab__metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .learning-series-map__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 52rem) {
+  .learning-note-hero {
+    margin-top: var(--space-5);
+    padding: var(--space-5);
+  }
+
+  .statistics-lab {
+    padding: var(--space-5);
+  }
+
+  .statistics-lab__controls,
+  .statistics-lab__formula-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .statistics-lab__metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .learning-note *,
+  .statistics-lab * {
+    scroll-behavior: auto;
+    transition-duration: 0.01ms !important;
+  }
+}

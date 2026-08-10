@@ -3,7 +3,7 @@ import process from "node:process";
 
 const coursePatterns = [
   /BUSINFO\s*704/i,
-  /(?<![\d.])704(?![\d.])/, 
+  /(?<![\d.])704(?![\d.])/,
   /课程项目|课程报告/,
 ];
 const checks = [
@@ -83,7 +83,9 @@ for (const check of checks) {
 }
 
 if (failures.length > 0) {
-  console.error(`Built Customer Churn acceptance failed (${failures.length} issue(s)).`);
+  console.error(
+    `Built Customer Churn acceptance failed (${failures.length} issue(s)).`,
+  );
   failures.forEach((failure) => console.error(`- ${failure}`));
   process.exit(1);
 }

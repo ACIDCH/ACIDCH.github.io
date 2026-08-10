@@ -85,7 +85,9 @@ async function validateFirstPersonCopy() {
   }
 
   if (failures.length > 0) {
-    console.error(`UI-aware first-person validation failed (${failures.length} issue(s)).`);
+    console.error(
+      `UI-aware first-person validation failed (${failures.length} issue(s)).`,
+    );
     for (const failure of failures) console.error(`- ${failure}`);
     process.exit(1);
   }

@@ -1,0 +1,68 @@
+---
+interface Item {
+  id: string;
+  label: string;
+}
+
+interface Props {
+  items: Item[];
+}
+
+const { items } = Astro.props;
+---
+
+<nav class="learning-note-toc" aria-label="本页目录" data-learning-note-toc>
+  <details open>
+    <summary>本页内容</summary>
+    <ol>
+      {
+        items.map((item) => (
+          <li>
+            <a href={`#${item.id}`} data-learning-toc-link>
+              {item.label}
+            </a>
+          </li>
+        ))
+      }
+    </ol>
+  </details>
+</nav>
+
+<script>
+  let tocCleanup: (() => void) | undefined;
+
+  function initLearningToc() {
+    tocCleanup?.();
+    const toc = document.querySelector<HTMLElement>("[data-learning-note-toc]");
+    if (!toc || !("IntersectionObserver" in window)) return;
+    const links = Array.from(
+      toc.querySelectorAll<HTMLAnchorElement>("[data-learning-toc-link]"),
+    );
+    const sections = links
+      .map((link) => document.getElementById(decodeURIComponent(link.hash.slice(1))))
+      .filter((section): section is HTMLElement => Boolean(section));
+    const setActive = (id: string) => {
+      links.forEach((link) => {
+        const current = decodeURIComponent(link.hash.slice(1)) === id;
+        link.toggleAttribute("aria-current", current);
+      });
+    };
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort(
+            (left, right) => left.boundingClientRect.top - right.boundingClientRect.top,
+          )[0];
+        if (visible) setActive((visible.target as HTMLElement).id);
+      },
+      { rootMargin: "-18% 0px -68% 0px", threshold: 0 },
+    );
+    sections.forEach((section) => observer.observe(section));
+    tocCleanup = () => observer.disconnect();
+  }
+
+  document.addEventListener("astro:before-swap", () => tocCleanup?.());
+  document.addEventListener("astro:page-load", initLearningToc);
+  initLearningToc();
+</script>
