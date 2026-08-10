@@ -4,21 +4,25 @@ import { describe, expect, it } from "vitest";
 const read = (path: string) => readFileSync(path, "utf8");
 
 const notesIndex = read("src/pages/zh/notes/index.astro");
+const notesExplorer = read("src/components/NotesExplorer.astro");
 const seriesMap = read("src/components/learning/LearningSeriesMap.astro");
 const seriesPage = read("src/pages/zh/notes/series/[series].astro");
 const noteList = read("src/components/NoteList.astro");
 const productionVerifier = read("scripts/verify-decision-models-production.mjs");
 
 describe("Supply chain optimisation Learning Notes folder", () => {
-  it("makes folder navigation explicit on the Chinese Learning Notes index", () => {
-    expect(notesIndex).toContain("先按主题文件夹进入完整知识体系");
-    expect(seriesMap).toContain("学习笔记文件夹");
+  it("makes the tag-first folder navigation explicit on the Chinese Learning Notes index", () => {
+    expect(notesIndex).toContain("先用标签快速定位知识点，再按主题进入完整知识库");
+    expect(notesIndex).toContain('<LearningSeriesMap slot="knowledge-map" />');
+    expect(notesExplorer).toContain("按标签浏览");
+    expect(notesExplorer).toContain('<slot name="knowledge-map" />');
+    expect(notesExplorer).toContain('latest: "全部笔记"');
     expect(seriesMap).toContain("按主题进入知识库");
     expect(seriesMap).toContain('left.slug === "decision-models"');
     expect(seriesMap).toContain('slug === "decision-models" ? "供应链与优化"');
     expect(seriesMap).toContain('data-learning-folder={series.slug}');
-    expect(seriesMap).toContain("打开文件夹 →");
-    expect(seriesMap).toContain("篇已发布");
+    expect(seriesMap).toContain("进入知识库 →");
+    expect(seriesMap).toContain("{noteCount} 篇");
   });
 
   it("turns the decision-model series page into a ten-note folder", () => {
@@ -39,11 +43,15 @@ describe("Supply chain optimisation Learning Notes folder", () => {
     expect(noteList).toContain('data-series={(displaySeries ?? "").toLocaleLowerCase()}');
   });
 
-  it("requires the folder entry and folder page in production verification", () => {
+  it("requires the compact folder entry and ordered Learning Notes page in production verification", () => {
     expect(productionVerifier).toContain('path: "zh/notes/"');
     expect(productionVerifier).toContain('path: "zh/notes/series/decision-models/"');
     expect(productionVerifier).toContain("供应链与优化");
-    expect(productionVerifier).toContain("10 篇已发布");
-    expect(productionVerifier).toContain("打开文件夹");
+    expect(productionVerifier).toContain("10 篇");
+    expect(productionVerifier).toContain("进入知识库");
+    expect(productionVerifier).toContain("按标签浏览");
+    expect(productionVerifier).toContain("按主题进入知识库");
+    expect(productionVerifier).toContain("全部笔记");
+    expect(productionVerifier).toContain("orderedMarkers");
   });
 });
