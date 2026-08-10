@@ -10,8 +10,16 @@ type Preset =
   | "expression"
   | "aggregate"
   | "duplicate"
-  | "foreign-key";
-type Focus = "keys" | "select" | "all";
+  | "foreign-key"
+  | "where-gte"
+  | "where-and"
+  | "where-or"
+  | "where-grouped"
+  | "where-between"
+  | "where-in"
+  | "where-like"
+  | "where-null";
+type Focus = "keys" | "select" | "where" | "all";
 
 interface Props {
   defaultPreset?: Preset;
@@ -19,16 +27,20 @@ interface Props {
 }
 
 const pathname = Astro.url.pathname;
-const inferredFocus: Focus = pathname.includes("/sql-select/")
-  ? "select"
-  : pathname.includes("/sql-primary-key/") || pathname.includes("/sql-foreign-key/")
-    ? "keys"
-    : "all";
+const inferredFocus: Focus = pathname.includes("/sql-where/")
+  ? "where"
+  : pathname.includes("/sql-select/")
+    ? "select"
+    : pathname.includes("/sql-primary-key/") || pathname.includes("/sql-foreign-key/")
+      ? "keys"
+      : "all";
 const inferredPreset: Preset = pathname.includes("/sql-primary-key/")
   ? "duplicate"
   : pathname.includes("/sql-foreign-key/")
     ? "foreign-key"
-    : "customers";
+    : pathname.includes("/sql-where/")
+      ? "where-gte"
+      : "customers";
 const { defaultPreset = inferredPreset, focus = inferredFocus } = Astro.props;
 const presetOptions = {
   keys: [
@@ -44,12 +56,24 @@ const presetOptions = {
     { value: "order-items", label: "SELECT order_items" },
     { value: "expression", label: "SELECT 1 执行检查" },
   ],
+  where: [
+    { value: "where-gte", label: "金额 >= 500" },
+    { value: "where-and", label: "AND：同时满足" },
+    { value: "where-or", label: "OR：任意满足" },
+    { value: "where-grouped", label: "括号改变优先级" },
+    { value: "where-between", label: "BETWEEN 闭区间" },
+    { value: "where-in", label: "IN 多个离散值" },
+    { value: "where-like", label: "LIKE 文本模式" },
+    { value: "where-null", label: "IS NULL 缺失检查" },
+  ],
   all: [
     { value: "customers", label: "查看客户表" },
     { value: "orders", label: "查看订单表" },
     { value: "products", label: "查看产品表" },
     { value: "order-items", label: "查看订单明细" },
     { value: "expression", label: "SELECT 1 执行检查" },
+    { value: "where-gte", label: "WHERE 金额筛选" },
+    { value: "where-between", label: "WHERE 区间筛选" },
     { value: "join", label: "连接客户与订单" },
     { value: "aggregate", label: "按客户汇总订单" },
     { value: "duplicate", label: "测试重复主键" },
@@ -377,6 +401,14 @@ const serializedSeed = JSON.stringify(sqlLearningSeedSql).replace(/</g, "\\u003c
       aggregate: `SELECT\n  c.customer_name,\n  COUNT(o.order_id) AS order_count,\n  ROUND(SUM(o.order_value), 2) AS total_value\nFROM customers AS c\nLEFT JOIN orders AS o\n  ON c.customer_id = o.customer_id\nGROUP BY c.customer_id, c.customer_name\nORDER BY total_value DESC;`,
       duplicate: `INSERT INTO customers (customer_id, customer_name, email, phone, segment)\nVALUES (1001, 'Duplicate Customer', 'duplicate@example.com', '021-999-999', 'Retail');`,
       "foreign-key": `INSERT INTO orders (order_id, customer_id, order_date, order_value)\nVALUES (50999, 9999, '2026-08-10', 99.00);`,
+      "where-gte": `SELECT *\nFROM orders\nWHERE order_value >= 500\nORDER BY order_id;`,
+      "where-and": `SELECT *\nFROM orders\nWHERE order_value >= 400\n  AND customer_id <> 1002\nORDER BY order_id;`,
+      "where-or": `SELECT *\nFROM orders\nWHERE customer_id = 1001\n   OR order_value >= 700\nORDER BY order_id;`,
+      "where-grouped": `SELECT *\nFROM orders\nWHERE (customer_id = 1001 OR order_value >= 500)\n  AND customer_id = 1003\nORDER BY order_id;`,
+      "where-between": `SELECT *\nFROM orders\nWHERE order_value BETWEEN 400 AND 600\nORDER BY order_id;`,
+      "where-in": `SELECT *\nFROM customers\nWHERE segment IN ('Retail', 'Enterprise')\nORDER BY customer_id;`,
+      "where-like": `SELECT *\nFROM customers\nWHERE customer_name LIKE 'Coast%'\nORDER BY customer_id;`,
+      "where-null": `SELECT *\nFROM customers\nWHERE phone IS NULL\nORDER BY customer_id;`,
     };
 
     function setStatus(message: string, state = "ready") {
