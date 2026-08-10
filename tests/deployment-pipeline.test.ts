@@ -110,12 +110,11 @@ describe("production deployment contracts", () => {
     expect(verifier).toContain("data-feasible-lab");
     expect(verifier).toContain("data-milp-lab");
     expect(verifier).toContain("data-flow-lab");
-    expect(capture).toContain("dm-folder-index-desktop.png");
-    expect(capture).toContain("dm-folder-series-desktop.png");
-    expect(capture).toContain("dm-folder-index-mobile.png");
-    expect(capture).toContain("dm-folder-series-mobile.png");
-    expect(capture).toContain("dm01-anatomy-hub-desktop.png");
-    expect(capture).toContain("dm10-two-batch-plan-mobile.png");
+    expect(capture).toContain('suffix = "mobile" if mobile else "desktop"');
+    expect(capture).toContain('browser.screenshot(f"dm-folder-index-{suffix}.png")');
+    expect(capture).toContain('browser.screenshot(f"dm-folder-series-{suffix}.png")');
+    expect(capture).toContain('browser.screenshot(f"dm01-anatomy-{choice}-{suffix}.png")');
+    expect(capture).toContain('browser.screenshot(f"dm10-two-batch-plan-{suffix}.png")');
     expect(capture).toContain("expected = 22");
   });
 
