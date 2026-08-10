@@ -8,12 +8,6 @@ import {
   sqlOrderTotal,
   sqlProducts,
 } from "../../data/sql-learning";
-
-const money = new Intl.NumberFormat("en-NZ", {
-  style: "currency",
-  currency: "NZD",
-  minimumFractionDigits: 2,
-});
 ---
 
 <section class="sql-dataset-explorer" data-sql-dataset-explorer aria-labelledby="sql-dataset-explorer-title">
@@ -21,7 +15,7 @@ const money = new Intl.NumberFormat("en-NZ", {
     <p class="learning-note-kicker">互动数据集 · Single Source of Truth</p>
     <h3 id="sql-dataset-explorer-title">整个 SQL 系列都沿用这一组业务数据</h3>
     <p>
-      后续主键、外键、关系、查询与连接示例都以这组记录为准。切换表可以同时检查记录粒度、主外键字段和当前样例数量。
+      后续主键、外键、关系、查询与连接示例都以这组记录为准。切换表可以同时检查记录粒度、主外键字段和当前样例数量。金额字段只作为 demo numeric value，不额外假设货币单位。
     </p>
   </div>
 
@@ -30,7 +24,7 @@ const money = new Intl.NumberFormat("en-NZ", {
     <div><span>orders</span><strong>{sqlDatasetCounts.orders}</strong></div>
     <div><span>products</span><strong>{sqlDatasetCounts.products}</strong></div>
     <div><span>order_items</span><strong>{sqlDatasetCounts.orderItems}</strong></div>
-    <div><span>订单总额</span><strong>{money.format(sqlOrderTotal)}</strong></div>
+    <div><span>order_value total</span><strong>{sqlOrderTotal.toFixed(2)}</strong></div>
   </div>
 
   <div class="sql-dataset-explorer__controls" role="group" aria-label="选择数据表">
