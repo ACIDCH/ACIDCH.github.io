@@ -20,12 +20,15 @@ const checks = [
   {
     path: "zh/notes/",
     markers: [
-      "学习笔记文件夹",
+      "按标签浏览",
+      "按主题进入知识库",
       "供应链与优化",
       'data-learning-folder="decision-models"',
-      "10 篇已发布",
-      "打开文件夹",
+      "10 篇",
+      "进入知识库",
+      "全部笔记",
     ],
+    orderedMarkers: ["按标签浏览", "按主题进入知识库", "全部笔记"],
   },
   {
     path: "zh/notes/series/decision-models/",
@@ -113,7 +116,7 @@ async function fetchWithTimeout(url) {
   }
 }
 
-async function verifyPage({ path, markers }) {
+async function verifyPage({ path, markers, orderedMarkers = [] }) {
   const response = await fetchWithTimeout(deploymentUrl(path));
   if (!response.ok) throw new Error(`${path} returned HTTP ${response.status}`);
   const html = await response.text();
@@ -125,6 +128,16 @@ async function verifyPage({ path, markers }) {
   }
   for (const marker of markers) {
     if (!html.includes(marker)) throw new Error(`${path} is missing expected marker: ${marker}`);
+  }
+  if (orderedMarkers.length > 0) {
+    let previousIndex = -1;
+    for (const marker of orderedMarkers) {
+      const index = html.indexOf(marker);
+      if (index <= previousIndex) {
+        throw new Error(`${path} has an invalid content order near marker: ${marker}`);
+      }
+      previousIndex = index;
+    }
   }
   for (const marker of forbiddenMarkers) {
     if (html.includes(marker)) throw new Error(`${path} contains forbidden marker: ${marker}`);
@@ -140,7 +153,7 @@ for (let attempt = 1; attempt <= attempts; attempt += 1) {
   try {
     await verifyDecisionModelsProduction();
     console.log(
-      `Supply-chain optimisation folder verified: ${baseUrl.href} exposes the folder entry, ten-module route and published notes for ${expectedSha}.`,
+      `Supply-chain optimisation folder verified: ${baseUrl.href} exposes the compact folder entry, ordered Learning Notes navigation and published notes for ${expectedSha}.`,
     );
     process.exit(0);
   } catch (error) {

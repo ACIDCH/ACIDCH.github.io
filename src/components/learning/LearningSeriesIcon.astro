@@ -1,0 +1,60 @@
+---
+interface Props {
+  slug: string;
+}
+
+const { slug } = Astro.props;
+---
+
+<svg class="learning-series-icon" viewBox="0 0 24 24" aria-hidden="true">
+  {
+    slug === "sql" ? (
+      <>
+        <ellipse cx="12" cy="5.5" rx="6.5" ry="2.75" />
+        <path d="M5.5 5.5v6c0 1.5 2.9 2.75 6.5 2.75s6.5-1.25 6.5-2.75v-6" />
+        <path d="M5.5 11.5v6c0 1.5 2.9 2.75 6.5 2.75s6.5-1.25 6.5-2.75v-6" />
+      </>
+    ) : slug === "decision-models" ? (
+      <>
+        <path d="M3.5 7.5h10v8h-10z" />
+        <path d="M13.5 10h3.3l3.7 3.7v1.8h-7z" />
+        <circle cx="7" cy="17.5" r="1.75" />
+        <circle cx="17" cy="17.5" r="1.75" />
+        <path d="M5.5 4.5h6" />
+      </>
+    ) : slug === "r-statistics" ? (
+      <>
+        <path d="M4 19V9" />
+        <path d="M9 19V5" />
+        <path d="M14 19v-7" />
+        <path d="M19 19V3" />
+        <path d="M2.5 19.5h19" />
+      </>
+    ) : slug === "regression" ? (
+      <>
+        <path d="M3.5 18.5 8.5 13l4 2.5 7-9" />
+        <circle cx="8.5" cy="13" r="1.25" />
+        <circle cx="12.5" cy="15.5" r="1.25" />
+        <circle cx="19.5" cy="6.5" r="1.25" />
+      </>
+    ) : (
+      <>
+        <path d="m8.5 6-5 6 5 6" />
+        <path d="m15.5 6 5 6-5 6" />
+        <path d="m13.5 4-3 16" />
+      </>
+    )
+  }
+</svg>
+
+<style>
+  .learning-series-icon {
+    width: 1.4rem;
+    height: 1.4rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.7;
+  }
+</style>

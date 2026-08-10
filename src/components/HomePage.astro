@@ -14,7 +14,7 @@ interface Props {
 const { locale } = Astro.props;
 const projects = (await getCollection("projects"))
   .filter((entry) => entry.data.locale === locale && entry.data.featured)
-  .slice(0, 3);
+  .slice(0, 4);
 const notes = (await getCollection("notes"))
   .filter((entry) => entry.data.locale === locale && !entry.data.draft)
   .slice(0, 3);

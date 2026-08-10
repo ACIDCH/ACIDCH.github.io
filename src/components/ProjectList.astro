@@ -17,10 +17,9 @@ const { entries, locale } = Astro.props;
       {locale === "en" ? "No projects are available yet." : "暂时没有可展示的项目。"}
     </p>
   ) : (
-    <ul class="content-list project-list">
+    <ul class="content-list project-list project-list--balanced">
       {entries.map((entry) => (
         <li
-          class:list={[entry.data.featured && "project-list__featured"]}
           data-project-card
           data-project-tools={entry.data.tools.join("|")}
           data-project-topic={entry.data.topic}
@@ -33,3 +32,31 @@ const { entries, locale } = Astro.props;
     </ul>
   )
 }
+
+<style>
+  .project-list--balanced {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-6);
+  }
+
+  .project-list--balanced > li {
+    min-width: 0;
+  }
+
+  .project-list--balanced > li:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+    width: calc(50% - var(--space-3));
+    justify-self: center;
+  }
+
+  @media (max-width: 52rem) {
+    .project-list--balanced {
+      grid-template-columns: 1fr;
+    }
+
+    .project-list--balanced > li:last-child:nth-child(odd) {
+      grid-column: auto;
+      width: 100%;
+    }
+  }
+</style>
