@@ -4,6 +4,7 @@ import process from "node:process";
 import { clearTimeout, setTimeout as scheduleTimeout } from "node:timers";
 import { setTimeout as sleep } from "node:timers/promises";
 
+// Production is accepted only when the live deployment reports this exact commit.
 const [baseArgument, expectedShaArgument] = process.argv.slice(2);
 const baseUrl = new URL(baseArgument || "https://acidch.github.io/");
 const expectedSha = expectedShaArgument || process.env.GITHUB_SHA;
