@@ -45,9 +45,21 @@ def folder_proofs(browser: object, mobile: bool) -> None:
     suffix = "mobile" if mobile else "desktop"
     navigate_path(browser, "/zh/notes/")
     folder = '[data-learning-folder="decision-models"]'
+    browser.require(".tag-cloud-panel")
     browser.require(folder)
+    browser.require(".notes-results-heading")
+    order_ok = browser.execute(
+        "const tags=document.querySelector('.tag-cloud-panel');"
+        "const folders=document.querySelector('.learning-series-map');"
+        "const notes=document.querySelector('.notes-results-heading');"
+        "return Boolean(tags&&folders&&notes&&"
+        "tags.compareDocumentPosition(folders)&Node.DOCUMENT_POSITION_FOLLOWING&&"
+        "folders.compareDocumentPosition(notes)&Node.DOCUMENT_POSITION_FOLLOWING);"
+    )
+    if not order_ok:
+        raise RuntimeError("Learning Notes order must be tags → knowledge folders → all notes.")
     browser.wait_for_text(folder, "供应链与优化")
-    browser.wait_for_text(folder, "10 篇已发布")
+    browser.wait_for_text(folder, "10 篇")
     browser.scroll_to(folder)
     browser.screenshot(f"dm-folder-index-{suffix}.png")
 
@@ -58,6 +70,37 @@ def folder_proofs(browser: object, mobile: bool) -> None:
     browser.wait_for_text(series, "10 篇已发布笔记")
     browser.scroll_to('[data-folder-module="DM 01"]')
     browser.screenshot(f"dm-folder-series-{suffix}.png")
+
+
+def project_grid_proofs(browser: object, mobile: bool) -> None:
+    suffix = "mobile" if mobile else "desktop"
+    expected_columns = 1 if mobile else 2
+
+    navigate_path(browser, "/zh/")
+    browser.require(".project-list--balanced")
+    home_columns = browser.execute(
+        "const grid=document.querySelector('.project-list--balanced');"
+        "return grid ? getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length : 0;"
+    )
+    if home_columns != expected_columns:
+        raise RuntimeError(
+            f"Homepage project grid expected {expected_columns} columns, got {home_columns}."
+        )
+    browser.scroll_to(".project-list--balanced")
+    browser.screenshot(f"project-grid-home-{suffix}.png")
+
+    navigate_path(browser, "/zh/projects/")
+    browser.require(".project-list--balanced")
+    project_columns = browser.execute(
+        "const grid=document.querySelector('.project-list--balanced');"
+        "return grid ? getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length : 0;"
+    )
+    if project_columns != expected_columns:
+        raise RuntimeError(
+            f"Projects page grid expected {expected_columns} columns, got {project_columns}."
+        )
+    browser.scroll_to(".project-list--balanced")
+    browser.screenshot(f"project-grid-index-{suffix}.png")
 
 
 def common_topic_proofs(browser: object, mobile: bool) -> None:
@@ -175,9 +218,11 @@ def main() -> None:
         browser = base.BrowserSession(driver_base, f"http://127.0.0.1:{site_port}")
         browser.set_viewport(1440, 1000, mobile=False)
         folder_proofs(browser, mobile=False)
+        project_grid_proofs(browser, mobile=False)
         common_topic_proofs(browser, mobile=False)
         browser.set_viewport(390, 844, mobile=True)
         folder_proofs(browser, mobile=True)
+        project_grid_proofs(browser, mobile=True)
         common_topic_proofs(browser, mobile=True)
     finally:
         if browser is not None:
@@ -190,11 +235,11 @@ def main() -> None:
         server.shutdown()
         server.server_close()
 
-    expected = 22
+    expected = 26
     actual = len(list(OUTPUT.glob("*.png")))
     if actual != expected:
         raise RuntimeError(f"Expected {expected} decision-model visual proofs, generated {actual}.")
-    print(f"Captured {actual} supply-chain decision-model visual proofs in {OUTPUT}.")
+    print(f"Captured {actual} supply-chain and layout visual proofs in {OUTPUT}.")
 
 
 if __name__ == "__main__":
