@@ -27,6 +27,14 @@ const handbooks = [
     source: "sql-select.zh.md",
     route: "sql-select",
   },
+  {
+    source: "sql-where.zh.md",
+    route: "sql-where",
+  },
+  {
+    source: "sql-projection.zh.md",
+    route: "sql-projection",
+  },
 ];
 
 const forbidden = [
