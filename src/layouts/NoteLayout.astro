@@ -5,6 +5,7 @@ import NoteList from "../components/NoteList.astro";
 import ProjectList from "../components/ProjectList.astro";
 import CorrelationLab from "../components/learning/CorrelationLab.astro";
 import DescriptiveStatisticsLab from "../components/learning/DescriptiveStatisticsLab.astro";
+import ForeignKeyLab from "../components/learning/ForeignKeyLab.astro";
 import LearningNoteHero from "../components/learning/LearningNoteHero.astro";
 import LearningNoteToc from "../components/learning/LearningNoteToc.astro";
 import NormalDistributionLab from "../components/learning/NormalDistributionLab.astro";
@@ -25,7 +26,8 @@ const { Content } = await render(entry);
 const isStatisticsHandbook = entry.data.slug === "descriptive-statistics";
 const isSqlOverview = entry.data.slug === "sql-relational-data";
 const isSqlPrimaryKey = entry.data.slug === "sql-primary-key";
-const isSqlEditorial = isSqlOverview || isSqlPrimaryKey;
+const isSqlForeignKey = entry.data.slug === "sql-foreign-key";
+const isSqlEditorial = isSqlOverview || isSqlPrimaryKey || isSqlForeignKey;
 const isHandbook = isStatisticsHandbook || isSqlEditorial;
 
 const statisticsToc = [
@@ -134,12 +136,31 @@ const sqlPrimaryKeyToc = [
   { id: "下一步从身份进入关系", label: "下一步" },
 ];
 
-const learningToc = isSqlPrimaryKey
-  ? sqlPrimaryKeyToc
-  : isSqlOverview
-    ? sqlOverviewToc
-    : statisticsToc;
-const handbookTitle = isSqlPrimaryKey
+const sqlForeignKeyToc = [
+  { id: "主键解决是谁外键解决和谁有关", label: "主键与外键" },
+  { id: "外键不是因为列名相同才成立", label: "关系来自约束" },
+  { id: "父表与子表怎样理解", label: "父表与子表" },
+  { id: "什么叫引用完整性", label: "引用完整性" },
+  { id: "外键约束如何阻止无效订单", label: "无效引用实验" },
+  { id: "为什么必须先有父表记录", label: "写入依赖" },
+  { id: "外键列可以重复吗", label: "外键可重复" },
+  { id: "外键可以为空吗", label: "NULL 与外键" },
+  { id: "逻辑外键与数据库外键约束不是同一件事", label: "逻辑外键与约束" },
+  { id: "删除外键约束不等于删除字段", label: "删除约束" },
+  { id: "外键为什么会直接影响分析质量", label: "分析质量" },
+  { id: "检查外键关系时可以问什么", label: "关系检查" },
+  { id: "本篇的核心判断", label: "核心判断" },
+  { id: "下一步关系到底是一对多还是多对多", label: "下一步" },
+];
+
+const learningToc = isSqlForeignKey
+  ? sqlForeignKeyToc
+  : isSqlPrimaryKey
+    ? sqlPrimaryKeyToc
+    : isSqlOverview
+      ? sqlOverviewToc
+      : statisticsToc;
+const handbookTitle = isSqlPrimaryKey || isSqlForeignKey
   ? entry.data.title
   : isSqlOverview
     ? "SQL 与关系数据"
@@ -244,6 +265,24 @@ const noteStructuredData = {
                       data-learning-block="primary-key-lab"
                     >
                       <PrimaryKeyLab />
+                    </div>
+                    <div
+                      class="learning-note__inline-block"
+                      data-learning-block="sql-playground"
+                    >
+                      <SqlPlayground />
+                    </div>
+                  </>
+                )
+              }
+              {
+                isSqlForeignKey && (
+                  <>
+                    <div
+                      class="learning-note__inline-block"
+                      data-learning-block="foreign-key-lab"
+                    >
+                      <ForeignKeyLab />
                     </div>
                     <div
                       class="learning-note__inline-block"
