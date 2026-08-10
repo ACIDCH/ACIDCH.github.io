@@ -1,9 +1,49 @@
 ---
+import { sqlLearningSeedSql } from "../../data/sql-learning";
+
 interface Props {
-  defaultPreset?: "join" | "customers" | "orders" | "expression" | "aggregate" | "duplicate" | "foreign-key";
+  defaultPreset?:
+    | "join"
+    | "customers"
+    | "orders"
+    | "products"
+    | "order-items"
+    | "expression"
+    | "aggregate"
+    | "duplicate"
+    | "foreign-key";
+  focus?: "keys" | "select" | "all";
 }
 
-const { defaultPreset = "join" } = Astro.props;
+const { defaultPreset = "customers", focus = "all" } = Astro.props;
+const presetOptions = {
+  keys: [
+    { value: "customers", label: "查看客户表" },
+    { value: "orders", label: "查看订单表" },
+    { value: "duplicate", label: "测试重复主键" },
+    { value: "foreign-key", label: "测试无效外键" },
+  ],
+  select: [
+    { value: "customers", label: "SELECT customers" },
+    { value: "orders", label: "SELECT orders" },
+    { value: "products", label: "SELECT products" },
+    { value: "order-items", label: "SELECT order_items" },
+    { value: "expression", label: "SELECT 1 执行检查" },
+  ],
+  all: [
+    { value: "customers", label: "查看客户表" },
+    { value: "orders", label: "查看订单表" },
+    { value: "products", label: "查看产品表" },
+    { value: "order-items", label: "查看订单明细" },
+    { value: "expression", label: "SELECT 1 执行检查" },
+    { value: "join", label: "连接客户与订单" },
+    { value: "aggregate", label: "按客户汇总订单" },
+    { value: "duplicate", label: "测试重复主键" },
+    { value: "foreign-key", label: "测试无效外键" },
+  ],
+} as const;
+const visiblePresets = presetOptions[focus];
+const serializedSeed = JSON.stringify(sqlLearningSeedSql).replace(/</g, "\\u003c");
 ---
 
 <section
@@ -14,23 +54,19 @@ const { defaultPreset = "join" } = Astro.props;
 >
   <div class="sql-playground__intro">
     <p class="learning-note-kicker">浏览器实验 · SQLite</p>
-    <h3 id="sql-playground-title">直接修改 SQL，再运行同一组客户与订单数据</h3>
+    <h3 id="sql-playground-title">直接修改 SQL，再运行同一组业务数据</h3>
     <p>
-      数据库只存在于当前浏览器内存中。点击运行后会按需加载 SQLite，不会在普通页面打开时提前启动运行环境。
+      客户、订单、产品、订单明细和客户扩展资料都来自 SQL 系列的统一数据源。数据库只存在于当前浏览器内存中，重置后会恢复为同一份初始数据。
     </p>
   </div>
 
   <div class="sql-playground__toolbar">
     <label for="sql-playground-preset">
-      <span>示例</span>
+      <span>当前主题示例</span>
       <select id="sql-playground-preset" data-sql-preset>
-        <option value="join">连接客户与订单</option>
-        <option value="customers">查看客户表</option>
-        <option value="orders">查看订单表</option>
-        <option value="expression">SELECT 1 连接检查</option>
-        <option value="aggregate">按客户汇总订单</option>
-        <option value="duplicate">测试重复主键</option>
-        <option value="foreign-key">测试无效外键</option>
+        {visiblePresets.map((option) => (
+          <option value={option.value}>{option.label}</option>
+        ))}
       </select>
     </label>
     <div class="sql-playground__actions">
@@ -48,9 +84,15 @@ const { defaultPreset = "join" } = Astro.props;
     运行环境尚未加载。
   </div>
 
+  <div class="sql-playground__result-summary" data-sql-result-summary aria-live="polite">
+    尚未运行查询。
+  </div>
+
   <div class="sql-playground__output" data-sql-output aria-live="polite">
     <p>运行查询后，结果表会显示在这里。</p>
   </div>
+
+  <script is:inline type="application/json" data-sql-seed set:html={serializedSeed} />
 </section>
 
 <style>
@@ -73,6 +115,7 @@ const { defaultPreset = "join" } = Astro.props;
 
   .sql-playground__intro p:last-child,
   .sql-playground__status,
+  .sql-playground__result-summary,
   .sql-playground__output > p {
     color: var(--colour-text-muted);
   }
@@ -132,12 +175,22 @@ const { defaultPreset = "join" } = Astro.props;
   }
 
   .sql-playground__status {
-    margin: var(--space-3) 0;
+    margin: var(--space-3) 0 var(--space-2);
     font-size: var(--font-size-sm);
   }
 
   .sql-playground__status[data-state="error"] {
     color: var(--colour-danger, #9a3f38);
+  }
+
+  .sql-playground__result-summary {
+    display: inline-block;
+    margin-bottom: var(--space-3);
+    padding: 0.35rem 0.55rem;
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-xs);
   }
 
   .sql-playground__output {
@@ -272,8 +325,10 @@ const { defaultPreset = "join" } = Astro.props;
     const runButton = root.querySelector<HTMLButtonElement>("[data-sql-run]");
     const resetButton = root.querySelector<HTMLButtonElement>("[data-sql-reset]");
     const status = root.querySelector<HTMLElement>("[data-sql-status]");
+    const summary = root.querySelector<HTMLElement>("[data-sql-result-summary]");
     const output = root.querySelector<HTMLElement>("[data-sql-output]");
-    if (!preset || !code || !runButton || !resetButton || !status || !output) return;
+    const seedNode = root.querySelector<HTMLScriptElement>("[data-sql-seed]");
+    if (!preset || !code || !runButton || !resetButton || !status || !summary || !output || !seedNode) return;
 
     const playgroundRoot = root;
     const presetSelect = preset;
@@ -281,53 +336,46 @@ const { defaultPreset = "join" } = Astro.props;
     const runControl = runButton;
     const resetControl = resetButton;
     const statusOutput = status;
+    const summaryOutput = summary;
     const resultOutput = output;
     const controller = new AbortController();
+    const seedSql = JSON.parse(seedNode.textContent || '""') as string;
     let db: SqlDatabase | undefined;
 
     const examples: Record<string, string> = {
       join: `SELECT\n  o.order_id,\n  c.customer_name,\n  o.order_date,\n  o.order_value\nFROM orders AS o\nJOIN customers AS c\n  ON o.customer_id = c.customer_id\nORDER BY o.order_id;`,
       customers: `SELECT *\nFROM customers\nORDER BY customer_id;`,
       orders: `SELECT *\nFROM orders\nORDER BY order_id;`,
-      expression: `SELECT 1 AS connection_ok;`,
+      products: `SELECT *\nFROM products\nORDER BY product_id;`,
+      "order-items": `SELECT *\nFROM order_items\nORDER BY order_id, product_id;`,
+      expression: `SELECT 1 AS execution_ok;`,
       aggregate: `SELECT\n  c.customer_name,\n  COUNT(o.order_id) AS order_count,\n  ROUND(SUM(o.order_value), 2) AS total_value\nFROM customers AS c\nLEFT JOIN orders AS o\n  ON c.customer_id = o.customer_id\nGROUP BY c.customer_id, c.customer_name\nORDER BY total_value DESC;`,
-      duplicate: `INSERT INTO customers (customer_id, customer_name, email, segment)\nVALUES (1001, 'Duplicate Customer', 'duplicate@example.com', 'Retail');`,
+      duplicate: `INSERT INTO customers (customer_id, customer_name, email, phone, segment)\nVALUES (1001, 'Duplicate Customer', 'duplicate@example.com', '021-999-999', 'Retail');`,
       "foreign-key": `INSERT INTO orders (order_id, customer_id, order_date, order_value)\nVALUES (50999, 9999, '2026-08-10', 99.00);`,
     };
-
-    const seedSql = `
-PRAGMA foreign_keys = ON;
-CREATE TABLE customers (
-  customer_id INTEGER PRIMARY KEY,
-  customer_name TEXT NOT NULL,
-  email TEXT NOT NULL UNIQUE,
-  segment TEXT NOT NULL
-);
-CREATE TABLE orders (
-  order_id INTEGER PRIMARY KEY,
-  customer_id INTEGER NOT NULL,
-  order_date TEXT NOT NULL,
-  order_value REAL NOT NULL,
-  FOREIGN KEY (customer_id) REFERENCES customers (customer_id)
-);
-INSERT INTO customers VALUES
-  (1001, 'North Retail', 'north@example.com', 'Retail'),
-  (1002, 'Coast Foods', 'coast@example.com', 'Wholesale'),
-  (1003, 'Alpine Labs', 'alpine@example.com', 'Enterprise');
-INSERT INTO orders VALUES
-  (50001, 1001, '2026-07-03', 420.00),
-  (50002, 1001, '2026-07-05', 185.00),
-  (50003, 1002, '2026-07-06', 760.00),
-  (50004, 1003, '2026-07-09', 510.00);
-`;
 
     function setStatus(message: string, state = "ready") {
       statusOutput.textContent = message;
       statusOutput.dataset.state = state;
     }
 
+    function setResultSummary(results: SqlResult[]) {
+      if (results.length === 0) {
+        summaryOutput.textContent = "0 result sets · statement completed";
+        return;
+      }
+      if (results.length === 1) {
+        const [result] = results;
+        summaryOutput.textContent = `${result.values.length} rows × ${result.columns.length} columns`;
+        return;
+      }
+      const rowCount = results.reduce((total, result) => total + result.values.length, 0);
+      summaryOutput.textContent = `${results.length} result sets · ${rowCount} returned rows`;
+    }
+
     function renderResults(results: SqlResult[]) {
       resultOutput.replaceChildren();
+      setResultSummary(results);
       if (results.length === 0) {
         const paragraph = document.createElement("p");
         paragraph.textContent = "SQL 执行成功，没有返回结果集。";
@@ -368,7 +416,7 @@ INSERT INTO orders VALUES
       db?.close();
       db = new SQL.Database();
       db.run(seedSql);
-      if (showStatus) setStatus("SQLite 已就绪，示例数据库已重置。", "ready");
+      if (showStatus) setStatus("SQLite 已就绪，统一示例数据库已重置。", "ready");
     }
 
     async function runQuery() {
@@ -383,6 +431,7 @@ INSERT INTO orders VALUES
         const paragraph = document.createElement("p");
         paragraph.textContent = error instanceof Error ? error.message : String(error);
         resultOutput.replaceChildren(paragraph);
+        summaryOutput.textContent = "query failed";
         setStatus("SQL 执行失败。查看下方错误信息。", "error");
       } finally {
         runControl.disabled = false;
@@ -392,7 +441,7 @@ INSERT INTO orders VALUES
     presetSelect.addEventListener(
       "change",
       () => {
-        codeEditor.value = examples[presetSelect.value] ?? examples.join;
+        codeEditor.value = examples[presetSelect.value] ?? examples.customers;
       },
       { signal: controller.signal },
     );
@@ -404,8 +453,9 @@ INSERT INTO orders VALUES
         try {
           await resetDatabase();
           const paragraph = document.createElement("p");
-          paragraph.textContent = "数据库已恢复到初始客户与订单数据。";
+          paragraph.textContent = "数据库已恢复到统一的初始业务数据。";
           resultOutput.replaceChildren(paragraph);
+          summaryOutput.textContent = "database reset · no query result yet";
         } catch (error) {
           setStatus(error instanceof Error ? error.message : String(error), "error");
         }
@@ -424,10 +474,14 @@ INSERT INTO orders VALUES
       { signal: controller.signal },
     );
 
-    const requestedPreset = playgroundRoot.dataset.defaultPreset || "join";
-    const initialPreset = requestedPreset in examples ? requestedPreset : "join";
+    const requestedPreset = playgroundRoot.dataset.defaultPreset || "customers";
+    const availablePresets = Array.from(presetSelect.options).map((option) => option.value);
+    const initialPreset =
+      requestedPreset in examples && availablePresets.includes(requestedPreset)
+        ? requestedPreset
+        : availablePresets[0] || "customers";
     presetSelect.value = initialPreset;
-    codeEditor.value = examples[initialPreset];
+    codeEditor.value = examples[initialPreset] ?? examples.customers;
     sqlPlaygroundCleanup = () => {
       controller.abort();
       db?.close();
