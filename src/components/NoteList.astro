@@ -16,57 +16,73 @@ const { entries, locale } = Astro.props;
     <p>{locale === "en" ? "No notes are available yet." : "暂时没有可展示的笔记。"}</p>
   ) : (
     <ul class="content-list">
-      {entries.map((entry) => (
-        <li
-          data-reveal
-          data-note-card
-          data-search={`${entry.data.title} ${entry.data.summary} ${entry.data.tags.join(" ")} ${entry.data.topics.join(" ")} ${entry.data.tools.join(" ")} ${entry.data.series ?? ""}`.toLocaleLowerCase()}
-          data-tags={entry.data.tags.join("|").toLocaleLowerCase()}
-          data-topics={entry.data.topics.join("|").toLocaleLowerCase()}
-          data-tools={entry.data.tools.join("|").toLocaleLowerCase()}
-          data-series={(entry.data.series ?? "").toLocaleLowerCase()}
-        >
-          <article class="note-card">
-            <p class="status">
-              {entry.data.draft
-                ? locale === "en"
-                  ? "Draft"
-                  : "草稿"
-                : locale === "en"
-                  ? "Published"
-                  : "已发布"}
-            </p>
-            <h2>
-              <a href={getLocalizedPath(`/notes/${entry.data.slug}/`, locale)}>
-                {entry.data.title}
-              </a>
-            </h2>
-            <p>{entry.data.summary}</p>
-            {(entry.data.series ||
-              entry.data.tags.length ||
-              entry.data.topics.length ||
-              entry.data.tools.length) && (
-              <div class="note-card__metadata">
-                {entry.data.series && <span class="tag">{entry.data.series}</span>}
-                {entry.data.tags.map((tag) => (
-                  <a
-                    class="tag"
-                    href={getLocalizedPath(
-                      `/notes/?tag=${encodeURIComponent(tag)}`,
-                      locale,
-                    )}
-                  >
-                    {tag}
+      {entries.map((entry) => {
+        const isStatisticsHandbook =
+          entry.data.locale === "zh" && entry.data.slug === "descriptive-statistics";
+        const displayTitle = isStatisticsHandbook ? "统计学与 R" : entry.data.title;
+
+        return (
+          <li
+            data-reveal
+            data-note-card
+            data-search={`${entry.data.title} ${displayTitle} ${entry.data.summary} ${entry.data.tags.join(" ")} ${entry.data.topics.join(" ")} ${entry.data.tools.join(" ")} ${entry.data.series ?? ""}`.toLocaleLowerCase()}
+            data-tags={entry.data.tags.join("|").toLocaleLowerCase()}
+            data-topics={entry.data.topics.join("|").toLocaleLowerCase()}
+            data-tools={entry.data.tools.join("|").toLocaleLowerCase()}
+            data-series={(entry.data.series ?? "").toLocaleLowerCase()}
+          >
+            <article class:list={["note-card", isStatisticsHandbook && "note-card--handbook"]}>
+              {isStatisticsHandbook ? (
+                <h2>
+                  <a href={getLocalizedPath(`/notes/${entry.data.slug}/`, locale)}>
+                    {displayTitle}
                   </a>
-                ))}
-              </div>
-            )}
-            {entry.data.isPlaceholder && (
-              <span class="tag">{locale === "en" ? "Placeholder" : "占位内容"}</span>
-            )}
-          </article>
-        </li>
-      ))}
+                </h2>
+              ) : (
+                <>
+                  <p class="status">
+                    {entry.data.draft
+                      ? locale === "en"
+                        ? "Draft"
+                        : "草稿"
+                      : locale === "en"
+                        ? "Published"
+                        : "已发布"}
+                  </p>
+                  <h2>
+                    <a href={getLocalizedPath(`/notes/${entry.data.slug}/`, locale)}>
+                      {displayTitle}
+                    </a>
+                  </h2>
+                  <p>{entry.data.summary}</p>
+                  {(entry.data.series ||
+                    entry.data.tags.length ||
+                    entry.data.topics.length ||
+                    entry.data.tools.length) && (
+                    <div class="note-card__metadata">
+                      {entry.data.series && <span class="tag">{entry.data.series}</span>}
+                      {entry.data.tags.map((tag) => (
+                        <a
+                          class="tag"
+                          href={getLocalizedPath(
+                            `/notes/?tag=${encodeURIComponent(tag)}`,
+                            locale,
+                          )}
+                        >
+                          {tag}
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                  {entry.data.isPlaceholder && (
+                    <span class="tag">{locale === "en" ? "Placeholder" : "占位内容"}</span>
+                  )}
+                </>
+              )}
+            </article>
+          </li>
+        );
+      })}
     </ul>
   )
 }

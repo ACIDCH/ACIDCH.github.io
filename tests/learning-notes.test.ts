@@ -5,6 +5,7 @@ const note = readFileSync("src/content/notes/descriptive-statistics.zh.md", "utf
 const layout = readFileSync("src/layouts/NoteLayout.astro", "utf8");
 const hero = readFileSync("src/components/learning/LearningNoteHero.astro", "utf8");
 const toc = readFileSync("src/components/learning/LearningNoteToc.astro", "utf8");
+const noteList = readFileSync("src/components/NoteList.astro", "utf8");
 const editorialCss = readFileSync("src/styles/learning-note-editorial.css", "utf8");
 const normalLab = readFileSync("src/components/learning/NormalDistributionLab.astro", "utf8");
 const correlationLab = readFileSync("src/components/learning/CorrelationLab.astro", "utf8");
@@ -82,6 +83,13 @@ describe("R and Statistics Learning Note handbook", () => {
     expect(hero).not.toContain("summary");
     expect(hero).not.toContain("tags");
     expect(hero).not.toContain("tools");
+  });
+
+  it("uses the same title-only handbook card on the home and Learning Notes lists", () => {
+    expect(noteList).toContain('entry.data.slug === "descriptive-statistics"');
+    expect(noteList).toContain('const displayTitle = isStatisticsHandbook ? "统计学与 R" : entry.data.title');
+    expect(noteList).toContain('isStatisticsHandbook && "note-card--handbook"');
+    expect(noteList).toContain("{isStatisticsHandbook ? (");
   });
 
   it("removes the preface from the visible handbook and its TOC", () => {
