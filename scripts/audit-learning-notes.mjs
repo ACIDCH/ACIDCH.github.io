@@ -19,6 +19,10 @@ const handbooks = [
     source: "sql-foreign-key.zh.md",
     route: "sql-foreign-key",
   },
+  {
+    source: "sql-relationships.zh.md",
+    route: "sql-relationships",
+  },
 ];
 
 const forbidden = [
