@@ -5,7 +5,9 @@ import NoteList from "../components/NoteList.astro";
 import ProjectList from "../components/ProjectList.astro";
 import DescriptiveStatisticsLab from "../components/learning/DescriptiveStatisticsLab.astro";
 import LearningNoteHero from "../components/learning/LearningNoteHero.astro";
+import LearningNoteRail from "../components/learning/LearningNoteRail.astro";
 import LearningNoteToc from "../components/learning/LearningNoteToc.astro";
+import "../styles/learning-note-editorial.css";
 import { getCanonicalUrl } from "../utils/urls";
 import BaseLayout from "./BaseLayout.astro";
 
@@ -25,6 +27,18 @@ const learningToc = [
   { id: "用图读出分布", label: "用图读出分布" },
   { id: "r-中的最小工作流", label: "R 中的最小工作流" },
   { id: "把统计量放回决策", label: "把统计量放回决策" },
+];
+const learningFacts = [
+  { label: "教学记录", value: "24 条", note: "一次服务事件 = 一条观察" },
+  { label: "均值", value: "20.75 分钟", note: "受右侧长尾影响" },
+  { label: "中位数", value: "17.5 分钟", note: "更接近典型等待位置" },
+  { label: "≤ 20 分钟", value: "62.5%", note: "由基准 ECDF 读取" },
+];
+const learningPath = [
+  "先固定记录粒度、单位与时间窗口",
+  "再比较中心位置与离散程度",
+  "用直方图、箱线图和 ECDF 检查形状",
+  "最后把统计量放回业务问题",
 ];
 const notes = await getCollection("notes");
 const projects = await getCollection("projects");
@@ -61,6 +75,7 @@ const noteStructuredData = {
   noindex={entry.data.draft || entry.data.isPlaceholder}
   pageType="article"
   structuredData={noteStructuredData}
+  fullWidth={isLearningSample}
 >
   <article class:list={[isLearningSample && "learning-note"]}>
     <ContextBack
@@ -92,6 +107,12 @@ const noteStructuredData = {
               <Content />
               <DescriptiveStatisticsLab />
             </div>
+            <LearningNoteRail
+              facts={learningFacts}
+              path={learningPath}
+              jumpHref="#statistics-lab-title"
+              jumpLabel="进入互动观察台"
+            />
           </div>
         </>
       ) : (
