@@ -195,6 +195,7 @@ const serializedRows = JSON.stringify(sqlCustomers).replace(/</g, "\\u003c");
     phone: string;
     segment: string;
   };
+  type KeyChoice = "customer_id" | "email" | "phone";
 
   let primaryKeyCleanup: (() => void) | undefined;
 
@@ -234,10 +235,10 @@ const serializedRows = JSON.stringify(sqlCustomers).replace(/</g, "\\u003c");
     const resetControl = resetButton;
     const controller = new AbortController();
     const originalRows = JSON.parse(sourceNode.textContent || "[]") as CustomerRow[];
-    let selected: "customer_id" | "email" | "phone" = "customer_id";
+    let selected: KeyChoice = "customer_id";
     let changed = false;
 
-    const messages: Record<typeof selected, string> = {
+    const messages: Record<KeyChoice, string> = {
       customer_id: "与业务含义分离，值稳定且唯一，适合作为记录的持久标识。",
       email: "当前可以唯一，但邮箱属于业务字段。客户更换邮箱时，记录身份不应该跟着改变。",
       phone: "手机号可能被更换、回收或重新分配。它适合保存业务联系信息，不适合作为稳定身份。",
