@@ -276,6 +276,17 @@ def capture_visuals(browser: BrowserSession) -> None:
     browser.wait_for_text("[data-sql-result-summary]", "2 rows × 4 columns")
     browser.screenshot("sql06-where-playground-desktop.png")
 
+    browser.navigate("sql-projection")
+    browser.assert_toc_targets()
+    browser.scroll_to("[data-projection-lab]")
+    browser.click('[data-projection-mode="alias"]')
+    browser.wait_for_text("[data-projection-head]", "customer_key")
+    browser.screenshot("sql07-projection-alias-desktop.png")
+    browser.scroll_to("[data-sql-playground]")
+    browser.click("[data-sql-run]")
+    browser.wait_for_text("[data-sql-result-summary]", "3 rows × 3 columns")
+    browser.screenshot("sql07-projection-playground-desktop.png")
+
     browser.set_viewport(390, 844, mobile=True)
     mobile_targets = [
         ("sql-relational-data", "[data-relational-model-explorer]", "sql01-model-mobile.png"),
@@ -289,6 +300,12 @@ def capture_visuals(browser: BrowserSession) -> None:
         ),
         ("sql-select", "[data-sql-playground]", "sql05-select-playground-mobile.png"),
         ("sql-where", "[data-where-filter-lab]", "sql06-where-mobile.png"),
+        ("sql-projection", "[data-projection-lab]", "sql07-projection-mobile.png"),
+        (
+            "sql-projection",
+            "[data-sql-playground]",
+            "sql07-projection-playground-mobile.png",
+        ),
     ]
     for slug, selector, name in mobile_targets:
         browser.navigate(slug)
@@ -333,7 +350,7 @@ def main() -> None:
         server.shutdown()
         server.server_close()
 
-    expected = 18
+    expected = 22
     actual = len(list(OUTPUT.glob("*.png")))
     if actual != expected:
         raise RuntimeError(f"Expected {expected} visual proofs, generated {actual}.")
