@@ -5,9 +5,12 @@ import NoteLayout from "../../../layouts/NoteLayout.astro";
 import { getLocalizedPath } from "../../../utils/paths";
 
 export async function getStaticPaths() {
+  const includeDrafts = import.meta.env.DEV;
   const entries = await getCollection("notes");
   return entries
-    .filter((entry) => entry.data.locale === "zh")
+    .filter(
+      (entry) => entry.data.locale === "zh" && (includeDrafts || !entry.data.draft),
+    )
     .map((entry) => ({ params: { slug: entry.data.slug }, props: { entry, entries } }));
 }
 

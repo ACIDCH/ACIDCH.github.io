@@ -1,0 +1,15 @@
+---
+interface Props {
+  label: string;
+  formula: string;
+  description: string;
+}
+
+const { label, formula, description } = Astro.props;
+---
+
+<figure class="note-formula">
+  <figcaption>{label}</figcaption>
+  <code>{formula}</code>
+  <p>{description}</p>
+</figure>

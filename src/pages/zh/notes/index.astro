@@ -6,8 +6,9 @@ import ProjectList from "../../../components/ProjectList.astro";
 import BaseLayout from "../../../layouts/BaseLayout.astro";
 import { getPaginationPath, getTotalPages } from "../../../utils/pagination";
 
+const includeDrafts = import.meta.env.DEV;
 const notes = (await getCollection("notes"))
-  .filter((entry) => entry.data.locale === "zh")
+  .filter((entry) => entry.data.locale === "zh" && (includeDrafts || !entry.data.draft))
   .sort((left, right) => left.data.title.localeCompare(right.data.title, "zh-CN"));
 const relatedProjectKeys = new Set(
   notes.flatMap((entry) => entry.data.relatedProjects),

@@ -1,0 +1,27 @@
+---
+interface Item {
+  id: string;
+  label: string;
+}
+
+interface Props {
+  items: Item[];
+}
+
+const { items } = Astro.props;
+---
+
+<nav class="learning-note-toc" aria-label="本页目录" data-learning-note-toc>
+  <details open>
+    <summary>本页内容</summary>
+    <ol>
+      {
+        items.map((item) => (
+          <li>
+            <a href={`#${item.id}`}>{item.label}</a>
+          </li>
+        ))
+      }
+    </ol>
+  </details>
+</nav>
