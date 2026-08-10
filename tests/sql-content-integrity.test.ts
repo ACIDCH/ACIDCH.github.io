@@ -18,6 +18,7 @@ const sqlSources = [
   "src/content/notes/sql-foreign-key.zh.md",
   "src/content/notes/sql-relationships.zh.md",
   "src/content/notes/sql-select.zh.md",
+  "src/components/learning/RelationalModelExplorer.astro",
   "src/components/learning/PrimaryKeyLab.astro",
   "src/components/learning/ForeignKeyLab.astro",
   "src/components/learning/RelationshipCardinalityLab.astro",
@@ -78,6 +79,16 @@ describe("SQL Learning Notes integrity contract", () => {
 
   it("prevents stale fictional IDs from drifting into the SQL teaching system", () => {
     sqlSources.forEach((source) => expect(source).not.toContain("50008"));
+  });
+
+  it("keeps the data-model visual on canonical SQL entities only", () => {
+    const explorer = read("src/components/learning/RelationalModelExplorer.astro");
+    ["Customers", "Orders", "Order Items", "Products", "Customer Profiles"].forEach(
+      (entity) => expect(explorer).toContain(entity),
+    );
+    ["Shipments", "Warehouses", "Categories"].forEach((inventedEntity) => {
+      expect(explorer).not.toContain(inventedEntity);
+    });
   });
 
   it("locks the SQL roadmap to the complete 20-note sequence", () => {
