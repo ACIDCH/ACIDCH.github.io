@@ -73,7 +73,11 @@ const pageChecks = [
       "data-primary-key-lab",
       "data-sql-playground",
     ],
-    forbiddenMarkers: ["data-foreign-key-lab", "data-relationship-cardinality-lab", ">简介<"],
+    forbiddenMarkers: [
+      "data-foreign-key-lab",
+      "data-relationship-cardinality-lab",
+      ">简介<",
+    ],
   },
   {
     path: "zh/notes/sql-foreign-key/",
@@ -84,7 +88,11 @@ const pageChecks = [
       "data-foreign-key-lab",
       "data-sql-playground",
     ],
-    forbiddenMarkers: ["data-primary-key-lab", "data-relationship-cardinality-lab", ">简介<"],
+    forbiddenMarkers: [
+      "data-primary-key-lab",
+      "data-relationship-cardinality-lab",
+      ">简介<",
+    ],
   },
   {
     path: "zh/notes/sql-relationships/",
@@ -96,7 +104,29 @@ const pageChecks = [
       "order_items",
       "data-relationship-cardinality-lab",
     ],
-    forbiddenMarkers: ["data-primary-key-lab", "data-foreign-key-lab", "data-sql-playground", ">简介<"],
+    forbiddenMarkers: [
+      "data-primary-key-lab",
+      "data-foreign-key-lab",
+      "data-sql-playground",
+      ">简介<",
+    ],
+  },
+  {
+    path: "zh/notes/sql-select/",
+    markers: [
+      "SELECT：从关系表中读取第一份结果集",
+      "SELECT *",
+      "Result Set",
+      "SELECT 1",
+      "data-sql-playground",
+      'data-default-preset="customers"',
+    ],
+    forbiddenMarkers: [
+      "data-primary-key-lab",
+      "data-foreign-key-lab",
+      "data-relationship-cardinality-lab",
+      ">简介<",
+    ],
   },
   {
     path: "zh/projects/customer-churn-machine-learning/",
