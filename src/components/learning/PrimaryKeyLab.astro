@@ -125,6 +125,10 @@ const serializedRows = JSON.stringify(sqlCustomers).replace(/</g, "\\u003c");
     white-space: nowrap;
   }
 
+  .primary-key-lab td::before {
+    content: none;
+  }
+
   .primary-key-lab th[data-active-key="true"],
   .primary-key-lab td[data-active-key="true"] {
     background: var(--colour-surface-subtle);
@@ -176,6 +180,57 @@ const serializedRows = JSON.stringify(sqlCustomers).replace(/</g, "\\u003c");
   }
 
   @media (max-width: 42rem) {
+    .primary-key-lab__table-wrap {
+      overflow-x: visible;
+    }
+
+    .primary-key-lab table,
+    .primary-key-lab tbody,
+    .primary-key-lab tr,
+    .primary-key-lab td {
+      display: block;
+      width: 100%;
+    }
+
+    .primary-key-lab thead {
+      display: none;
+    }
+
+    .primary-key-lab tbody {
+      display: grid;
+      gap: var(--space-3);
+    }
+
+    .primary-key-lab tbody tr {
+      padding: var(--space-2) var(--space-3);
+      border: 1px solid var(--colour-border);
+      border-radius: var(--radius-sm);
+      background: var(--colour-surface);
+    }
+
+    .primary-key-lab td {
+      display: grid;
+      grid-template-columns: 7.4rem minmax(0, 1fr);
+      gap: var(--space-3);
+      padding: 0.52rem 0;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+
+    .primary-key-lab td::before {
+      content: attr(data-label);
+      color: var(--colour-text-muted);
+      font-family: var(--font-mono);
+      font-size: var(--font-size-xs);
+      text-decoration: none;
+    }
+
+    .primary-key-lab td[data-active-key="true"] {
+      margin-inline: calc(var(--space-2) * -1);
+      padding-inline: var(--space-2);
+      border-radius: var(--radius-sm);
+    }
+
     .primary-key-lab__checks {
       grid-template-columns: 1fr;
       gap: var(--space-1);
@@ -201,6 +256,7 @@ const serializedRows = JSON.stringify(sqlCustomers).replace(/</g, "\\u003c");
     segment: string;
   };
   type KeyChoice = "customer_id" | "email" | "phone";
+  type VisibleField = "customer_id" | "customer_name" | "email" | "phone";
 
   let primaryKeyCleanup: (() => void) | undefined;
 
@@ -248,6 +304,13 @@ const serializedRows = JSON.stringify(sqlCustomers).replace(/</g, "\\u003c");
       email: "当前可以唯一，但邮箱属于业务字段。客户更换邮箱时，记录身份不应该跟着改变。",
       phone: "手机号可能被更换、回收或重新分配。它适合保存业务联系信息，不适合作为稳定身份。",
     };
+    const fields: VisibleField[] = ["customer_id", "customer_name", "email", "phone"];
+    const labels: Record<VisibleField, string> = {
+      customer_id: "customer_id",
+      customer_name: "customer_name",
+      email: "email",
+      phone: "phone",
+    };
 
     function rows() {
       return originalRows.map((row) => {
@@ -282,20 +345,19 @@ const serializedRows = JSON.stringify(sqlCustomers).replace(/</g, "\\u003c");
       tableBody.replaceChildren();
       currentRows.forEach((row) => {
         const tr = document.createElement("tr");
-        (["customer_id", "customer_name", "email", "phone"] as const).forEach(
-          (field) => {
-            const td = document.createElement("td");
-            td.textContent = String(row[field]);
-            if (field === selected) td.dataset.activeKey = "true";
-            if (
-              changed &&
-              row.customer_id === 1002 &&
-              (field === "email" || field === "phone")
-            )
-              td.dataset.changed = "true";
-            tr.append(td);
-          },
-        );
+        fields.forEach((field) => {
+          const td = document.createElement("td");
+          td.textContent = String(row[field]);
+          td.dataset.label = labels[field];
+          if (field === selected) td.dataset.activeKey = "true";
+          if (
+            changed &&
+            row.customer_id === 1002 &&
+            (field === "email" || field === "phone")
+          )
+            td.dataset.changed = "true";
+          tr.append(td);
+        });
         tableBody.append(tr);
       });
 
