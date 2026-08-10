@@ -3,9 +3,12 @@ import { getCollection, render, type CollectionEntry } from "astro:content";
 import ContextBack from "../components/ContextBack.astro";
 import NoteList from "../components/NoteList.astro";
 import ProjectList from "../components/ProjectList.astro";
+import CorrelationLab from "../components/learning/CorrelationLab.astro";
 import DescriptiveStatisticsLab from "../components/learning/DescriptiveStatisticsLab.astro";
 import LearningNoteHero from "../components/learning/LearningNoteHero.astro";
 import LearningNoteToc from "../components/learning/LearningNoteToc.astro";
+import NormalDistributionLab from "../components/learning/NormalDistributionLab.astro";
+import RegressionLab from "../components/learning/RegressionLab.astro";
 import "../styles/learning-note-editorial.css";
 import { getCanonicalUrl } from "../utils/urls";
 import BaseLayout from "./BaseLayout.astro";
@@ -19,7 +22,6 @@ const { entry, alternatePath } = Astro.props;
 const { Content } = await render(entry);
 const isHandbook = entry.data.slug === "descriptive-statistics";
 const learningToc = [
-  { id: "写在前面", label: "写在前面" },
   {
     id: "描述性统计量",
     label: "描述性统计量",
@@ -146,23 +148,34 @@ const noteStructuredData = {
     {
       isHandbook ? (
         <>
-          <LearningNoteHero
-            title={entry.data.title}
-            summary={entry.data.summary}
-            series={entry.data.series}
-            tags={entry.data.tags}
-            tools={entry.data.tools}
-            updatedAt={entry.data.updatedAt}
-          />
+          <LearningNoteHero title="统计学与 R" />
           <div class="learning-note__grid">
             <LearningNoteToc items={learningToc} />
             <div class="learning-note__body">
               <Content />
+              <div class="learning-note__inline-block" data-learning-block="statistics-lab">
+                <DescriptiveStatisticsLab />
+              </div>
               <div
                 class="learning-note__inline-block"
-                data-learning-block="statistics-lab"
+                data-learning-block="normal-distribution-lab"
+                data-learning-after-heading="连续概率分布"
               >
-                <DescriptiveStatisticsLab />
+                <NormalDistributionLab />
+              </div>
+              <div
+                class="learning-note__inline-block"
+                data-learning-block="correlation-lab"
+                data-learning-after-heading="相关性可视化展示"
+              >
+                <CorrelationLab />
+              </div>
+              <div
+                class="learning-note__inline-block"
+                data-learning-block="regression-lab"
+                data-learning-after-heading="回归分析"
+              >
+                <RegressionLab />
               </div>
             </div>
           </div>
@@ -216,7 +229,37 @@ const noteStructuredData = {
 </BaseLayout>
 
 <script>
+  function removeHandbookPreface() {
+    const heading = document.getElementById("写在前面");
+    if (!heading) return;
+    let node = heading.nextElementSibling;
+    while (node && node.tagName !== "H2") {
+      const next = node.nextElementSibling;
+      node.remove();
+      node = next;
+    }
+    heading.remove();
+  }
+
+  function insertAfterSection(block: HTMLElement, headingId: string) {
+    const heading = document.getElementById(headingId);
+    if (!heading) return false;
+    const level = Number(heading.tagName.slice(1));
+    let boundary = heading.nextElementSibling;
+    while (boundary) {
+      if (/^H[1-6]$/.test(boundary.tagName)) {
+        const boundaryLevel = Number(boundary.tagName.slice(1));
+        if (boundaryLevel <= level) break;
+      }
+      boundary = boundary.nextElementSibling;
+    }
+    if (boundary) boundary.before(block);
+    else heading.parentElement?.append(block);
+    return true;
+  }
+
   function placeLearningBlocks() {
+    removeHandbookPreface();
     const blocks = Array.from(
       document.querySelectorAll<HTMLElement>("[data-learning-block]"),
     );
@@ -227,11 +270,18 @@ const noteStructuredData = {
     blocks.forEach((block) => {
       const name = block.dataset.learningBlock;
       const slot = slots.find((candidate) => candidate.dataset.learningSlot === name);
-      if (!name || !slot) {
+      if (name && slot) {
+        slot.replaceWith(block);
         block.dataset.learningPlaced = "true";
         return;
       }
-      slot.replaceWith(block);
+
+      const headingId = block.dataset.learningAfterHeading;
+      if (headingId && insertAfterSection(block, headingId)) {
+        block.dataset.learningPlaced = "true";
+        return;
+      }
+
       block.dataset.learningPlaced = "true";
     });
   }
