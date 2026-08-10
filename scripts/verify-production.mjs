@@ -49,7 +49,7 @@ const pageChecks = [
   },
   {
     path: "zh/notes/",
-    markers: ["学习笔记", "统计学与 R", "SQL 与关系数据", "主键"],
+    markers: ["学习笔记", "统计学与 R", "SQL 与关系数据", "主键", "外键"],
     forbiddenMarkers: [">简介<"],
   },
   {
@@ -73,7 +73,18 @@ const pageChecks = [
       "data-primary-key-lab",
       "data-sql-playground",
     ],
-    forbiddenMarkers: [">简介<"],
+    forbiddenMarkers: ["data-foreign-key-lab", ">简介<"],
+  },
+  {
+    path: "zh/notes/sql-foreign-key/",
+    markers: [
+      "外键：如何让两张业务表保持可靠的引用关系",
+      "Foreign Key",
+      "引用完整性",
+      "data-foreign-key-lab",
+      "data-sql-playground",
+    ],
+    forbiddenMarkers: ["data-primary-key-lab", ">简介<"],
   },
   {
     path: "zh/projects/customer-churn-machine-learning/",
