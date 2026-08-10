@@ -1,0 +1,74 @@
+<section class="dm-lab" data-scale-lab aria-labelledby="scale-title">
+  <div class="dm-lab__intro">
+    <p class="learning-note-kicker">互动实验 · Sets, Indices & Model Scale</p>
+    <h3 id="scale-title">为什么模型从几个变量扩展到几百个变量后，集合与索引会变得必要？</h3>
+    <p>调整工厂、产品、客户区和时期的数量，观察决策变量数量如何按维度乘法增长，并把数学索引映射到 PuLP 的字典变量。</p>
+  </div>
+
+  <div class="dm-lab__controls">
+    <label>Plants |K|<input data-scale-k type="number" min="1" max="20" value="2" /></label>
+    <label>Products |P|<input data-scale-p type="number" min="1" max="30" value="3" /></label>
+    <label>Regions |R|<input data-scale-r type="number" min="1" max="30" value="4" /></label>
+    <label>Periods |T|<input data-scale-t type="number" min="1" max="52" value="1" /></label>
+  </div>
+
+  <div class="dm-lab__metrics" aria-live="polite">
+    <div class="dm-lab__metric"><span>Dimensions</span><strong data-scale-dim>3D</strong></div>
+    <div class="dm-lab__metric"><span>Decision variables</span><strong data-scale-vars>24</strong></div>
+    <div class="dm-lab__metric"><span>Capacity rows</span><strong data-scale-capacity>2</strong></div>
+    <div class="dm-lab__metric"><span>Demand rows</span><strong data-scale-demand>12</strong></div>
+  </div>
+
+  <div class="dm-lab__grid">
+    <article class="dm-lab__panel">
+      <h4>Mathematical notation</h4>
+      <div class="dm-lab__equation" data-scale-math>x[k,p,r] ≥ 0</div>
+      <p class="dm-lab__muted">一个变量不是“一格”，而是一整个索引组合族。</p>
+    </article>
+    <article class="dm-lab__panel">
+      <h4>PuLP structure</h4>
+      <div class="dm-lab__code" data-scale-code>x = LpVariable.dicts("flow", (K, P, R), lowBound=0)</div>
+      <p class="dm-lab__muted">集合负责生成变量键，约束循环负责批量生成结构一致的限制。</p>
+    </article>
+  </div>
+
+  <div class="dm-lab__callout"><strong>Scale reading</strong><span data-scale-reading>2 × 3 × 4 = 24 个流量变量；手工逐格命名仍可勉强管理，但已经开始失去可维护性。</span></div>
+</section>
+
+<script>
+  let scaleCleanup: (() => void) | undefined;
+  function initScaleLab() {
+    scaleCleanup?.();
+    const root = document.querySelector<HTMLElement>("[data-scale-lab]");
+    if (!root) return;
+    const inputs = ["k", "p", "r", "t"].map((key) => root.querySelector<HTMLInputElement>(`[data-scale-${key}]`));
+    if (inputs.some((input) => !input)) return;
+    const [kInput, pInput, rInput, tInput] = inputs as HTMLInputElement[];
+    const controller = new AbortController();
+    const field = (selector: string) => root.querySelector<HTMLElement>(selector);
+    const safe = (input: HTMLInputElement) => Math.max(1, Math.floor(Number(input.value) || 1));
+
+    function render() {
+      const k = safe(kInput); const p = safe(pInput); const r = safe(rInput); const t = safe(tInput);
+      const activeT = t > 1;
+      const variables = k * p * r * t;
+      const dims = activeT ? 4 : 3;
+      field("[data-scale-dim]")!.textContent = `${dims}D`;
+      field("[data-scale-vars]")!.textContent = variables.toLocaleString();
+      field("[data-scale-capacity]")!.textContent = String(k * t);
+      field("[data-scale-demand]")!.textContent = String(p * r * t);
+      field("[data-scale-math]")!.textContent = activeT ? "x[k,p,r,t] ≥ 0  ∀ k∈K,p∈P,r∈R,t∈T" : "x[k,p,r] ≥ 0  ∀ k∈K,p∈P,r∈R";
+      field("[data-scale-code]")!.textContent = activeT
+        ? 'x = LpVariable.dicts("flow", (K, P, R, T), lowBound=0)'
+        : 'x = LpVariable.dicts("flow", (K, P, R), lowBound=0)';
+      field("[data-scale-reading]")!.textContent = `${k} × ${p} × ${r}${activeT ? ` × ${t}` : ""} = ${variables.toLocaleString()} 个变量。规模增长来自索引组合，而不是数学目标突然变复杂；集合、循环与参数字典用于保持模型可读和可扩展。`;
+    }
+
+    [kInput, pInput, rInput, tInput].forEach((input) => input.addEventListener("input", render, { signal: controller.signal }));
+    render();
+    scaleCleanup = () => controller.abort();
+  }
+  document.addEventListener("astro:before-swap", () => scaleCleanup?.());
+  document.addEventListener("astro:page-load", initScaleLab);
+  initScaleLab();
+</script>
