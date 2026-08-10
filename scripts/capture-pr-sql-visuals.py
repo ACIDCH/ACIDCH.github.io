@@ -134,6 +134,15 @@ class BrowserSession:
         if exists is not True:
             raise RuntimeError(f"Missing expected visual target: {selector}")
 
+    def assert_toc_targets(self) -> None:
+        missing = self.execute(
+            "return Array.from(document.querySelectorAll('[data-learning-toc-link]'))"
+            ".map((link) => decodeURIComponent(link.hash.slice(1)))"
+            ".filter((id) => id && !document.getElementById(id));"
+        )
+        if isinstance(missing, list) and missing:
+            raise RuntimeError(f"Learning Note TOC contains missing targets: {missing}")
+
     def scroll_to(self, selector: str) -> None:
         self.require(selector)
         geometry = self.execute(
@@ -209,6 +218,7 @@ def wait_for_driver(driver_base: str, process: subprocess.Popen[bytes]) -> None:
 
 def capture_visuals(browser: BrowserSession) -> None:
     browser.navigate("sql-relational-data")
+    browser.assert_toc_targets()
     browser.scroll_to("[data-relational-model-explorer]")
     browser.screenshot("sql01-model-relational-desktop.png")
     browser.click('[data-model-choice="network"]')
@@ -218,6 +228,7 @@ def capture_visuals(browser: BrowserSession) -> None:
     browser.screenshot("sql01-dataset-order-items-desktop.png")
 
     browser.navigate("sql-primary-key")
+    browser.assert_toc_targets()
     browser.scroll_to("[data-primary-key-lab]")
     browser.click('[data-key-choice="email"]')
     browser.click("[data-key-change]")
@@ -228,6 +239,7 @@ def capture_visuals(browser: BrowserSession) -> None:
     browser.screenshot("sql02-duplicate-primary-key-error-desktop.png")
 
     browser.navigate("sql-foreign-key")
+    browser.assert_toc_targets()
     browser.scroll_to("[data-foreign-key-lab]")
     browser.execute(
         "const e=document.querySelector('[data-foreign-key-choice]');"
@@ -241,17 +253,20 @@ def capture_visuals(browser: BrowserSession) -> None:
     browser.screenshot("sql03-invalid-foreign-key-error-desktop.png")
 
     browser.navigate("sql-relationships")
+    browser.assert_toc_targets()
     browser.scroll_to("[data-relationship-cardinality-lab]")
     browser.click('[data-relation-choice="many-to-many"]')
     browser.screenshot("sql04-many-to-many-desktop.png")
 
     browser.navigate("sql-select")
+    browser.assert_toc_targets()
     browser.scroll_to("[data-sql-playground]")
     browser.click("[data-sql-run]")
     browser.wait_for_text("[data-sql-result-summary]", "3 rows × 5 columns")
     browser.screenshot("sql05-select-playground-desktop.png")
 
     browser.navigate("sql-where")
+    browser.assert_toc_targets()
     browser.scroll_to("[data-where-filter-lab]")
     browser.click('[data-where-rule="grouped"]')
     browser.wait_for_text("[data-where-kept]", "1")
@@ -277,6 +292,7 @@ def capture_visuals(browser: BrowserSession) -> None:
     ]
     for slug, selector, name in mobile_targets:
         browser.navigate(slug)
+        browser.assert_toc_targets()
         browser.scroll_to(selector)
         browser.screenshot(name)
 
