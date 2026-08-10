@@ -91,6 +91,27 @@ describe("production deployment contracts", () => {
     expect(capture).toContain("expected = 30");
   });
 
+  it("verifies the ten decision-model routes and eighteen visual proofs", async () => {
+    const workflow = await source(".github/workflows/deploy.yml");
+    const verifier = await source("scripts/verify-decision-models-production.mjs");
+    const capture = await source("scripts/capture-pr-decision-model-visuals.py");
+
+    expect(workflow).toContain("Capture decision-model visual proofs");
+    expect(workflow).toContain("python3 scripts/capture-pr-decision-model-visuals.py");
+    expect(workflow).toContain("node scripts/verify-decision-models-production.mjs");
+    expect(workflow).toContain("decision-proofs");
+    expect(verifier).toContain('path: "zh/notes/series/decision-models/"');
+    expect(verifier).toContain('path: "zh/notes/optimisation-model-anatomy/"');
+    expect(verifier).toContain('path: "zh/notes/multi-period-production-inventory/"');
+    expect(verifier).toContain("data-optimisation-anatomy");
+    expect(verifier).toContain("data-feasible-lab");
+    expect(verifier).toContain("data-milp-lab");
+    expect(verifier).toContain("data-flow-lab");
+    expect(capture).toContain("dm01-anatomy-hub-desktop.png");
+    expect(capture).toContain("dm10-two-batch-plan-mobile.png");
+    expect(capture).toContain("expected = 18");
+  });
+
   it("publishes a machine-readable commit status after live verification", async () => {
     const workflow = await source(".github/workflows/deploy.yml");
 
