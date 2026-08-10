@@ -244,6 +244,12 @@
     const output = root.querySelector<HTMLElement>("[data-sql-output]");
     if (!preset || !code || !runButton || !resetButton || !status || !output) return;
 
+    const presetSelect = preset;
+    const codeEditor = code;
+    const runControl = runButton;
+    const resetControl = resetButton;
+    const statusOutput = status;
+    const resultOutput = output;
     const controller = new AbortController();
     let db: SqlDatabase | undefined;
 
@@ -282,16 +288,16 @@ INSERT INTO orders VALUES
 `;
 
     function setStatus(message: string, state = "ready") {
-      status.textContent = message;
-      status.dataset.state = state;
+      statusOutput.textContent = message;
+      statusOutput.dataset.state = state;
     }
 
     function renderResults(results: SqlResult[]) {
-      output.replaceChildren();
+      resultOutput.replaceChildren();
       if (results.length === 0) {
         const paragraph = document.createElement("p");
         paragraph.textContent = "SQL 执行成功，没有返回结果集。";
-        output.append(paragraph);
+        resultOutput.append(paragraph);
         return;
       }
 
@@ -318,7 +324,7 @@ INSERT INTO orders VALUES
           tbody.append(tr);
         });
         table.append(tbody);
-        output.append(table);
+        resultOutput.append(table);
       });
     }
 
@@ -332,39 +338,40 @@ INSERT INTO orders VALUES
     }
 
     async function runQuery() {
-      runButton.disabled = true;
+      runControl.disabled = true;
       try {
         if (!db) await resetDatabase(false);
         setStatus("正在执行 SQL…", "running");
-        const results = db?.exec(code.value) ?? [];
+        const results = db?.exec(codeEditor.value) ?? [];
         renderResults(results);
         setStatus("SQL 执行完成。", "success");
       } catch (error) {
-        output.replaceChildren();
         const paragraph = document.createElement("p");
         paragraph.textContent = error instanceof Error ? error.message : String(error);
-        output.append(paragraph);
+        resultOutput.replaceChildren(paragraph);
         setStatus("SQL 执行失败。查看下方错误信息。", "error");
       } finally {
-        runButton.disabled = false;
+        runControl.disabled = false;
       }
     }
 
-    preset.addEventListener(
+    presetSelect.addEventListener(
       "change",
       () => {
-        code.value = examples[preset.value] ?? examples.join;
+        codeEditor.value = examples[presetSelect.value] ?? examples.join;
       },
       { signal: controller.signal },
     );
 
-    runButton.addEventListener("click", runQuery, { signal: controller.signal });
-    resetButton.addEventListener(
+    runControl.addEventListener("click", runQuery, { signal: controller.signal });
+    resetControl.addEventListener(
       "click",
       async () => {
         try {
           await resetDatabase();
-          output.innerHTML = "<p>数据库已恢复到初始客户与订单数据。</p>";
+          const paragraph = document.createElement("p");
+          paragraph.textContent = "数据库已恢复到初始客户与订单数据。";
+          resultOutput.replaceChildren(paragraph);
         } catch (error) {
           setStatus(error instanceof Error ? error.message : String(error), "error");
         }
@@ -372,7 +379,7 @@ INSERT INTO orders VALUES
       { signal: controller.signal },
     );
 
-    code.addEventListener(
+    codeEditor.addEventListener(
       "keydown",
       (event) => {
         if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
@@ -383,7 +390,7 @@ INSERT INTO orders VALUES
       { signal: controller.signal },
     );
 
-    code.value = examples.join;
+    codeEditor.value = examples.join;
     sqlPlaygroundCleanup = () => {
       controller.abort();
       db?.close();
