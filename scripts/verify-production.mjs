@@ -49,16 +49,27 @@ const pageChecks = [
   },
   {
     path: "zh/notes/",
-    markers: ["学习笔记", "统计学与 R", "SQL 与关系数据"],
+    markers: ["学习笔记", "统计学与 R", "SQL 与关系数据", "主键"],
     forbiddenMarkers: [">简介<"],
   },
   {
     path: "zh/notes/sql-relational-data/",
     markers: [
       "SQL 与关系数据",
-      "主键",
-      "外键",
-      "索引",
+      "记录粒度",
+      "NULL",
+      "Schema",
+      "SQL 02 — Primary Key",
+    ],
+    forbiddenMarkers: ["data-primary-key-lab", "data-sql-playground", ">简介<"],
+  },
+  {
+    path: "zh/notes/sql-primary-key/",
+    markers: [
+      "主键：如何为每一条业务记录建立稳定身份",
+      "Primary Key",
+      "联合主键",
+      "UUID",
       "data-primary-key-lab",
       "data-sql-playground",
     ],
