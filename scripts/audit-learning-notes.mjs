@@ -35,6 +35,10 @@ const handbooks = [
     source: "sql-projection.zh.md",
     route: "sql-projection",
   },
+  {
+    source: "sql-order-by.zh.md",
+    route: "sql-order-by",
+  },
 ];
 
 const forbidden = [
