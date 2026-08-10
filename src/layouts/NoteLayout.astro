@@ -29,8 +29,13 @@ const isSqlOverview = entry.data.slug === "sql-relational-data";
 const isSqlPrimaryKey = entry.data.slug === "sql-primary-key";
 const isSqlForeignKey = entry.data.slug === "sql-foreign-key";
 const isSqlRelationships = entry.data.slug === "sql-relationships";
+const isSqlSelect = entry.data.slug === "sql-select";
 const isSqlEditorial =
-  isSqlOverview || isSqlPrimaryKey || isSqlForeignKey || isSqlRelationships;
+  isSqlOverview ||
+  isSqlPrimaryKey ||
+  isSqlForeignKey ||
+  isSqlRelationships ||
+  isSqlSelect;
 const isHandbook = isStatisticsHandbook || isSqlEditorial;
 
 const statisticsToc = [
@@ -176,20 +181,42 @@ const sqlRelationshipsToc = [
   { id: "下一步开始真正查询数据", label: "下一步" },
 ];
 
-const learningToc = isSqlRelationships
-  ? sqlRelationshipsToc
-  : isSqlForeignKey
-    ? sqlForeignKeyToc
-    : isSqlPrimaryKey
-      ? sqlPrimaryKeyToc
-      : isSqlOverview
-        ? sqlOverviewToc
-        : statisticsToc;
-const handbookTitle = isSqlPrimaryKey || isSqlForeignKey || isSqlRelationships
-  ? entry.data.title
-  : isSqlOverview
-    ? "SQL 与关系数据"
-    : "统计学与 R";
+const sqlSelectToc = [
+  { id: "从数据怎样组织进入怎样读取数据", label: "进入查询" },
+  { id: "select--from-customers-到底在说什么", label: "SELECT / FROM" },
+  { id: "星号--表示什么", label: "星号 *" },
+  { id: "没有-where-时会发生什么", label: "全部记录" },
+  { id: "查询结果本身也是一个二维表", label: "Result Set" },
+  { id: "select-会修改原表吗", label: "读取 vs 修改" },
+  { id: "先运行最基础的查询", label: "运行 SELECT" },
+  { id: "查询前先记住记录粒度", label: "结果粒度" },
+  { id: "select-并不一定需要-from", label: "SELECT 1" },
+  { id: "分号--有什么作用", label: "语句结束" },
+  { id: "sql-关键字为什么经常写成大写", label: "书写风格" },
+  { id: "select--适合什么时候使用", label: "SELECT * 使用场景" },
+  { id: "一份新表可以先这样读", label: "新表检查" },
+  { id: "常见错误", label: "常见错误" },
+  { id: "本篇的核心判断", label: "核心判断" },
+  { id: "下一步只保留满足条件的记录", label: "下一步" },
+];
+
+const learningToc = isSqlSelect
+  ? sqlSelectToc
+  : isSqlRelationships
+    ? sqlRelationshipsToc
+    : isSqlForeignKey
+      ? sqlForeignKeyToc
+      : isSqlPrimaryKey
+        ? sqlPrimaryKeyToc
+        : isSqlOverview
+          ? sqlOverviewToc
+          : statisticsToc;
+const handbookTitle =
+  isSqlPrimaryKey || isSqlForeignKey || isSqlRelationships || isSqlSelect
+    ? entry.data.title
+    : isSqlOverview
+      ? "SQL 与关系数据"
+      : "统计学与 R";
 
 const notes = await getCollection("notes");
 const projects = await getCollection("projects");
@@ -267,7 +294,6 @@ const noteStructuredData = {
                     </div>
                     <div
                       class="learning-note__inline-block"
-                      data-learning="correlation-lab"
                       data-learning-block="correlation-lab"
                       data-learning-after-heading="相关性可视化展示"
                     >
@@ -326,6 +352,16 @@ const noteStructuredData = {
                     data-learning-block="relationship-cardinality-lab"
                   >
                     <RelationshipCardinalityLab />
+                  </div>
+                )
+              }
+              {
+                isSqlSelect && (
+                  <div
+                    class="learning-note__inline-block"
+                    data-learning-block="sql-playground"
+                  >
+                    <SqlPlayground defaultPreset="customers" />
                   </div>
                 )
               }
