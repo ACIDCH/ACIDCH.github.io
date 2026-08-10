@@ -16,7 +16,7 @@ permissions:
 
 concurrency:
   group: >-
-    pages-${{ github.event_name == 'pull_request_target' && 'main' || github.ref }}
+    pages-${{ (github.event_name == 'push' || github.event_name == 'pull_request_target' || github.event_name == 'workflow_dispatch') && 'main' || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -175,4 +175,6 @@ jobs:
           node-version-file: .nvmrc
 
       - name: Confirm production matches this commit
-        run: npm run verify:production -- "${{ needs.deploy.outputs.page_url }}" "${{ needs.quality.outputs.deploy_sha }}"
+        run: |
+          npm run verify:production -- "${{ needs.deploy.outputs.page_url }}" "${{ needs.quality.outputs.deploy_sha }}"
+          node scripts/verify-sql08-production.mjs "${{ needs.deploy.outputs.page_url }}" "${{ needs.quality.outputs.deploy_sha }}"
