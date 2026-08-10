@@ -16,7 +16,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
 OUTPUT = ROOT / "visual-proofs"
-ELEMENT_KEY = "element-6066-11e4-a52e-4f735466cecf"
 
 
 class QuietHandler(SimpleHTTPRequestHandler):
@@ -56,7 +55,6 @@ def find_chromedriver() -> str:
 
 class BrowserSession:
     def __init__(self, driver_base: str, site_base: str) -> None:
-        self.driver_base = driver_base
         self.site_base = site_base
         response = request_json(
             "POST",
@@ -119,7 +117,7 @@ class BrowserSession:
             if ready == "complete":
                 break
             time.sleep(0.1)
-        time.sleep(0.35)
+        time.sleep(0.5)
 
     def execute(self, script: str) -> object:
         response = request_json(
@@ -138,10 +136,35 @@ class BrowserSession:
 
     def scroll_to(self, selector: str) -> None:
         self.require(selector)
-        self.execute(
-            f"document.querySelector({json.dumps(selector)}).scrollIntoView({{block:'center'}});"
+        geometry = self.execute(
+            "const e=document.querySelector(%s);"
+            "const r=e.getBoundingClientRect();"
+            "return {height:r.height, width:r.width, documentTop:r.top+window.scrollY};"
+            % json.dumps(selector)
         )
-        time.sleep(0.25)
+        if not isinstance(geometry, dict):
+            raise RuntimeError(f"Unable to measure visual target: {selector}")
+        height = geometry.get("height")
+        width = geometry.get("width")
+        document_top = geometry.get("documentTop")
+        if not isinstance(height, (int, float)) or height < 40:
+            raise RuntimeError(f"Visual target is hidden or collapsed: {selector}")
+        if not isinstance(width, (int, float)) or width < 100:
+            raise RuntimeError(f"Visual target is unexpectedly narrow: {selector}")
+        if not isinstance(document_top, (int, float)):
+            raise RuntimeError(f"Visual target has no document position: {selector}")
+
+        top = max(0, document_top - 92)
+        self.execute(f"window.scrollTo({{top:{top},left:0,behavior:'instant'}});")
+        time.sleep(0.3)
+        visible = self.execute(
+            "const e=document.querySelector(%s);"
+            "const r=e.getBoundingClientRect();"
+            "return r.bottom>80 && r.top<window.innerHeight-40 && r.width>100 && r.height>40;"
+            % json.dumps(selector)
+        )
+        if visible is not True:
+            raise RuntimeError(f"Visual target did not enter the viewport: {selector}")
 
     def click(self, selector: str) -> None:
         self.require(selector)
