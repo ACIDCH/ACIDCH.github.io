@@ -3,7 +3,7 @@ translationKey: sql-select
 locale: zh
 slug: sql-select
 title: SELECT：从关系表中读取第一份结果集
-summary: 从 customers 与 orders 表开始，理解 SELECT、星号、FROM 与结果集的基本含义，并通过浏览器 SQLite 运行第一组不会修改数据的查询。
+summary: 从统一的 customers、orders、products 与 order_items 数据开始，理解 SELECT、星号、FROM、结果集和查询执行的基本含义，并通过浏览器 SQLite 运行不会修改数据的基础查询。
 tags:
   - SELECT
   - 基本查询
@@ -32,10 +32,10 @@ relatedNotes:
 
 ## 从“数据怎样组织”进入“怎样读取数据”
 
-前四篇解决的是关系数据库的结构问题：
+前四篇解决关系数据库的结构问题：
 
 ```text
-Table / Record / Granularity
+Relational Database
 ↓
 Primary Key
 ↓
@@ -44,57 +44,51 @@ Foreign Key
 Relationship Cardinality
 ```
 
-接下来开始真正向数据库提出问题。
+接下来开始真正向数据库提出查询。
 
-最基本的查询形式是：
+最基本的形式是：
 
 ```sql
 SELECT *
 FROM customers;
 ```
 
-这条语句的目标非常直接：读取 `customers` 表中的数据，并把查询结果返回出来。
-
-SQL 查询从这里开始。
+它读取 `customers` 表中的数据，并返回一个结果集。
 
 ## SELECT * FROM customers 到底在说什么？
 
-把最基本的查询拆开看：
+把查询拆开：
 
 ```sql
 SELECT *
 FROM customers;
 ```
 
-其中：
+可以读成：
 
 ```text
 SELECT
-→ 执行查询
+→ 发起读取查询
 
 *
-→ 返回所有列
+→ 当前选择所有列
 
 FROM
-→ 指定数据来自哪张表
+→ 指定数据来源
 
 customers
-→ 被查询的表
+→ 被读取的表
 ```
 
-可以把它读成一句自然语言：
+统一数据集中的 `customers` 是：
 
-> 从 `customers` 表中读取所有列。
+| customer_id | customer_name | email | phone | segment |
+|---:|---|---|---|---|
+| 1001 | North Retail | north@example.com | 021-440-810 | Retail |
+| 1002 | Coast Foods | coast@example.com | 021-440-811 | Wholesale |
+| 1003 | Alpine Labs | alpine@example.com | 021-440-812 | Enterprise |
 
-如果当前表中有三条客户记录：
-
-| customer_id | customer_name | email | segment |
-|---:|---|---|---|
-| 1001 | North Retail | north@example.com | Retail |
-| 1002 | Coast Foods | coast@example.com | Wholesale |
-| 1003 | Alpine Labs | alpine@example.com | Enterprise |
-
-那么最基本的 `SELECT * FROM customers` 会返回这些记录以及表中的全部列。
+因此 `SELECT * FROM customers` 会返回当前三条客户记录与全部五列。
 
 ## 星号 * 表示什么？
 
@@ -105,41 +99,34 @@ SELECT *
 FROM customers;
 ```
 
-中，`*` 表示：
+中，`*` 表示当前数据源的所有列。
 
-```text
-all columns
-```
-
-也就是当前结果集保留这张表的全部字段。
-
-如果 `customers` 有：
+对于 `customers`：
 
 ```text
 customer_id
 customer_name
 email
+phone
 segment
 ```
 
-那么 `SELECT *` 会把这些列全部返回。
+都会出现在结果中。
 
-此时还没有讨论“只选择其中几列”。那属于后面的 Projection（投影查询）。这一篇只先建立最基本的查询结构。
+这一篇暂时不展开“只选择某几列”。那属于 SQL 07 Projection。
 
 ## 没有 WHERE 时会发生什么？
 
-最基础的：
+最基础查询没有筛选条件：
 
 ```sql
 SELECT *
-FROM customers;
+FROM orders;
 ```
 
-没有任何筛选条件。
+所以逻辑上会读取当前 `orders` 中所有记录。
 
-因此，从逻辑上看，它会读取当前表中的所有记录。
-
-如果 `orders` 中有四张订单：
+统一数据集有四张订单：
 
 | order_id | customer_id | order_date | order_value |
 |---:|---:|---|---:|
@@ -148,27 +135,18 @@ FROM customers;
 | 50003 | 1002 | 2026-07-06 | 760.00 |
 | 50004 | 1003 | 2026-07-09 | 510.00 |
 
-执行：
+因此未筛选的订单查询返回四行。
 
-```sql
-SELECT *
-FROM orders;
-```
-
-会返回当前 `orders` 表中的全部记录。
-
-下一篇才会加入 `WHERE`，让结果只保留满足条件的行。
+SQL 06 才会加入 `WHERE`，让结果只保留满足条件的行。
 
 ## 查询结果本身也是一个二维表
 
-`SELECT` 返回的不是一句文本说明，而是一个 **Result Set（结果集）**。
+`SELECT` 返回的是 **Result Set（结果集）**。
 
-结果集同样可以看作二维结构：
+它仍然可以表示成：
 
 ```text
-columns
-+
-rows
+rows × columns
 ```
 
 例如：
@@ -178,28 +156,28 @@ SELECT *
 FROM customers;
 ```
 
-结果仍然具有列名：
+当前结果是：
 
 ```text
-customer_id
-customer_name
-email
-segment
+3 rows × 5 columns
 ```
 
-以及对应的多条记录。
+而：
 
-因此，理解 SQL 查询时可以始终保留一个基本视角：
+```sql
+SELECT *
+FROM orders;
+```
+
+当前结果是：
 
 ```text
-输入：一张或多张关系表
-↓
-SQL query
-↓
-输出：一个结果集
+4 rows × 4 columns
 ```
 
-后面的筛选、投影、排序、聚合与连接，本质上都在改变这个结果集的行、列、顺序或粒度。
+互动 SQL 运行器会直接显示这个维度摘要，让“结果集”不只是一个抽象定义。
+
+后续 WHERE、Projection、GROUP BY 与 JOIN，本质上都在改变结果集的行、列、粒度或组合方式。
 
 ## SELECT 会修改原表吗？
 
@@ -212,11 +190,9 @@ SELECT *
 FROM customers;
 ```
 
-不会因为查询本身而把客户删除、改名或新增记录。
+不会因为查询本身而新增、删除或改写客户记录。
 
-它只是读取当前数据库状态，并返回结果集。
-
-这和后续的：
+这与后面的数据修改语句不同：
 
 ```text
 INSERT
@@ -224,15 +200,13 @@ UPDATE
 DELETE
 ```
 
-不同。
-
-因此，在开始探索一份新数据时，`SELECT` 通常是最自然的第一步。
+因此，面对一张陌生表时，SELECT 通常是最自然的探索入口。
 
 ## 先运行最基础的查询
 
-下面的浏览器实验继续使用同一组 synthetic Business Analytics 数据。
+下面的浏览器实验继续使用 SQL 01 展示过的同一 canonical dataset。
 
-默认示例会打开：
+默认打开：
 
 ```sql
 SELECT *
@@ -240,30 +214,43 @@ FROM customers
 ORDER BY customer_id;
 ```
 
-其中 `ORDER BY` 只是为了让演示结果稳定地按 ID 展示，排序本身会在后面的独立笔记中详细解释。
+这里额外写 `ORDER BY customer_id`，只是为了让教学界面的行顺序稳定，方便逐项对照。
 
-可以先直接运行，再把查询修改成：
+**没有 `ORDER BY` 时，不应该把数据库当前恰好返回的行顺序当成有保证的业务顺序。** 排序规则会在 SQL 08 单独讲解。
+
+还可以切换到：
 
 ```sql
 SELECT *
-FROM orders;
+FROM orders
+ORDER BY order_id;
 ```
 
-观察结果集从“客户粒度”切换成“订单粒度”。
+```sql
+SELECT *
+FROM products
+ORDER BY product_id;
+```
+
+```sql
+SELECT *
+FROM order_items
+ORDER BY order_id, product_id;
+```
+
+观察不同表的记录粒度与结果维度。
 
 <div data-learning-slot="sql-playground"></div>
 
 ## 查询前先记住记录粒度
 
-SQL 01 已经建立过一个重要习惯：
+SQL 01 已经建立一个核心问题：
 
 ```text
 One row = ?
 ```
 
-这个问题在查询阶段同样重要。
-
-例如：
+它在 SELECT 阶段仍然重要。
 
 ```sql
 SELECT *
@@ -280,18 +267,16 @@ One result row = one customer
 
 ```sql
 SELECT *
-FROM orders;
+FROM order_items;
 ```
 
 则是：
 
 ```text
-One result row = one order
+One result row = one product line within one order
 ```
 
-即使两条查询都使用 `SELECT *`，结果集的业务含义也完全不同。
-
-因此，看到 SQL 查询结果以后，不应该只检查“有多少行”，还要先确认“一行代表什么”。
+即使两条查询语法都很简单，结果的业务含义并不相同。
 
 ## SELECT 并不一定需要 FROM
 
@@ -303,66 +288,76 @@ One result row = one order
 SELECT 100 + 200;
 ```
 
-结果会返回表达式计算值。
+结果会返回：
 
-另一个常见的小查询是：
+```text
+300
+```
+
+还可以运行：
 
 ```sql
-SELECT 1;
+SELECT 1 AS execution_ok;
 ```
 
 它不需要读取业务表。
 
-这种简单语句经常适合用来确认数据库连接和查询执行链路是否可以正常响应。
+### SELECT 1 是“连接检查”吗？
 
-在上面的 SQLite 实验中，可以选择：
+在真实的 client/server 数据库应用中，`SELECT 1` 经常被用作很轻量的连接或 liveness 查询，因为如果客户端能够把 SQL 发给数据库并收到结果，至少说明这条查询链路能够工作。
 
-```text
-SELECT 1 连接检查
+但本系列浏览器实验使用的是当前页面内存中的 sql.js/SQLite，并不存在浏览器到远程数据库服务器的网络连接。
+
+因此，这里的：
+
+```sql
+SELECT 1 AS execution_ok;
 ```
 
-直接观察这一类不依赖表数据的结果集。
+只验证：
+
+```text
+SQLite engine loaded
++
+SQL statement executed
++
+result returned
+```
+
+不能把它描述成“验证远程数据库网络连接”。
 
 ## 分号 ; 有什么作用？
 
-SQL 示例通常写成：
+SQL 示例统一写成：
 
 ```sql
 SELECT *
 FROM customers;
 ```
 
-末尾的：
+末尾：
 
 ```text
 ;
 ```
 
-表示一条 SQL 语句结束。
+标记一条 SQL statement 结束。
 
-不同客户端对单条语句是否强制要求分号可能有所不同，但在学习、脚本和需要连续执行多条语句时，明确写出分号能让语句边界更清楚。
-
-因此，这套 Learning Notes 的 SQL 示例默认保留分号。
+某些客户端在只执行单条语句时可以接受省略分号，但脚本、多语句输入和跨工具复制时，明确分号能让语句边界更清楚。
 
 ## SQL 关键字为什么经常写成大写？
 
-常见写法是：
+下面两种写法在许多数据库中都能被解析：
 
 ```sql
-SELECT *
-FROM customers;
+select * from customers;
 ```
-
-而不是：
 
 ```sql
-select *
-from customers;
+SELECT * FROM customers;
 ```
 
-对许多 SQL 数据库而言，关键字本身通常不依赖这种大小写风格才能执行。
-
-使用大写主要是为了让结构更容易扫描：
+本系列统一使用第二种风格，让：
 
 ```text
 SELECT
@@ -373,71 +368,67 @@ GROUP BY
 JOIN
 ```
 
-与表名、字段名形成视觉区分。
+与字段名、表名形成视觉区分。
 
-因此，本系列统一采用关键字大写的书写方式。
+这是一种书写规范，不是查询逻辑本身。
 
 ## SELECT * 适合什么时候使用？
 
-在刚接触一张小型表、教学数据或快速查看结构时：
+在教学、小型表和第一次检查数据时：
 
 ```sql
 SELECT *
 FROM customers;
 ```
 
-非常直观。
+非常直观，可以快速观察：
 
-它能快速回答：
+- 有哪些列；
+- 有哪些记录；
+- 值的大致格式；
+- 主键字段；
+- 是否存在 NULL；
+- 一行代表什么。
 
-```text
-有哪些列？
-有哪些记录？
-字段值大概是什么样？
-一行代表什么？
-```
+但真实生产表可能有几十甚至上百列。长期把 `SELECT *` 写进分析管道可能带来：
 
-但随着真实表变宽、字段增多，分析任务通常不会永远需要所有列。
+- 读取不需要的列；
+- schema 新增列后结果结构意外变化；
+- 网络和内存传输增加；
+- 下游代码对列顺序或列集合产生隐式依赖。
 
-因此，`SELECT *` 是理解基本查询的很好起点，但不是后续所有查询都必须保留的固定写法。
+因此 `SELECT *` 是很好的学习起点，但不是所有生产查询的默认最佳实践。
 
-SQL 07 会专门进入列选择和别名，也就是 Projection。
+SQL 07 会进入明确列选择与别名。
 
 ## 一份新表可以先这样读
 
-面对第一次看到的数据表，可以先执行：
+面对第一次看到的表，可以先运行基础 SELECT，然后检查：
 
-```sql
-SELECT *
-FROM customers;
-```
-
-然后检查：
-
-1. **结果有多少列？**
-2. **字段名称是否与预期一致？**
-3. **一行代表什么业务对象？**
-4. **主键字段在哪里？**
+1. **结果有多少 rows × columns？**
+2. **一行代表什么？**
+3. **字段名称与数据类型是否符合预期？**
+4. **主键在哪里？**
 5. **是否出现 NULL？**
-6. **哪些字段未来可能用于筛选、排序或连接？**
+6. **哪些字段可能用于 WHERE？**
+7. **哪些字段可能用于 JOIN？**
+8. **当前行顺序有没有明确 ORDER BY 保证？**
 
-这让 `SELECT *` 不只是“把表打印出来”，而成为理解新数据结构的第一步。
+这让 `SELECT *` 不只是“把表打印出来”，而成为数据理解入口。
 
 ## 常见错误
 
 ### 忘记 FROM 后面的表名
 
-例如：
-
 ```sql
 SELECT * FROM;
 ```
 
-数据库不知道应该从哪张表读取数据。
+数据库不知道应该读取哪张表。
 
 ### 表名写错
 
-如果数据库中只有：
+数据库中是：
 
 ```text
 customers
@@ -450,56 +441,72 @@ SELECT *
 FROM customer;
 ```
 
-就可能得到“表不存在”之类的错误。
+通常会得到表不存在之类的错误。
 
-### 把 SELECT 结果误认为新表已经保存
+### 把 Result Set 误认为永久新表
 
-普通查询返回的是结果集，并不会因为结果显示在屏幕上就自动创建一张永久新表。
+普通查询返回结果集，不会因为屏幕上显示了结果就自动创建永久表。
 
-### 只看数值，不看粒度
+### 认为 SELECT * 的行顺序天然稳定
 
-客户表和订单表都可以被 `SELECT *` 查询，但它们的一行代表完全不同的业务对象。
+没有 `ORDER BY` 时，不应依赖当前返回顺序。
+
+### 只看数字，不看粒度
+
+customers、orders 与 order_items 都可以 `SELECT *`，但一行代表完全不同的业务对象。
+
+### 在本地 sql.js 中把 SELECT 1 误解成网络连接测试
+
+当前实验没有远程数据库网络链路。它只是一个 SQL engine execution check。
 
 ## 本篇的核心判断
 
-最基础的查询可以压缩成：
+基础 SELECT 可以压缩成：
 
 ```text
 SELECT
-→ 要读取什么
+→ 发起读取并定义结果表达式
 
 *
-→ 当前先返回所有列
+→ 当前返回全部列
 
 FROM
-→ 数据来自哪里
+→ 指定数据来源
 
 Result Set
-→ 查询返回的二维结果
+→ 查询返回的 rows × columns
 ```
 
-最先需要掌握的不是复杂语法，而是看到：
+看到：
 
 ```sql
 SELECT *
 FROM customers;
 ```
 
-时能够准确解释它从哪里读取数据、返回什么结构，以及结果中的一行代表什么。
+应该能够准确解释：
+
+- 从哪里读取；
+- 返回哪些列；
+- 当前有多少行；
+- 一行代表什么；
+- 是否会修改原表；
+- 当前顺序是否有 ORDER BY 保证。
 
 ## 下一步：只保留满足条件的记录
 
-`SELECT * FROM customers` 会返回当前表中的全部记录。
+基础 SELECT 会读取整张表。
 
-真实分析通常会进一步提出：
+真实分析通常会继续提出：
 
 ```text
-只看 Retail 客户怎么办？
-只看金额超过 500 的订单怎么办？
-同时满足多个条件怎么办？
+只看 Retail 客户？
+只看金额超过 500 的订单？
+只看某个日期范围？
+同时满足多个条件？
 ```
 
-下一篇 SQL 06 将进入：
+SQL 06 将进入：
 
 ```text
 WHERE
