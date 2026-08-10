@@ -1,0 +1,228 @@
+<section class="regression-lab" data-regression-lab aria-labelledby="regression-lab-title">
+  <div class="regression-lab__intro">
+    <p class="learning-note-kicker">互动图表 · 回归</p>
+    <h3 id="regression-lab-title">噪声与极端点如何改变拟合线和 R²？</h3>
+    <p>
+      调整随机波动和最后一条观察值，页面会重新计算最小二乘直线。重点观察拟合线是否被单个极端点拉动，以及 R² 是否随着噪声增加而下降。
+    </p>
+  </div>
+
+  <div class="regression-lab__controls" aria-label="回归演示参数">
+    <label>
+      <span>随机波动：<output data-regression-noise-output>30%</output></span>
+      <input data-regression-noise type="range" min="0" max="100" step="5" value="30" />
+    </label>
+    <label>
+      <span>最后一条记录偏移：<output data-regression-outlier-output>0</output></span>
+      <input data-regression-outlier type="range" min="-40" max="60" step="5" value="0" />
+    </label>
+  </div>
+
+  <div class="regression-lab__metrics" aria-live="polite">
+    <dl><dt>截距</dt><dd data-regression-intercept>8.0</dd></dl>
+    <dl><dt>斜率</dt><dd data-regression-slope>2.6</dd></dl>
+    <dl><dt>R²</dt><dd data-regression-r2>0.90</dd></dl>
+  </div>
+
+  <figure>
+    <svg viewBox="0 0 760 430" role="img" aria-label="可交互线性回归散点图与拟合线" data-regression-svg></svg>
+    <figcaption>
+      横轴代表业务输入，纵轴代表结果变量。演示使用固定教学数据；斜率描述线性方向和平均变化，R² 只表示线性模型解释的样本变异比例。
+    </figcaption>
+  </figure>
+</section>
+
+<style>
+  .regression-lab {
+    margin: var(--space-12) 0;
+    padding: var(--space-7) 0 var(--space-8);
+    border-top: 1px solid var(--colour-border-strong);
+    border-bottom: 1px solid var(--colour-border-strong);
+  }
+
+  .regression-lab__intro {
+    max-width: 58rem;
+  }
+
+  .regression-lab__intro h3 {
+    margin: var(--space-2) 0 var(--space-3);
+    font-size: clamp(1.35rem, 1.5vw, 1.8rem);
+    line-height: 1.35;
+  }
+
+  .regression-lab__intro p:last-child,
+  .regression-lab figcaption {
+    color: var(--colour-text-muted);
+  }
+
+  .regression-lab__controls {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-5);
+    margin: var(--space-6) 0;
+  }
+
+  .regression-lab__controls label {
+    display: grid;
+    gap: var(--space-2);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+  }
+
+  .regression-lab__controls input {
+    width: 100%;
+  }
+
+  .regression-lab__metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-4);
+    margin-bottom: var(--space-5);
+  }
+
+  .regression-lab__metrics dl {
+    margin: 0;
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--colour-border);
+  }
+
+  .regression-lab__metrics dt {
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-xs);
+  }
+
+  .regression-lab__metrics dd {
+    margin: var(--space-1) 0 0;
+    font-size: clamp(1.35rem, 2vw, 2rem);
+    font-weight: var(--font-weight-semibold);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .regression-lab figure {
+    margin: 0;
+  }
+
+  .regression-lab svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    color: var(--colour-text-muted);
+  }
+
+  .regression-lab figcaption {
+    max-width: 58rem;
+    margin-top: var(--space-3);
+    font-size: var(--font-size-sm);
+    line-height: 1.75;
+  }
+
+  @media (max-width: 52rem) {
+    .regression-lab__controls,
+    .regression-lab__metrics {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script>
+  let regressionCleanup: (() => void) | undefined;
+
+  function initRegressionLab() {
+    regressionCleanup?.();
+    const root = document.querySelector<HTMLElement>("[data-regression-lab]");
+    if (!root) return;
+    const noiseInput = root.querySelector<HTMLInputElement>("[data-regression-noise]");
+    const outlierInput = root.querySelector<HTMLInputElement>("[data-regression-outlier]");
+    const noiseOutput = root.querySelector<HTMLOutputElement>("[data-regression-noise-output]");
+    const outlierOutput = root.querySelector<HTMLOutputElement>("[data-regression-outlier-output]");
+    const interceptOutput = root.querySelector<HTMLElement>("[data-regression-intercept]");
+    const slopeOutput = root.querySelector<HTMLElement>("[data-regression-slope]");
+    const r2Output = root.querySelector<HTMLElement>("[data-regression-r2]");
+    const svg = root.querySelector<SVGSVGElement>("[data-regression-svg]");
+    if (!noiseInput || !outlierInput || !noiseOutput || !outlierOutput || !interceptOutput || !slopeOutput || !r2Output || !svg) return;
+
+    const controller = new AbortController();
+    const ns = "http://www.w3.org/2000/svg";
+    const x = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19];
+    const residualPattern = [-0.7, 0.45, -0.2, 0.95, -0.55, 0.25, -0.9, 0.65, -0.1, 0.78, -0.48, 0.18, -0.82, 0.58, -0.32, 0.88, -0.62, 0.38];
+    const make = (tag: string, attrs: Record<string, string | number>) => {
+      const node = document.createElementNS(ns, tag);
+      Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, String(value)));
+      svg.append(node);
+      return node;
+    };
+    const fit = (xs: number[], ys: number[]) => {
+      const xMean = xs.reduce((sum, value) => sum + value, 0) / xs.length;
+      const yMean = ys.reduce((sum, value) => sum + value, 0) / ys.length;
+      const slope = xs.reduce((sum, value, index) => sum + (value - xMean) * (ys[index] - yMean), 0) / xs.reduce((sum, value) => sum + (value - xMean) ** 2, 0);
+      const intercept = yMean - slope * xMean;
+      const fitted = xs.map((value) => intercept + slope * value);
+      const sse = ys.reduce((sum, value, index) => sum + (value - fitted[index]) ** 2, 0);
+      const sst = ys.reduce((sum, value) => sum + (value - yMean) ** 2, 0);
+      return { slope, intercept, r2: 1 - sse / sst, fitted };
+    };
+
+    const draw = () => {
+      const noiseScale = Number(noiseInput.value) / 100;
+      const outlierShift = Number(outlierInput.value);
+      const y = x.map((value, index) => 8 + 2.6 * value + residualPattern[index] * 18 * noiseScale);
+      y[y.length - 1] += outlierShift;
+      const model = fit(x, y);
+      noiseOutput.value = `${noiseInput.value}%`;
+      outlierOutput.value = String(outlierShift);
+      interceptOutput.textContent = model.intercept.toFixed(1);
+      slopeOutput.textContent = model.slope.toFixed(2);
+      r2Output.textContent = model.r2.toFixed(2);
+
+      svg.replaceChildren();
+      const left = 62;
+      const right = 720;
+      const top = 26;
+      const bottom = 360;
+      const yMin = Math.min(...y, ...model.fitted) - 8;
+      const yMax = Math.max(...y, ...model.fitted) + 8;
+      const xScale = (value: number) => left + ((value - 1) / 19) * (right - left);
+      const yScale = (value: number) => bottom - ((value - yMin) / (yMax - yMin)) * (bottom - top);
+      make("line", { x1: left, y1: bottom, x2: right, y2: bottom, stroke: "var(--colour-border-strong)" });
+      make("line", { x1: left, y1: top, x2: left, y2: bottom, stroke: "var(--colour-border-strong)" });
+      make("line", {
+        x1: xScale(x[0]),
+        y1: yScale(model.fitted[0]),
+        x2: xScale(x.at(-1) ?? x[0]),
+        y2: yScale(model.fitted.at(-1) ?? model.fitted[0]),
+        stroke: "var(--colour-primary)",
+        "stroke-width": 3,
+      });
+      x.forEach((value, index) => {
+        make("line", {
+          x1: xScale(value),
+          y1: yScale(model.fitted[index]),
+          x2: xScale(value),
+          y2: yScale(y[index]),
+          stroke: "var(--colour-border-strong)",
+          "stroke-width": 1,
+          opacity: 0.7,
+        });
+        make("circle", {
+          cx: xScale(value),
+          cy: yScale(y[index]),
+          r: index === x.length - 1 ? 7 : 5.5,
+          fill: "var(--colour-primary)",
+          opacity: index === x.length - 1 ? 0.95 : 0.68,
+        });
+      });
+      const xLabel = make("text", { x: 392, y: 405, fill: "currentColor", "font-size": 12, "text-anchor": "middle" });
+      xLabel.textContent = "业务输入";
+      const yLabel = make("text", { x: 18, y: 194, fill: "currentColor", "font-size": 12, transform: "rotate(-90 18 194)", "text-anchor": "middle" });
+      yLabel.textContent = "结果变量";
+    };
+
+    [noiseInput, outlierInput].forEach((input) => input.addEventListener("input", draw, { signal: controller.signal }));
+    draw();
+    regressionCleanup = () => controller.abort();
+  }
+
+  document.addEventListener("astro:before-swap", () => regressionCleanup?.());
+  document.addEventListener("astro:page-load", initRegressionLab);
+  initRegressionLab();
+</script>
