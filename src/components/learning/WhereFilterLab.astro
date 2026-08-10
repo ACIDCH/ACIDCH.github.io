@@ -35,12 +35,14 @@ const payload = JSON.stringify({ customers: sqlCustomers, orders: sqlOrders }).r
     <div><span>Removed</span><strong data-where-removed>2</strong></div>
   </div>
 
-  <div class="where-filter-lab__table-wrap">
+  <div class="where-filter-lab__table-wrap" aria-label="桌面 WHERE 逐行判断表">
     <table>
       <thead data-where-head></thead>
       <tbody data-where-body></tbody>
     </table>
   </div>
+
+  <div class="where-filter-lab__cards" data-where-cards aria-label="移动端 WHERE 逐行判断"></div>
 
   <p class="where-filter-lab__reading" data-where-reading aria-live="polite"></p>
   <script is:inline type="application/json" data-where-source set:html={payload} />
@@ -54,15 +56,21 @@ const payload = JSON.stringify({ customers: sqlCustomers, orders: sqlOrders }).r
     border-bottom: 1px solid var(--colour-border-strong);
   }
 
-  .where-filter-lab__intro { max-width: 58rem; }
+  .where-filter-lab__intro {
+    max-width: 58rem;
+  }
+
   .where-filter-lab__intro h3 {
     margin: var(--space-2) 0 var(--space-3);
     font-size: clamp(1.35rem, 1.5vw, 1.8rem);
     line-height: 1.35;
   }
+
   .where-filter-lab__intro p:last-child,
   .where-filter-lab__reading,
-  .where-filter-lab__metrics span { color: var(--colour-text-muted); }
+  .where-filter-lab__metrics span {
+    color: var(--colour-text-muted);
+  }
 
   .where-filter-lab__controls {
     display: flex;
@@ -70,6 +78,7 @@ const payload = JSON.stringify({ customers: sqlCustomers, orders: sqlOrders }).r
     gap: var(--space-2);
     margin: var(--space-6) 0 var(--space-4);
   }
+
   .where-filter-lab__controls button {
     padding: 0.5rem 0.75rem;
     border: 1px solid var(--colour-border);
@@ -79,6 +88,7 @@ const payload = JSON.stringify({ customers: sqlCustomers, orders: sqlOrders }).r
     font: inherit;
     cursor: pointer;
   }
+
   .where-filter-lab__controls button[aria-pressed="true"] {
     border-color: var(--colour-primary);
     background: var(--colour-surface-subtle);
@@ -95,11 +105,13 @@ const payload = JSON.stringify({ customers: sqlCustomers, orders: sqlOrders }).r
     border-radius: var(--radius-md);
     background: var(--colour-surface-subtle);
   }
+
   .where-filter-lab__expression span {
     color: var(--colour-text-muted);
     font-size: var(--font-size-xs);
     font-weight: var(--font-weight-semibold);
   }
+
   .where-filter-lab__expression code {
     overflow-wrap: anywhere;
     white-space: normal;
@@ -111,21 +123,32 @@ const payload = JSON.stringify({ customers: sqlCustomers, orders: sqlOrders }).r
     gap: var(--space-3);
     margin: var(--space-4) 0;
   }
+
   .where-filter-lab__metrics > div {
     display: grid;
     gap: var(--space-1);
     padding: var(--space-3) 0;
     border-bottom: 1px solid var(--colour-border);
   }
-  .where-filter-lab__metrics span { font-size: var(--font-size-xs); }
-  .where-filter-lab__metrics strong { font-family: var(--font-mono); }
 
-  .where-filter-lab__table-wrap { overflow-x: auto; }
+  .where-filter-lab__metrics span {
+    font-size: var(--font-size-xs);
+  }
+
+  .where-filter-lab__metrics strong {
+    font-family: var(--font-mono);
+  }
+
+  .where-filter-lab__table-wrap {
+    overflow-x: auto;
+  }
+
   .where-filter-lab table {
     width: 100%;
     border-collapse: collapse;
     font-size: var(--font-size-sm);
   }
+
   .where-filter-lab th,
   .where-filter-lab td {
     padding: 0.7rem 0.75rem;
@@ -133,15 +156,25 @@ const payload = JSON.stringify({ customers: sqlCustomers, orders: sqlOrders }).r
     text-align: left;
     white-space: nowrap;
   }
-  .where-filter-lab th { color: var(--colour-text-muted); }
+
+  .where-filter-lab th {
+    color: var(--colour-text-muted);
+  }
+
   .where-filter-lab tr[data-where-state="remove"] td {
     color: var(--colour-text-muted);
     opacity: 0.58;
   }
+
   .where-filter-lab td:last-child {
     font-family: var(--font-mono);
     font-size: var(--font-size-xs);
   }
+
+  .where-filter-lab__cards {
+    display: none;
+  }
+
   .where-filter-lab__reading {
     max-width: 58rem;
     margin: var(--space-4) 0 0;
@@ -149,14 +182,86 @@ const payload = JSON.stringify({ customers: sqlCustomers, orders: sqlOrders }).r
   }
 
   @media (max-width: 42rem) {
-    .where-filter-lab__metrics { grid-template-columns: 1fr; gap: 0; }
-    .where-filter-lab__expression { grid-template-columns: 1fr; }
+    .where-filter-lab__metrics {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+
+    .where-filter-lab__expression {
+      grid-template-columns: 1fr;
+    }
+
+    .where-filter-lab__table-wrap {
+      display: none;
+    }
+
+    .where-filter-lab__cards {
+      display: grid;
+      gap: var(--space-3);
+    }
+
+    .where-filter-lab__card {
+      margin: 0;
+      padding: var(--space-3);
+      border: 1px solid var(--colour-border);
+      border-radius: var(--radius-sm);
+      background: var(--colour-surface);
+    }
+
+    .where-filter-lab__card[data-where-state="remove"] {
+      opacity: 0.62;
+    }
+
+    .where-filter-lab__card-row {
+      display: grid;
+      grid-template-columns: 7.4rem minmax(0, 1fr);
+      gap: var(--space-3);
+      padding: 0.46rem 0;
+      border-bottom: 1px solid var(--colour-border);
+    }
+
+    .where-filter-lab__card-row:last-child {
+      border-bottom: 0;
+    }
+
+    .where-filter-lab__card dt,
+    .where-filter-lab__card dd {
+      margin: 0;
+      min-width: 0;
+    }
+
+    .where-filter-lab__card dt {
+      color: var(--colour-text-muted);
+      font-family: var(--font-mono);
+      font-size: var(--font-size-xs);
+    }
+
+    .where-filter-lab__card dd {
+      overflow-wrap: anywhere;
+      font-size: var(--font-size-sm);
+    }
+
+    .where-filter-lab__card-row--decision dd {
+      font-family: var(--font-mono);
+      font-weight: var(--font-weight-semibold);
+    }
   }
 </style>
 
 <script>
-  type Order = { order_id: number; customer_id: number; order_date: string; order_value: number };
-  type Customer = { customer_id: number; customer_name: string; email: string; phone: string; segment: string };
+  type Order = {
+    order_id: number;
+    customer_id: number;
+    order_date: string;
+    order_value: number;
+  };
+  type Customer = {
+    customer_id: number;
+    customer_name: string;
+    email: string;
+    phone: string;
+    segment: string;
+  };
   type Data = { customers: Customer[]; orders: Order[] };
   type Rule = "gte" | "and" | "or" | "grouped" | "between" | "in" | "like" | "null";
 
@@ -169,16 +274,31 @@ const payload = JSON.stringify({ customers: sqlCustomers, orders: sqlOrders }).r
     const source = root.querySelector<HTMLScriptElement>("[data-where-source]");
     const head = root.querySelector<HTMLTableSectionElement>("[data-where-head]");
     const body = root.querySelector<HTMLTableSectionElement>("[data-where-body]");
+    const cards = root.querySelector<HTMLElement>("[data-where-cards]");
     const expression = root.querySelector<HTMLElement>("[data-where-expression]");
     const input = root.querySelector<HTMLElement>("[data-where-input]");
     const kept = root.querySelector<HTMLElement>("[data-where-kept]");
     const removed = root.querySelector<HTMLElement>("[data-where-removed]");
     const reading = root.querySelector<HTMLElement>("[data-where-reading]");
-    const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>("[data-where-rule]"));
-    if (!source || !head || !body || !expression || !input || !kept || !removed || !reading) return;
+    const buttons = Array.from(
+      root.querySelectorAll<HTMLButtonElement>("[data-where-rule]"),
+    );
+    if (
+      !source ||
+      !head ||
+      !body ||
+      !cards ||
+      !expression ||
+      !input ||
+      !kept ||
+      !removed ||
+      !reading
+    )
+      return;
 
     const tableHead = head;
     const tableBody = body;
+    const cardList = cards;
     const expressionOutput = expression;
     const inputOutput = input;
     const keptOutput = kept;
@@ -187,12 +307,15 @@ const payload = JSON.stringify({ customers: sqlCustomers, orders: sqlOrders }).r
     const data = JSON.parse(source.textContent || "{}") as Data;
     const controller = new AbortController();
 
-    const configs: Record<Rule, {
-      table: "orders" | "customers";
-      expression: string;
-      reading: string;
-      test: (row: Order | Customer) => boolean;
-    }> = {
+    const configs: Record<
+      Rule,
+      {
+        table: "orders" | "customers";
+        expression: string;
+        reading: string;
+        test: (row: Order | Customer) => boolean;
+      }
+    > = {
       gte: {
         table: "orders",
         expression: "order_value >= 500",
@@ -203,37 +326,45 @@ const payload = JSON.stringify({ customers: sqlCustomers, orders: sqlOrders }).r
         table: "orders",
         expression: "order_value >= 400 AND customer_id <> 1002",
         reading: "AND 要求两个条件同时为真，因此保留 50001 与 50004。",
-        test: (row) => "order_value" in row && row.order_value >= 400 && row.customer_id !== 1002,
+        test: (row) =>
+          "order_value" in row && row.order_value >= 400 && row.customer_id !== 1002,
       },
       or: {
         table: "orders",
         expression: "customer_id = 1001 OR order_value >= 700",
         reading: "OR 允许任意一侧成立，因此 50001、50002 与 50003 都进入结果集。",
-        test: (row) => "order_value" in row && (row.customer_id === 1001 || row.order_value >= 700),
+        test: (row) =>
+          "order_value" in row && (row.customer_id === 1001 || row.order_value >= 700),
       },
       grouped: {
         table: "orders",
         expression: "(customer_id = 1001 OR order_value >= 500) AND customer_id = 1003",
         reading: "括号先形成候选集合，再应用 customer_id = 1003，最终只保留 50004。",
-        test: (row) => "order_value" in row && (row.customer_id === 1001 || row.order_value >= 500) && row.customer_id === 1003,
+        test: (row) =>
+          "order_value" in row &&
+          (row.customer_id === 1001 || row.order_value >= 500) &&
+          row.customer_id === 1003,
       },
       between: {
         table: "orders",
         expression: "order_value BETWEEN 400 AND 600",
         reading: "BETWEEN 包含上下边界；当前数据保留 420 与 510 两张订单。",
-        test: (row) => "order_value" in row && row.order_value >= 400 && row.order_value <= 600,
+        test: (row) =>
+          "order_value" in row && row.order_value >= 400 && row.order_value <= 600,
       },
       in: {
         table: "customers",
         expression: "segment IN ('Retail', 'Enterprise')",
         reading: "IN 用一个字段匹配多个离散候选值，当前保留 North Retail 与 Alpine Labs。",
-        test: (row) => "segment" in row && ["Retail", "Enterprise"].includes(row.segment),
+        test: (row) =>
+          "segment" in row && ["Retail", "Enterprise"].includes(row.segment),
       },
       like: {
         table: "customers",
         expression: "customer_name LIKE 'Coast%'",
         reading: "百分号表示零个或多个字符，因此当前只有 Coast Foods 符合此前缀模式。",
-        test: (row) => "customer_name" in row && row.customer_name.startsWith("Coast"),
+        test: (row) =>
+          "customer_name" in row && row.customer_name.startsWith("Coast"),
       },
       null: {
         table: "customers",
@@ -243,14 +374,11 @@ const payload = JSON.stringify({ customers: sqlCustomers, orders: sqlOrders }).r
       },
     };
 
-    function render(rule: Rule) {
-      const config = configs[rule];
-      const rows = config.table === "orders" ? data.orders : data.customers;
-      const columns = config.table === "orders"
-        ? ["order_id", "customer_id", "order_value"]
-        : ["customer_id", "customer_name", "segment", "phone"];
-      const matching = rows.filter((row) => config.test(row));
+    function rowValue(row: Order | Customer, column: string) {
+      return (row as unknown as Record<string, unknown>)[column];
+    }
 
+    function renderDesktop(rows: Array<Order | Customer>, columns: string[], config: (typeof configs)[Rule]) {
       tableHead.replaceChildren();
       const headRow = document.createElement("tr");
       [...columns, "decision"].forEach((column) => {
@@ -267,7 +395,7 @@ const payload = JSON.stringify({ customers: sqlCustomers, orders: sqlOrders }).r
         tr.dataset.whereState = keep ? "keep" : "remove";
         columns.forEach((column) => {
           const td = document.createElement("td");
-          const value = (row as unknown as Record<string, unknown>)[column];
+          const value = rowValue(row, column);
           td.textContent = value == null ? "NULL" : String(value);
           tr.append(td);
         });
@@ -276,6 +404,50 @@ const payload = JSON.stringify({ customers: sqlCustomers, orders: sqlOrders }).r
         tr.append(decision);
         tableBody.append(tr);
       });
+    }
+
+    function renderMobile(rows: Array<Order | Customer>, columns: string[], config: (typeof configs)[Rule]) {
+      cardList.replaceChildren();
+      rows.forEach((row) => {
+        const keep = config.test(row);
+        const card = document.createElement("dl");
+        card.className = "where-filter-lab__card";
+        card.dataset.whereState = keep ? "keep" : "remove";
+
+        [...columns, "decision"].forEach((column) => {
+          const item = document.createElement("div");
+          item.className = "where-filter-lab__card-row";
+          if (column === "decision") {
+            item.classList.add("where-filter-lab__card-row--decision");
+          }
+          const term = document.createElement("dt");
+          term.textContent = column;
+          const value = document.createElement("dd");
+          if (column === "decision") {
+            value.textContent = keep ? "KEEP ✓" : "REMOVE";
+          } else {
+            const raw = rowValue(row, column);
+            value.textContent = raw == null ? "NULL" : String(raw);
+          }
+          item.append(term, value);
+          card.append(item);
+        });
+        cardList.append(card);
+      });
+    }
+
+    function render(rule: Rule) {
+      const config = configs[rule];
+      const rows: Array<Order | Customer> =
+        config.table === "orders" ? data.orders : data.customers;
+      const columns =
+        config.table === "orders"
+          ? ["order_id", "customer_id", "order_value"]
+          : ["customer_id", "customer_name", "segment", "phone"];
+      const matching = rows.filter((row) => config.test(row));
+
+      renderDesktop(rows, columns, config);
+      renderMobile(rows, columns, config);
 
       expressionOutput.textContent = config.expression;
       inputOutput.textContent = String(rows.length);
@@ -288,7 +460,11 @@ const payload = JSON.stringify({ customers: sqlCustomers, orders: sqlOrders }).r
     }
 
     buttons.forEach((button) => {
-      button.addEventListener("click", () => render((button.dataset.whereRule || "gte") as Rule), { signal: controller.signal });
+      button.addEventListener(
+        "click",
+        () => render((button.dataset.whereRule || "gte") as Rule),
+        { signal: controller.signal },
+      );
     });
 
     render("gte");
