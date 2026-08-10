@@ -18,8 +18,13 @@ type Preset =
   | "where-between"
   | "where-in"
   | "where-like"
-  | "where-null";
-type Focus = "keys" | "select" | "where" | "all";
+  | "where-null"
+  | "projection-columns"
+  | "projection-reorder"
+  | "projection-alias"
+  | "projection-where"
+  | "projection-expression";
+type Focus = "keys" | "select" | "where" | "projection" | "all";
 
 interface Props {
   defaultPreset?: Preset;
@@ -27,20 +32,24 @@ interface Props {
 }
 
 const pathname = Astro.url.pathname;
-const inferredFocus: Focus = pathname.includes("/sql-where/")
-  ? "where"
-  : pathname.includes("/sql-select/")
-    ? "select"
-    : pathname.includes("/sql-primary-key/") || pathname.includes("/sql-foreign-key/")
-      ? "keys"
-      : "all";
+const inferredFocus: Focus = pathname.includes("/sql-projection/")
+  ? "projection"
+  : pathname.includes("/sql-where/")
+    ? "where"
+    : pathname.includes("/sql-select/")
+      ? "select"
+      : pathname.includes("/sql-primary-key/") || pathname.includes("/sql-foreign-key/")
+        ? "keys"
+        : "all";
 const inferredPreset: Preset = pathname.includes("/sql-primary-key/")
   ? "duplicate"
   : pathname.includes("/sql-foreign-key/")
     ? "foreign-key"
     : pathname.includes("/sql-where/")
       ? "where-gte"
-      : "customers";
+      : pathname.includes("/sql-projection/")
+        ? "projection-columns"
+        : "customers";
 const { defaultPreset = inferredPreset, focus = inferredFocus } = Astro.props;
 const presetOptions = {
   keys: [
@@ -66,6 +75,13 @@ const presetOptions = {
     { value: "where-like", label: "LIKE 文本模式" },
     { value: "where-null", label: "IS NULL 缺失检查" },
   ],
+  projection: [
+    { value: "projection-columns", label: "选择三列" },
+    { value: "projection-reorder", label: "重排列顺序" },
+    { value: "projection-alias", label: "AS 列别名" },
+    { value: "projection-where", label: "Projection + WHERE" },
+    { value: "projection-expression", label: "表达式派生列" },
+  ],
   all: [
     { value: "customers", label: "查看客户表" },
     { value: "orders", label: "查看订单表" },
@@ -74,6 +90,8 @@ const presetOptions = {
     { value: "expression", label: "SELECT 1 执行检查" },
     { value: "where-gte", label: "WHERE 金额筛选" },
     { value: "where-between", label: "WHERE 区间筛选" },
+    { value: "projection-columns", label: "Projection 三列" },
+    { value: "projection-alias", label: "Projection 别名" },
     { value: "join", label: "连接客户与订单" },
     { value: "aggregate", label: "按客户汇总订单" },
     { value: "duplicate", label: "测试重复主键" },
@@ -409,6 +427,11 @@ const serializedSeed = JSON.stringify(sqlLearningSeedSql).replace(/</g, "\\u003c
       "where-in": `SELECT *\nFROM customers\nWHERE segment IN ('Retail', 'Enterprise')\nORDER BY customer_id;`,
       "where-like": `SELECT *\nFROM customers\nWHERE customer_name LIKE 'Coast%'\nORDER BY customer_id;`,
       "where-null": `SELECT *\nFROM customers\nWHERE phone IS NULL\nORDER BY customer_id;`,
+      "projection-columns": `SELECT\n  customer_id,\n  customer_name,\n  segment\nFROM customers;`,
+      "projection-reorder": `SELECT\n  segment,\n  customer_name,\n  customer_id\nFROM customers;`,
+      "projection-alias": `SELECT\n  customer_id AS customer_key,\n  customer_name AS customer,\n  segment AS customer_segment\nFROM customers;`,
+      "projection-where": `SELECT\n  order_id,\n  customer_id,\n  order_value AS value\nFROM orders\nWHERE order_value >= 500;`,
+      "projection-expression": `SELECT\n  order_id,\n  order_value,\n  ROUND(order_value * 1.10, 2) AS scenario_value\nFROM orders;`,
     };
 
     function setStatus(message: string, state = "ready") {
