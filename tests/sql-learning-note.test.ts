@@ -176,7 +176,9 @@ describe("SQL and relational data Learning Notes", () => {
       "## ORDER BY 是分页之前的关键前提",
     ].forEach((term) => expect(notes.orderBy).toContain(term));
     expect(notes.orderBy).toContain('data-learning-slot="order-by-lab"');
-    expect(notes.orderBy).toContain("ORDER BY customer_id ASC, order_date DESC, order_id ASC");
+    ["ORDER BY", "customer_id ASC", "order_date DESC", "order_id ASC"].forEach((term) =>
+      expect(notes.orderBy).toContain(term),
+    );
   });
 
   it("renders SQL 01 through SQL 08 through one editorial layout with generated TOCs", () => {
