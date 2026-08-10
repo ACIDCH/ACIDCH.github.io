@@ -31,10 +31,16 @@ describe("portfolio visual polish contracts", () => {
     expect(control).toContain("--scroll-progress");
   });
 
-  it("uses concise deep-dive entry copy and technical visual markers", async () => {
+  it("uses portfolio-facing deep-dive copy and technical visual markers", async () => {
     const deepDiveNav = await source("src/components/TechnicalDeepDiveNav.astro");
-    expect(deepDiveNav).toContain("进入实现细节");
-    expect(deepDiveNav).toContain("选择一个专题继续阅读。");
+    const deepDiveShell = await source("src/components/RDeepDiveShell.astro");
+
+    expect(deepDiveNav).toContain("继续深入分析");
+    expect(deepDiveNav).toContain(
+      "五个专题分别拆解数据验证、模型比较、错误结构、解释路径与关联实验。",
+    );
     expect(deepDiveNav).toContain("ChurnMicroIcon");
+    expect(deepDiveShell).toContain("继续阅读技术专题");
+    expect(`${deepDiveNav}\n${deepDiveShell}`).not.toMatch(/\b704\b|BUSINFO\s*704/);
   });
 });
