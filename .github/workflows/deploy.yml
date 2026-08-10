@@ -80,6 +80,15 @@ jobs:
       - name: Build and validate static site
         run: npm run build
 
+      - name: Upload pull-request static artifact
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v7
+        with:
+          name: pr-static-site-${{ github.event.pull_request.number }}
+          path: dist
+          if-no-files-found: error
+          retention-days: 3
+
       - name: Write deployment identity
         if: >-
           github.event_name == 'push' ||
