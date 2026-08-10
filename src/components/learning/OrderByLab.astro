@@ -1,0 +1,706 @@
+---
+import { sqlLearningSeedSql, sqlOrders } from "../../data/sql-learning";
+
+const payload = JSON.stringify({ orders: sqlOrders, seedSql: sqlLearningSeedSql }).replace(
+  /</g,
+  "\\u003c",
+);
+---
+
+<section class="order-lab" data-order-by-lab aria-labelledby="order-lab-title">
+  <div class="order-lab__intro">
+    <p class="learning-note-kicker">互动图表 · Ordering Contract</p>
+    <h3 id="order-lab-title">同一批订单，排序键怎样改变结果行顺序？</h3>
+    <p>
+      所有模式都读取 SQL 系列的 canonical orders。上半部分逐行解释排序结果；下半部分由浏览器内 SQLite 实际执行同一类 ORDER BY 查询。
+    </p>
+  </div>
+
+  <div class="order-lab__controls" role="group" aria-label="选择 ORDER BY 示例">
+    <button type="button" data-order-rule="observed" aria-pressed="false">未声明顺序</button>
+    <button type="button" data-order-rule="asc" aria-pressed="false">金额 ASC</button>
+    <button type="button" data-order-rule="desc" aria-pressed="true">金额 DESC</button>
+    <button type="button" data-order-rule="multi" aria-pressed="false">多列排序</button>
+    <button type="button" data-order-rule="stable" aria-pressed="false">稳定 tie-breaker</button>
+    <button type="button" data-order-rule="where" aria-pressed="false">WHERE + ORDER BY</button>
+  </div>
+
+  <div class="order-lab__statement">
+    <span>ORDER</span>
+    <code data-order-statement>BY order_value DESC</code>
+  </div>
+
+  <div class="order-lab__metrics" aria-live="polite">
+    <div><span>Rows</span><strong data-order-rows>4</strong></div>
+    <div><span>Sort keys</span><strong data-order-keys>1</strong></div>
+    <div><span>Contract</span><strong data-order-contract>ties unresolved</strong></div>
+  </div>
+
+  <div class="order-lab__table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>rank</th>
+          <th>order_id</th>
+          <th>customer_id</th>
+          <th>order_date</th>
+          <th>order_value</th>
+        </tr>
+      </thead>
+      <tbody data-order-body></tbody>
+    </table>
+  </div>
+
+  <div class="order-lab__cards" data-order-cards aria-label="ORDER BY mobile records"></div>
+
+  <p class="order-lab__reading" data-order-reading aria-live="polite">
+    当前金额值恰好都不同，因此本批数据可以得到唯一顺序；查询本身仍没有为未来可能出现的金额并列值提供 tie-breaker。
+  </p>
+
+  <div class="order-lab__runner" aria-labelledby="order-runner-title">
+    <div class="order-lab__runner-intro">
+      <p class="learning-note-kicker">浏览器实验 · SQLite</p>
+      <h4 id="order-runner-title">实际执行 ORDER BY，而不是只观察前端重排</h4>
+    </div>
+
+    <div class="order-lab__runner-toolbar">
+      <label for="order-sql-preset">
+        <span>当前排序实验</span>
+        <select id="order-sql-preset" data-order-sql-preset>
+          <option value="value-desc">金额 DESC</option>
+          <option value="value-asc">金额 ASC</option>
+          <option value="multi">客户 ASC + 日期 DESC</option>
+          <option value="stable">加入唯一 tie-breaker</option>
+          <option value="where">WHERE + ORDER BY</option>
+          <option value="alias">按表达式别名排序</option>
+        </select>
+      </label>
+      <button type="button" class="button" data-order-sql-run>运行 SQL</button>
+    </div>
+
+    <label class="order-lab__editor" for="order-sql-code">
+      <span>SQL</span>
+      <textarea id="order-sql-code" data-order-sql-code rows="8" spellcheck="false"></textarea>
+    </label>
+
+    <div class="order-lab__status" data-order-sql-status aria-live="polite">运行环境尚未加载。</div>
+    <div class="order-lab__summary" data-order-sql-summary aria-live="polite">尚未运行查询。</div>
+    <div class="order-lab__output" data-order-sql-output aria-live="polite">
+      <p>运行查询后，SQLite 结果会显示在这里。</p>
+    </div>
+  </div>
+
+  <script is:inline type="application/json" data-order-source set:html={payload} />
+</section>
+
+<style>
+  .order-lab {
+    margin: var(--space-12) 0;
+    padding: var(--space-7) 0 var(--space-8);
+    border-top: 1px solid var(--colour-border-strong);
+    border-bottom: 1px solid var(--colour-border-strong);
+  }
+
+  .order-lab__intro,
+  .order-lab__reading,
+  .order-lab__runner-intro {
+    max-width: 58rem;
+  }
+
+  .order-lab__intro h3,
+  .order-lab__runner-intro h4 {
+    margin: var(--space-2) 0 var(--space-3);
+    line-height: 1.35;
+  }
+
+  .order-lab__intro h3 {
+    font-size: clamp(1.35rem, 1.5vw, 1.8rem);
+  }
+
+  .order-lab__runner-intro h4 {
+    font-size: clamp(1.15rem, 1.3vw, 1.45rem);
+  }
+
+  .order-lab__intro p:last-child,
+  .order-lab__metrics span,
+  .order-lab__reading,
+  .order-lab__status,
+  .order-lab__summary,
+  .order-lab__output > p {
+    color: var(--colour-text-muted);
+  }
+
+  .order-lab__controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: var(--space-6) 0 var(--space-4);
+  }
+
+  .order-lab__controls button {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--colour-border);
+    border-radius: 999px;
+    background: var(--colour-surface);
+    color: var(--colour-text);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .order-lab__controls button[aria-pressed="true"] {
+    border-color: var(--colour-primary);
+    background: var(--colour-surface-subtle);
+    color: var(--colour-primary-strong);
+  }
+
+  .order-lab__statement {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-3);
+    align-items: baseline;
+    padding: var(--space-4);
+    border: 1px solid var(--colour-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--colour-surface-subtle);
+  }
+
+  .order-lab__statement span {
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .order-lab__statement code {
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+
+  .order-lab__metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-3);
+    margin: var(--space-4) 0;
+  }
+
+  .order-lab__metrics > div {
+    display: grid;
+    gap: var(--space-1);
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--colour-border);
+  }
+
+  .order-lab__metrics span {
+    font-size: var(--font-size-xs);
+  }
+
+  .order-lab__metrics strong {
+    font-family: var(--font-mono);
+    overflow-wrap: anywhere;
+  }
+
+  .order-lab__table-wrap {
+    overflow-x: auto;
+  }
+
+  .order-lab table,
+  .order-lab__output table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-sm);
+  }
+
+  .order-lab th,
+  .order-lab td,
+  .order-lab__output th,
+  .order-lab__output td {
+    padding: 0.7rem 0.75rem;
+    border-bottom: 1px solid var(--colour-border);
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  .order-lab th,
+  .order-lab__output th {
+    color: var(--colour-text-muted);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .order-lab__cards {
+    display: none;
+  }
+
+  .order-lab__reading {
+    margin: var(--space-4) 0 0;
+    line-height: 1.75;
+  }
+
+  .order-lab__runner {
+    margin-top: var(--space-9, 4rem);
+    padding-top: var(--space-7);
+    border-top: 1px solid var(--colour-border-strong);
+  }
+
+  .order-lab__runner-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    justify-content: space-between;
+    gap: var(--space-4);
+    margin: var(--space-5) 0 var(--space-4);
+  }
+
+  .order-lab__runner-toolbar label,
+  .order-lab__editor {
+    display: grid;
+    gap: var(--space-2);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+  }
+
+  .order-lab__runner-toolbar label {
+    min-width: min(100%, 20rem);
+  }
+
+  .order-lab__runner-toolbar select,
+  .order-lab__editor textarea {
+    width: 100%;
+    border: 1px solid var(--colour-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--colour-surface);
+    color: var(--colour-text);
+    font: inherit;
+  }
+
+  .order-lab__runner-toolbar select {
+    padding: 0.7rem 0.8rem;
+  }
+
+  .order-lab__editor textarea {
+    resize: vertical;
+    padding: var(--space-4);
+    background: var(--colour-code-bg, var(--colour-surface-subtle));
+    font-family: var(--font-mono);
+    font-size: 0.94rem;
+    line-height: 1.65;
+  }
+
+  .order-lab__status {
+    margin: var(--space-3) 0 var(--space-2);
+    font-size: var(--font-size-sm);
+  }
+
+  .order-lab__status[data-state="error"] {
+    color: var(--colour-danger, #9a3f38);
+  }
+
+  .order-lab__summary {
+    display: inline-block;
+    margin-bottom: var(--space-3);
+    padding: 0.35rem 0.55rem;
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-xs);
+  }
+
+  .order-lab__output {
+    overflow-x: auto;
+    border-top: 1px solid var(--colour-border);
+    padding-top: var(--space-4);
+  }
+
+  @media (max-width: 42rem) {
+    .order-lab__statement {
+      grid-template-columns: 1fr;
+    }
+
+    .order-lab__metrics {
+      gap: var(--space-2);
+    }
+
+    .order-lab__table-wrap {
+      display: none;
+    }
+
+    .order-lab__cards {
+      display: grid;
+      gap: var(--space-3);
+    }
+
+    .order-lab__cards :global(article) {
+      padding: var(--space-4);
+      border: 1px solid var(--colour-border);
+      border-radius: var(--radius-md);
+      background: var(--colour-surface);
+    }
+
+    .order-lab__cards :global(dl) {
+      display: grid;
+      grid-template-columns: minmax(6.4rem, 0.8fr) minmax(0, 1.2fr);
+      gap: var(--space-2) var(--space-3);
+      margin: 0;
+      font-size: var(--font-size-sm);
+    }
+
+    .order-lab__cards :global(dt) {
+      color: var(--colour-text-muted);
+      overflow-wrap: anywhere;
+    }
+
+    .order-lab__cards :global(dd) {
+      margin: 0;
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .order-lab__runner-toolbar {
+      display: grid;
+      align-items: stretch;
+    }
+
+    .order-lab__runner-toolbar .button {
+      width: 100%;
+    }
+
+    .order-lab__output th,
+    .order-lab__output td {
+      padding-inline: 0.5rem;
+      font-size: 0.78rem;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+  }
+</style>
+
+<script>
+  type Order = {
+    order_id: number;
+    customer_id: number;
+    order_date: string;
+    order_value: number;
+  };
+  type Source = { orders: Order[]; seedSql: string };
+  type Rule = "observed" | "asc" | "desc" | "multi" | "stable" | "where";
+  type SqlResult = { columns: string[]; values: Array<Array<string | number | null>> };
+  type SqlDatabase = {
+    run: (sql: string) => void;
+    exec: (sql: string) => SqlResult[];
+    close: () => void;
+  };
+  type SqlModule = { Database: new () => SqlDatabase };
+  type InitSqlJs = (config: { locateFile: (filename: string) => string }) => Promise<SqlModule>;
+
+  let orderLabCleanup: (() => void) | undefined;
+  const cdnBase = "https://cdn.jsdelivr.net/npm/sql.js@1.14.1/dist/";
+  let sqlModulePromise: Promise<SqlModule> | undefined;
+
+  function getInitSqlJs(): Promise<InitSqlJs> {
+    const existing = Reflect.get(window, "initSqlJs");
+    if (typeof existing === "function") return Promise.resolve(existing as InitSqlJs);
+
+    return new Promise((resolve, reject) => {
+      const prior = document.querySelector<HTMLScriptElement>('script[data-sqljs-loader="true"]');
+      if (prior) {
+        prior.addEventListener(
+          "load",
+          () => {
+            const loaded = Reflect.get(window, "initSqlJs");
+            if (typeof loaded === "function") resolve(loaded as InitSqlJs);
+            else reject(new Error("SQLite loader did not expose initSqlJs."));
+          },
+          { once: true },
+        );
+        prior.addEventListener("error", () => reject(new Error("SQLite loader failed.")), {
+          once: true,
+        });
+        return;
+      }
+
+      const script = document.createElement("script");
+      script.src = `${cdnBase}sql-wasm.js`;
+      script.async = true;
+      script.dataset.sqljsLoader = "true";
+      script.addEventListener(
+        "load",
+        () => {
+          const loaded = Reflect.get(window, "initSqlJs");
+          if (typeof loaded === "function") resolve(loaded as InitSqlJs);
+          else reject(new Error("SQLite loader did not expose initSqlJs."));
+        },
+        { once: true },
+      );
+      script.addEventListener("error", () => reject(new Error("SQLite loader failed.")), {
+        once: true,
+      });
+      document.head.append(script);
+    });
+  }
+
+  async function getSqlModule() {
+    if (!sqlModulePromise) {
+      sqlModulePromise = getInitSqlJs().then((initSqlJs) =>
+        initSqlJs({ locateFile: (filename) => `${cdnBase}${filename}` }),
+      );
+    }
+    return sqlModulePromise;
+  }
+
+  function initOrderLab() {
+    orderLabCleanup?.();
+    const root = document.querySelector<HTMLElement>("[data-order-by-lab]");
+    if (!root) return;
+
+    const sourceNode = root.querySelector<HTMLScriptElement>("[data-order-source]");
+    const statement = root.querySelector<HTMLElement>("[data-order-statement]");
+    const rowsOutput = root.querySelector<HTMLElement>("[data-order-rows]");
+    const keysOutput = root.querySelector<HTMLElement>("[data-order-keys]");
+    const contractOutput = root.querySelector<HTMLElement>("[data-order-contract]");
+    const body = root.querySelector<HTMLTableSectionElement>("[data-order-body]");
+    const cards = root.querySelector<HTMLElement>("[data-order-cards]");
+    const reading = root.querySelector<HTMLElement>("[data-order-reading]");
+    const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>("[data-order-rule]"));
+    const preset = root.querySelector<HTMLSelectElement>("[data-order-sql-preset]");
+    const code = root.querySelector<HTMLTextAreaElement>("[data-order-sql-code]");
+    const runButton = root.querySelector<HTMLButtonElement>("[data-order-sql-run]");
+    const status = root.querySelector<HTMLElement>("[data-order-sql-status]");
+    const summary = root.querySelector<HTMLElement>("[data-order-sql-summary]");
+    const output = root.querySelector<HTMLElement>("[data-order-sql-output]");
+    if (
+      !sourceNode ||
+      !statement ||
+      !rowsOutput ||
+      !keysOutput ||
+      !contractOutput ||
+      !body ||
+      !cards ||
+      !reading ||
+      !preset ||
+      !code ||
+      !runButton ||
+      !status ||
+      !summary ||
+      !output
+    )
+      return;
+
+    const source = JSON.parse(sourceNode.textContent || "{}") as Source;
+    const controller = new AbortController();
+    let db: SqlDatabase | undefined;
+
+    const rules: Record<Rule, { statement: string; keys: string; contract: string; reading: string; rows: Order[] }> = {
+      observed: {
+        statement: "not declared",
+        keys: "0",
+        contract: "not guaranteed",
+        reading:
+          "这里仅展示当前 seed 的观察顺序。没有 ORDER BY 时，这个排列不能成为查询契约。",
+        rows: [...source.orders],
+      },
+      asc: {
+        statement: "BY order_value ASC",
+        keys: "1",
+        contract: "ties unresolved",
+        reading:
+          "金额从小到大。当前金额恰好都不同；如果未来出现相同金额，单一排序键没有声明并列记录内部顺序。",
+        rows: [...source.orders].sort((a, b) => a.order_value - b.order_value),
+      },
+      desc: {
+        statement: "BY order_value DESC",
+        keys: "1",
+        contract: "ties unresolved",
+        reading:
+          "金额从大到小。当前金额值恰好都不同，因此本批数据可以得到唯一顺序；查询本身仍没有为未来可能出现的金额并列值提供 tie-breaker。",
+        rows: [...source.orders].sort((a, b) => b.order_value - a.order_value),
+      },
+      multi: {
+        statement: "BY customer_id ASC, order_date DESC",
+        keys: "2",
+        contract: "secondary key",
+        reading:
+          "先按 customer_id 升序；客户 1001 出现并列后，再按 order_date 降序，因此 50002 排在 50001 前。",
+        rows: [...source.orders].sort(
+          (a, b) => a.customer_id - b.customer_id || b.order_date.localeCompare(a.order_date),
+        ),
+      },
+      stable: {
+        statement: "BY customer_id ASC, order_date DESC, order_id ASC",
+        keys: "3",
+        contract: "unique tie-breaker",
+        reading:
+          "最后加入唯一 order_id。即使前两个排序键都相同，查询仍然具备可以明确推导的最终顺序。",
+        rows: [...source.orders].sort(
+          (a, b) =>
+            a.customer_id - b.customer_id ||
+            b.order_date.localeCompare(a.order_date) ||
+            a.order_id - b.order_id,
+        ),
+      },
+      where: {
+        statement: "BY order_value DESC, order_id ASC · after WHERE order_value >= 400",
+        keys: "2",
+        contract: "filtered + ordered",
+        reading:
+          "WHERE 先保留金额至少 400 的三张订单，再按金额降序；order_id 作为最终 tie-breaker。",
+        rows: source.orders
+          .filter((row) => row.order_value >= 400)
+          .sort((a, b) => b.order_value - a.order_value || a.order_id - b.order_id),
+      },
+    };
+
+    function renderRule(rule: Rule) {
+      const view = rules[rule];
+      statement.textContent = view.statement;
+      rowsOutput.textContent = String(view.rows.length);
+      keysOutput.textContent = view.keys;
+      contractOutput.textContent = view.contract;
+      reading.textContent = view.reading;
+
+      body.replaceChildren();
+      cards.replaceChildren();
+      view.rows.forEach((row, index) => {
+        const values = [index + 1, row.order_id, row.customer_id, row.order_date, row.order_value];
+        const tr = document.createElement("tr");
+        values.forEach((value) => {
+          const td = document.createElement("td");
+          td.textContent = String(value);
+          tr.append(td);
+        });
+        body.append(tr);
+
+        const article = document.createElement("article");
+        const list = document.createElement("dl");
+        ["rank", "order_id", "customer_id", "order_date", "order_value"].forEach(
+          (label, valueIndex) => {
+            const dt = document.createElement("dt");
+            dt.textContent = label;
+            const dd = document.createElement("dd");
+            dd.textContent = String(values[valueIndex]);
+            list.append(dt, dd);
+          },
+        );
+        article.append(list);
+        cards.append(article);
+      });
+
+      buttons.forEach((button) => {
+        button.setAttribute("aria-pressed", String(button.dataset.orderRule === rule));
+      });
+    }
+
+    const examples: Record<string, string> = {
+      "value-desc": `SELECT\n  order_id,\n  customer_id,\n  order_value\nFROM orders\nORDER BY order_value DESC, order_id ASC;`,
+      "value-asc": `SELECT\n  order_id,\n  customer_id,\n  order_value\nFROM orders\nORDER BY order_value ASC, order_id ASC;`,
+      multi: `SELECT\n  order_id,\n  customer_id,\n  order_date\nFROM orders\nORDER BY customer_id ASC, order_date DESC;`,
+      stable: `SELECT\n  order_id,\n  customer_id,\n  order_date\nFROM orders\nORDER BY customer_id ASC, order_date DESC, order_id ASC;`,
+      where: `SELECT\n  order_id,\n  customer_id,\n  order_value\nFROM orders\nWHERE order_value >= 400\nORDER BY order_value DESC, order_id ASC;`,
+      alias: `SELECT\n  order_id,\n  ROUND(order_value * 1.10, 2) AS scenario_value\nFROM orders\nORDER BY scenario_value DESC, order_id ASC;`,
+    };
+
+    function setStatus(message: string, state = "ready") {
+      status.textContent = message;
+      status.dataset.state = state;
+    }
+
+    function renderSqlResults(results: SqlResult[]) {
+      output.replaceChildren();
+      if (results.length === 0) {
+        summary.textContent = "0 result sets · statement completed";
+        const paragraph = document.createElement("p");
+        paragraph.textContent = "SQL 执行成功，没有返回结果集。";
+        output.append(paragraph);
+        return;
+      }
+
+      const result = results[0];
+      summary.textContent = `${result.values.length} rows × ${result.columns.length} columns`;
+      const table = document.createElement("table");
+      const thead = document.createElement("thead");
+      const headRow = document.createElement("tr");
+      result.columns.forEach((column) => {
+        const th = document.createElement("th");
+        th.textContent = column;
+        headRow.append(th);
+      });
+      thead.append(headRow);
+      table.append(thead);
+
+      const tbody = document.createElement("tbody");
+      result.values.forEach((row) => {
+        const tr = document.createElement("tr");
+        row.forEach((value) => {
+          const td = document.createElement("td");
+          td.textContent = value === null ? "NULL" : String(value);
+          tr.append(td);
+        });
+        tbody.append(tr);
+      });
+      table.append(tbody);
+      output.append(table);
+    }
+
+    async function resetDatabase() {
+      const SQL = await getSqlModule();
+      db?.close();
+      db = new SQL.Database();
+      db.run(source.seedSql);
+    }
+
+    async function runSql() {
+      runButton.disabled = true;
+      try {
+        setStatus("正在执行 SQLite…", "running");
+        if (!db) await resetDatabase();
+        const results = db?.exec(code.value) ?? [];
+        renderSqlResults(results);
+        setStatus("SQL 执行完成。", "success");
+      } catch (error) {
+        const paragraph = document.createElement("p");
+        paragraph.textContent = error instanceof Error ? error.message : String(error);
+        output.replaceChildren(paragraph);
+        summary.textContent = "query failed";
+        setStatus("SQL 执行失败。查看下方错误信息。", "error");
+      } finally {
+        runButton.disabled = false;
+      }
+    }
+
+    buttons.forEach((button) => {
+      button.addEventListener(
+        "click",
+        () => renderRule((button.dataset.orderRule || "desc") as Rule),
+        { signal: controller.signal },
+      );
+    });
+
+    preset.addEventListener(
+      "change",
+      () => {
+        code.value = examples[preset.value] ?? examples["value-desc"];
+      },
+      { signal: controller.signal },
+    );
+    runButton.addEventListener("click", () => void runSql(), { signal: controller.signal });
+    code.addEventListener(
+      "keydown",
+      (event) => {
+        if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+          event.preventDefault();
+          void runSql();
+        }
+      },
+      { signal: controller.signal },
+    );
+
+    preset.value = "value-desc";
+    code.value = examples["value-desc"];
+    renderRule("desc");
+    orderLabCleanup = () => {
+      controller.abort();
+      db?.close();
+    };
+  }
+
+  document.addEventListener("astro:before-swap", () => orderLabCleanup?.());
+  document.addEventListener("astro:page-load", initOrderLab);
+  initOrderLab();
+</script>
