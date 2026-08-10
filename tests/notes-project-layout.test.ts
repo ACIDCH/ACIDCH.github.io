@@ -1,0 +1,57 @@
+import { readFileSync } from "node:fs";
+import { describe, expect, it } from "vitest";
+
+const read = (path: string) => readFileSync(path, "utf8");
+const notesIndex = read("src/pages/zh/notes/index.astro");
+const notesExplorer = read("src/components/NotesExplorer.astro");
+const seriesMap = read("src/components/learning/LearningSeriesMap.astro");
+const projectList = read("src/components/ProjectList.astro");
+const home = read("src/components/HomePage.astro");
+
+describe("Learning Notes and project-grid information architecture", () => {
+  it("keeps the existing tag cloud first, knowledge folders second, and all notes last", () => {
+    expect(notesIndex).toContain('<LearningSeriesMap slot="knowledge-map" />');
+    expect(notesExplorer).toContain('class="tag-cloud-panel"');
+    expect(notesExplorer).toContain('<slot name="knowledge-map" />');
+    expect(notesExplorer).toContain('class="notes-results-heading"');
+
+    const tags = notesExplorer.indexOf('class="tag-cloud-panel"');
+    const folders = notesExplorer.indexOf('<slot name="knowledge-map" />');
+    const results = notesExplorer.indexOf('class="notes-results-heading"');
+    expect(tags).toBeGreaterThan(-1);
+    expect(tags).toBeLessThan(folders);
+    expect(folders).toBeLessThan(results);
+    expect(notesExplorer).toContain('latest: "全部笔记"');
+  });
+
+  it("preserves tag-selection emphasis and weighted tag sizing", () => {
+    expect(notesExplorer).toContain("--tag-weight:");
+    expect(notesExplorer).toContain('data-note-tag={tag.toLocaleLowerCase()}');
+    expect(notesExplorer).toContain('aria-pressed="false"');
+    expect(notesExplorer).toContain('button.setAttribute("aria-pressed"');
+  });
+
+  it("renders compact two-column knowledge folders instead of module preview lists", () => {
+    expect(seriesMap).toContain("LearningSeriesIcon");
+    expect(seriesMap).toContain("grid-template-columns: repeat(2, minmax(0, 1fr))");
+    expect(seriesMap).toContain("进入知识库 →");
+    expect(seriesMap).toContain("个模块");
+    expect(seriesMap).not.toContain("series.modules.slice");
+    expect(seriesMap).not.toContain("<ul>");
+    expect(seriesMap).toContain("last-child:nth-child(odd)");
+  });
+
+  it("uses one shared balanced two-column project grid everywhere ProjectList is reused", () => {
+    expect(projectList).toContain("project-list--balanced");
+    expect(projectList).toContain("grid-template-columns: repeat(2, minmax(0, 1fr))");
+    expect(projectList).toContain("last-child:nth-child(odd)");
+    expect(projectList).toContain("justify-self: center");
+    expect(projectList).toContain("grid-template-columns: 1fr");
+    expect(projectList).not.toContain("project-list__featured");
+  });
+
+  it("uses an even featured-project target on the homepage", () => {
+    expect(home).toContain(".slice(0, 4)");
+    expect(home).not.toContain(".slice(0, 3);\nconst notes");
+  });
+});
