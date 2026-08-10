@@ -1,0 +1,294 @@
+---
+import { sqlCustomers, sqlOrders } from "../../data/sql-learning";
+
+const payload = JSON.stringify({ customers: sqlCustomers, orders: sqlOrders }).replace(/</g, "\\u003c");
+---
+
+<section class="where-filter-lab" data-where-filter-lab aria-labelledby="where-filter-title">
+  <div class="where-filter-lab__intro">
+    <p class="learning-note-kicker">互动图表 · Predicate Logic</p>
+    <h3 id="where-filter-title">同一张表，条件一变，哪些记录会留下？</h3>
+    <p>
+      下面不是模拟数据库结果，而是把 canonical dataset 的每一行按当前条件标记为 keep / remove。随后可在 SQLite 实验中运行同一条 SQL，核对行数与具体记录。
+    </p>
+  </div>
+
+  <div class="where-filter-lab__controls" role="group" aria-label="选择 WHERE 条件">
+    <button type="button" data-where-rule="gte" aria-pressed="true">金额 ≥ 500</button>
+    <button type="button" data-where-rule="and" aria-pressed="false">AND</button>
+    <button type="button" data-where-rule="or" aria-pressed="false">OR</button>
+    <button type="button" data-where-rule="grouped" aria-pressed="false">括号优先级</button>
+    <button type="button" data-where-rule="between" aria-pressed="false">BETWEEN</button>
+    <button type="button" data-where-rule="in" aria-pressed="false">IN</button>
+    <button type="button" data-where-rule="like" aria-pressed="false">LIKE</button>
+    <button type="button" data-where-rule="null" aria-pressed="false">IS NULL</button>
+  </div>
+
+  <div class="where-filter-lab__expression">
+    <span>WHERE</span>
+    <code data-where-expression>order_value &gt;= 500</code>
+  </div>
+
+  <div class="where-filter-lab__metrics" aria-live="polite">
+    <div><span>Input rows</span><strong data-where-input>4</strong></div>
+    <div><span>Kept</span><strong data-where-kept>2</strong></div>
+    <div><span>Removed</span><strong data-where-removed>2</strong></div>
+  </div>
+
+  <div class="where-filter-lab__table-wrap">
+    <table>
+      <thead data-where-head></thead>
+      <tbody data-where-body></tbody>
+    </table>
+  </div>
+
+  <p class="where-filter-lab__reading" data-where-reading aria-live="polite"></p>
+  <script is:inline type="application/json" data-where-source set:html={payload} />
+</section>
+
+<style>
+  .where-filter-lab {
+    margin: var(--space-12) 0;
+    padding: var(--space-7) 0 var(--space-8);
+    border-top: 1px solid var(--colour-border-strong);
+    border-bottom: 1px solid var(--colour-border-strong);
+  }
+
+  .where-filter-lab__intro { max-width: 58rem; }
+  .where-filter-lab__intro h3 {
+    margin: var(--space-2) 0 var(--space-3);
+    font-size: clamp(1.35rem, 1.5vw, 1.8rem);
+    line-height: 1.35;
+  }
+  .where-filter-lab__intro p:last-child,
+  .where-filter-lab__reading,
+  .where-filter-lab__metrics span { color: var(--colour-text-muted); }
+
+  .where-filter-lab__controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: var(--space-6) 0 var(--space-4);
+  }
+  .where-filter-lab__controls button {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--colour-border);
+    border-radius: 999px;
+    background: var(--colour-surface);
+    color: var(--colour-text);
+    font: inherit;
+    cursor: pointer;
+  }
+  .where-filter-lab__controls button[aria-pressed="true"] {
+    border-color: var(--colour-primary);
+    background: var(--colour-surface-subtle);
+    color: var(--colour-primary-strong);
+  }
+
+  .where-filter-lab__expression {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-3);
+    align-items: baseline;
+    padding: var(--space-4);
+    border: 1px solid var(--colour-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--colour-surface-subtle);
+  }
+  .where-filter-lab__expression span {
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+  }
+  .where-filter-lab__expression code {
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+
+  .where-filter-lab__metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-3);
+    margin: var(--space-4) 0;
+  }
+  .where-filter-lab__metrics > div {
+    display: grid;
+    gap: var(--space-1);
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--colour-border);
+  }
+  .where-filter-lab__metrics span { font-size: var(--font-size-xs); }
+  .where-filter-lab__metrics strong { font-family: var(--font-mono); }
+
+  .where-filter-lab__table-wrap { overflow-x: auto; }
+  .where-filter-lab table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-sm);
+  }
+  .where-filter-lab th,
+  .where-filter-lab td {
+    padding: 0.7rem 0.75rem;
+    border-bottom: 1px solid var(--colour-border);
+    text-align: left;
+    white-space: nowrap;
+  }
+  .where-filter-lab th { color: var(--colour-text-muted); }
+  .where-filter-lab tr[data-where-state="remove"] td {
+    color: var(--colour-text-muted);
+    opacity: 0.58;
+  }
+  .where-filter-lab td:last-child {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-xs);
+  }
+  .where-filter-lab__reading {
+    max-width: 58rem;
+    margin: var(--space-4) 0 0;
+    line-height: 1.75;
+  }
+
+  @media (max-width: 42rem) {
+    .where-filter-lab__metrics { grid-template-columns: 1fr; gap: 0; }
+    .where-filter-lab__expression { grid-template-columns: 1fr; }
+  }
+</style>
+
+<script>
+  type Order = { order_id: number; customer_id: number; order_date: string; order_value: number };
+  type Customer = { customer_id: number; customer_name: string; email: string; phone: string; segment: string };
+  type Data = { customers: Customer[]; orders: Order[] };
+  type Rule = "gte" | "and" | "or" | "grouped" | "between" | "in" | "like" | "null";
+
+  let whereFilterCleanup: (() => void) | undefined;
+
+  function initWhereFilterLab() {
+    whereFilterCleanup?.();
+    const root = document.querySelector<HTMLElement>("[data-where-filter-lab]");
+    if (!root) return;
+    const source = root.querySelector<HTMLScriptElement>("[data-where-source]");
+    const head = root.querySelector<HTMLTableSectionElement>("[data-where-head]");
+    const body = root.querySelector<HTMLTableSectionElement>("[data-where-body]");
+    const expression = root.querySelector<HTMLElement>("[data-where-expression]");
+    const input = root.querySelector<HTMLElement>("[data-where-input]");
+    const kept = root.querySelector<HTMLElement>("[data-where-kept]");
+    const removed = root.querySelector<HTMLElement>("[data-where-removed]");
+    const reading = root.querySelector<HTMLElement>("[data-where-reading]");
+    const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>("[data-where-rule]"));
+    if (!source || !head || !body || !expression || !input || !kept || !removed || !reading) return;
+
+    const data = JSON.parse(source.textContent || "{}") as Data;
+    const controller = new AbortController();
+
+    const configs: Record<Rule, {
+      table: "orders" | "customers";
+      expression: string;
+      reading: string;
+      test: (row: Order | Customer) => boolean;
+    }> = {
+      gte: {
+        table: "orders",
+        expression: "order_value >= 500",
+        reading: "50003 与 50004 被保留；结果仍是一行一张订单，只是行数从 4 缩小到 2。",
+        test: (row) => "order_value" in row && row.order_value >= 500,
+      },
+      and: {
+        table: "orders",
+        expression: "order_value >= 400 AND customer_id <> 1002",
+        reading: "AND 要求两个条件同时为真，因此保留 50001 与 50004。",
+        test: (row) => "order_value" in row && row.order_value >= 400 && row.customer_id !== 1002,
+      },
+      or: {
+        table: "orders",
+        expression: "customer_id = 1001 OR order_value >= 700",
+        reading: "OR 允许任意一侧成立，因此 50001、50002 与 50003 都进入结果集。",
+        test: (row) => "order_value" in row && (row.customer_id === 1001 || row.order_value >= 700),
+      },
+      grouped: {
+        table: "orders",
+        expression: "(customer_id = 1001 OR order_value >= 500) AND customer_id = 1003",
+        reading: "括号先形成候选集合，再应用 customer_id = 1003，最终只保留 50004。",
+        test: (row) => "order_value" in row && (row.customer_id === 1001 || row.order_value >= 500) && row.customer_id === 1003,
+      },
+      between: {
+        table: "orders",
+        expression: "order_value BETWEEN 400 AND 600",
+        reading: "BETWEEN 包含上下边界；当前数据保留 420 与 510 两张订单。",
+        test: (row) => "order_value" in row && row.order_value >= 400 && row.order_value <= 600,
+      },
+      in: {
+        table: "customers",
+        expression: "segment IN ('Retail', 'Enterprise')",
+        reading: "IN 用一个字段匹配多个离散候选值，当前保留 North Retail 与 Alpine Labs。",
+        test: (row) => "segment" in row && ["Retail", "Enterprise"].includes(row.segment),
+      },
+      like: {
+        table: "customers",
+        expression: "customer_name LIKE 'Coast%'",
+        reading: "百分号表示零个或多个字符，因此当前只有 Coast Foods 符合此前缀模式。",
+        test: (row) => "customer_name" in row && row.customer_name.startsWith("Coast"),
+      },
+      null: {
+        table: "customers",
+        expression: "phone IS NULL",
+        reading: "当前 canonical customers 没有缺失 phone，因此 0 rows 是正确而有效的结果。",
+        test: (row) => "phone" in row && row.phone == null,
+      },
+    };
+
+    function render(rule: Rule) {
+      const config = configs[rule];
+      const rows = config.table === "orders" ? data.orders : data.customers;
+      const columns = config.table === "orders"
+        ? ["order_id", "customer_id", "order_value"]
+        : ["customer_id", "customer_name", "segment", "phone"];
+      const matching = rows.filter((row) => config.test(row));
+
+      head.replaceChildren();
+      const headRow = document.createElement("tr");
+      [...columns, "decision"].forEach((column) => {
+        const th = document.createElement("th");
+        th.textContent = column;
+        headRow.append(th);
+      });
+      head.append(headRow);
+
+      body.replaceChildren();
+      rows.forEach((row) => {
+        const tr = document.createElement("tr");
+        const keep = config.test(row);
+        tr.dataset.whereState = keep ? "keep" : "remove";
+        columns.forEach((column) => {
+          const td = document.createElement("td");
+          const value = (row as unknown as Record<string, unknown>)[column];
+          td.textContent = value == null ? "NULL" : String(value);
+          tr.append(td);
+        });
+        const decision = document.createElement("td");
+        decision.textContent = keep ? "KEEP ✓" : "REMOVE";
+        tr.append(decision);
+        body.append(tr);
+      });
+
+      expression.textContent = config.expression;
+      input.textContent = String(rows.length);
+      kept.textContent = String(matching.length);
+      removed.textContent = String(rows.length - matching.length);
+      reading.textContent = config.reading;
+      buttons.forEach((button) => {
+        button.setAttribute("aria-pressed", String(button.dataset.whereRule === rule));
+      });
+    }
+
+    buttons.forEach((button) => {
+      button.addEventListener("click", () => render((button.dataset.whereRule || "gte") as Rule), { signal: controller.signal });
+    });
+
+    render("gte");
+    whereFilterCleanup = () => controller.abort();
+  }
+
+  document.addEventListener("astro:before-swap", () => whereFilterCleanup?.());
+  document.addEventListener("astro:page-load", initWhereFilterLab);
+  initWhereFilterLab();
+</script>
