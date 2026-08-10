@@ -177,6 +177,13 @@ const payload = JSON.stringify({ customers: sqlCustomers, orders: sqlOrders }).r
     const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>("[data-where-rule]"));
     if (!source || !head || !body || !expression || !input || !kept || !removed || !reading) return;
 
+    const tableHead = head;
+    const tableBody = body;
+    const expressionOutput = expression;
+    const inputOutput = input;
+    const keptOutput = kept;
+    const removedOutput = removed;
+    const readingOutput = reading;
     const data = JSON.parse(source.textContent || "{}") as Data;
     const controller = new AbortController();
 
@@ -244,16 +251,16 @@ const payload = JSON.stringify({ customers: sqlCustomers, orders: sqlOrders }).r
         : ["customer_id", "customer_name", "segment", "phone"];
       const matching = rows.filter((row) => config.test(row));
 
-      head.replaceChildren();
+      tableHead.replaceChildren();
       const headRow = document.createElement("tr");
       [...columns, "decision"].forEach((column) => {
         const th = document.createElement("th");
         th.textContent = column;
         headRow.append(th);
       });
-      head.append(headRow);
+      tableHead.append(headRow);
 
-      body.replaceChildren();
+      tableBody.replaceChildren();
       rows.forEach((row) => {
         const tr = document.createElement("tr");
         const keep = config.test(row);
@@ -267,14 +274,14 @@ const payload = JSON.stringify({ customers: sqlCustomers, orders: sqlOrders }).r
         const decision = document.createElement("td");
         decision.textContent = keep ? "KEEP ✓" : "REMOVE";
         tr.append(decision);
-        body.append(tr);
+        tableBody.append(tr);
       });
 
-      expression.textContent = config.expression;
-      input.textContent = String(rows.length);
-      kept.textContent = String(matching.length);
-      removed.textContent = String(rows.length - matching.length);
-      reading.textContent = config.reading;
+      expressionOutput.textContent = config.expression;
+      inputOutput.textContent = String(rows.length);
+      keptOutput.textContent = String(matching.length);
+      removedOutput.textContent = String(rows.length - matching.length);
+      readingOutput.textContent = config.reading;
       buttons.forEach((button) => {
         button.setAttribute("aria-pressed", String(button.dataset.whereRule === rule));
       });
