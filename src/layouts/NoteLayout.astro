@@ -5,7 +5,6 @@ import NoteList from "../components/NoteList.astro";
 import ProjectList from "../components/ProjectList.astro";
 import DescriptiveStatisticsLab from "../components/learning/DescriptiveStatisticsLab.astro";
 import LearningNoteHero from "../components/learning/LearningNoteHero.astro";
-import LearningNoteRail from "../components/learning/LearningNoteRail.astro";
 import LearningNoteToc from "../components/learning/LearningNoteToc.astro";
 import "../styles/learning-note-editorial.css";
 import { getCanonicalUrl } from "../utils/urls";
@@ -33,12 +32,6 @@ const learningFacts = [
   { label: "均值", value: "20.75 分钟", note: "受右侧长尾影响" },
   { label: "中位数", value: "17.5 分钟", note: "更接近典型等待位置" },
   { label: "≤ 20 分钟", value: "62.5%", note: "由基准 ECDF 读取" },
-];
-const learningPath = [
-  "先固定记录粒度、单位与时间窗口",
-  "再比较中心位置与离散程度",
-  "用直方图、箱线图和 ECDF 检查形状",
-  "最后把统计量放回业务问题",
 ];
 const notes = await getCollection("notes");
 const projects = await getCollection("projects");
@@ -100,6 +93,7 @@ const noteStructuredData = {
             tags={entry.data.tags}
             tools={entry.data.tools}
             updatedAt={entry.data.updatedAt}
+            facts={learningFacts}
           />
           <div class="learning-note__grid">
             <LearningNoteToc items={learningToc} />
@@ -107,12 +101,6 @@ const noteStructuredData = {
               <Content />
               <DescriptiveStatisticsLab />
             </div>
-            <LearningNoteRail
-              facts={learningFacts}
-              path={learningPath}
-              jumpHref="#statistics-lab-title"
-              jumpLabel="进入互动观察台"
-            />
           </div>
         </>
       ) : (
