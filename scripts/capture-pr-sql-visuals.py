@@ -171,6 +171,21 @@ class BrowserSession:
         self.execute(f"document.querySelector({json.dumps(selector)}).click();")
         time.sleep(0.2)
 
+    def wait_for_text(self, selector: str, expected: str, timeout: float = 15) -> None:
+        self.require(selector)
+        deadline = time.time() + timeout
+        while time.time() < deadline:
+            value = self.execute(
+                "return document.querySelector(%s).textContent || '';"
+                % json.dumps(selector)
+            )
+            if isinstance(value, str) and expected in value:
+                return
+            time.sleep(0.25)
+        raise RuntimeError(
+            f"Timed out waiting for {expected!r} in visual target {selector}."
+        )
+
     def screenshot(self, name: str) -> None:
         response = request_json("GET", f"{self.session_base}/screenshot")
         encoded = response.get("value")
@@ -207,6 +222,10 @@ def capture_visuals(browser: BrowserSession) -> None:
     browser.click('[data-key-choice="email"]')
     browser.click("[data-key-change]")
     browser.screenshot("sql02-primary-key-change-desktop.png")
+    browser.scroll_to("[data-sql-playground]")
+    browser.click("[data-sql-run]")
+    browser.wait_for_text("[data-sql-status]", "SQL 执行失败")
+    browser.screenshot("sql02-duplicate-primary-key-error-desktop.png")
 
     browser.navigate("sql-foreign-key")
     browser.scroll_to("[data-foreign-key-lab]")
@@ -216,6 +235,10 @@ def capture_visuals(browser: BrowserSession) -> None:
     )
     browser.click('[data-fk-mode="logical"]')
     browser.screenshot("sql03-invalid-logical-foreign-key-desktop.png")
+    browser.scroll_to("[data-sql-playground]")
+    browser.click("[data-sql-run]")
+    browser.wait_for_text("[data-sql-status]", "SQL 执行失败")
+    browser.screenshot("sql03-invalid-foreign-key-error-desktop.png")
 
     browser.navigate("sql-relationships")
     browser.scroll_to("[data-relationship-cardinality-lab]")
@@ -224,6 +247,8 @@ def capture_visuals(browser: BrowserSession) -> None:
 
     browser.navigate("sql-select")
     browser.scroll_to("[data-sql-playground]")
+    browser.click("[data-sql-run]")
+    browser.wait_for_text("[data-sql-result-summary]", "3 rows × 5 columns")
     browser.screenshot("sql05-select-playground-desktop.png")
 
     browser.set_viewport(390, 844, mobile=True)
@@ -281,7 +306,7 @@ def main() -> None:
         server.shutdown()
         server.server_close()
 
-    expected = 13
+    expected = 15
     actual = len(list(OUTPUT.glob("*.png")))
     if actual != expected:
         raise RuntimeError(f"Expected {expected} visual proofs, generated {actual}.")
