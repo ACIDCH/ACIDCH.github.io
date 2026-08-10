@@ -76,7 +76,8 @@ describe("R and Statistics Learning Note handbook", () => {
   });
 
   it("shows only a compact handbook title in the article header", () => {
-    expect(layout).toContain('const handbookTitle = isSqlHandbook ? "SQL 与关系数据" : "统计学与 R"');
+    expect(layout).toContain("const handbookTitle = isSqlPrimaryKey");
+    expect(layout).toContain("? entry.data.title");
     expect(layout).toContain("<LearningNoteHero title={handbookTitle} />");
     expect(hero).toContain("learning-note-titlebar");
     expect(hero).not.toContain("LEARNING NOTE");
