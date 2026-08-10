@@ -1,0 +1,70 @@
+---
+import { optimisationUniverse } from "../../data/supply-chain-optimisation";
+const cases = optimisationUniverse.planningCases;
+const payload = JSON.stringify(cases).replace(/</g, "\\u003c");
+---
+
+<section class="dm-lab" data-horizon-lab aria-labelledby="horizon-title">
+  <div class="dm-lab__intro">
+    <p class="learning-note-kicker">互动实验 · Planning Horizon</p>
+    <h3 id="horizon-title">同一个供应链，战略、战术与运营模型到底在决定什么？</h3>
+    <p>切换规划层级，观察决策对象、可逆性和约束时间尺度如何变化。模型方法相似，但管理语义并不相同。</p>
+  </div>
+
+  <div class="dm-lab__chips" aria-label="选择规划层级">
+    {cases.map((item, index) => (
+      <button type="button" data-horizon-choice={item.horizon} aria-pressed={index === 0 ? "true" : "false"}>{item.horizon}</button>
+    ))}
+  </div>
+
+  <div class="dm-lab__cards" aria-live="polite">
+    <article data-horizon-card="decision" data-active="true"><h4>Decision</h4><p data-horizon-decision>{cases[0].decision}</p></article>
+    <article data-horizon-card="example"><h4>Business example</h4><p data-horizon-example>{cases[0].example}</p></article>
+    <article data-horizon-card="reversibility"><h4>Reversibility</h4><p data-horizon-reversibility>{cases[0].reversibility}</p></article>
+  </div>
+
+  <div class="dm-lab__equation" data-horizon-model>Strategic → network footprint → binary/opening decisions + long-lived capacity</div>
+  <div class="dm-lab__callout"><strong>Model design implication</strong><span data-horizon-reading>战略模型通常更重视固定投资、容量与网络结构，错误决策的撤销成本较高。</span></div>
+  <script is:inline type="application/json" data-horizon-source set:html={payload} />
+</section>
+
+<script>
+  type HorizonCase = { horizon: string; decision: string; example: string; reversibility: string };
+  let horizonCleanup: (() => void) | undefined;
+  function initHorizonLab() {
+    horizonCleanup?.();
+    const root = document.querySelector<HTMLElement>("[data-horizon-lab]");
+    const source = root?.querySelector<HTMLScriptElement>("[data-horizon-source]");
+    if (!root || !source) return;
+    const cases = JSON.parse(source.textContent || "[]") as HorizonCase[];
+    const controller = new AbortController();
+    const decision = root.querySelector<HTMLElement>("[data-horizon-decision]");
+    const example = root.querySelector<HTMLElement>("[data-horizon-example]");
+    const reversibility = root.querySelector<HTMLElement>("[data-horizon-reversibility]");
+    const model = root.querySelector<HTMLElement>("[data-horizon-model]");
+    const reading = root.querySelector<HTMLElement>("[data-horizon-reading]");
+    const descriptions: Record<string, [string, string]> = {
+      Strategic: ["Strategic → network footprint → binary/opening decisions + long-lived capacity", "战略模型通常更重视固定投资、容量与网络结构，错误决策的撤销成本较高。"],
+      Tactical: ["Tactical → capacity allocation → contracts, sourcing and medium-term resource limits", "战术模型连接长期网络与短期执行，常见问题是合同容量、运输商选择、产能分配与库存策略。"],
+      Operational: ["Operational → short-term flow → production, inventory, routing and fulfilment quantities", "运营模型强调当前周期的执行可行性，例如本周生产量、库存结转、配送量与缺货处理。"],
+    };
+
+    root.querySelectorAll<HTMLButtonElement>("[data-horizon-choice]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const selected = cases.find((item) => item.horizon === button.dataset.horizonChoice);
+        if (!selected) return;
+        root.querySelectorAll<HTMLButtonElement>("[data-horizon-choice]").forEach((candidate) => candidate.setAttribute("aria-pressed", String(candidate === button)));
+        if (decision) decision.textContent = selected.decision;
+        if (example) example.textContent = selected.example;
+        if (reversibility) reversibility.textContent = selected.reversibility;
+        const copy = descriptions[selected.horizon];
+        if (model && copy) model.textContent = copy[0];
+        if (reading && copy) reading.textContent = copy[1];
+      }, { signal: controller.signal });
+    });
+    horizonCleanup = () => controller.abort();
+  }
+  document.addEventListener("astro:before-swap", () => horizonCleanup?.());
+  document.addEventListener("astro:page-load", initHorizonLab);
+  initHorizonLab();
+</script>
