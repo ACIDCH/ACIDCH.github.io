@@ -77,7 +77,14 @@ describe("R and Statistics Learning Note handbook", () => {
 
   it("shows only a compact handbook title in the article header", () => {
     expect(layout).toContain("const handbookTitle");
-    expect(layout).toContain("isSqlPrimaryKey || isSqlForeignKey || isSqlRelationships");
+    [
+      "isSqlPrimaryKey",
+      "isSqlForeignKey",
+      "isSqlRelationships",
+      "isSqlSelect",
+      "isSqlWhere",
+      "isSqlProjection",
+    ].forEach((flag) => expect(layout).toContain(flag));
     expect(layout).toContain("? entry.data.title");
     expect(layout).toContain("<LearningNoteHero title={handbookTitle} />");
     expect(hero).toContain("learning-note-titlebar");
