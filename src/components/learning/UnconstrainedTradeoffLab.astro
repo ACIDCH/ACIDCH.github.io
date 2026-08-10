@@ -68,16 +68,16 @@ const payload = JSON.stringify({ choices, optimum: unconstrainedOptimum }).repla
     unconstrainedCleanup?.();
     const root = document.querySelector<HTMLElement>("[data-unconstrained-lab]");
     if (!root) return;
-    const slider = root.querySelector<HTMLInputElement>("[data-capacity-slider]");
-    const value = root.querySelector<HTMLElement>("[data-capacity-value]");
-    const result = root.querySelector<HTMLElement>("[data-net-value]");
-    const slopeValue = root.querySelector<HTMLElement>("[data-slope-value]");
-    const gap = root.querySelector<HTMLElement>("[data-gap-value]");
-    const curve = root.querySelector<SVGPathElement>("[data-capacity-curve]");
-    const point = root.querySelector<SVGCircleElement>("[data-selected-point]");
-    const optimumLine = root.querySelector<SVGLineElement>("[data-optimum-line]");
-    const optimumLabel = root.querySelector<SVGTextElement>("[data-optimum-label]");
-    const reading = root.querySelector<HTMLElement>("[data-capacity-reading]");
+    const slider = root.querySelector<HTMLInputElement>("[data-capacity-slider]")!;
+    const value = root.querySelector<HTMLElement>("[data-capacity-value]")!;
+    const result = root.querySelector<HTMLElement>("[data-net-value]")!;
+    const slopeValue = root.querySelector<HTMLElement>("[data-slope-value]")!;
+    const gap = root.querySelector<HTMLElement>("[data-gap-value]")!;
+    const curve = root.querySelector<SVGPathElement>("[data-capacity-curve]")!;
+    const point = root.querySelector<SVGCircleElement>("[data-selected-point]")!;
+    const optimumLine = root.querySelector<SVGLineElement>("[data-optimum-line]")!;
+    const optimumLabel = root.querySelector<SVGTextElement>("[data-optimum-label]")!;
+    const reading = root.querySelector<HTMLElement>("[data-capacity-reading]")!;
     if (!slider || !value || !result || !slopeValue || !gap || !curve || !point || !optimumLine || !optimumLabel || !reading) return;
 
     const controller = new AbortController();
