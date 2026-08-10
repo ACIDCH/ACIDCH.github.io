@@ -3,13 +3,15 @@ import { describe, expect, it } from "vitest";
 
 const overview = readFileSync("src/content/notes/sql-relational-data.zh.md", "utf8");
 const primaryKey = readFileSync("src/content/notes/sql-primary-key.zh.md", "utf8");
+const foreignKey = readFileSync("src/content/notes/sql-foreign-key.zh.md", "utf8");
 const layout = readFileSync("src/layouts/NoteLayout.astro", "utf8");
 const noteList = readFileSync("src/components/NoteList.astro", "utf8");
 const primaryKeyLab = readFileSync("src/components/learning/PrimaryKeyLab.astro", "utf8");
+const foreignKeyLab = readFileSync("src/components/learning/ForeignKeyLab.astro", "utf8");
 const sqlPlayground = readFileSync("src/components/learning/SqlPlayground.astro", "utf8");
 
 describe("SQL and relational data Learning Notes", () => {
-  it("publishes SQL 01 and SQL 02 with stable series ordering", () => {
+  it("publishes SQL 01, SQL 02 and SQL 03 with stable series ordering", () => {
     expect(overview).toContain("slug: sql-relational-data");
     expect(overview).toContain("seriesSlug: sql");
     expect(overview).toContain("order: 1");
@@ -23,6 +25,13 @@ describe("SQL and relational data Learning Notes", () => {
     expect(primaryKey).toContain("status: published");
     expect(primaryKey).toContain("draft: false");
     expect(primaryKey).toContain("  - sql-relational-data");
+
+    expect(foreignKey).toContain("slug: sql-foreign-key");
+    expect(foreignKey).toContain("seriesSlug: sql");
+    expect(foreignKey).toContain("order: 3");
+    expect(foreignKey).toContain("status: published");
+    expect(foreignKey).toContain("draft: false");
+    expect(foreignKey).toContain("  - sql-primary-key");
   });
 
   it("keeps SQL 01 focused on relational-data foundations", () => {
@@ -59,38 +68,67 @@ describe("SQL and relational data Learning Notes", () => {
     expect(primaryKey).toContain('data-learning-slot="sql-playground"');
   });
 
-  it("uses one Business Analytics demo-data universe across both notes", () => {
+  it("gives SQL 03 a focused foreign-key and integrity sequence", () => {
+    [
+      "## 主键解决“是谁”，外键解决“和谁有关”",
+      "## 外键不是因为列名相同才成立",
+      "## 父表与子表怎样理解？",
+      "## 什么叫引用完整性？",
+      "## 外键约束如何阻止无效订单？",
+      "## 为什么必须先有父表记录？",
+      "## 外键列可以重复吗？",
+      "## 外键可以为空吗？",
+      "## 逻辑外键与数据库外键约束不是同一件事",
+      "## 删除外键约束不等于删除字段",
+      "## 外键为什么会直接影响分析质量？",
+      "## 下一步：关系到底是一对多还是多对多？",
+    ].forEach((term) => expect(foreignKey).toContain(term));
+    expect(foreignKey).toContain('data-learning-slot="foreign-key-lab"');
+    expect(foreignKey).toContain('data-learning-slot="sql-playground"');
+  });
+
+  it("uses one Business Analytics demo-data universe across SQL 01 to SQL 03", () => {
     expect(overview).toContain("customers");
     expect(overview).toContain("orders");
     expect(overview).toContain("products");
     expect(primaryKey).toContain("customers");
     expect(primaryKey).toContain("orders");
     expect(primaryKey).toContain("order_items");
-    expect(overview).not.toContain("students");
-    expect(primaryKey).not.toContain("students");
+    expect(foreignKey).toContain("customers");
+    expect(foreignKey).toContain("orders");
+    [overview, primaryKey, foreignKey].forEach((note) => {
+      expect(note).not.toContain("students");
+      expect(note).not.toContain("classes");
+    });
   });
 
-  it("renders both SQL notes through the shared editorial layout", () => {
+  it("renders SQL 01 to SQL 03 through the shared editorial layout", () => {
     expect(layout).toContain('entry.data.slug === "sql-relational-data"');
     expect(layout).toContain('entry.data.slug === "sql-primary-key"');
-    expect(layout).toContain("const isSqlEditorial = isSqlOverview || isSqlPrimaryKey");
+    expect(layout).toContain('entry.data.slug === "sql-foreign-key"');
+    expect(layout).toContain("const isSqlEditorial = isSqlOverview || isSqlPrimaryKey || isSqlForeignKey");
     expect(layout).toContain("const sqlOverviewToc");
     expect(layout).toContain("const sqlPrimaryKeyToc");
+    expect(layout).toContain("const sqlForeignKeyToc");
     expect(layout).toContain("<LearningNoteHero title={handbookTitle} />");
   });
 
-  it("moves the primary-key interactions to SQL 02 only", () => {
+  it("places topic-specific interactions on SQL 02 and SQL 03", () => {
     expect(layout).toContain("isSqlPrimaryKey && (");
+    expect(layout).toContain("isSqlForeignKey && (");
     expect(layout).toContain("<PrimaryKeyLab />");
+    expect(layout).toContain("<ForeignKeyLab />");
     expect(layout).toContain("<SqlPlayground />");
     expect(layout).toContain('data-learning-block="primary-key-lab"');
+    expect(layout).toContain('data-learning-block="foreign-key-lab"');
     expect(layout).toContain('data-learning-block="sql-playground"');
   });
 
-  it("keeps the SQL overview card compact while SQL 02 remains a normal series note", () => {
+  it("keeps the SQL overview card compact while numbered SQL notes remain normal series notes", () => {
     expect(noteList).toContain('"sql-relational-data": "SQL 与关系数据"');
     expect(noteList).toContain("isCompactHandbook");
     expect(noteList).not.toContain('"sql-primary-key":');
+    expect(noteList).not.toContain('"sql-foreign-key":');
   });
 
   it("provides an interactive primary-key stability demonstration", () => {
@@ -101,21 +139,32 @@ describe("SQL and relational data Learning Notes", () => {
     expect(primaryKeyLab).toContain("phone");
   });
 
+  it("provides an interactive foreign-key integrity demonstration", () => {
+    expect(foreignKeyLab).toContain("data-foreign-key-choice");
+    expect(foreignKeyLab).toContain('value="9999"');
+    expect(foreignKeyLab).toContain("引用有效");
+    expect(foreignKeyLab).toContain("引用无效");
+    expect(foreignKeyLab).toContain("customers.customer_id");
+  });
+
   it("keeps a real lazy-loaded SQLite constraint playground", () => {
     expect(sqlPlayground).toContain("sql.js@1.14.1");
     expect(sqlPlayground).toContain("sql-wasm.js");
     expect(sqlPlayground).toContain("PRAGMA foreign_keys = ON");
     expect(sqlPlayground).toContain("PRIMARY KEY");
+    expect(sqlPlayground).toContain("FOREIGN KEY");
     expect(sqlPlayground).toContain("data-sql-run");
     expect(sqlPlayground).toContain("data-sql-reset");
     expect(sqlPlayground).toContain("测试重复主键");
+    expect(sqlPlayground).toContain("测试无效外键");
     expect(sqlPlayground.indexOf("getSqlModule")).toBeLessThan(sqlPlayground.indexOf("runQuery"));
   });
 
-  it("does not expose course-facing or private identity labels", () => {
-    [overview, primaryKey].forEach((note) => {
+  it("does not expose course-facing, private identity or first-person labels", () => {
+    [overview, primaryKey, foreignKey].forEach((note) => {
       expect(note).not.toMatch(/BUSINFO|Assignment|Submission|课程项目|课程作业/u);
       expect(note).not.toMatch(/Xintao Liu|刘鑫/u);
+      expect(note).not.toMatch(/我|我们|本人|作者|笔者/u);
     });
   });
 });
