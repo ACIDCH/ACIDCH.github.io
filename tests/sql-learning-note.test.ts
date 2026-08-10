@@ -12,9 +12,15 @@ const notes = {
 };
 const layout = read("src/layouts/NoteLayout.astro");
 const noteList = read("src/components/NoteList.astro");
+const relationalModelExplorer = read(
+  "src/components/learning/RelationalModelExplorer.astro",
+);
+const datasetExplorer = read("src/components/learning/SqlDatasetExplorer.astro");
 const primaryKeyLab = read("src/components/learning/PrimaryKeyLab.astro");
 const foreignKeyLab = read("src/components/learning/ForeignKeyLab.astro");
-const relationshipLab = read("src/components/learning/RelationshipCardinalityLab.astro");
+const relationshipLab = read(
+  "src/components/learning/RelationshipCardinalityLab.astro",
+);
 const sqlPlayground = read("src/components/learning/SqlPlayground.astro");
 
 describe("SQL and relational data Learning Notes", () => {
@@ -34,31 +40,43 @@ describe("SQL and relational data Learning Notes", () => {
     });
   });
 
-  it("keeps SQL 01 focused on relational-data foundations", () => {
+  it("restores SQL 01 as a complete relational-database foundation", () => {
     [
+      "## 为什么需要数据库？",
+      "## 数据不只有一种组织模型",
+      "### 层次模型 Hierarchical Model",
+      "### 网状模型 Network Model",
+      "### 关系模型 Relational Model",
       "## 关系数据库为什么不是一个“大表”？",
+      "## 整个 SQL 系列使用同一份业务数据",
       "## 一行到底代表什么？",
-      "## 字段名称只是开始，数据类型同样重要",
+      "## 数据类型不是装饰，而是字段语义的一部分",
       "## NULL 到底表示什么？",
-      "## 表结构和表中的数据是两件事",
-      "## 多张表是如何组成一个业务模型的？",
-      "## SQL 查询为什么依赖正确的数据结构？",
-      "SQL 02 — Primary Key",
+      "## Schema 和 Data 是两件事",
+      "## SQL 是什么？",
+      "### DDL — Data Definition Language",
+      "### DML — Data Manipulation Language",
+      "### DQL — Data Query Language",
+      "## 标准 SQL 和数据库方言不要混淆",
+      "## 常见关系数据库有哪些？",
     ].forEach((term) => expect(notes.overview).toContain(term));
+    expect(notes.overview).toContain('data-learning-slot="relational-model-explorer"');
+    expect(notes.overview).toContain('data-learning-slot="sql-dataset-explorer"');
     expect(notes.overview).not.toContain('data-learning-slot="primary-key-lab"');
-    expect(notes.overview).not.toContain('data-learning-slot="sql-playground"');
   });
 
-  it("gives SQL 02 a complete primary-key learning sequence", () => {
+  it("gives SQL 02 a complete and dialect-aware primary-key sequence", () => {
     [
       "## 一张表为什么需要“记录身份”？",
       "## 主键首先必须解决唯一性",
       "## “当前唯一”并不等于“适合作为主键”",
       "## 业务字段与记录身份应该分开",
       "## 重复主键会发生什么？",
-      "## 自增整数：最容易理解的主键方案",
-      "## UUID：当记录需要在不同系统中独立生成",
-      "## 联合主键：一条记录也可以由多个字段共同确定",
+      "## 自增整数：常见但不是唯一方案",
+      "## INTEGER 和 BIGINT 的容量差别有多大？",
+      "## SQLite 的 INTEGER PRIMARY KEY 有什么特殊之处？",
+      "## UUID：适合分布式生成，但不是一种单一算法",
+      "## 联合主键：多个字段也可以共同确定身份",
       "## 在 Business Analytics 中，主键为什么同样重要？",
       "## 下一步：从“身份”进入“关系”",
     ].forEach((term) => expect(notes.primaryKey).toContain(term));
@@ -66,13 +84,15 @@ describe("SQL and relational data Learning Notes", () => {
     expect(notes.primaryKey).toContain('data-learning-slot="sql-playground"');
   });
 
-  it("gives SQL 03 a focused foreign-key and integrity sequence", () => {
+  it("gives SQL 03 a complete foreign-key, DDL and integrity sequence", () => {
     [
       "## 主键解决“是谁”，外键解决“和谁有关”",
       "## 外键不是因为列名相同才成立",
       "## 什么叫引用完整性？",
       "## 外键约束如何阻止无效订单？",
-      "## 逻辑外键与数据库外键约束不是同一件事",
+      "## 外键也可以后加，但语法取决于数据库",
+      "### SQLite 为什么不同？",
+      "## 逻辑外键与数据库约束不是同一件事",
       "## 外键为什么会直接影响分析质量？",
       "## 下一步：关系到底是一对多还是多对多？",
     ].forEach((term) => expect(notes.foreignKey).toContain(term));
@@ -80,11 +100,11 @@ describe("SQL and relational data Learning Notes", () => {
     expect(notes.foreignKey).toContain('data-learning-slot="sql-playground"');
   });
 
-  it("gives SQL 04 a complete relationship-cardinality sequence", () => {
+  it("gives SQL 04 a canonical relationship-cardinality sequence", () => {
     [
       "## “两张表有关联”还不够",
       "## 一对多：一个客户可以有多张订单",
-      "## 多对多：订单和产品为什么不能只加一个外键？",
+      "## 多对多：订单与产品为什么不能只加一个外键？",
       "## 中间表把多对多拆成两个一对多",
       "## 中间表为什么经常使用联合主键？",
       "## 一对一：一条记录最多对应另一条记录",
@@ -95,9 +115,10 @@ describe("SQL and relational data Learning Notes", () => {
     expect(notes.relationships).toContain(
       'data-learning-slot="relationship-cardinality-lab"',
     );
+    expect(notes.relationships).toContain("300 + 120 = 420");
   });
 
-  it("gives SQL 05 a focused basic SELECT sequence", () => {
+  it("gives SQL 05 a precise basic SELECT sequence", () => {
     [
       "## 从“数据怎样组织”进入“怎样读取数据”",
       "## SELECT * FROM customers 到底在说什么？",
@@ -108,27 +129,13 @@ describe("SQL and relational data Learning Notes", () => {
       "## 先运行最基础的查询",
       "## 查询前先记住记录粒度",
       "## SELECT 并不一定需要 FROM",
+      "### SELECT 1 是“连接检查”吗？",
       "## SELECT * 适合什么时候使用？",
       "## 下一步：只保留满足条件的记录",
     ].forEach((term) => expect(notes.select).toContain(term));
-    expect(notes.select).toContain("SELECT 1;");
+    expect(notes.select).toContain("SELECT 1 AS execution_ok;");
     expect(notes.select).toContain('data-learning-slot="sql-playground"');
     expect(notes.select).not.toContain("## WHERE");
-  });
-
-  it("uses one Business Analytics demo-data universe across the SQL sequence", () => {
-    expect(notes.overview).toContain("customers");
-    expect(notes.overview).toContain("orders");
-    expect(notes.primaryKey).toContain("order_items");
-    expect(notes.relationships).toContain("products");
-    expect(notes.select).toContain("customers");
-    expect(notes.select).toContain("orders");
-
-    Object.values(notes).forEach((note) => {
-      expect(note).not.toContain("students");
-      expect(note).not.toContain("classes");
-      expect(note).not.toContain("teachers");
-    });
   });
 
   it("renders SQL 01 through SQL 05 through the shared editorial layout", () => {
@@ -149,15 +156,20 @@ describe("SQL and relational data Learning Notes", () => {
     expect(layout).toContain("<LearningNoteHero title={handbookTitle} />");
   });
 
-  it("places topic-specific interactions on SQL 02 through SQL 05", () => {
+  it("adds richer topic-specific visuals instead of one generic playground", () => {
+    expect(layout).toContain("<RelationalModelExplorer />");
+    expect(layout).toContain("<SqlDatasetExplorer />");
     expect(layout).toContain("<PrimaryKeyLab />");
     expect(layout).toContain("<ForeignKeyLab />");
     expect(layout).toContain("<RelationshipCardinalityLab />");
-    expect(layout).toContain('<SqlPlayground defaultPreset="customers" />');
-    expect(layout).toContain('data-learning-block="primary-key-lab"');
-    expect(layout).toContain('data-learning-block="foreign-key-lab"');
-    expect(layout).toContain('data-learning-block="relationship-cardinality-lab"');
-    expect(layout).toContain('data-learning-block="sql-playground"');
+    expect(relationalModelExplorer).toContain('data-model-choice="hierarchical"');
+    expect(relationalModelExplorer).toContain('data-model-choice="network"');
+    expect(relationalModelExplorer).toContain('data-model-choice="relational"');
+    expect(datasetExplorer).toContain('data-dataset-choice="order-items"');
+    expect(primaryKeyLab).toContain("data-key-checks");
+    expect(foreignKeyLab).toContain('data-fk-mode="constraint"');
+    expect(foreignKeyLab).toContain('data-fk-mode="logical"');
+    expect(relationshipLab).toContain('data-relation-choice="many-to-many"');
   });
 
   it("keeps only the SQL overview as the compact handbook card", () => {
@@ -168,28 +180,16 @@ describe("SQL and relational data Learning Notes", () => {
     );
   });
 
-  it("provides interactive primary-key, foreign-key and relationship demonstrations", () => {
-    expect(primaryKeyLab).toContain("data-key-choice");
-    expect(primaryKeyLab).toContain("data-key-change");
-    expect(foreignKeyLab).toContain("data-foreign-key-choice");
-    expect(foreignKeyLab).toContain('value="9999"');
-    expect(relationshipLab).toContain('data-relation-choice="one-to-many"');
-    expect(relationshipLab).toContain('data-relation-choice="many-to-many"');
-    expect(relationshipLab).toContain('data-relation-choice="one-to-one"');
-    expect(relationshipLab).toContain("order_items · bridge");
-  });
-
-  it("keeps one lazy-loaded SQLite playground reusable across SQL topics", () => {
-    expect(sqlPlayground).toContain("defaultPreset");
-    expect(sqlPlayground).toContain("data-default-preset={defaultPreset}");
-    expect(sqlPlayground).toContain('option value="customers"');
-    expect(sqlPlayground).toContain('option value="orders"');
-    expect(sqlPlayground).toContain('option value="expression"');
-    expect(sqlPlayground).toContain("SELECT 1 AS connection_ok");
+  it("keeps a focused lazy-loaded SQLite playground reusable across SQL topics", () => {
+    expect(sqlPlayground).toContain("sqlLearningSeedSql");
+    expect(sqlPlayground).toContain("inferredFocus");
+    expect(sqlPlayground).toContain('data-sql-focus={focus}');
+    expect(sqlPlayground).toContain('value: "duplicate"');
+    expect(sqlPlayground).toContain('value: "foreign-key"');
+    expect(sqlPlayground).toContain('value: "expression"');
+    expect(sqlPlayground).toContain("SELECT 1 AS execution_ok");
     expect(sqlPlayground).toContain("sql.js@1.14.1");
-    expect(sqlPlayground).toContain("PRAGMA foreign_keys = ON");
-    expect(sqlPlayground).toContain("测试重复主键");
-    expect(sqlPlayground).toContain("测试无效外键");
+    expect(sqlPlayground).toContain("data-sql-result-summary");
   });
 
   it("does not expose course-facing, private identity or first-person labels", () => {
