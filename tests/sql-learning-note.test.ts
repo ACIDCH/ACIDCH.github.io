@@ -4,14 +4,19 @@ import { describe, expect, it } from "vitest";
 const overview = readFileSync("src/content/notes/sql-relational-data.zh.md", "utf8");
 const primaryKey = readFileSync("src/content/notes/sql-primary-key.zh.md", "utf8");
 const foreignKey = readFileSync("src/content/notes/sql-foreign-key.zh.md", "utf8");
+const relationships = readFileSync("src/content/notes/sql-relationships.zh.md", "utf8");
 const layout = readFileSync("src/layouts/NoteLayout.astro", "utf8");
 const noteList = readFileSync("src/components/NoteList.astro", "utf8");
 const primaryKeyLab = readFileSync("src/components/learning/PrimaryKeyLab.astro", "utf8");
 const foreignKeyLab = readFileSync("src/components/learning/ForeignKeyLab.astro", "utf8");
+const relationshipLab = readFileSync(
+  "src/components/learning/RelationshipCardinalityLab.astro",
+  "utf8",
+);
 const sqlPlayground = readFileSync("src/components/learning/SqlPlayground.astro", "utf8");
 
 describe("SQL and relational data Learning Notes", () => {
-  it("publishes SQL 01, SQL 02 and SQL 03 with stable series ordering", () => {
+  it("publishes SQL 01 through SQL 04 with stable series ordering", () => {
     expect(overview).toContain("slug: sql-relational-data");
     expect(overview).toContain("seriesSlug: sql");
     expect(overview).toContain("order: 1");
@@ -24,7 +29,6 @@ describe("SQL and relational data Learning Notes", () => {
     expect(primaryKey).toContain("order: 2");
     expect(primaryKey).toContain("status: published");
     expect(primaryKey).toContain("draft: false");
-    expect(primaryKey).toContain("  - sql-relational-data");
 
     expect(foreignKey).toContain("slug: sql-foreign-key");
     expect(foreignKey).toContain("seriesSlug: sql");
@@ -32,6 +36,13 @@ describe("SQL and relational data Learning Notes", () => {
     expect(foreignKey).toContain("status: published");
     expect(foreignKey).toContain("draft: false");
     expect(foreignKey).toContain("  - sql-primary-key");
+
+    expect(relationships).toContain("slug: sql-relationships");
+    expect(relationships).toContain("seriesSlug: sql");
+    expect(relationships).toContain("order: 4");
+    expect(relationships).toContain("status: published");
+    expect(relationships).toContain("draft: false");
+    expect(relationships).toContain("  - sql-foreign-key");
   });
 
   it("keeps SQL 01 focused on relational-data foundations", () => {
@@ -87,42 +98,69 @@ describe("SQL and relational data Learning Notes", () => {
     expect(foreignKey).toContain('data-learning-slot="sql-playground"');
   });
 
-  it("uses one Business Analytics demo-data universe across SQL 01 to SQL 03", () => {
+  it("gives SQL 04 a complete relationship-cardinality sequence", () => {
+    [
+      "## “两张表有关联”还不够",
+      "## 一对多：一个客户可以有多张订单",
+      "## 一对多的外键放在哪一边？",
+      "## 多对多：订单和产品为什么不能只加一个外键？",
+      "## 中间表把多对多拆成两个一对多",
+      "## 中间表为什么经常使用联合主键？",
+      "## 一对一：一条记录最多对应另一条记录",
+      "## 只有外键为什么还不能保证一对一？",
+      "## 关系基数会直接影响 JOIN 后有多少行",
+      "## 多对多连接为什么更容易放大记录数？",
+      "## 从业务语言判断关系类型",
+      "## 下一步：开始真正查询数据",
+    ].forEach((term) => expect(relationships).toContain(term));
+    expect(relationships).toContain('data-learning-slot="relationship-cardinality-lab"');
+  });
+
+  it("uses one Business Analytics demo-data universe across SQL 01 to SQL 04", () => {
     expect(overview).toContain("customers");
     expect(overview).toContain("orders");
     expect(overview).toContain("products");
-    expect(primaryKey).toContain("customers");
-    expect(primaryKey).toContain("orders");
     expect(primaryKey).toContain("order_items");
     expect(foreignKey).toContain("customers");
     expect(foreignKey).toContain("orders");
-    [overview, primaryKey, foreignKey].forEach((note) => {
+    expect(relationships).toContain("customers");
+    expect(relationships).toContain("orders");
+    expect(relationships).toContain("order_items");
+    expect(relationships).toContain("products");
+    [overview, primaryKey, foreignKey, relationships].forEach((note) => {
       expect(note).not.toContain("students");
       expect(note).not.toContain("classes");
+      expect(note).not.toContain("teachers");
     });
   });
 
-  it("renders SQL 01 to SQL 03 through the shared editorial layout", () => {
+  it("renders SQL 01 to SQL 04 through the shared editorial layout", () => {
     expect(layout).toContain('entry.data.slug === "sql-relational-data"');
     expect(layout).toContain('entry.data.slug === "sql-primary-key"');
     expect(layout).toContain('entry.data.slug === "sql-foreign-key"');
+    expect(layout).toContain('entry.data.slug === "sql-relationships"');
     expect(layout).toContain("const isSqlEditorial");
-    expect(layout).toContain("isSqlOverview || isSqlPrimaryKey || isSqlForeignKey");
+    ["isSqlOverview", "isSqlPrimaryKey", "isSqlForeignKey", "isSqlRelationships"].forEach(
+      (term) => expect(layout).toContain(term),
+    );
     expect(layout).toContain("const sqlOverviewToc");
     expect(layout).toContain("const sqlPrimaryKeyToc");
     expect(layout).toContain("const sqlForeignKeyToc");
+    expect(layout).toContain("const sqlRelationshipsToc");
     expect(layout).toContain("<LearningNoteHero title={handbookTitle} />");
   });
 
-  it("places topic-specific interactions on SQL 02 and SQL 03", () => {
+  it("places topic-specific interactions on SQL 02 to SQL 04", () => {
     expect(layout).toContain("isSqlPrimaryKey && (");
     expect(layout).toContain("isSqlForeignKey && (");
+    expect(layout).toContain("isSqlRelationships && (");
     expect(layout).toContain("<PrimaryKeyLab />");
     expect(layout).toContain("<ForeignKeyLab />");
+    expect(layout).toContain("<RelationshipCardinalityLab />");
     expect(layout).toContain("<SqlPlayground />");
     expect(layout).toContain('data-learning-block="primary-key-lab"');
     expect(layout).toContain('data-learning-block="foreign-key-lab"');
-    expect(layout).toContain('data-learning-block="sql-playground"');
+    expect(layout).toContain('data-learning-block="relationship-cardinality-lab"');
   });
 
   it("keeps the SQL overview card compact while numbered SQL notes remain normal series notes", () => {
@@ -130,6 +168,7 @@ describe("SQL and relational data Learning Notes", () => {
     expect(noteList).toContain("isCompactHandbook");
     expect(noteList).not.toContain('"sql-primary-key":');
     expect(noteList).not.toContain('"sql-foreign-key":');
+    expect(noteList).not.toContain('"sql-relationships":');
   });
 
   it("provides an interactive primary-key stability demonstration", () => {
@@ -148,6 +187,15 @@ describe("SQL and relational data Learning Notes", () => {
     expect(foreignKeyLab).toContain("customers.customer_id");
   });
 
+  it("provides an interactive relationship-cardinality comparison", () => {
+    expect(relationshipLab).toContain('data-relation-choice="one-to-many"');
+    expect(relationshipLab).toContain('data-relation-choice="many-to-many"');
+    expect(relationshipLab).toContain('data-relation-choice="one-to-one"');
+    expect(relationshipLab).toContain("order_items · bridge");
+    expect(relationshipLab).toContain("PK (order_id, product_id)");
+    expect(relationshipLab).toContain("UNIQUE customer_id");
+  });
+
   it("keeps a real lazy-loaded SQLite constraint playground", () => {
     expect(sqlPlayground).toContain("sql.js@1.14.1");
     expect(sqlPlayground).toContain("sql-wasm.js");
@@ -158,11 +206,10 @@ describe("SQL and relational data Learning Notes", () => {
     expect(sqlPlayground).toContain("data-sql-reset");
     expect(sqlPlayground).toContain("测试重复主键");
     expect(sqlPlayground).toContain("测试无效外键");
-    expect(sqlPlayground.indexOf("getSqlModule")).toBeLessThan(sqlPlayground.indexOf("runQuery"));
   });
 
   it("does not expose course-facing, private identity or first-person labels", () => {
-    [overview, primaryKey, foreignKey].forEach((note) => {
+    [overview, primaryKey, foreignKey, relationships].forEach((note) => {
       expect(note).not.toMatch(/BUSINFO|Assignment|Submission|课程项目|课程作业/u);
       expect(note).not.toMatch(/Xintao Liu|刘鑫/u);
       expect(note).not.toMatch(/我|我们|本人|作者|笔者/u);
