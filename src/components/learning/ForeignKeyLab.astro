@@ -1,0 +1,261 @@
+<section class="foreign-key-lab" data-foreign-key-lab aria-labelledby="foreign-key-lab-title">
+  <div class="foreign-key-lab__intro">
+    <p class="learning-note-kicker">互动图表 · 引用完整性</p>
+    <h3 id="foreign-key-lab-title">一个订单能否指向不存在的客户？</h3>
+    <p>
+      切换订单中的 <code>customer_id</code>，观察它是否能在客户表中找到对应主键。外键约束保护的是表之间的引用关系，而不是字段名称本身。
+    </p>
+  </div>
+
+  <div class="foreign-key-lab__grid">
+    <div class="foreign-key-lab__table-wrap">
+      <p class="foreign-key-lab__label">父表 · customers</p>
+      <table>
+        <thead>
+          <tr>
+            <th>customer_id · PK</th>
+            <th>customer_name</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr data-parent-row="1001"><td>1001</td><td>North Retail</td></tr>
+          <tr data-parent-row="1002"><td>1002</td><td>Coast Foods</td></tr>
+          <tr data-parent-row="1003"><td>1003</td><td>Alpine Labs</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="foreign-key-lab__relation" aria-hidden="true">
+      <span>orders.customer_id</span>
+      <strong>FK → PK</strong>
+      <span>customers.customer_id</span>
+    </div>
+
+    <aside class="foreign-key-lab__candidate" aria-live="polite">
+      <p class="foreign-key-lab__label">子表 · 新订单</p>
+      <dl>
+        <div><dt>order_id</dt><dd>50999</dd></div>
+        <div>
+          <dt>customer_id · FK</dt>
+          <dd>
+            <select data-foreign-key-choice aria-label="选择订单 customer_id">
+              <option value="1001">1001</option>
+              <option value="1002">1002</option>
+              <option value="1003">1003</option>
+              <option value="9999">9999</option>
+            </select>
+          </dd>
+        </div>
+        <div><dt>order_value</dt><dd>99.00</dd></div>
+      </dl>
+      <div class="foreign-key-lab__result" data-foreign-key-result data-state="valid">
+        <strong data-foreign-key-status>引用有效</strong>
+        <p data-foreign-key-reading>
+          customer_id = 1001 能在 customers.customer_id 中找到对应记录，因此引用完整。
+        </p>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<style>
+  .foreign-key-lab {
+    margin: var(--space-12) 0;
+    padding: var(--space-7) 0 var(--space-8);
+    border-top: 1px solid var(--colour-border-strong);
+    border-bottom: 1px solid var(--colour-border-strong);
+  }
+
+  .foreign-key-lab__intro {
+    max-width: 58rem;
+  }
+
+  .foreign-key-lab__intro h3 {
+    margin: var(--space-2) 0 var(--space-3);
+    font-size: clamp(1.35rem, 1.5vw, 1.8rem);
+    line-height: 1.35;
+  }
+
+  .foreign-key-lab__intro p:last-child,
+  .foreign-key-lab__label,
+  .foreign-key-lab__result p,
+  .foreign-key-lab dt {
+    color: var(--colour-text-muted);
+  }
+
+  .foreign-key-lab__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(9rem, 12rem) minmax(17rem, 21rem);
+    gap: var(--space-5);
+    align-items: center;
+    margin-top: var(--space-6);
+  }
+
+  .foreign-key-lab__table-wrap {
+    overflow-x: auto;
+  }
+
+  .foreign-key-lab__label {
+    margin: 0 0 var(--space-2);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: 0.04em;
+  }
+
+  .foreign-key-lab table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-sm);
+  }
+
+  .foreign-key-lab th,
+  .foreign-key-lab td {
+    padding: 0.72rem 0.8rem;
+    border-bottom: 1px solid var(--colour-border);
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  .foreign-key-lab tr[data-active-parent="true"] td {
+    background: var(--colour-surface-subtle);
+  }
+
+  .foreign-key-lab__relation {
+    display: grid;
+    gap: var(--space-2);
+    justify-items: center;
+    text-align: center;
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-xs);
+  }
+
+  .foreign-key-lab__relation strong {
+    width: 100%;
+    padding: 0.55rem 0.7rem;
+    border-top: 1px solid var(--colour-border-strong);
+    border-bottom: 1px solid var(--colour-border-strong);
+    color: var(--colour-text);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-sm);
+  }
+
+  .foreign-key-lab__candidate {
+    padding-left: var(--space-5);
+    border-left: 1px solid var(--colour-border-strong);
+  }
+
+  .foreign-key-lab__candidate dl {
+    margin: 0;
+  }
+
+  .foreign-key-lab__candidate dl > div {
+    display: grid;
+    grid-template-columns: minmax(7rem, 1fr) minmax(0, 1fr);
+    gap: var(--space-3);
+    padding: 0.7rem 0;
+    border-bottom: 1px solid var(--colour-border);
+  }
+
+  .foreign-key-lab dt,
+  .foreign-key-lab dd {
+    margin: 0;
+    font-size: var(--font-size-sm);
+  }
+
+  .foreign-key-lab dd {
+    font-family: var(--font-mono);
+  }
+
+  .foreign-key-lab select {
+    width: 100%;
+    padding: 0.45rem 0.55rem;
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-sm);
+    background: var(--colour-surface);
+    color: var(--colour-text);
+    font: inherit;
+  }
+
+  .foreign-key-lab__result {
+    margin-top: var(--space-4);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--colour-border-strong);
+  }
+
+  .foreign-key-lab__result strong {
+    display: block;
+    margin-bottom: var(--space-2);
+  }
+
+  .foreign-key-lab__result[data-state="invalid"] strong {
+    color: var(--colour-danger, #9a3f38);
+  }
+
+  .foreign-key-lab__result p {
+    margin: 0;
+    line-height: 1.7;
+  }
+
+  @media (max-width: 64rem) {
+    .foreign-key-lab__grid {
+      grid-template-columns: 1fr;
+      align-items: stretch;
+    }
+
+    .foreign-key-lab__relation {
+      justify-items: start;
+      text-align: left;
+    }
+
+    .foreign-key-lab__relation strong {
+      max-width: 14rem;
+    }
+
+    .foreign-key-lab__candidate {
+      padding: var(--space-4) 0 0;
+      border-top: 1px solid var(--colour-border-strong);
+      border-left: 0;
+    }
+  }
+</style>
+
+<script>
+  let foreignKeyCleanup: (() => void) | undefined;
+
+  function initForeignKeyLab() {
+    foreignKeyCleanup?.();
+    const root = document.querySelector<HTMLElement>("[data-foreign-key-lab]");
+    if (!root) return;
+
+    const choice = root.querySelector<HTMLSelectElement>("[data-foreign-key-choice]");
+    const result = root.querySelector<HTMLElement>("[data-foreign-key-result]");
+    const status = root.querySelector<HTMLElement>("[data-foreign-key-status]");
+    const reading = root.querySelector<HTMLElement>("[data-foreign-key-reading]");
+    const parentRows = Array.from(root.querySelectorAll<HTMLElement>("[data-parent-row]"));
+    if (!choice || !result || !status || !reading) return;
+
+    const controller = new AbortController();
+    const validKeys = new Set(["1001", "1002", "1003"]);
+
+    function render() {
+      const value = choice.value;
+      const valid = validKeys.has(value);
+      result.dataset.state = valid ? "valid" : "invalid";
+      status.textContent = valid ? "引用有效" : "引用无效";
+      reading.textContent = valid
+        ? `customer_id = ${value} 能在 customers.customer_id 中找到对应记录，因此引用完整。`
+        : `customer_id = ${value} 在 customers.customer_id 中不存在。启用外键约束时，这条订单不能被插入。`;
+      parentRows.forEach((row) => {
+        row.dataset.activeParent = String(valid && row.dataset.parentRow === value);
+      });
+    }
+
+    choice.addEventListener("change", render, { signal: controller.signal });
+    render();
+    foreignKeyCleanup = () => controller.abort();
+  }
+
+  document.addEventListener("astro:before-swap", () => foreignKeyCleanup?.());
+  document.addEventListener("astro:page-load", initForeignKeyLab);
+  initForeignKeyLab();
+</script>
