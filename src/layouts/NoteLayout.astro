@@ -7,7 +7,6 @@ import DescriptiveStatisticsLab from "../components/learning/DescriptiveStatisti
 import LearningNoteHero from "../components/learning/LearningNoteHero.astro";
 import LearningNoteToc from "../components/learning/LearningNoteToc.astro";
 import "../styles/learning-note-editorial.css";
-import "../styles/learning-note-wide.css";
 import { getCanonicalUrl } from "../utils/urls";
 import BaseLayout from "./BaseLayout.astro";
 
@@ -18,21 +17,81 @@ interface Props {
 
 const { entry, alternatePath } = Astro.props;
 const { Content } = await render(entry);
-const isLearningSample = entry.data.slug === "descriptive-statistics";
+const isHandbook = entry.data.slug === "descriptive-statistics";
 const learningToc = [
-  { id: "先确认这组数据回答什么问题", label: "数据口径" },
-  { id: "从一个业务问题开始", label: "业务问题" },
-  { id: "中心不是唯一答案", label: "中心位置" },
-  { id: "离散程度决定解释边界", label: "离散程度" },
-  { id: "用图读出分布", label: "分布图形" },
-  { id: "r-中的最小工作流", label: "R 工作流" },
-  { id: "把统计量放回决策", label: "如何用于决策" },
-];
-const learningFacts = [
-  { label: "教学记录", value: "24 条", note: "一次服务事件 = 一条观察" },
-  { label: "均值", value: "20.75 分钟", note: "受右侧长尾影响" },
-  { label: "中位数", value: "17.5 分钟", note: "更接近典型等待位置" },
-  { label: "≤ 20 分钟", value: "62.5%", note: "由基准 ECDF 读取" },
+  { id: "写在前面", label: "写在前面" },
+  {
+    id: "描述性统计量",
+    label: "描述性统计量",
+    children: [
+      { id: "数据的集中趋势", label: "数据的集中趋势" },
+      { id: "数据的变异性离散性", label: "数据的变异性（离散性）" },
+      { id: "计算描述性统计量", label: "计算描述性统计量" },
+      { id: "形象化展示", label: "形象化展示" },
+    ],
+  },
+  {
+    id: "概率相关内容",
+    label: "概率相关内容",
+    children: [
+      { id: "几个概念", label: "几个概念" },
+      { id: "离散概率分布", label: "离散概率分布" },
+      { id: "常见的离散概率分布", label: "常见的离散概率分布" },
+      { id: "连续概率分布", label: "连续概率分布" },
+    ],
+  },
+  { id: "估计", label: "估计" },
+  {
+    id: "相关性分析",
+    label: "相关性分析",
+    children: [
+      { id: "正态分布评估", label: "正态分布评估" },
+      { id: "相关性可视化展示", label: "相关性可视化" },
+      { id: "pearson-相关性检验", label: "Pearson 相关性检验" },
+    ],
+  },
+  {
+    id: "单双样本均值分析",
+    label: "单双样本均值分析",
+    children: [
+      { id: "假设检验一般步骤", label: "假设检验一般步骤" },
+      { id: "单样本-t-test", label: "单样本 t-test" },
+      { id: "单样本-wilcoxon-符号秩检验", label: "单样本 Wilcoxon" },
+      { id: "独立双样本-t-test", label: "独立双样本 t-test" },
+      { id: "独立双样本-wilcoxon-test", label: "独立 Wilcoxon" },
+      { id: "非独立双样本-t-test", label: "配对 t-test" },
+      { id: "非独立双样本-wilcoxon-test", label: "配对 Wilcoxon" },
+    ],
+  },
+  {
+    id: "多样本均值分析",
+    label: "多样本均值分析",
+    children: [
+      { id: "one-way-anova", label: "one-way ANOVA" },
+      { id: "two-way-anova", label: "two-way ANOVA" },
+    ],
+  },
+  {
+    id: "比例分析",
+    label: "比例分析",
+    children: [
+      { id: "单比例检验", label: "单比例检验" },
+      { id: "双比例检验", label: "双比例检验" },
+      { id: "卡方分布", label: "卡方分布" },
+    ],
+  },
+  {
+    id: "常用高阶分析方法",
+    label: "常用高阶分析方法",
+    children: [
+      { id: "回归分析", label: "回归分析" },
+      { id: "聚类分析", label: "聚类分析" },
+      { id: "k-means", label: "k-means" },
+      { id: "hierarchical-clustering", label: "Hierarchical Clustering" },
+      { id: "主成分分析", label: "主成分分析" },
+    ],
+  },
+  { id: "一条完整的统计学习路径", label: "完整学习路径" },
 ];
 const notes = await getCollection("notes");
 const projects = await getCollection("projects");
@@ -69,9 +128,9 @@ const noteStructuredData = {
   noindex={entry.data.draft || entry.data.isPlaceholder}
   pageType="article"
   structuredData={noteStructuredData}
-  fullWidth={isLearningSample}
+  fullWidth={isHandbook}
 >
-  <article class:list={[isLearningSample && "learning-note"]}>
+  <article class:list={[isHandbook && "learning-note"]}>
     <ContextBack
       locale={entry.data.locale}
       fallbackPath="/notes/"
@@ -85,7 +144,7 @@ const noteStructuredData = {
       )
     }
     {
-      isLearningSample ? (
+      isHandbook ? (
         <>
           <LearningNoteHero
             title={entry.data.title}
@@ -94,7 +153,6 @@ const noteStructuredData = {
             tags={entry.data.tags}
             tools={entry.data.tools}
             updatedAt={entry.data.updatedAt}
-            facts={learningFacts}
           />
           <div class="learning-note__grid">
             <LearningNoteToc items={learningToc} />
