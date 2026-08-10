@@ -69,4 +69,16 @@ describe("production deployment contracts", () => {
     expect(verifier).toContain("data-order-sql-run");
     expect(verifier).toContain("50008");
   });
+
+  it("publishes a machine-readable commit status after live verification", async () => {
+    const workflow = await source(".github/workflows/deploy.yml");
+
+    expect(workflow).toContain("statuses: write");
+    expect(workflow).toContain("Publish auditable production verification receipt");
+    expect(workflow).toContain("production/live-verification");
+    expect(workflow).toContain("GitHub Pages live verification passed");
+    expect(workflow).toContain("GitHub Pages live verification failed");
+    expect(workflow).toContain("$GITHUB_API_URL/repos/$REPOSITORY/statuses/$TARGET_SHA");
+    expect(workflow).toContain('if: always()');
+  });
 });
