@@ -19,12 +19,14 @@ const sqlSources = [
   "src/content/notes/sql-relationships.zh.md",
   "src/content/notes/sql-select.zh.md",
   "src/content/notes/sql-where.zh.md",
+  "src/content/notes/sql-projection.zh.md",
   "src/components/learning/RelationalModelExplorer.astro",
   "src/components/learning/PrimaryKeyLab.astro",
   "src/components/learning/ForeignKeyLab.astro",
   "src/components/learning/RelationshipCardinalityLab.astro",
   "src/components/learning/SqlDatasetExplorer.astro",
   "src/components/learning/WhereFilterLab.astro",
+  "src/components/learning/ProjectionColumnsLab.astro",
   "src/components/learning/SqlPlayground.astro",
 ].map(read);
 
@@ -208,6 +210,35 @@ describe("SQL Learning Notes integrity contract", () => {
     expect(sqlCustomers.filter((customer) => customer.phone == null)).toEqual([]);
   });
 
+  it("keeps Projection examples aligned with canonical rows and result shapes", () => {
+    const customerProjection = sqlCustomers.map(({ customer_id, customer_name, segment }) => ({
+      customer_id,
+      customer_name,
+      segment,
+    }));
+    expect(customerProjection).toEqual([
+      { customer_id: 1001, customer_name: "North Retail", segment: "Retail" },
+      { customer_id: 1002, customer_name: "Coast Foods", segment: "Wholesale" },
+      { customer_id: 1003, customer_name: "Alpine Labs", segment: "Enterprise" },
+    ]);
+
+    expect(
+      sqlOrders
+        .filter((order) => order.order_value >= 500)
+        .map((order) => [order.order_id, order.customer_id, order.order_value]),
+    ).toEqual([
+      [50003, 1002, 760],
+      [50004, 1003, 510],
+    ]);
+
+    expect(sqlOrders.map((order) => Number((order.order_value * 1.1).toFixed(2)))).toEqual([
+      462,
+      203.5,
+      836,
+      561,
+    ]);
+  });
+
   it("makes interactive visuals read from canonical data instead of private copies", () => {
     const primaryLab = read("src/components/learning/PrimaryKeyLab.astro");
     const relationshipLab = read(
@@ -215,19 +246,28 @@ describe("SQL Learning Notes integrity contract", () => {
     );
     const datasetExplorer = read("src/components/learning/SqlDatasetExplorer.astro");
     const whereFilterLab = read("src/components/learning/WhereFilterLab.astro");
+    const projectionLab = read("src/components/learning/ProjectionColumnsLab.astro");
     const playground = read("src/components/learning/SqlPlayground.astro");
 
-    [primaryLab, relationshipLab, datasetExplorer, whereFilterLab, playground].forEach(
-      (source) => {
-        expect(source).toContain("sql-learning");
-      },
-    );
+    [
+      primaryLab,
+      relationshipLab,
+      datasetExplorer,
+      whereFilterLab,
+      projectionLab,
+      playground,
+    ].forEach((source) => {
+      expect(source).toContain("sql-learning");
+    });
     expect(playground).toContain("sqlLearningSeedSql");
     expect(playground).toContain("rows × ${result.columns.length} columns");
     expect(playground).toContain("inferredFocus");
     expect(playground).toContain('"where-gte"');
+    expect(playground).toContain('"projection-columns"');
     expect(relationshipLab).toContain("customerOrders.length");
     expect(whereFilterLab).toContain("order_value >= 500");
     expect(whereFilterLab).toContain("segment IN ('Retail', 'Enterprise')");
+    expect(projectionLab).toContain("customer_id AS customer_key");
+    expect(projectionLab).toContain("WHERE order_value >= 500");
   });
 });
