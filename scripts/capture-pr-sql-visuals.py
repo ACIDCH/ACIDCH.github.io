@@ -301,17 +301,20 @@ def capture_visuals(browser: BrowserSession) -> None:
         ("sql-select", "[data-sql-playground]", "sql05-select-playground-mobile.png"),
         ("sql-where", "[data-where-filter-lab]", "sql06-where-mobile.png"),
         ("sql-projection", "[data-projection-lab]", "sql07-projection-mobile.png"),
-        (
-            "sql-projection",
-            "[data-sql-playground]",
-            "sql07-projection-playground-mobile.png",
-        ),
     ]
     for slug, selector, name in mobile_targets:
         browser.navigate(slug)
         browser.assert_toc_targets()
         browser.scroll_to(selector)
         browser.screenshot(name)
+
+    browser.navigate("sql-projection")
+    browser.assert_toc_targets()
+    browser.scroll_to("[data-sql-playground]")
+    browser.click("[data-sql-run]")
+    browser.wait_for_text("[data-sql-result-summary]", "3 rows × 3 columns")
+    browser.scroll_to("[data-sql-output]")
+    browser.screenshot("sql07-projection-playground-mobile.png")
 
 
 def main() -> None:
