@@ -23,8 +23,10 @@ interface Props {
 const { entry, alternatePath } = Astro.props;
 const { Content } = await render(entry);
 const isStatisticsHandbook = entry.data.slug === "descriptive-statistics";
-const isSqlHandbook = entry.data.slug === "sql-relational-data";
-const isHandbook = isStatisticsHandbook || isSqlHandbook;
+const isSqlOverview = entry.data.slug === "sql-relational-data";
+const isSqlPrimaryKey = entry.data.slug === "sql-primary-key";
+const isSqlEditorial = isSqlOverview || isSqlPrimaryKey;
+const isHandbook = isStatisticsHandbook || isSqlEditorial;
 
 const statisticsToc = [
   {
@@ -101,19 +103,47 @@ const statisticsToc = [
   { id: "一条完整的统计学习路径", label: "完整学习路径" },
 ];
 
-const sqlToc = [
-  { id: "关系表到底在保存什么", label: "关系表与记录粒度" },
-  { id: "主键怎样唯一定位一条记录", label: "主键" },
-  { id: "外键表之间怎样建立关系", label: "外键与表关系" },
-  { id: "索引为什么有的查询更快", label: "索引" },
-  { id: "从结构走向查询主键和外键为什么重要", label: "从结构走向查询" },
-  { id: "关系模型中的三个核心角色", label: "三个核心角色" },
-  { id: "建表时可以按什么顺序思考", label: "建表顺序" },
-  { id: "下一步", label: "下一步" },
+const sqlOverviewToc = [
+  { id: "关系数据库为什么不是一个大表", label: "关系数据库与业务实体" },
+  { id: "一行到底代表什么", label: "记录粒度" },
+  { id: "行列与字段分别在表达什么", label: "行与字段" },
+  { id: "字段名称只是开始数据类型同样重要", label: "数据类型" },
+  { id: "null-到底表示什么", label: "NULL" },
+  { id: "表结构和表中的数据是两件事", label: "Schema 与 Data" },
+  { id: "为什么同一个信息不应该到处重复", label: "减少重复信息" },
+  { id: "多张表是如何组成一个业务模型的", label: "多表业务模型" },
+  { id: "sql-查询为什么依赖正确的数据结构", label: "结构与查询" },
+  { id: "建表前可以先问这几个问题", label: "建表检查" },
+  { id: "关系模型接下来还缺什么", label: "进入主键" },
 ];
 
-const learningToc = isSqlHandbook ? sqlToc : statisticsToc;
-const handbookTitle = isSqlHandbook ? "SQL 与关系数据" : "统计学与 R";
+const sqlPrimaryKeyToc = [
+  { id: "一张表为什么需要记录身份", label: "记录身份" },
+  { id: "主键首先必须解决唯一性", label: "唯一性" },
+  { id: "当前唯一并不等于适合作为主键", label: "唯一 ≠ 稳定" },
+  { id: "业务字段与记录身份应该分开", label: "业务字段与身份" },
+  { id: "主键为什么会影响表之间的关系", label: "主键与关系" },
+  { id: "重复主键会发生什么", label: "约束错误实验" },
+  { id: "自增整数最容易理解的主键方案", label: "自增整数" },
+  { id: "uuid当记录需要在不同系统中独立生成", label: "UUID" },
+  { id: "联合主键一条记录也可以由多个字段共同确定", label: "联合主键" },
+  { id: "一个候选字段是否适合做主键可以这样检查", label: "主键检查框架" },
+  { id: "在-business-analytics-中主键为什么同样重要", label: "分析中的影响" },
+  { id: "常见错误", label: "常见错误" },
+  { id: "本篇的核心判断", label: "核心判断" },
+  { id: "下一步从身份进入关系", label: "下一步" },
+];
+
+const learningToc = isSqlPrimaryKey
+  ? sqlPrimaryKeyToc
+  : isSqlOverview
+    ? sqlOverviewToc
+    : statisticsToc;
+const handbookTitle = isSqlPrimaryKey
+  ? entry.data.title
+  : isSqlOverview
+    ? "SQL 与关系数据"
+    : "统计学与 R";
 
 const notes = await getCollection("notes");
 const projects = await getCollection("projects");
@@ -207,7 +237,7 @@ const noteStructuredData = {
                 )
               }
               {
-                isSqlHandbook && (
+                isSqlPrimaryKey && (
                   <>
                     <div
                       class="learning-note__inline-block"
