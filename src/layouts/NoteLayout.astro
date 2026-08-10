@@ -9,6 +9,7 @@ import ForeignKeyLab from "../components/learning/ForeignKeyLab.astro";
 import LearningNoteHero from "../components/learning/LearningNoteHero.astro";
 import LearningNoteToc from "../components/learning/LearningNoteToc.astro";
 import NormalDistributionLab from "../components/learning/NormalDistributionLab.astro";
+import OrderByLab from "../components/learning/OrderByLab.astro";
 import PrimaryKeyLab from "../components/learning/PrimaryKeyLab.astro";
 import ProjectionColumnsLab from "../components/learning/ProjectionColumnsLab.astro";
 import RegressionLab from "../components/learning/RegressionLab.astro";
@@ -27,8 +28,9 @@ interface Props {
 }
 
 const { entry, alternatePath } = Astro.props;
-const { Content } = await render(entry);
+const { Content, headings } = await render(entry);
 const isStatisticsHandbook = entry.data.slug === "descriptive-statistics";
+const isSqlEditorial = entry.data.seriesSlug === "sql";
 const isSqlOverview = entry.data.slug === "sql-relational-data";
 const isSqlPrimaryKey = entry.data.slug === "sql-primary-key";
 const isSqlForeignKey = entry.data.slug === "sql-foreign-key";
@@ -36,14 +38,7 @@ const isSqlRelationships = entry.data.slug === "sql-relationships";
 const isSqlSelect = entry.data.slug === "sql-select";
 const isSqlWhere = entry.data.slug === "sql-where";
 const isSqlProjection = entry.data.slug === "sql-projection";
-const isSqlEditorial =
-  isSqlOverview ||
-  isSqlPrimaryKey ||
-  isSqlForeignKey ||
-  isSqlRelationships ||
-  isSqlSelect ||
-  isSqlWhere ||
-  isSqlProjection;
+const isSqlOrderBy = entry.data.slug === "sql-order-by";
 const isHandbook = isStatisticsHandbook || isSqlEditorial;
 
 const statisticsToc = [
@@ -121,169 +116,15 @@ const statisticsToc = [
   { id: "一条完整的统计学习路径", label: "完整学习路径" },
 ];
 
-const sqlOverviewToc = [
-  { id: "为什么需要数据库", label: "为什么需要数据库" },
-  { id: "数据不只有一种组织模型", label: "三种数据模型" },
-  { id: "关系数据库为什么不是一个大表", label: "关系数据库与业务实体" },
-  { id: "整个-sql-系列使用同一份业务数据", label: "统一业务数据集" },
-  { id: "一行到底代表什么", label: "记录粒度" },
-  { id: "recordrowcolumn-与-field-怎样对应", label: "Record / Field" },
-  { id: "数据类型不是装饰而是字段语义的一部分", label: "数据类型" },
-  { id: "null-到底表示什么", label: "NULL" },
-  { id: "schema-和-data-是两件事", label: "Schema 与 Data" },
-  { id: "为什么同一个信息不应该到处重复", label: "减少重复信息" },
-  { id: "sql-是什么", label: "SQL 与 DDL/DML/DQL" },
-  { id: "标准-sql-和数据库方言不要混淆", label: "标准与方言" },
-  { id: "sql-关键字为什么统一大写", label: "书写约定" },
-  { id: "常见关系数据库有哪些", label: "主流关系数据库" },
-  { id: "建表前可以先问这几个问题", label: "建表检查" },
-  { id: "关系模型接下来还缺什么", label: "进入主键" },
-];
-
-const sqlPrimaryKeyToc = [
-  { id: "一张表为什么需要记录身份", label: "记录身份" },
-  { id: "主键首先必须解决唯一性", label: "唯一性" },
-  { id: "当前唯一并不等于适合作为主键", label: "唯一 ≠ 稳定" },
-  { id: "业务字段与记录身份应该分开", label: "业务字段与身份" },
-  { id: "主键为什么会影响表之间的关系", label: "主键与关系" },
-  { id: "重复主键会发生什么", label: "约束错误实验" },
-  { id: "自增整数最容易理解的主键方案", label: "自增整数" },
-  { id: "uuid当记录需要在不同系统中独立生成", label: "UUID" },
-  { id: "联合主键一条记录也可以由多个字段共同确定", label: "联合主键" },
-  { id: "一个候选字段是否适合做主键可以这样检查", label: "主键检查框架" },
-  { id: "在-business-analytics-中主键为什么同样重要", label: "分析中的影响" },
-  { id: "常见错误", label: "常见错误" },
-  { id: "本篇的核心判断", label: "核心判断" },
-  { id: "下一步从身份进入关系", label: "下一步" },
-];
-
-const sqlForeignKeyToc = [
-  { id: "主键解决是谁外键解决和谁有关", label: "主键与外键" },
-  { id: "外键不是因为列名相同才成立", label: "关系来自约束" },
-  { id: "父表与子表怎样理解", label: "父表与子表" },
-  { id: "什么叫引用完整性", label: "引用完整性" },
-  { id: "外键约束如何阻止无效订单", label: "无效引用实验" },
-  { id: "为什么必须先有父表记录", label: "写入依赖" },
-  { id: "外键列可以重复吗", label: "外键可重复" },
-  { id: "外键可以为空吗", label: "NULL 与外键" },
-  { id: "逻辑外键与数据库外键约束不是同一件事", label: "逻辑外键与约束" },
-  { id: "删除外键约束不等于删除字段", label: "删除约束" },
-  { id: "外键为什么会直接影响分析质量", label: "分析质量" },
-  { id: "检查外键关系时可以问什么", label: "关系检查" },
-  { id: "本篇的核心判断", label: "核心判断" },
-  { id: "下一步关系到底是一对多还是多对多", label: "下一步" },
-];
-
-const sqlRelationshipsToc = [
-  { id: "两张表有关联还不够", label: "关系基数" },
-  { id: "一对多一个客户可以有多张订单", label: "一对多 1:N" },
-  { id: "一对多的外键放在哪一边", label: "外键位置" },
-  { id: "怎样判断一个关系是不是一对多", label: "判断 1:N" },
-  { id: "多对多订单和产品为什么不能只加一个外键", label: "多对多 N:M" },
-  { id: "中间表把多对多拆成两个一对多", label: "中间表" },
-  { id: "中间表为什么经常使用联合主键", label: "桥接表主键" },
-  { id: "中间表还可以保存关系本身的属性", label: "关系属性" },
-  { id: "一对一一条记录最多对应另一条记录", label: "一对一 1:1" },
-  { id: "只有外键为什么还不能保证一对一", label: "UNIQUE 与 1:1" },
-  { id: "关系基数会直接影响-join-后有多少行", label: "JOIN 与行数" },
-  { id: "多对多连接为什么更容易放大记录数", label: "N:M 与粒度" },
-  { id: "从业务语言判断关系类型", label: "业务规则 → 结构" },
-  { id: "常见建模错误", label: "常见错误" },
-  { id: "关系设计可以按这个顺序检查", label: "关系设计检查" },
-  { id: "本篇的核心判断", label: "核心判断" },
-  { id: "下一步开始真正查询数据", label: "下一步" },
-];
-
-const sqlSelectToc = [
-  { id: "从数据怎样组织进入怎样读取数据", label: "进入查询" },
-  { id: "select--from-customers-到底在说什么", label: "SELECT / FROM" },
-  { id: "星号--表示什么", label: "星号 *" },
-  { id: "没有-where-时会发生什么", label: "全部记录" },
-  { id: "查询结果本身也是一个二维表", label: "Result Set" },
-  { id: "select-会修改原表吗", label: "读取 vs 修改" },
-  { id: "先运行最基础的查询", label: "运行 SELECT" },
-  { id: "查询前先记住记录粒度", label: "结果粒度" },
-  { id: "select-并不一定需要-from", label: "SELECT 1" },
-  { id: "分号--有什么作用", label: "语句结束" },
-  { id: "sql-关键字为什么经常写成大写", label: "书写风格" },
-  { id: "select--适合什么时候使用", label: "SELECT * 使用场景" },
-  { id: "一份新表可以先这样读", label: "新表检查" },
-  { id: "常见错误", label: "常见错误" },
-  { id: "本篇的核心判断", label: "核心判断" },
-  { id: "下一步只保留满足条件的记录", label: "下一步" },
-];
-
-const sqlWhereToc = [
-  { id: "从读取整张表进入只保留需要的记录", label: "进入条件查询" },
-  { id: "where-改变的是结果集的行", label: "WHERE 与结果行" },
-  { id: "比较运算符是条件表达式的基础", label: "比较运算" },
-  { id: "and所有条件都必须成立", label: "AND" },
-  { id: "or任意一个条件成立即可", label: "OR" },
-  { id: "not对一个条件取反", label: "NOT" },
-  { id: "notandor-有优先级", label: "逻辑优先级" },
-  { id: "括号比记忆优先级更可靠", label: "括号" },
-  { id: "范围条件为什么经常写错", label: "范围条件" },
-  { id: "between更直接地表达闭区间", label: "BETWEEN" },
-  { id: "in一个字段允许落在多个离散值中", label: "IN" },
-  { id: "like按文本模式筛选", label: "LIKE" },
-  { id: "where-中存在三值逻辑", label: "NULL 与三值逻辑" },
-  { id: "where-和-order-by-解决的不是同一个问题", label: "WHERE vs ORDER BY" },
-  { id: "在浏览器里实际运行这些条件", label: "运行 WHERE" },
-  { id: "where-不等于查询一定很快", label: "筛选 vs 查询性能" },
-  { id: "business-analytics-中的-where-通常来自业务规则", label: "业务规则" },
-  { id: "常见错误", label: "常见错误" },
-  { id: "条件查询可以按这个顺序检查", label: "条件检查" },
-  { id: "本篇的核心判断", label: "核心判断" },
-  { id: "下一步不只筛选行还要选择列", label: "下一步" },
-];
-
-const sqlProjectionToc = [
-  { id: "从筛选行进入选择列", label: "进入 Projection" },
-  { id: "projection-改变的是结果集的列", label: "Projection 与结果列" },
-  { id: "不返回某列不等于删除某列", label: "结果集 vs Schema" },
-  { id: "结果列的顺序由-select-列表决定", label: "列顺序" },
-  { id: "列别名改变结果集字段名", label: "列别名" },
-  { id: "as-为什么值得保留", label: "AS 与可读性" },
-  { id: "projection-可以和-where-组合", label: "Projection + WHERE" },
-  { id: "表达式也可以成为结果列", label: "表达式列" },
-  { id: "别名应该表达业务语义", label: "业务语义" },
-  { id: "重复或模糊的输出列名会制造风险", label: "输出列名风险" },
-  { id: "select-星号为什么不适合作为长期接口", label: "SELECT * 边界" },
-  { id: "projection-不负责排序", label: "Projection vs ORDER BY" },
-  { id: "在浏览器里实际运行-projection", label: "运行 Projection" },
-  { id: "business-analytics-中-projection-是结果接口设计", label: "结果接口设计" },
-  { id: "常见错误", label: "常见错误" },
-  { id: "projection-可以按这个顺序检查", label: "Projection 检查" },
-  { id: "本篇的核心判断", label: "核心判断" },
-  { id: "下一步控制结果的行顺序", label: "下一步" },
-];
-
-const learningToc = isSqlProjection
-  ? sqlProjectionToc
-  : isSqlWhere
-    ? sqlWhereToc
-    : isSqlSelect
-      ? sqlSelectToc
-      : isSqlRelationships
-        ? sqlRelationshipsToc
-        : isSqlForeignKey
-          ? sqlForeignKeyToc
-          : isSqlPrimaryKey
-            ? sqlPrimaryKeyToc
-            : isSqlOverview
-              ? sqlOverviewToc
-              : statisticsToc;
-const handbookTitle =
-  isSqlPrimaryKey ||
-  isSqlForeignKey ||
-  isSqlRelationships ||
-  isSqlSelect ||
-  isSqlWhere ||
-  isSqlProjection
+const sqlGeneratedToc = headings
+  .filter((heading) => heading.depth === 2 && heading.slug !== "写在前面")
+  .map((heading) => ({ id: heading.slug, label: heading.text }));
+const learningToc = isSqlEditorial ? sqlGeneratedToc : statisticsToc;
+const handbookTitle = isSqlOverview
+  ? "SQL 与关系数据"
+  : isSqlEditorial
     ? entry.data.title
-    : isSqlOverview
-      ? "SQL 与关系数据"
-      : "统计学与 R";
+    : "统计学与 R";
 
 const notes = await getCollection("notes");
 const projects = await getCollection("projects");
@@ -484,6 +325,16 @@ const noteStructuredData = {
                       <SqlPlayground defaultPreset="projection-columns" focus="projection" />
                     </div>
                   </>
+                )
+              }
+              {
+                isSqlOrderBy && (
+                  <div
+                    class="learning-note__inline-block"
+                    data-learning-block="order-by-lab"
+                  >
+                    <OrderByLab />
+                  </div>
                 )
               }
             </div>
