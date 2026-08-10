@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 const note = readFileSync("src/content/notes/descriptive-statistics.zh.md", "utf8");
 const layout = readFileSync("src/layouts/NoteLayout.astro", "utf8");
 const hero = readFileSync("src/components/learning/LearningNoteHero.astro", "utf8");
-const rail = readFileSync("src/components/learning/LearningNoteRail.astro", "utf8");
+const toc = readFileSync("src/components/learning/LearningNoteToc.astro", "utf8");
 const editorialCss = readFileSync("src/styles/learning-note-editorial.css", "utf8");
 const zhRoute = readFileSync("src/pages/zh/notes/[slug].astro", "utf8");
 const index = readFileSync("src/pages/zh/notes/index.astro", "utf8");
@@ -52,23 +52,29 @@ describe("Learning Notes sample", () => {
     expect(zhRoute).toContain("includeDrafts || !entry.data.draft");
   });
 
-  it("uses an editorial hero, table of contents, quick-reference rail and interactive lab", () => {
+  it("uses a two-column editorial layout with facts in the hero", () => {
     expect(layout).toContain("LearningNoteHero");
     expect(layout).toContain("LearningNoteToc");
-    expect(layout).toContain("LearningNoteRail");
     expect(layout).toContain("DescriptiveStatisticsLab");
+    expect(layout).toContain("facts={learningFacts}");
     expect(layout).toContain("fullWidth={isLearningSample}");
-    expect(hero).toContain("learning-note-hero__main");
-    expect(hero).toContain("learning-note-hero__aside");
-    expect(rail).toContain("核心读数");
-    expect(rail).toContain("阅读路径");
+    expect(layout).not.toContain("LearningNoteRail");
+    expect(hero).toContain("learning-note-hero__facts");
+    expect(hero).toContain('aria-label="本页核心读数"');
   });
 
-  it("uses a fluid three-column desktop frame instead of a narrow centered article", () => {
-    expect(editorialCss).toContain("width: min(92rem");
-    expect(editorialCss).toContain("minmax(0, 52rem)");
-    expect(editorialCss).toContain("learning-note-rail");
-    expect(editorialCss).toContain("grid-template-columns: minmax(12rem, 13.5rem)");
+  it("keeps the desktop TOC in its own grid column and removes the competing sticky rail", () => {
+    expect(editorialCss).toContain("grid-template-columns: minmax(13rem, 15rem) minmax(0, 64rem)");
+    expect(editorialCss).toContain("grid-column: 1");
+    expect(editorialCss).toContain("grid-column: 2");
+    expect(editorialCss).toContain("position: sticky");
+    expect(editorialCss).toContain("max-height: calc(100dvh");
+    expect(editorialCss).toContain("position: static");
+    expect(editorialCss).not.toContain("learning-note-rail");
+    expect(toc).toContain("IntersectionObserver");
+  });
+
+  it("uses only defined spacing tokens in the dedicated Learning Note stylesheet", () => {
     expect(editorialCss).not.toContain("var(--space-7)");
     expect(editorialCss).not.toContain("var(--space-9)");
     expect(editorialCss).not.toContain("var(--space-14)");
