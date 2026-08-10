@@ -42,7 +42,7 @@ const payload = JSON.stringify(hubs).replace(/</g, "\\u003c");
   let milpCleanup: (() => void) | undefined;
   function initMilpLab() {
     milpCleanup?.();
-    const root = document.querySelector<HTMLElement>("[data-milp-lab]");
+    const root = document.querySelector<HTMLElement>("[data-milp-lab]")!;
     const source = root?.querySelector<HTMLScriptElement>("[data-hub-source]");
     if (!root || !source) return;
     const hubs = JSON.parse(source.textContent || "[]") as Hub[];
