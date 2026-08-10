@@ -3,12 +3,12 @@ translationKey: sql-relational-data
 locale: zh
 slug: sql-relational-data
 title: SQL 与关系数据
-summary: 从关系表、主键、外键与索引开始，理解关系数据库如何唯一标识记录、连接业务实体，并把稳定的数据结构转化为可复查的 SQL 查询。
+summary: 从表、记录、字段、数据类型与记录粒度开始，理解关系数据库如何把业务对象拆成结构清晰的数据表，并为后续主键、外键与 SQL 查询建立基础。
 tags:
   - 关系模型
-  - 主键
-  - 外键
-  - 索引
+  - 数据表
+  - 记录粒度
+  - NULL
 topics:
   - 数据管理
   - 数据建模
@@ -26,14 +26,42 @@ draft: false
 isPlaceholder: false
 relatedProjects:
   - sales-profitability-warehouse
-relatedNotes: []
+relatedNotes:
+  - sql-primary-key
 ---
 
-## 关系表到底在保存什么？
+## 关系数据库为什么不是一个“大表”？
 
-关系数据库最基本的结构不是“一个大文件”，而是一组彼此有关联的二维表。每一行是一条 **记录（record）**，每一列是一个 **字段（column）**。字段除了名称，还带有数据类型以及是否允许为空等约束。
+业务数据通常同时包含客户、订单、产品、仓库、运输和服务事件等不同对象。如果把所有内容都塞进一张表，很多信息会被重复保存，字段含义也会逐渐变得混乱。
 
-以一个简单的客户表为例：
+关系数据库更常见的做法，是把不同业务对象拆成多张结构清晰的表，再通过稳定的字段把这些表连接起来。
+
+例如，一个简单的分析场景可以包含：
+
+```text
+customers
+orders
+products
+shipments
+```
+
+它们不是四份互不相关的数据，而是同一个业务系统中的不同实体。
+
+```text
+客户
+↓
+产生订单
+↓
+订单包含产品
+↓
+订单经过仓库与运输流程
+```
+
+理解关系数据库的第一步，不是先写 `SELECT`，而是先看懂：**每一张表到底在表达什么。**
+
+## 一行到底代表什么？
+
+假设客户表如下：
 
 | customer_id | customer_name | email | segment |
 |---:|---|---|---|
@@ -41,9 +69,13 @@ relatedNotes: []
 | 1002 | Coast Foods | coast@example.com | Wholesale |
 | 1003 | Alpine Labs | alpine@example.com | Enterprise |
 
-这里每一行代表一个客户，而不是一次订单、一次访问或一个月的汇总。也就是说，在任何 SQL 分析开始之前，先要明确：**一行到底代表什么业务对象。** 这就是关系数据中的记录粒度。
+这里每一行代表一个客户。
 
-如果另一张表记录订单：
+因此这张表的记录粒度（observation granularity）可以写成：
+
+> **One row = one customer**
+
+如果另一张订单表是：
 
 | order_id | customer_id | order_date | order_value |
 |---:|---:|---|---:|
@@ -51,260 +83,286 @@ relatedNotes: []
 | 50002 | 1001 | 2026-07-05 | 185.00 |
 | 50003 | 1002 | 2026-07-06 | 760.00 |
 
-此时，一行代表一张订单。`customers` 与 `orders` 保存的是两个不同粒度的业务实体。SQL 后续的筛选、聚合和连接是否正确，很大程度上取决于这一步有没有分清。
+它的粒度则是：
 
-### 字段与 NULL
+> **One row = one order**
 
-`NULL` 表示字段值不存在或未知，它不等于数字 `0`，也不等于空字符串 `''`。因此，设计字段时不应该把 `NULL` 当成普通数值处理。
+两张表都出现了 `customer_id`，但它们的行并不代表同一种业务对象。
 
-对于关键字段，例如主键、订单金额、必须存在的客户名称，通常应明确设置 `NOT NULL`。这样既能减少歧义，也能让后续查询逻辑更加清晰。
+这一点非常重要。后续无论做筛选、聚合、连接还是 KPI 计算，都必须先知道当前表的一行代表什么。
 
-## 主键：怎样唯一定位一条记录？
+## 行、列与字段分别在表达什么？
 
-关系表最重要的约束之一，是必须能够 **唯一识别每一条记录**。承担这一职责的字段就是 **主键（Primary Key）**。
+关系表可以从两个方向理解。
+
+### 行：一个具体业务实例
+
+在 `customers` 中，一行可以代表一个具体客户。
+
+在 `orders` 中，一行可以代表一张具体订单。
+
+在 `shipments` 中，一行可能代表一次运输任务。
+
+### 列：这个对象具有哪些属性
+
+例如客户可能拥有：
+
+```text
+customer_name
+email
+segment
+```
+
+订单可能拥有：
+
+```text
+order_date
+order_value
+customer_id
+```
+
+所以一张关系表不是一个随意排列的二维表格，而是在表达：
+
+```text
+同一种业务对象
++
+固定的一组属性
++
+多条具体记录
+```
+
+## 字段名称只是开始，数据类型同样重要
+
+数据库还需要知道每个字段可以保存什么类型的数据。
 
 例如：
 
 ```sql
 CREATE TABLE customers (
-  customer_id INTEGER PRIMARY KEY,
+  customer_id INTEGER NOT NULL,
   customer_name TEXT NOT NULL,
-  email TEXT NOT NULL UNIQUE,
-  segment TEXT NOT NULL
+  email TEXT,
+  segment TEXT
 );
 ```
 
-`customer_id` 是这张表的主键。只要知道 `customer_id = 1002`，就能准确定位 `Coast Foods` 这一条记录。
+这里：
 
-### 为什么不直接拿邮箱或手机号做主键？
+- `customer_id` 使用整数；
+- `customer_name` 使用文本；
+- `email` 使用文本；
+- `segment` 使用文本。
 
-邮箱、手机号、会员编号等字段在某一时刻看起来也可能唯一，但它们带有明确的业务含义，也可能因为业务变化而被修改。
-
-主键承担的是“稳定定位记录”的职责。因此，这套学习笔记采用一个简单原则：
-
-> **主键优先使用与业务无关、稳定且唯一的标识。业务字段的唯一性，则交给 UNIQUE 等约束表达。**
-
-例如：
-
-```sql
-customer_id INTEGER PRIMARY KEY
-email       TEXT UNIQUE NOT NULL
-```
-
-这样即使客户更换邮箱，`customer_id` 仍然保持不变，其他表也不需要跟着修改引用关系。
-
-<div data-learning-slot="primary-key-lab"></div>
-
-### 自增整数与 UUID
-
-常见主键方案包括：
-
-| 方案 | 特点 | 更适合的场景 |
-|---|---|---|
-| 自增整数 | 简洁、紧凑、容易排序和连接 | 单一数据库中的常规业务表 |
-| BIGINT 自增 | 与普通整数思路一致，但可容纳更大的记录范围 | 长期增长的大型业务表 |
-| UUID / GUID | 可以在不同节点独立生成全局唯一标识 | 分布式或跨系统生成记录 |
-
-重点不在于哪一种永远最好，而在于主键必须满足几个基本条件：**唯一、稳定、非空，并尽量不承载会变化的业务含义。**
-
-### 联合主键
-
-有些表需要由多个字段共同唯一标识一条记录。例如订单与产品之间的明细表：
-
-| order_id | product_id | quantity |
-|---:|---:|---:|
-| 50001 | 301 | 2 |
-| 50001 | 305 | 1 |
-| 50002 | 301 | 4 |
-
-如果规定同一订单中的同一产品只能出现一次，可以使用：
-
-```sql
-PRIMARY KEY (order_id, product_id)
-```
-
-这里 `order_id` 可以重复，`product_id` 也可以重复，但二者的组合不能重复。联合主键能够准确表达这种约束，不过它也会增加引用和连接的复杂度，因此没有必要时不应滥用。
-
-## 外键：表之间怎样建立关系？
-
-主键解决了“怎样唯一找到一条记录”，外键则解决“这条记录与另一张表中的哪条记录有关”。
-
-在 `orders` 表中：
+订单表则可能包含：
 
 ```sql
 CREATE TABLE orders (
-  order_id INTEGER PRIMARY KEY,
+  order_id INTEGER NOT NULL,
   customer_id INTEGER NOT NULL,
   order_date TEXT NOT NULL,
-  order_value REAL NOT NULL,
-  FOREIGN KEY (customer_id)
-    REFERENCES customers (customer_id)
+  order_value REAL NOT NULL
 );
 ```
 
-`orders.customer_id` 是外键，它指向 `customers.customer_id`。
+不同数据库对日期、数字和文本类型的具体名称可能不同，但设计逻辑一致：**字段类型应该与它表达的数据含义一致。**
 
-关系可以这样理解：
+如果订单金额被保存成普通文本，后续求和、排序和比较就会变得不自然；如果日期没有稳定的日期表达方式，时间分析也容易出错。
 
-```text
-customers
-customer_id  PK
-     │
-     │ 1 : N
-     ▼
-orders
-order_id     PK
-customer_id  FK
-```
+## NULL 到底表示什么？
 
-一个客户可以有多张订单，而每张订单只属于一个客户，所以这是一个典型的 **一对多（one-to-many）** 关系。
+`NULL` 表示字段值不存在或当前未知。
 
-### 外键约束在保护什么？
-
-如果数据库启用了外键约束，那么下面这种订单就不应该被允许：
+它不是：
 
 ```text
-order_id = 50099
-customer_id = 9999
+0
 ```
 
-因为 `customers` 表中不存在 `customer_id = 9999`。外键约束的价值，就是防止“订单指向不存在客户”这类关系完整性错误进入数据库。
-
-### 多对多关系
-
-如果一个产品可以属于多个促销活动，一个促销活动也可以包含多个产品，那么不能只在其中一张表里放一个简单外键。更常见的做法是建立中间表：
+也不是：
 
 ```text
-products
-   1
-   │
-   N
-promotion_products
-   N
-   │
-   1
-promotions
+''
 ```
+
+空字符串仍然是一个字符串值，而 `NULL` 表示没有可用值。
 
 例如：
 
+| customer_id | customer_name | phone |
+|---:|---|---|
+| 1001 | North Retail | 021-440-810 |
+| 1002 | Coast Foods | NULL |
+
+这里 `Coast Foods` 的电话字段不是数字 0，也不是空白字符，而是数据库当前没有这个值。
+
+因此，数据库设计时需要判断哪些字段必须存在。
+
 ```sql
-CREATE TABLE promotion_products (
-  promotion_id INTEGER NOT NULL,
-  product_id INTEGER NOT NULL,
-  PRIMARY KEY (promotion_id, product_id)
-);
+customer_name TEXT NOT NULL
 ```
 
-两个一对多关系组合起来，就形成了多对多关系。
+表示客户名称不能缺失。
 
-### 一对一关系
+而某些可选字段可以允许 `NULL`。
 
-一对一关系表示一张表中的一条记录只对应另一张表中的一条记录。例如：
+## 表结构和表中的数据是两件事
+
+可以把关系表拆成两个层次理解。
+
+### Schema：规定这张表长什么样
+
+例如：
 
 ```text
 customers
-    1
+├── customer_id
+├── customer_name
+├── email
+└── segment
+```
+
+它描述的是字段、数据类型和约束。
+
+### Data：实际保存在表里的记录
+
+例如：
+
+```text
+1001 | North Retail | north@example.com | Retail
+1002 | Coast Foods  | coast@example.com | Wholesale
+```
+
+当业务记录不断增加时，数据会变化，但表结构通常不会因为每新增一行就重新设计。
+
+这就是为什么数据库建模通常先定义 schema，再持续写入业务数据。
+
+## 为什么同一个信息不应该到处重复？
+
+假设我们把客户名称直接重复写进每一张订单：
+
+| order_id | customer_name | order_date | order_value |
+|---:|---|---|---:|
+| 50001 | North Retail | 2026-07-03 | 420.00 |
+| 50002 | North Retail | 2026-07-05 | 185.00 |
+| 50003 | Coast Foods | 2026-07-06 | 760.00 |
+
+如果 `North Retail` 将来修改名称，那么历史订单中的客户名称也可能需要逐行修改。
+
+更稳定的思路是让客户信息保存在客户表，订单只保存与客户之间的连接字段。
+
+```text
+customers
+1001 | North Retail
+
+orders
+50001 | 1001
+50002 | 1001
+```
+
+这样“客户是谁”和“发生了哪些订单”由不同表分别负责。
+
+关系数据库的价值之一，就是让每张表聚焦于自己的业务实体，而不是不断复制其他实体的完整信息。
+
+## 多张表是如何组成一个业务模型的？
+
+下面是一组很小的 Business Analytics 数据结构：
+
+```text
+customers
     │
-    1
-customer_profiles
+    └── orders
+          │
+          └── order_items
+                 │
+                 └── products
 ```
 
-这种拆分常用于把高频访问的核心字段与低频访问的扩展字段分开，或者把可选信息放在独立表中。
+从分析角度看，这几张表可以回答不同问题：
 
-## 索引：为什么有的查询更快？
-
-当表只有几十条记录时，直接扫描整张表几乎感觉不到成本；当记录增长到几十万、几百万甚至更多时，查询速度开始取决于数据库能否快速定位需要的行。
-
-索引可以理解为数据库为一列或多列建立的有序查找结构。它让数据库在合适的条件下不必逐行扫描整个表。
-
-例如，经常按照订单日期和客户查询：
-
-```sql
-CREATE INDEX idx_orders_customer_date
-ON orders (customer_id, order_date);
-```
-
-或者对必须唯一的业务字段建立唯一索引：
-
-```sql
-CREATE UNIQUE INDEX idx_customers_email
-ON customers (email);
-```
-
-### 索引不是越多越好
-
-索引提高读取效率，但每次 `INSERT`、`UPDATE`、`DELETE` 时，数据库还需要维护对应的索引结构。因此，索引会带来额外的写入成本和存储成本。
-
-另一个重要判断是 **区分度**。如果某个字段只有很少几个重复值，例如 `status` 只有 `open / closed` 两种状态，那么单独对它建立索引未必有很高收益；如果字段值高度分散，索引通常更容易发挥作用。
-
-主键本身通常会拥有主键索引，因此按主键定位记录通常非常高效。
-
-## 从结构走向查询：主键和外键为什么重要？
-
-当主键、外键和记录粒度定义清楚后，SQL 查询才能稳定地把多张表重新组合起来。
-
-例如，查看每张订单对应的客户：
-
-```sql
-SELECT
-  o.order_id,
-  c.customer_name,
-  o.order_date,
-  o.order_value
-FROM orders AS o
-JOIN customers AS c
-  ON o.customer_id = c.customer_id
-ORDER BY o.order_id;
-```
-
-这里连接条件不是随便挑两个“看起来相似”的字段，而是沿着已经定义好的关系：
-
-```text
-orders.customer_id
-        ↓
-customers.customer_id
-```
-
-这也是关系模型的核心价值之一：先把业务实体和关系定义清楚，再让查询沿着这些关系组合数据。
-
-<div data-learning-slot="sql-playground"></div>
-
-## 关系模型中的三个核心角色
-
-| 对象 | 主要职责 | 典型问题 |
+| 表 | 一行代表 | 可以回答的问题 |
 |---|---|---|
-| 主键 Primary Key | 唯一定位一条记录 | 这条记录是谁？ |
-| 外键 Foreign Key | 建立表之间的引用关系 | 这条订单属于哪个客户？ |
-| 索引 Index | 提高特定查询的定位效率 | 怎样更快找到需要的记录？ |
+| customers | 一个客户 | 客户属于哪个 segment？ |
+| orders | 一张订单 | 哪天产生了多少订单金额？ |
+| order_items | 一张订单中的一个产品明细 | 某订单买了哪些产品？ |
+| products | 一个产品 | 产品属于哪个类别？ |
 
-三者解决的是不同问题。主键首先保证身份，外键建立关系，索引优化访问路径。不能因为三者都与“字段”有关，就把它们视为同一种东西。
+当每张表的粒度清楚以后，后续 SQL 才能判断应该从哪张表开始查询，以及不同表连接后会不会改变记录数量。
 
-## 建表时可以按什么顺序思考？
+## SQL 查询为什么依赖正确的数据结构？
 
-一个稳定的关系表设计通常可以按下面的顺序检查：
+假设目标是计算每个客户的订单总额。
 
-1. **确定记录粒度**：一行到底代表客户、订单、订单明细，还是一次服务事件？
-2. **确定主键**：什么字段可以稳定、唯一、非空地标识这条记录？
-3. **识别业务唯一性**：哪些字段虽然不是主键，但业务上不能重复？
-4. **建立外键关系**：这张表需要引用哪些上游实体？
-5. **检查一对多、多对多和一对一**：关系是否需要中间表？
-6. **最后再考虑索引**：哪些筛选、连接或排序模式值得优化？
+最终可能需要类似：
 
-这样的顺序能够避免一个常见问题：还没有确定“这张表究竟代表什么”，就直接开始写复杂查询。
-
-## 下一步
-
-关系模型解决的是数据结构问题。掌握主键、外键与索引以后，下一步可以进入真正的数据查询：
-
-```text
+```sql
 SELECT
-→ WHERE
-→ ORDER BY
-→ GROUP BY
-→ JOIN
-→ Subquery
-→ Window Function
+  customer_id,
+  SUM(order_value) AS total_value
+FROM orders
+GROUP BY customer_id;
 ```
 
-后续 SQL 学习笔记会继续沿用 `customers / orders / products / shipments` 这一组业务数据，让结构设计和分析查询保持在同一个业务语境中。
+这段查询之所以有意义，是因为前面已经知道：
+
+```text
+orders
+One row = one order
+```
+
+如果一行其实代表订单明细，而不是整张订单，那么同样的求和逻辑可能产生完全不同的业务解释。
+
+所以 SQL 分析不能只看语法。
+
+更稳妥的顺序是：
+
+```text
+先理解业务对象
+↓
+确认一行代表什么
+↓
+确认字段含义和数据类型
+↓
+理解表之间的关系
+↓
+最后写查询
+```
+
+## 建表前可以先问这几个问题
+
+面对一份新的业务数据，可以先检查：
+
+1. **这张表保存的业务对象是什么？**
+2. **一行代表什么？**
+3. **哪些列是这个对象的属性？**
+4. **哪些字段必须有值？**
+5. **哪些字段可能为空？**
+6. **哪些信息应该放在另一张表，而不是重复保存？**
+7. **这张表以后需要和哪些表发生关系？**
+
+这些问题解决以后，表结构通常已经清晰很多。
+
+## 关系模型接下来还缺什么？
+
+到这里，我们已经知道关系数据库如何用多张表表达不同业务实体，但还没有解决一个关键问题：
+
+> **如果一张表中有几千甚至几百万条记录，数据库怎样稳定地确认“这一行到底是谁”？**
+
+例如客户表中：
+
+```text
+North Retail
+Coast Foods
+Alpine Labs
+```
+
+客户名称可能修改，也可能出现相同名称。
+
+因此，关系模型还需要一种稳定机制，为每一条记录建立唯一身份。
+
+这就是下一篇的主题：
+
+```text
+SQL 02 — Primary Key
+```
+
+主键解决“这条记录是谁”，之后外键再继续解决“这条记录与哪一条记录有关”。
