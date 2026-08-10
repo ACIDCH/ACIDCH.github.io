@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 const note = readFileSync("src/content/notes/descriptive-statistics.zh.md", "utf8");
@@ -6,42 +6,60 @@ const layout = readFileSync("src/layouts/NoteLayout.astro", "utf8");
 const hero = readFileSync("src/components/learning/LearningNoteHero.astro", "utf8");
 const toc = readFileSync("src/components/learning/LearningNoteToc.astro", "utf8");
 const editorialCss = readFileSync("src/styles/learning-note-editorial.css", "utf8");
-const wideCss = readFileSync("src/styles/learning-note-wide.css", "utf8");
 const zhRoute = readFileSync("src/pages/zh/notes/[slug].astro", "utf8");
 const index = readFileSync("src/pages/zh/notes/index.astro", "utf8");
 
-describe("Learning Notes sample", () => {
-  it("publishes the Chinese sample note with stable series metadata", () => {
+describe("R and Statistics Learning Note handbook", () => {
+  it("publishes the Chinese handbook with stable series metadata", () => {
     expect(note).toContain("locale: zh");
     expect(note).toContain("slug: descriptive-statistics");
+    expect(note).toContain("统计学与 R：从描述统计到多元分析的完整学习手册");
     expect(note).toContain("status: published");
     expect(note).toContain("draft: false");
     expect(note).toContain("seriesSlug: r-statistics");
   });
 
-  it("covers centre, spread, distribution and R entry points", () => {
+  it("covers the full R and statistics handbook sequence", () => {
     [
-      "均值",
-      "中位数",
-      "众数",
-      "IQR",
-      "变异系数",
-      "标准分数",
-      "直方图",
-      "箱线图",
-      "ECDF",
-      "mean()",
-      "ecdf(x)",
+      "## 写在前面",
+      "## 描述性统计量",
+      "## 概率相关内容",
+      "## 估计",
+      "## 相关性分析",
+      "## 单双样本均值分析",
+      "## 多样本均值分析",
+      "## 比例分析",
+      "## 常用高阶分析方法",
+      "### 回归分析",
+      "### 聚类分析",
+      "#### k-means",
+      "#### Hierarchical Clustering",
+      "### 主成分分析",
     ].forEach((term) => expect(note).toContain(term));
   });
 
-  it("adds comparison tables and decision-oriented reading prompts", () => {
-    expect(note).toContain("同样均值，但波动和尾部明显更大");
-    expect(note).toContain("更值得先看的统计量");
-    expect(note).toContain("总体平均需要多少响应能力");
-    expect(note).toContain("图形不是装饰");
-    expect(note).toContain("如果真正想回答的问题是");
-    expect(note).toContain("继续学习：");
+  it("keeps executable R examples and Business Analytics interpretation", () => {
+    [
+      "mean(x)",
+      "sd(x)",
+      "dbinom",
+      "dpois",
+      "shapiro.test",
+      "cor.test",
+      "t.test",
+      "wilcox.test",
+      "aov(",
+      "prop.test",
+      "chisq.test",
+      "lm(",
+      "glm(",
+      "kmeans(",
+      "hclust(",
+      "prcomp(",
+    ].forEach((term) => expect(note).toContain(term));
+    expect(note).toContain("服务响应");
+    expect(note).toContain("客户");
+    expect(note).toContain("订单");
   });
 
   it("does not place restricted course labels or public identity in the note", () => {
@@ -55,66 +73,56 @@ describe("Learning Notes sample", () => {
     expect(zhRoute).toContain("includeDrafts || !entry.data.draft");
   });
 
-  it("uses a two-column editorial layout with facts in the hero", () => {
+  it("uses a simple handbook header instead of a dashboard hero card", () => {
     expect(layout).toContain("LearningNoteHero");
     expect(layout).toContain("LearningNoteToc");
     expect(layout).toContain("DescriptiveStatisticsLab");
-    expect(layout).toContain("facts={learningFacts}");
-    expect(layout).toContain("fullWidth={isLearningSample}");
+    expect(layout).toContain("fullWidth={isHandbook}");
     expect(layout).not.toContain("LearningNoteRail");
-    expect(hero).toContain("learning-note-hero__facts");
-    expect(hero).toContain('aria-label="本页核心读数"');
+    expect(hero).toContain("learning-note-hero__footer");
+    expect(hero).not.toContain("learning-note-hero__facts");
+    expect(editorialCss).toContain("max-width: 28ch");
+    expect(editorialCss).toContain("border-bottom: 1px solid var(--colour-border-strong)");
   });
 
-  it("places the interactive lab inside the article flow before the decision section", () => {
+  it("supports a nested handbook table of contents", () => {
+    expect(toc).toContain("children?: Item[]");
+    expect(toc).toContain("learning-note-toc__nested");
+    expect(toc).toContain("IntersectionObserver");
+    expect(layout).toContain('label: "描述性统计量"');
+    expect(layout).toContain('label: "概率相关内容"');
+    expect(layout).toContain('label: "单双样本均值分析"');
+    expect(layout).toContain('label: "常用高阶分析方法"');
+  });
+
+  it("uses one authoritative spacious teaching stylesheet", () => {
+    expect(layout).toContain('import "../styles/learning-note-editorial.css"');
+    expect(layout).not.toContain("learning-note-wide.css");
+    expect(existsSync("src/styles/learning-note-wide.css")).toBe(false);
+    expect(editorialCss).toContain("width: min(94rem");
+    expect(editorialCss).toContain("grid-template-columns: minmax(14rem, 16rem) minmax(0, 1fr)");
+    expect(editorialCss).toContain("max-width: 72rem");
+    expect(editorialCss).toContain("max-width: 58rem");
+  });
+
+  it("places the interactive statistics lab inside descriptive statistics", () => {
     const slotIndex = note.indexOf('data-learning-slot="statistics-lab"');
-    expect(slotIndex).toBeGreaterThan(note.indexOf("## R 中的最小工作流"));
-    expect(slotIndex).toBeLessThan(note.indexOf("## 把统计量放回决策"));
+    expect(slotIndex).toBeGreaterThan(note.indexOf("### 形象化展示"));
+    expect(slotIndex).toBeLessThan(note.indexOf("## 概率相关内容"));
     expect(layout).toContain('data-learning-block="statistics-lab"');
     expect(layout).toContain("placeLearningBlocks");
-    expect(layout).toContain('block.dataset.learningPlaced = "true"');
   });
 
-  it("keeps the desktop TOC in its own grid column and uses short navigation labels", () => {
-    expect(editorialCss).toContain("grid-template-columns: minmax(13rem, 15rem) minmax(0, 64rem)");
-    expect(editorialCss).toContain("grid-column: 1");
-    expect(editorialCss).toContain("grid-column: 2");
-    expect(editorialCss).toContain("position: sticky");
-    expect(editorialCss).toContain("max-height: calc(100dvh");
-    expect(editorialCss).toContain("position: static");
-    expect(editorialCss).not.toContain("learning-note-rail");
-    expect(layout).toContain('label: "业务问题"');
-    expect(layout).toContain('label: "中心位置"');
-    expect(layout).toContain('label: "如何用于决策"');
-    expect(toc).toContain("IntersectionObserver");
-  });
-
-  it("expands the desktop article instead of collapsing into a narrow vertical strip", () => {
-    expect(layout).toContain('import "../styles/learning-note-wide.css"');
-    expect(wideCss).toContain("width: min(112rem");
-    expect(wideCss).toContain("grid-template-columns: minmax(12.5rem, 14rem) minmax(0, 1fr)");
-    expect(wideCss).toContain("justify-content: stretch");
-    expect(wideCss).toContain("max-width: 72rem");
-    expect(wideCss).toContain("width: min(118rem");
-    expect(wideCss).toContain("max-width: 76rem");
-    expect(wideCss).toContain("article.learning-note .statistics-lab");
-  });
-
-  it("treats the statistics lab as editorial figures, formulas and a runnable teaching block", () => {
-    expect(editorialCss).toContain('content: "FIG 01"');
-    expect(editorialCss).toContain('content: "FIG 02"');
-    expect(editorialCss).toContain('content: "FIG 03"');
-    expect(editorialCss).toContain('content: "Reading. "');
+  it("keeps formulas, figures and the live R playground readable rather than cramped", () => {
     expect(editorialCss).toContain("article.learning-note .note-formula");
     expect(editorialCss).toContain("article.learning-note .r-playground");
+    expect(editorialCss).toContain("article.learning-note .statistics-lab__visuals");
+    expect(editorialCss).toContain("grid-template-columns: 1fr");
     expect(editorialCss).toContain('[data-learning-block]:not([data-learning-placed="true"])');
   });
 
-  it("uses only defined spacing tokens in the Learning Note stylesheets", () => {
-    [editorialCss, wideCss].forEach((css) => {
-      expect(css).not.toContain("var(--space-7)");
-      expect(css).not.toContain("var(--space-9)");
-      expect(css).not.toContain("var(--space-14)");
-    });
+  it("does not reintroduce the old ad-hoc spacing tokens", () => {
+    expect(editorialCss).not.toContain("var(--space-9)");
+    expect(editorialCss).not.toContain("var(--space-14)");
   });
 });
