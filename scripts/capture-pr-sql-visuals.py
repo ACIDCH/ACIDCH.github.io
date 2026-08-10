@@ -258,7 +258,7 @@ def main() -> None:
         server.shutdown()
         server.server_close()
 
-    expected = 11
+    expected = 13
     actual = len(list(OUTPUT.glob("*.png")))
     if actual != expected:
         raise RuntimeError(f"Expected {expected} visual proofs, generated {actual}.")
