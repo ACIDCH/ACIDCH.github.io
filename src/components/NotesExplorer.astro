@@ -51,7 +51,7 @@ const copy =
         all: "全部笔记",
         result: "篇笔记",
         empty: "没有符合该标签的笔记。",
-        latest: "学习笔记",
+        latest: "全部笔记",
         external: "外部笔记本 / 云笔记",
       };
 const notebook = portfolioConfig.externalNotebook;
@@ -91,6 +91,8 @@ const notebook = portfolioConfig.externalNotebook;
       }
     </div>
   </section>
+
+  <slot name="knowledge-map" />
 
   <div class="notes-results-heading">
     <h2>{copy.latest}</h2>
