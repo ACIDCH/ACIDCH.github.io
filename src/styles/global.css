@@ -4228,6 +4228,11 @@ html[data-motion-ready="true"]
   text-decoration: underline;
 }
 
+.learning-note-toc a[aria-current="true"] {
+  color: var(--colour-primary-strong);
+  font-weight: var(--font-weight-bold);
+}
+
 .learning-note__body > :is(h2, h3) {
   scroll-margin-top: calc(var(--header-height) + var(--space-5));
 }
@@ -4279,10 +4284,32 @@ html[data-motion-ready="true"]
 
 .statistics-lab__controls {
   display: grid;
-  grid-template-columns: minmax(12rem, 1.6fr) minmax(10rem, 1fr) auto auto;
+  grid-template-columns: minmax(16rem, 1fr) auto;
   align-items: end;
   gap: var(--space-3);
   margin-top: var(--space-6);
+}
+
+.statistics-lab__range-label {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.statistics-lab__range-label span {
+  color: var(--colour-text);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.statistics-lab__range-label small {
+  color: var(--colour-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.statistics-lab input[type="range"] {
+  min-height: 2.4rem;
+  padding: 0;
+  accent-color: var(--colour-primary);
 }
 
 .statistics-lab__controls label,
@@ -4320,9 +4347,123 @@ html[data-motion-ready="true"]
 
 .statistics-lab__metrics {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-3);
   margin-top: var(--space-5);
+}
+
+.learning-series-map {
+  margin: 0 auto var(--space-10);
+  padding: clamp(var(--space-5), 4vw, var(--space-8));
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius-xl);
+  background: var(--colour-surface);
+}
+
+.learning-series-map__heading {
+  max-width: 64ch;
+  margin-bottom: var(--space-6);
+}
+
+.learning-series-map__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.learning-series-map__grid article {
+  padding: var(--space-5);
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius-lg);
+  background: var(--colour-surface-subtle);
+}
+
+.learning-series-map__grid h3 {
+  margin-bottom: var(--space-3);
+  font-size: var(--font-size-lg);
+}
+
+.learning-series-map__grid h3 a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.learning-series-map__grid h3 a:hover,
+.learning-series-map__grid h3 a:focus-visible {
+  color: var(--colour-primary-strong);
+  text-decoration: underline;
+}
+
+.learning-series-map__grid p {
+  color: var(--colour-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.learning-series-map__grid ul {
+  display: grid;
+  gap: var(--space-2);
+  margin: var(--space-4) 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--font-size-sm);
+}
+
+.learning-series-map__grid li strong,
+.learning-series-map__grid article > span,
+.learning-series-page__modules p {
+  color: var(--colour-primary-strong);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-label);
+}
+
+.learning-series-page {
+  width: min(100%, 78ch);
+  margin-inline: auto;
+}
+
+.learning-series-page__hero {
+  margin-block: var(--space-8);
+  padding: clamp(var(--space-6), 5vw, var(--space-10));
+  border: 1px solid var(--colour-border);
+  border-radius: var(--radius-xl);
+  background: var(--colour-surface);
+}
+
+.learning-series-page__hero > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+}
+
+.learning-series-page__modules {
+  display: grid;
+  gap: var(--space-3);
+  margin: var(--space-5) 0 var(--space-10);
+  padding: 0;
+  list-style: none;
+}
+
+.learning-series-page__modules li {
+  padding: var(--space-5);
+  border-left: 2px solid var(--colour-primary);
+  background: var(--colour-surface-subtle);
+}
+
+.learning-series-page__modules p,
+.learning-series-page__modules h3,
+.learning-series-page__modules span {
+  margin: 0;
+}
+
+.learning-series-page__modules h3 {
+  margin-block: var(--space-2);
+  font-size: var(--font-size-lg);
+}
+
+.learning-series-page__modules span {
+  color: var(--colour-text-muted);
 }
 
 .statistics-lab__metrics dl {
@@ -4466,6 +4607,10 @@ html[data-motion-ready="true"]
 
   .statistics-lab__metrics {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .learning-series-map__grid {
+    grid-template-columns: 1fr;
   }
 }
 

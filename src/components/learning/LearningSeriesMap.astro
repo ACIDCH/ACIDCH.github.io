@@ -1,0 +1,34 @@
+---
+import { learningSeries } from "../../data/learning-series";
+import { getLocalizedPath } from "../../utils/paths";
+---
+
+<section class="learning-series-map" aria-labelledby="learning-series-map-title">
+  <div class="learning-series-map__heading">
+    <p class="status">知识地图</p>
+    <h2 id="learning-series-map-title">五条学习主线</h2>
+    <p>每条主线按问题、方法与可复查实践组织。已发布文章会逐步接入相应模块。</p>
+  </div>
+  <div class="learning-series-map__grid">
+    {
+      learningSeries.map((series) => (
+        <article>
+          <h3>
+            <a href={getLocalizedPath(`/notes/series/${series.slug}/`, "zh")}>
+              {series.title}
+            </a>
+          </h3>
+          <p>{series.description}</p>
+          <ul>
+            {series.modules.slice(0, 3).map((module) => (
+              <li>
+                <strong>{module.code}</strong> {module.title}
+              </li>
+            ))}
+          </ul>
+          <span>{series.modules.length} 个核心模块</span>
+        </article>
+      ))
+    }
+  </div>
+</section>

@@ -132,11 +132,7 @@
   }
 
   .project-card:hover .project-card__tools .tag {
-    border-color: color-mix(
-      in srgb,
-      var(--colour-primary) 24%,
-      var(--colour-border)
-    );
+    border-color: color-mix(in srgb, var(--colour-primary) 24%, var(--colour-border));
   }
 
   .project-card__link {

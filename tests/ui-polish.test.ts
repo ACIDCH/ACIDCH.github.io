@@ -25,9 +25,9 @@ describe("portfolio visual polish contracts", () => {
     const layout = await source("src/layouts/BaseLayout.astro");
     const control = await source("src/components/BackToTop.astro");
 
-    expect(layout).toContain('<BackToTop locale={locale} />');
+    expect(layout).toContain("<BackToTop locale={locale} />");
     expect(control).toContain("data-back-to-top");
-    expect(control).toContain('prefers-reduced-motion: reduce');
+    expect(control).toContain("prefers-reduced-motion: reduce");
     expect(control).toContain("--scroll-progress");
   });
 

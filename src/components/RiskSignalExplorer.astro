@@ -15,7 +15,9 @@ const first = signals[0];
     <div>
       <p class="risk-kicker">RISK SIGNAL EXPLORER</p>
       <h3 id="risk-explorer-title">把一个系数放回它的变量单位</h3>
-      <p>选择变量后，同时读取 OR、方向、参照和单位，避免把不同尺度的系数直接横向比较。</p>
+      <p>
+        选择变量后，同时读取 OR、方向、参照和单位，避免把不同尺度的系数直接横向比较。
+      </p>
     </div>
     <label>
       <span>选择风险信号</span>
@@ -32,12 +34,16 @@ const first = signals[0];
       <small data-risk-direction>{first.direction}</small>
     </div>
 
-    <div class="risk-position" data-risk-position style={`--risk-position:${first.position}%`}>
+    <div
+      class="risk-position"
+      data-risk-position
+      style={`--risk-position:${first.position}%`}
+    >
       <div class="risk-position__labels" aria-hidden="true">
         <span>&lt; 1</span><b>OR = 1</b><span>&gt; 1</span>
       </div>
       <div class="risk-position__track" aria-hidden="true">
-        <i />
+        <i></i>
       </div>
       <p>点位按 log(OR) 映射，只用于同时显示风险下降与风险上升方向。</p>
     </div>
@@ -174,7 +180,10 @@ const first = signals[0];
 
   .risk-explorer__body {
     display: grid;
-    grid-template-columns: minmax(8rem, 0.25fr) minmax(13rem, 0.42fr) minmax(14rem, 0.45fr);
+    grid-template-columns: minmax(8rem, 0.25fr) minmax(13rem, 0.42fr) minmax(
+        14rem,
+        0.45fr
+      );
     gap: 1.25rem 1.5rem;
     align-items: center;
     margin-top: 1.6rem;

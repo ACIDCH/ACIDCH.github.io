@@ -4,6 +4,7 @@ import NoteFormula from "./NoteFormula.astro";
 const defaultRCode = `wait_minutes <- c(6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
 18, 19, 20, 21, 23, 24, 25, 27, 29, 34, 52, 68)
 summary(wait_minutes)
+quantile(wait_minutes, c(0.25, 0.5, 0.75))
 round(c(mean = mean(wait_minutes), median = median(wait_minutes), sd = sd(wait_minutes), IQR = IQR(wait_minutes)), 2)`;
 ---
 
@@ -13,26 +14,33 @@ round(c(mean = mean(wait_minutes), median = median(wait_minutes), sd = sd(wait_m
   data-statistics-lab
 >
   <div class="statistics-lab__heading">
-    <p class="learning-note-kicker">从一组数开始</p>
+    <p class="learning-note-kicker">用同一组观察值读三张图</p>
     <h2 id="statistics-lab-title">服务响应时长观察台</h2>
     <p>
-      下面的 24
-      条记录表示一次服务事件从提交到首次响应的分钟数。末尾两条较长的等待时间用于观察离群值怎样改变均值，却不需要改变中位数的位置。
+      24 条记录以分钟计。滑块只调整最后一条 68
+      分钟的观察值；均值、中位数、IQR、样本标准差、CV、z-score
+      与三张图会同步更新。基准值可以随时恢复。
     </p>
   </div>
 
   <div class="statistics-lab__controls" aria-label="数据操作">
-    <label>
-      选中记录
-      <select data-stat-value aria-label="选中一条服务响应时长"></select>
+    <label class="statistics-lab__range-label" for="stat-last-value">
+      <span>第 24 条观察值：<output data-stat-selected-value>68</output> 分钟</span>
+      <input
+        id="stat-last-value"
+        data-stat-range
+        type="range"
+        min="34"
+        max="120"
+        step="1"
+        value="68"
+        aria-valuemin="34"
+        aria-valuemax="120"
+        aria-valuenow="68"
+        aria-valuetext="第 24 条观察值，68 分钟"
+      />
+      <small>范围 34–120 分钟；使用方向键微调，Home / End 跳到最小 / 最大值。</small>
     </label>
-    <label>
-      调整为（分钟）
-      <input data-stat-input type="number" min="0" max="180" step="1" value="68" />
-    </label>
-    <button type="button" class="button button--primary" data-stat-apply
-      >更新观察</button
-    >
     <button type="button" class="button" data-stat-reset>恢复基准值</button>
   </div>
 
@@ -41,72 +49,66 @@ round(c(mean = mean(wait_minutes), median = median(wait_minutes), sd = sd(wait_m
   </p>
 
   <div class="statistics-lab__metrics" data-stat-metrics>
-    <dl><dt>均值</dt><dd data-stat-mean>20.75</dd></dl>
-    <dl><dt>中位数</dt><dd data-stat-median>17.5</dd></dl>
-    <dl><dt>IQR</dt><dd data-stat-iqr>12.5</dd></dl>
-    <dl><dt>标准差</dt><dd data-stat-sd>14.07</dd></dl>
-    <dl><dt>变异系数</dt><dd data-stat-cv>67.8%</dd></dl>
+    <dl><dt>均值</dt><dd data-stat-mean>20.75 分钟</dd></dl>
+    <dl><dt>中位数</dt><dd data-stat-median>17.5 分钟</dd></dl>
+    <dl><dt>IQR</dt><dd data-stat-iqr>12.5 分钟</dd></dl>
+    <dl><dt>样本标准差</dt><dd data-stat-sd>14.30 分钟</dd></dl>
+    <dl><dt>CV</dt><dd data-stat-cv>68.9%</dd></dl>
+    <dl><dt>第 24 条 z-score</dt><dd data-stat-z>3.30</dd></dl>
   </div>
 
   <div class="statistics-lab__visuals">
     <figure class="statistics-chart">
-      <figcaption>直方图：等待时间落在哪些区间</figcaption>
+      <figcaption>直方图：0–120 分钟，固定 12 个等宽区间（每箱 10 分钟）</figcaption>
       <svg
         viewBox="0 0 620 260"
         role="img"
         aria-label="服务响应时长直方图"
-        data-stat-histogram
-      >
-        <text x="20" y="32">载入后显示分布区间。</text>
-      </svg>
-      <p>柱高表示记录数。右侧较长的尾部会把均值拉向更大的数值。</p>
+        data-stat-histogram></svg>
+      <p>
+        分箱规则保持不变，才能看清最后一条记录改变后，右侧尾部与总体均值如何一起移动。
+      </p>
     </figure>
     <figure class="statistics-chart">
-      <figcaption>箱线图：中间一半记录与离群值</figcaption>
+      <figcaption>箱线图：type 7 四分位数、1.5 × IQR 围栏与实际须端点</figcaption>
       <svg
         viewBox="0 0 620 160"
         role="img"
         aria-label="服务响应时长箱线图"
-        data-stat-boxplot
-      >
-        <text x="20" y="32">载入后显示四分位数与离群点。</text>
-      </svg>
-      <p>箱体从 Q1 延伸到 Q3；超过 1.5 × IQR 围栏的点会单独标出。</p>
+        data-stat-boxplot></svg>
+      <p>箱体覆盖 Q1 至 Q3；须端点是围栏内最远的实际记录，围栏外的点单独标记。</p>
     </figure>
     <figure class="statistics-chart">
-      <figcaption>ECDF：不超过某个等待时间的累计比例</figcaption>
+      <figcaption>ECDF：不超过给定时长的累计比例</figcaption>
       <svg
         viewBox="0 0 620 260"
         role="img"
         aria-label="服务响应时长经验累积分布函数"
-        data-stat-ecdf
-      >
-        <text x="20" y="32">载入后显示累计比例。</text>
-      </svg>
-      <p>沿横轴选一个分钟数，再向上读曲线，可以看到记录中不超过该值的比例。</p>
+        data-stat-ecdf></svg>
+      <p>在 20 分钟处读取曲线，可得到不超过该时长的记录比例；基准数据为 62.5%。</p>
     </figure>
   </div>
 
   <div class="statistics-lab__explain" data-stat-explain>
     <h3>读数提示</h3>
-    <p>选择或修改一条记录后，这里的解释会跟随均值、中位数和离群值状态更新。</p>
+    <p>均值与中位数同时存在，才能分辨主体位置与长尾影响。</p>
   </div>
 
   <div class="statistics-lab__formula-grid">
     <NoteFormula
       label="样本均值"
-      formula="x̄ = (x₁ + x₂ + … + xₙ) / n"
-      description="把所有观察值等权相加，因此极端值会直接影响结果。"
+      formula="x̄ = Σxᵢ / n"
+      description="每条观察值等权进入总体平均水平。"
     />
     <NoteFormula
       label="样本标准差"
       formula="s = √[Σ(xᵢ − x̄)² / (n − 1)]"
-      description="用平方避免正负偏差相互抵消；数值越大，记录离均值越分散。"
+      description="以 n − 1 为分母；R 的 sd() 使用同一约定。"
     />
     <NoteFormula
       label="标准分数"
       formula="z = (x − x̄) / s"
-      description="把一个观察值换成距均值多少个标准差，便于比较同量纲的数据。"
+      description="把单条记录写成距离均值多少个样本标准差。"
     />
   </div>
 
@@ -114,27 +116,31 @@ round(c(mean = mean(wait_minutes), median = median(wait_minutes), sd = sd(wait_m
     <div>
       <p class="learning-note-kicker">R Playground</p>
       <h3 id="r-playground-title">在页面中运行这段 R 代码</h3>
-      <p>运行后会加载 R 的 WebAssembly 运行时，并返回代码实际计算出的文字结果。</p>
+      <p>
+        代码在浏览器内的 R 运行环境执行，可修改后再次运行。错误会直接显示为可阅读的 R
+        输出。
+      </p>
     </div>
     <label>
       R 代码
-      <textarea data-r-code rows="9" spellcheck="false">{defaultRCode}</textarea>
+      <textarea data-r-code rows="10" spellcheck="false">{defaultRCode}</textarea>
     </label>
     <div class="r-playground__actions">
       <button type="button" class="button button--primary" data-r-run
         >运行 R 代码</button
       >
+      <button type="button" class="button" data-r-copy>复制代码</button>
       <button type="button" class="button" data-r-reset>恢复示例</button>
     </div>
     <output class="r-playground__output" data-r-output aria-live="polite">
-      尚未运行。上方代码可直接阅读；运行按钮会在需要时加载运行环境。
+      尚未运行。示例代码会计算摘要、分位数、均值、中位数、样本标准差和 IQR。
     </output>
   </section>
 
   <noscript>
     <p class="note-callout note-callout--neutral">
       JavaScript 未启用时，基准摘要仍可阅读：24 条记录的均值为 20.75 分钟，中位数为 17.5
-      分钟；52 和 68 分钟超过 43 分钟的上围栏。
+      分钟，样本标准差为 14.30 分钟；52 与 68 分钟超过 43 分钟的上围栏。
     </p>
   </noscript>
 </section>
@@ -146,20 +152,21 @@ round(c(mean = mean(wait_minutes), median = median(wait_minutes), sd = sd(wait_m
     cleanup?.();
     const lab = document.querySelector<HTMLElement>("[data-statistics-lab]");
     if (!lab) return;
-
     const baseline = [
       6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24, 25, 27, 29,
       34, 52, 68,
     ];
     let values = [...baseline];
-    const select = lab.querySelector<HTMLSelectElement>("[data-stat-value]");
-    const input = lab.querySelector<HTMLInputElement>("[data-stat-input]");
+    const range = lab.querySelector<HTMLInputElement>("[data-stat-range]");
+    const selectedValue = lab.querySelector<HTMLOutputElement>(
+      "[data-stat-selected-value]",
+    );
     const status = lab.querySelector<HTMLElement>("[data-stat-status]");
     const explain = lab.querySelector<HTMLElement>("[data-stat-explain]");
     const controller = new AbortController();
-    const signal = controller.signal;
-    const svgNs = "http://www.w3.org/2000/svg";
-
+    const { signal } = controller;
+    const ns = "http://www.w3.org/2000/svg";
+    const domainMax = 120;
     const number = (value: number, digits = 2) =>
       new Intl.NumberFormat("zh-CN", { maximumFractionDigits: digits }).format(value);
     const quantile = (sorted: number[], p: number) => {
@@ -169,14 +176,14 @@ round(c(mean = mean(wait_minutes), median = median(wait_minutes), sd = sd(wait_m
       return sorted[lower] + (sorted[upper] - sorted[lower]) * (position - lower);
     };
     const statistics = (source: number[]) => {
-      const sorted = [...source].sort((left, right) => left - right);
-      const mean = source.reduce((total, value) => total + value, 0) / source.length;
+      const sorted = [...source].sort((a, b) => a - b);
+      const mean = source.reduce((sum, value) => sum + value, 0) / source.length;
       const median = quantile(sorted, 0.5);
       const q1 = quantile(sorted, 0.25);
       const q3 = quantile(sorted, 0.75);
       const iqr = q3 - q1;
       const variance =
-        source.reduce((total, value) => total + (value - mean) ** 2, 0) /
+        source.reduce((sum, value) => sum + (value - mean) ** 2, 0) /
         (source.length - 1);
       const sd = Math.sqrt(variance);
       return {
@@ -186,245 +193,233 @@ round(c(mean = mean(wait_minutes), median = median(wait_minutes), sd = sd(wait_m
         q1,
         q3,
         iqr,
+        variance,
         sd,
         cv: (sd / mean) * 100,
-        lowerFence: q1 - iqr * 1.5,
-        upperFence: q3 + iqr * 1.5,
+        lowerFence: q1 - 1.5 * iqr,
+        upperFence: q3 + 1.5 * iqr,
       };
     };
-    const text = (
+    const make = (
+      svg: SVGSVGElement,
+      tag: string,
+      attrs: Record<string, string | number> = {},
+    ) => {
+      const node = document.createElementNS(ns, tag);
+      Object.entries(attrs).forEach(([name, value]) =>
+        node.setAttribute(name, String(value)),
+      );
+      svg.append(node);
+      return node;
+    };
+    const addText = (
       svg: SVGSVGElement,
       x: number,
       y: number,
-      content: string,
-      options = {},
+      value: string,
+      attrs: Record<string, string | number> = {},
     ) => {
-      const node = document.createElementNS(svgNs, "text");
-      node.setAttribute("x", String(x));
-      node.setAttribute("y", String(y));
-      node.setAttribute("fill", "currentColor");
-      node.setAttribute("font-size", "12");
-      Object.entries(options).forEach(([key, value]) =>
-        node.setAttribute(key, String(value)),
-      );
-      node.textContent = content;
-      svg.append(node);
-    };
-    const line = (
-      svg: SVGSVGElement,
-      x1: number,
-      y1: number,
-      x2: number,
-      y2: number,
-      options = {},
-    ) => {
-      const node = document.createElementNS(svgNs, "line");
-      node.setAttribute("x1", String(x1));
-      node.setAttribute("y1", String(y1));
-      node.setAttribute("x2", String(x2));
-      node.setAttribute("y2", String(y2));
-      node.setAttribute("stroke", "currentColor");
-      node.setAttribute("stroke-width", "1.5");
-      Object.entries(options).forEach(([key, value]) =>
-        node.setAttribute(key, String(value)),
-      );
-      svg.append(node);
-    };
-    const rect = (
-      svg: SVGSVGElement,
-      x: number,
-      y: number,
-      width: number,
-      height: number,
-      options = {},
-    ) => {
-      const node = document.createElementNS(svgNs, "rect");
-      node.setAttribute("x", String(x));
-      node.setAttribute("y", String(y));
-      node.setAttribute("width", String(width));
-      node.setAttribute("height", String(height));
-      Object.entries(options).forEach(([key, value]) =>
-        node.setAttribute(key, String(value)),
-      );
-      svg.append(node);
-    };
-    const circle = (
-      svg: SVGSVGElement,
-      cx: number,
-      cy: number,
-      r: number,
-      options = {},
-    ) => {
-      const node = document.createElementNS(svgNs, "circle");
-      node.setAttribute("cx", String(cx));
-      node.setAttribute("cy", String(cy));
-      node.setAttribute("r", String(r));
-      Object.entries(options).forEach(([key, value]) =>
-        node.setAttribute(key, String(value)),
-      );
-      svg.append(node);
-    };
-    const clear = (svg: SVGSVGElement) => svg.replaceChildren();
-    const xScale = (value: number) => 54 + (value / 80) * 530;
-    const drawAxes = (svg: SVGSVGElement, height: number) => {
-      line(svg, 54, height - 34, 584, height - 34, { stroke: "var(--colour-border)" });
-      line(svg, 54, 20, 54, height - 34, { stroke: "var(--colour-border)" });
-      [0, 20, 40, 60, 80].forEach((tick) => {
-        const x = xScale(tick);
-        line(svg, x, height - 34, x, height - 29, { stroke: "var(--colour-border)" });
-        text(svg, x, height - 13, String(tick), { "text-anchor": "middle" });
+      const node = make(svg, "text", {
+        x,
+        y,
+        fill: "currentColor",
+        "font-size": 12,
+        ...attrs,
       });
+      node.textContent = value;
     };
-    const drawHistogram = (source: number[]) => {
+    const xScale = (value: number) => 54 + (value / domainMax) * 530;
+    const axes = (svg: SVGSVGElement, height: number, yTicks = false) => {
+      make(svg, "line", {
+        x1: 54,
+        y1: height - 34,
+        x2: 584,
+        y2: height - 34,
+        stroke: "var(--colour-border)",
+      });
+      make(svg, "line", {
+        x1: 54,
+        y1: 20,
+        x2: 54,
+        y2: height - 34,
+        stroke: "var(--colour-border)",
+      });
+      [0, 20, 40, 60, 80, 100, 120].forEach((tick) => {
+        const x = xScale(tick);
+        make(svg, "line", {
+          x1: x,
+          y1: height - 34,
+          x2: x,
+          y2: height - 29,
+          stroke: "var(--colour-border)",
+        });
+        addText(svg, x, height - 13, String(tick), { "text-anchor": "middle" });
+      });
+      if (yTicks)
+        [0, 0.25, 0.5, 0.75, 1].forEach((tick) => {
+          const y = height - 34 - tick * (height - 60);
+          addText(svg, 42, y + 4, `${Math.round(tick * 100)}%`, {
+            "text-anchor": "end",
+          });
+        });
+    };
+    const drawHistogram = () => {
       const svg = lab.querySelector<SVGSVGElement>("[data-stat-histogram]");
       if (!svg) return;
-      clear(svg);
-      const bins = [0, 10, 20, 30, 40, 50, 60, 70, 80];
+      svg.replaceChildren();
+      const bins = Array.from({ length: 13 }, (_, index) => index * 10);
       const counts = bins
         .slice(0, -1)
         .map(
           (start, index) =>
-            source.filter((value) => value >= start && value < bins[index + 1]).length,
+            values.filter(
+              (value) =>
+                value >= start &&
+                (index === 11 ? value <= bins[index + 1] : value < bins[index + 1]),
+            ).length,
         );
-      drawAxes(svg, 260);
       const max = Math.max(...counts, 1);
+      axes(svg, 260);
       counts.forEach((count, index) => {
-        const x = 58 + index * 66;
         const height = (count / max) * 164;
-        rect(svg, x, 226 - height, 52, height, {
+        const x = 56 + index * 44.2;
+        make(svg, "rect", {
+          x,
+          y: 226 - height,
+          width: 39,
+          height,
+          rx: 3,
           fill: "var(--colour-primary)",
-          opacity: "0.82",
-          rx: "4",
+          opacity: 0.82,
         });
-        text(svg, x + 26, 218 - height, String(count), { "text-anchor": "middle" });
+        addText(svg, x + 19.5, 218 - height, String(count), {
+          "text-anchor": "middle",
+        });
       });
-      text(svg, 319, 254, "首次响应时间（分钟）", { "text-anchor": "middle" });
+      addText(svg, 319, 254, "首次响应时长（分钟）", { "text-anchor": "middle" });
     };
-    const drawBoxplot = (source: number[]) => {
+    const drawBoxplot = () => {
       const svg = lab.querySelector<SVGSVGElement>("[data-stat-boxplot]");
       if (!svg) return;
-      clear(svg);
-      const stats = statistics(source);
+      svg.replaceChildren();
+      const stats = statistics(values);
       const inliers = stats.sorted.filter(
         (value) => value >= stats.lowerFence && value <= stats.upperFence,
       );
-      drawAxes(svg, 160);
       const y = 68;
-      line(svg, xScale(inliers[0]), y, xScale(inliers[inliers.length - 1]), y, {
+      axes(svg, 160);
+      make(svg, "line", {
+        x1: xScale(inliers[0]),
+        y1: y,
+        x2: xScale(inliers.at(-1) ?? inliers[0]),
+        y2: y,
         stroke: "var(--colour-primary)",
-        "stroke-width": "3",
+        "stroke-width": 3,
       });
-      rect(svg, xScale(stats.q1), 42, xScale(stats.q3) - xScale(stats.q1), 52, {
+      make(svg, "rect", {
+        x: xScale(stats.q1),
+        y: 42,
+        width: xScale(stats.q3) - xScale(stats.q1),
+        height: 52,
+        rx: 4,
         fill: "var(--colour-primary)",
-        opacity: "0.2",
+        opacity: 0.22,
         stroke: "var(--colour-primary)",
-        "stroke-width": "2",
-        rx: "4",
+        "stroke-width": 2,
       });
-      line(svg, xScale(stats.median), 42, xScale(stats.median), 94, {
+      make(svg, "line", {
+        x1: xScale(stats.median),
+        y1: 42,
+        x2: xScale(stats.median),
+        y2: 94,
         stroke: "var(--colour-accent)",
-        "stroke-width": "3",
+        "stroke-width": 3,
       });
-      [inliers[0], inliers[inliers.length - 1]].forEach((value) =>
-        line(svg, xScale(value), 55, xScale(value), 81, {
+      [inliers[0], inliers.at(-1) ?? inliers[0]].forEach((value) =>
+        make(svg, "line", {
+          x1: xScale(value),
+          y1: 55,
+          x2: xScale(value),
+          y2: 81,
           stroke: "var(--colour-primary)",
         }),
       );
       stats.sorted
         .filter((value) => value < stats.lowerFence || value > stats.upperFence)
         .forEach((value) =>
-          circle(svg, xScale(value), y, 5, { fill: "var(--colour-accent)" }),
+          make(svg, "circle", {
+            cx: xScale(value),
+            cy: y,
+            r: 5,
+            fill: "var(--colour-accent)",
+          }),
         );
-      text(svg, xScale(stats.median), 31, `中位数 ${number(stats.median)}`, {
+      addText(svg, xScale(stats.median), 31, `中位数 ${number(stats.median)}`, {
         "text-anchor": "middle",
       });
-      text(svg, 319, 154, "首次响应时间（分钟）", { "text-anchor": "middle" });
+      addText(svg, 319, 154, "首次响应时长（分钟）", { "text-anchor": "middle" });
     };
-    const drawEcdf = (source: number[]) => {
+    const drawEcdf = () => {
       const svg = lab.querySelector<SVGSVGElement>("[data-stat-ecdf]");
       if (!svg) return;
-      clear(svg);
-      const stats = statistics(source);
-      drawAxes(svg, 260);
-      [0, 0.25, 0.5, 0.75, 1].forEach((tick) => {
-        const y = 226 - tick * 178;
-        line(svg, 49, y, 54, y, { stroke: "var(--colour-border)" });
-        text(svg, 42, y + 4, `${Math.round(tick * 100)}%`, { "text-anchor": "end" });
-      });
-      const points = [[54, 226]];
+      svg.replaceChildren();
+      const stats = statistics(values);
+      axes(svg, 260, true);
+      const points: [number, number][] = [[54, 226]];
       stats.sorted.forEach((value, index) => {
-        points.push([xScale(value), 226 - (index / stats.sorted.length) * 178]);
-        points.push([xScale(value), 226 - ((index + 1) / stats.sorted.length) * 178]);
+        points.push([xScale(value), 226 - (index / stats.sorted.length) * 166]);
+        points.push([xScale(value), 226 - ((index + 1) / stats.sorted.length) * 166]);
       });
-      const path = document.createElementNS(svgNs, "path");
-      path.setAttribute("d", `M ${points.map(([x, y]) => `${x} ${y}`).join(" L ")}`);
-      path.setAttribute("fill", "none");
-      path.setAttribute("stroke", "var(--colour-primary)");
-      path.setAttribute("stroke-width", "3");
-      svg.append(path);
-      text(svg, 319, 254, "首次响应时间（分钟）", { "text-anchor": "middle" });
-    };
-    const populate = () => {
-      if (!select) return;
-      select.replaceChildren();
-      values.forEach((value, index) => {
-        const option = document.createElement("option");
-        option.value = String(index);
-        option.textContent = `第 ${index + 1} 条：${value} 分钟`;
-        if (index === values.length - 1) option.selected = true;
-        select.append(option);
+      make(svg, "path", {
+        d: `M ${points.map(([x, y]) => `${x} ${y}`).join(" L ")}`,
+        fill: "none",
+        stroke: "var(--colour-primary)",
+        "stroke-width": 3,
       });
+      const atTwenty = values.filter((value) => value <= 20).length / values.length;
+      const y = 226 - atTwenty * 166;
+      make(svg, "circle", {
+        cx: xScale(20),
+        cy: y,
+        r: 5,
+        fill: "var(--colour-accent)",
+      });
+      addText(svg, xScale(20) + 8, y - 8, `20 分钟：${number(atTwenty * 100, 1)}%`);
+      addText(svg, 319, 254, "首次响应时长（分钟）", { "text-anchor": "middle" });
     };
     const render = () => {
       const stats = statistics(values);
-      const metricValues = {
-        mean: number(stats.mean),
-        median: number(stats.median),
-        iqr: number(stats.iqr),
-        sd: number(stats.sd),
-        cv: `${number(stats.cv, 1)}%`,
-      };
-      Object.entries(metricValues).forEach(([key, value]) => {
+      const selected = values.at(-1) ?? baseline.at(-1) ?? 68;
+      const outliers = stats.sorted.filter(
+        (value) => value < stats.lowerFence || value > stats.upperFence,
+      );
+      const update = (key: string, value: string) => {
         const target = lab.querySelector<HTMLElement>(`[data-stat-${key}]`);
         if (target) target.textContent = value;
-      });
-      const outliers = stats.sorted.filter(
-        (value) => value > stats.upperFence || value < stats.lowerFence,
-      );
-      if (status) {
-        status.textContent = `当前均值 ${number(stats.mean)} 分钟，中位数 ${number(stats.median)} 分钟；上围栏 ${number(stats.upperFence)} 分钟。`;
+      };
+      update("mean", `${number(stats.mean)} 分钟`);
+      update("median", `${number(stats.median)} 分钟`);
+      update("iqr", `${number(stats.iqr)} 分钟`);
+      update("sd", `${number(stats.sd)} 分钟`);
+      update("cv", `${number(stats.cv, 1)}%`);
+      update("z", number((selected - stats.mean) / stats.sd));
+      if (selectedValue) selectedValue.textContent = String(selected);
+      if (range) {
+        range.setAttribute("aria-valuenow", String(selected));
+        range.setAttribute("aria-valuetext", `第 24 条观察值，${selected} 分钟`);
       }
-      if (explain) {
-        explain.innerHTML = `<h3>读数提示</h3><p>均值与中位数相差 ${number(Math.abs(stats.mean - stats.median))} 分钟。${outliers.length ? `当前有 ${outliers.length} 条记录超过上围栏：${outliers.join("、")} 分钟。` : "当前没有落在 1.5 × IQR 围栏外的记录。"} 把某一条长等待时间调低后，可直接比较中心位置和尾部如何一起变化。</p>`;
-      }
-      drawHistogram(values);
-      drawBoxplot(values);
-      drawEcdf(values);
+      if (status)
+        status.textContent = `当前第 24 条记录为 ${selected} 分钟；均值 ${number(stats.mean)} 分钟，中位数 ${number(stats.median)} 分钟，IQR ${number(stats.iqr)} 分钟。`;
+      if (explain)
+        explain.innerHTML = `<h3>读数提示</h3><p>均值与中位数相差 ${number(Math.abs(stats.mean - stats.median))} 分钟。上围栏为 ${number(stats.upperFence)} 分钟；${outliers.length ? `围栏外记录为 ${outliers.join("、")} 分钟。` : "当前没有落在 1.5 × IQR 围栏外的记录。"} 直方图的分箱、箱线图的规则和 ECDF 的读法均保持不变，因此变化来自同一条观察值。</p>`;
+      drawHistogram();
+      drawBoxplot();
+      drawEcdf();
     };
-
-    populate();
-    render();
-    select?.addEventListener(
-      "change",
+    range?.addEventListener(
+      "input",
       () => {
-        const value = values[Number(select.value)] ?? baseline[0];
-        if (input) input.value = String(value);
-      },
-      { signal },
-    );
-    lab.querySelector<HTMLButtonElement>("[data-stat-apply]")?.addEventListener(
-      "click",
-      () => {
-        const index = Number(select?.value ?? values.length - 1);
-        const next = Number(input?.value);
-        if (!Number.isFinite(next) || next < 0 || next > 180) {
-          if (status) status.textContent = "请输入 0 到 180 之间的分钟数。";
-          input?.focus();
-          return;
-        }
-        values[index] = next;
-        populate();
-        if (select) select.value = String(index);
+        values = [...baseline.slice(0, -1), Number(range.value)];
         render();
       },
       { signal },
@@ -433,12 +428,12 @@ round(c(mean = mean(wait_minutes), median = median(wait_minutes), sd = sd(wait_m
       "click",
       () => {
         values = [...baseline];
-        populate();
-        if (input) input.value = String(baseline.at(-1));
+        if (range) range.value = String(baseline.at(-1));
         render();
       },
       { signal },
     );
+    render();
 
     const playground = lab.querySelector<HTMLElement>("[data-r-playground]");
     const code = playground?.querySelector<HTMLTextAreaElement>("[data-r-code]");
@@ -471,6 +466,20 @@ round(c(mean = mean(wait_minutes), median = median(wait_minutes), sd = sd(wait_m
       },
       { signal },
     );
+    playground?.querySelector<HTMLButtonElement>("[data-r-copy]")?.addEventListener(
+      "click",
+      async (event) => {
+        if (!code || !output) return;
+        try {
+          await navigator.clipboard.writeText(code.value);
+          output.textContent = "代码已复制。";
+        } catch {
+          output.textContent = "浏览器未授予复制权限，请手动复制代码。";
+        }
+        (event.currentTarget as HTMLButtonElement).focus();
+      },
+      { signal },
+    );
     playground?.querySelector<HTMLButtonElement>("[data-r-reset]")?.addEventListener(
       "click",
       () => {
@@ -479,14 +488,12 @@ round(c(mean = mean(wait_minutes), median = median(wait_minutes), sd = sd(wait_m
       },
       { signal },
     );
-
     cleanup = () => {
       controller.abort();
       runtime?.close();
       runtime = undefined;
     };
   }
-
   document.addEventListener("astro:before-swap", () => cleanup?.());
   document.addEventListener("astro:page-load", initStatisticsLab);
   initStatisticsLab();

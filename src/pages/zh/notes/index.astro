@@ -1,6 +1,7 @@
 ---
 import { getCollection } from "astro:content";
 import NotesExplorer from "../../../components/NotesExplorer.astro";
+import LearningSeriesMap from "../../../components/learning/LearningSeriesMap.astro";
 import PageIntro from "../../../components/PageIntro.astro";
 import ProjectList from "../../../components/ProjectList.astro";
 import BaseLayout from "../../../layouts/BaseLayout.astro";
@@ -29,8 +30,9 @@ const totalPages = getTotalPages(notes.length, 9);
 >
   <PageIntro
     title="学习笔记"
-    description="围绕分析、优化与决策支持建立的双语可搜索知识库；草稿不会公开受限制课程材料。"
+    description="围绕分析、优化与决策支持建立的双语可搜索知识库。"
   />
+  <LearningSeriesMap />
   <NotesExplorer
     entries={notes}
     locale="zh"

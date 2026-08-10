@@ -24,7 +24,9 @@ const iconBySlug = {
       <div>
         <p>TECHNICAL DEEP DIVES</p>
         <h2>继续深入分析</h2>
-        <small>五个专题分别拆解数据验证、模型比较、错误结构、解释路径与关联实验。</small>
+        <small>
+          五个专题分别拆解数据验证、模型比较、错误结构、解释路径与关联实验。
+        </small>
       </div>
     </div>
   )
@@ -44,9 +46,7 @@ const iconBySlug = {
             </span>
             <span class="deep-dive-nav__icon" aria-hidden="true">
               <ChurnMicroIcon
-                name={
-                  iconBySlug[item.slug as keyof typeof iconBySlug] ?? "deep-dive"
-                }
+                name={iconBySlug[item.slug as keyof typeof iconBySlug] ?? "deep-dive"}
               />
             </span>
             <strong>
@@ -179,11 +179,7 @@ const iconBySlug = {
 
   a:hover .deep-dive-nav__icon,
   a[aria-current="page"] .deep-dive-nav__icon {
-    border-color: color-mix(
-      in srgb,
-      var(--colour-primary) 42%,
-      var(--colour-border)
-    );
+    border-color: color-mix(in srgb, var(--colour-primary) 42%, var(--colour-border));
     background: color-mix(in srgb, var(--colour-primary) 9%, var(--colour-surface));
     transform: translateY(-1px);
   }

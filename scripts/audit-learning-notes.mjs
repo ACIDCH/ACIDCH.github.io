@@ -26,11 +26,17 @@ if (sourceHits.length) {
 }
 
 const buildRoute = join("dist", "zh", "notes", "descriptive-statistics", "index.html");
-if (existsSync(buildRoute)) {
-  console.error("Draft learning note was emitted to the production build.");
+if (!existsSync(buildRoute)) {
+  console.error("Published learning note was not emitted to the production build.");
+  process.exit(1);
+}
+
+const builtText = readFileSync(buildRoute, "utf8");
+if (forbidden.some((pattern) => pattern.test(builtText))) {
+  console.error("Published learning-note build contains a restricted label.");
   process.exit(1);
 }
 
 console.log(
-  "Learning-note audit passed (draft is isolated from the production build).",
+  "Learning-note audit passed (published article and public build are clean).",
 );

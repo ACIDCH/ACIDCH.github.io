@@ -12,7 +12,7 @@ interface Props {
 
 const { locale } = Astro.props;
 const projects = await getCollection("projects");
-const notes = await getCollection("notes");
+const notes = (await getCollection("notes")).filter((entry) => !entry.data.draft);
 const pages: SearchItem[] = [
   {
     title: "Home",

@@ -1,0 +1,61 @@
+---
+import { getCollection } from "astro:content";
+import ContextBack from "../../../../components/ContextBack.astro";
+import NoteList from "../../../../components/NoteList.astro";
+import { getLearningSeries, learningSeries } from "../../../../data/learning-series";
+import BaseLayout from "../../../../layouts/BaseLayout.astro";
+
+export function getStaticPaths() {
+  return learningSeries.map((series) => ({ params: { series: series.slug } }));
+}
+
+const series = getLearningSeries(Astro.params.series ?? "");
+if (!series) return Astro.redirect("/zh/notes/");
+const notes = (await getCollection("notes"))
+  .filter(
+    (entry) =>
+      entry.data.locale === "zh" &&
+      !entry.data.draft &&
+      entry.data.seriesSlug === series.slug,
+  )
+  .sort((left, right) => (left.data.order ?? 999) - (right.data.order ?? 999));
+---
+
+<BaseLayout title={series.title} description={series.description} locale="zh">
+  <article class="learning-series-page">
+    <ContextBack
+      locale="zh"
+      fallbackPath="/notes/"
+      label={{ en: "Back to Learning Notes", zh: "返回学习笔记" }}
+    />
+    <header class="learning-series-page__hero">
+      <p class="status">学习系列</p>
+      <h1>{series.title}</h1>
+      <p>{series.description}</p>
+      <div>{series.tools.map((tool) => <span class="tag">{tool}</span>)}</div>
+    </header>
+    <section aria-labelledby="series-modules-title">
+      <h2 id="series-modules-title">模块路线</h2>
+      <ol class="learning-series-page__modules">
+        {
+          series.modules.map((module) => (
+            <li>
+              <p>{module.code}</p>
+              <h3>{module.title}</h3>
+              <span>{module.summary}</span>
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+    <section aria-labelledby="series-notes-title">
+      <h2 id="series-notes-title">已发布文章</h2>
+      <NoteList entries={notes} locale="zh" />
+    </section>
+    <ContextBack
+      locale="zh"
+      fallbackPath="/notes/"
+      label={{ en: "Back to Learning Notes", zh: "返回学习笔记" }}
+    />
+  </article>
+</BaseLayout>

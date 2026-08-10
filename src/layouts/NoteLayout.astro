@@ -18,6 +18,7 @@ const { entry, alternatePath } = Astro.props;
 const { Content } = await render(entry);
 const isLearningSample = entry.data.slug === "descriptive-statistics";
 const learningToc = [
+  { id: "先确认这组数据回答什么问题", label: "数据口径" },
   { id: "从一个业务问题开始", label: "从一个业务问题开始" },
   { id: "中心不是唯一答案", label: "中心不是唯一答案" },
   { id: "离散程度决定解释边界", label: "离散程度决定解释边界" },

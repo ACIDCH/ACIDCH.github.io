@@ -10,9 +10,11 @@ const styles = readFileSync("src/styles/global.css", "utf8");
 describe("Learning-note interactions", () => {
   it("recomputes statistics and renders native distribution views", () => {
     expect(lab).toContain("const statistics =");
-    expect(lab).toContain("drawHistogram(values)");
-    expect(lab).toContain("drawBoxplot(values)");
-    expect(lab).toContain("drawEcdf(values)");
+    expect(lab).toContain("drawHistogram();");
+    expect(lab).toContain("drawBoxplot();");
+    expect(lab).toContain("drawEcdf();");
+    expect(lab).toContain('type="range"');
+    expect(lab).toContain("aria-valuetext");
   });
 
   it("loads the R runtime lazily and reports actual runtime output", () => {
