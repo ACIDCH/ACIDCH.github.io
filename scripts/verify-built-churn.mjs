@@ -1,7 +1,11 @@
 import { readFile } from "node:fs/promises";
 import process from "node:process";
 
-const courseMarkers = ["704", "BUSINFO704", "BUSINFO 704", "课程项目", "课程报告"];
+const coursePatterns = [
+  /BUSINFO\s*704/i,
+  /(?<![\d.])704(?![\d.])/, 
+  /课程项目|课程报告/,
+];
 const checks = [
   {
     file: "dist/zh/index.html",
@@ -31,7 +35,6 @@ const checks = [
     ],
     forbidden: [
       ">简介<",
-      ...courseMarkers,
       "numeric-distributions.webp",
       "predictor-comparisons.webp",
       "categorical-churn-rates.webp",
@@ -39,6 +42,7 @@ const checks = [
       "holdout-roc.webp",
       "odds-ratio-ci.webp",
     ],
+    forbiddenPatterns: coursePatterns,
   },
   ...[
     "data-validation",
@@ -49,7 +53,8 @@ const checks = [
   ].map((slug) => ({
     file: `dist/zh/projects/customer-churn-machine-learning/${slug}/index.html`,
     markers: ["继续阅读技术专题"],
-    forbidden: [">简介<", ...courseMarkers],
+    forbidden: [">简介<"],
+    forbiddenPatterns: coursePatterns,
   })),
 ];
 
@@ -67,6 +72,12 @@ for (const check of checks) {
   for (const marker of check.forbidden) {
     if (html.includes(marker)) {
       failures.push(`${check.file} still contains stale marker: ${marker}`);
+    }
+  }
+
+  for (const pattern of check.forbiddenPatterns ?? []) {
+    if (pattern.test(html)) {
+      failures.push(`${check.file} still contains a course-facing label: ${pattern}`);
     }
   }
 }
