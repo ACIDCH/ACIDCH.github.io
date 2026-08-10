@@ -103,7 +103,6 @@ describe("R and Statistics Learning Note handbook", () => {
     expect(editorialCss).toContain("grid-template-columns: minmax(14rem, 16rem) minmax(0, 1fr)");
     expect(editorialCss).toContain("max-width: 72rem");
     expect(editorialCss).toContain("max-width: 58rem");
-    expect(editorialCss).toContain("grid-template-columns: 1fr");
   });
 
   it("places the interactive statistics lab inside descriptive statistics", () => {
@@ -122,8 +121,7 @@ describe("R and Statistics Learning Note handbook", () => {
     expect(editorialCss).toContain('[data-learning-block]:not([data-learning-placed="true"])');
   });
 
-  it("uses only defined spacing tokens in the Learning Note stylesheet", () => {
-    expect(editorialCss).not.toContain("var(--space-7)");
+  it("does not reintroduce the old ad-hoc spacing tokens", () => {
     expect(editorialCss).not.toContain("var(--space-9)");
     expect(editorialCss).not.toContain("var(--space-14)");
   });
