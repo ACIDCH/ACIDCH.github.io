@@ -18,11 +18,13 @@ const sqlSources = [
   "src/content/notes/sql-foreign-key.zh.md",
   "src/content/notes/sql-relationships.zh.md",
   "src/content/notes/sql-select.zh.md",
+  "src/content/notes/sql-where.zh.md",
   "src/components/learning/RelationalModelExplorer.astro",
   "src/components/learning/PrimaryKeyLab.astro",
   "src/components/learning/ForeignKeyLab.astro",
   "src/components/learning/RelationshipCardinalityLab.astro",
   "src/components/learning/SqlDatasetExplorer.astro",
+  "src/components/learning/WhereFilterLab.astro",
   "src/components/learning/SqlPlayground.astro",
 ].map(read);
 
@@ -144,12 +146,15 @@ describe("SQL Learning Notes integrity contract", () => {
   it("documents database-specific behavior instead of presenting one dialect as universal", () => {
     const primary = read("src/content/notes/sql-primary-key.zh.md");
     const foreign = read("src/content/notes/sql-foreign-key.zh.md");
+    const where = read("src/content/notes/sql-where.zh.md");
 
     expect(primary).toContain("AUTO_INCREMENT` 是 MySQL 方言");
     expect(primary).toContain("SQLite 的 INTEGER PRIMARY KEY 有什么特殊之处");
     expect(foreign).toContain("PRAGMA foreign_keys = ON");
     expect(foreign).toContain("ADD CONSTRAINT fk_orders_customer");
     expect(foreign).toContain("SQLite 的 `ALTER TABLE` 支持范围比 MySQL/PostgreSQL 受限");
+    expect(where).toContain("标准 SQL 常用");
+    expect(where).toContain("`LIKE` 的大小写行为、字符排序与 collation 规则会随数据库与配置变化");
   });
 
   it("keeps SELECT semantics explicit and appropriate for the local sql.js environment", () => {
@@ -162,20 +167,67 @@ describe("SQL Learning Notes integrity contract", () => {
     expect(select).toContain("并不存在浏览器到远程数据库服务器的网络连接");
   });
 
+  it("keeps WHERE examples numerically aligned with the canonical orders", () => {
+    expect(
+      sqlOrders.filter((order) => order.order_value >= 500).map((order) => order.order_id),
+    ).toEqual([50003, 50004]);
+    expect(
+      sqlOrders
+        .filter((order) => order.order_value >= 400 && order.customer_id !== 1002)
+        .map((order) => order.order_id),
+    ).toEqual([50001, 50004]);
+    expect(
+      sqlOrders
+        .filter((order) => order.customer_id === 1001 || order.order_value >= 700)
+        .map((order) => order.order_id),
+    ).toEqual([50001, 50002, 50003]);
+    expect(
+      sqlOrders
+        .filter(
+          (order) =>
+            (order.customer_id === 1001 || order.order_value >= 500) &&
+            order.customer_id === 1003,
+        )
+        .map((order) => order.order_id),
+    ).toEqual([50004]);
+    expect(
+      sqlOrders
+        .filter((order) => order.order_value >= 400 && order.order_value <= 600)
+        .map((order) => order.order_id),
+    ).toEqual([50001, 50004]);
+    expect(
+      sqlCustomers
+        .filter((customer) => ["Retail", "Enterprise"].includes(customer.segment))
+        .map((customer) => customer.customer_id),
+    ).toEqual([1001, 1003]);
+    expect(
+      sqlCustomers
+        .filter((customer) => customer.customer_name.startsWith("Coast"))
+        .map((customer) => customer.customer_id),
+    ).toEqual([1002]);
+    expect(sqlCustomers.filter((customer) => customer.phone == null)).toEqual([]);
+  });
+
   it("makes interactive visuals read from canonical data instead of private copies", () => {
     const primaryLab = read("src/components/learning/PrimaryKeyLab.astro");
     const relationshipLab = read(
       "src/components/learning/RelationshipCardinalityLab.astro",
     );
     const datasetExplorer = read("src/components/learning/SqlDatasetExplorer.astro");
+    const whereFilterLab = read("src/components/learning/WhereFilterLab.astro");
     const playground = read("src/components/learning/SqlPlayground.astro");
 
-    [primaryLab, relationshipLab, datasetExplorer, playground].forEach((source) => {
-      expect(source).toContain("sql-learning");
-    });
+    [primaryLab, relationshipLab, datasetExplorer, whereFilterLab, playground].forEach(
+      (source) => {
+        expect(source).toContain("sql-learning");
+      },
+    );
     expect(playground).toContain("sqlLearningSeedSql");
     expect(playground).toContain("rows × ${result.columns.length} columns");
     expect(playground).toContain("inferredFocus");
+    expect(playground).toContain('"where-gte"');
     expect(relationshipLab).toContain("customerOrders.length");
+    expect(whereFilterLab).toContain("order_value >= 500");
+    expect(whereFilterLab).toContain("segment IN ('Retail', 'Enterprise')");
   });
 });
