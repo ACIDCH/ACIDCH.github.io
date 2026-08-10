@@ -75,8 +75,9 @@ describe("R and Statistics Learning Note handbook", () => {
     expect(zhRoute).toContain("includeDrafts || !entry.data.draft");
   });
 
-  it("shows only the compact visible handbook title", () => {
-    expect(layout).toContain('<LearningNoteHero title="统计学与 R" />');
+  it("shows only a compact handbook title in the article header", () => {
+    expect(layout).toContain('const handbookTitle = isSqlHandbook ? "SQL 与关系数据" : "统计学与 R"');
+    expect(layout).toContain("<LearningNoteHero title={handbookTitle} />");
     expect(hero).toContain("learning-note-titlebar");
     expect(hero).not.toContain("LEARNING NOTE");
     expect(hero).not.toContain("learning-note-hero__footer");
@@ -85,11 +86,12 @@ describe("R and Statistics Learning Note handbook", () => {
     expect(hero).not.toContain("tools");
   });
 
-  it("uses the same title-only handbook card on the home and Learning Notes lists", () => {
-    expect(noteList).toContain('entry.data.slug === "descriptive-statistics"');
-    expect(noteList).toContain('const displayTitle = isStatisticsHandbook ? "统计学与 R" : entry.data.title');
-    expect(noteList).toContain('isStatisticsHandbook && "note-card--handbook"');
-    expect(noteList).toContain("{isStatisticsHandbook ? (");
+  it("uses the same title-only handbook card on home and Learning Notes lists", () => {
+    expect(noteList).toContain('"descriptive-statistics": "统计学与 R"');
+    expect(noteList).toContain('"sql-relational-data": "SQL 与关系数据"');
+    expect(noteList).toContain("isCompactHandbook");
+    expect(noteList).toContain('isCompactHandbook && "note-card--handbook"');
+    expect(noteList).toContain("{isCompactHandbook ? (");
   });
 
   it("removes the preface from the visible handbook and its TOC", () => {
