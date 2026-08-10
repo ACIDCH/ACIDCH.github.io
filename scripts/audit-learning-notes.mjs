@@ -23,6 +23,10 @@ const handbooks = [
     source: "sql-relationships.zh.md",
     route: "sql-relationships",
   },
+  {
+    source: "sql-select.zh.md",
+    route: "sql-select",
+  },
 ];
 
 const forbidden = [
