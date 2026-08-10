@@ -1,8 +1,5 @@
 @layer components {
-  /*
-   * Learning Notes use this file as the authoritative visual layer.
-   * Keep the reading frame intentionally simple: one navigation rail + one article.
-   */
+  /* Learning Notes use this file as the authoritative visual layer. */
   article.learning-note {
     width: min(94rem, calc(100% - 2 * var(--space-6)));
     max-width: none;
@@ -83,7 +80,7 @@
   }
 
   article.learning-note .learning-note-hero__meta dt {
-    margin-bottom: var(--space-1);
+    margin: 0 0 var(--space-1);
     color: var(--colour-text-muted);
     font-size: var(--font-size-xs);
   }
@@ -123,7 +120,7 @@
   }
 
   article.learning-note .learning-note-hero__facts dt {
-    margin-bottom: var(--space-1);
+    margin: 0 0 var(--space-1);
     color: var(--colour-text-muted);
     font-size: var(--font-size-xs);
   }
@@ -145,7 +142,6 @@
     line-height: 1.45;
   }
 
-  /* Stable two-column reading frame: navigation + article only. */
   article.learning-note .learning-note__grid {
     display: grid;
     grid-template-columns: minmax(13rem, 15rem) minmax(0, 64rem);
@@ -201,7 +197,7 @@
     margin: 0;
     color: var(--colour-text-muted);
     font-size: var(--font-size-sm);
-    line-height: 1.45;
+    line-height: 1.4;
   }
 
   article.learning-note .learning-note-toc a {
@@ -260,7 +256,7 @@
   article.learning-note .learning-note__body > ul,
   article.learning-note .learning-note__body > ol,
   article.learning-note .learning-note__body > blockquote {
-    max-width: 54rem;
+    max-width: 56rem;
     font-size: clamp(1rem, 0.22vw + 0.97rem, 1.08rem);
     line-height: 1.88;
   }
@@ -275,7 +271,7 @@
     margin: var(--space-8) 0;
     padding: var(--space-4) var(--space-5);
     border-left: 3px solid var(--colour-primary);
-    background: color-mix(in srgb, var(--colour-primary) 7%, transparent);
+    background: color-mix(in srgb, var(--colour-primary) 6%, transparent);
   }
 
   article.learning-note .learning-note__body > blockquote p {
@@ -310,6 +306,7 @@
 
   article.learning-note .learning-note__body > table td {
     color: var(--colour-text-muted);
+    line-height: 1.6;
   }
 
   article.learning-note .learning-note__body > table tr:last-child :is(th, td) {
@@ -322,20 +319,129 @@
     margin-block: var(--space-8);
   }
 
+  article.learning-note .learning-note-slot {
+    min-height: 1px;
+    margin: 0;
+  }
+
+  article.learning-note .learning-note__inline-block {
+    width: 100%;
+    min-width: 0;
+  }
+
+  html[data-js="true"] article.learning-note
+    [data-learning-block]:not([data-learning-placed="true"]) {
+    display: none;
+  }
+
+  /* The teaching lab reads like an editorial chapter, not a dashboard card. */
   article.learning-note .statistics-lab {
     width: 100%;
     max-width: 64rem;
-    margin: var(--space-16) 0 var(--space-8);
-    padding: clamp(var(--space-6), 3vw, var(--space-10));
+    margin: var(--space-12) 0 var(--space-14);
+    padding: var(--space-10) 0;
+    border: 0;
+    border-block: 1px solid var(--colour-border-strong);
+    border-radius: 0;
+    background: transparent;
     box-shadow: none;
   }
 
   article.learning-note .statistics-lab__heading {
     max-width: 54rem;
+    margin-bottom: var(--space-7);
+  }
+
+  article.learning-note .learning-note-kicker {
+    margin: 0 0 var(--space-2);
+    color: var(--colour-primary-strong);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--letter-spacing-label);
+    text-transform: uppercase;
+  }
+
+  article.learning-note .statistics-lab__heading h2 {
+    margin: 0 0 var(--space-3);
+    font-size: clamp(1.8rem, 2vw, 2.45rem);
+    line-height: 1.18;
+  }
+
+  article.learning-note .statistics-lab__heading > p:last-child {
+    max-width: 52rem;
+    margin: 0;
+    color: var(--colour-text-muted);
+    line-height: 1.75;
+  }
+
+  article.learning-note .statistics-lab__controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: var(--space-5);
+    margin-block: var(--space-7);
+    padding-block: var(--space-5);
+    border-block: 1px solid var(--colour-border);
+  }
+
+  article.learning-note .statistics-lab__range-label {
+    display: grid;
+    gap: var(--space-2);
+    min-width: 0;
+    color: var(--colour-text);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  article.learning-note .statistics-lab__range-label input[type="range"] {
+    width: 100%;
+  }
+
+  article.learning-note .statistics-lab__range-label small {
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-regular);
+  }
+
+  article.learning-note .statistics-lab__status {
+    margin: 0 0 var(--space-6);
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-sm);
+  }
+
+  article.learning-note .statistics-lab__metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-5);
+    margin: 0 0 var(--space-10);
+  }
+
+  article.learning-note .statistics-lab__metrics dl {
+    margin: 0;
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--colour-border);
+  }
+
+  article.learning-note .statistics-lab__metrics dt {
+    margin: 0 0 var(--space-1);
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+  }
+
+  article.learning-note .statistics-lab__metrics dd {
+    margin: 0;
+    color: var(--colour-text);
+    font-size: clamp(1.1rem, 1vw, 1.35rem);
+    font-weight: var(--font-weight-bold);
+    font-variant-numeric: tabular-nums;
   }
 
   article.learning-note .statistics-lab__visuals {
+    display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-10) var(--space-8);
+    margin-top: var(--space-8);
   }
 
   article.learning-note .statistics-chart:first-child {
@@ -344,10 +450,185 @@
 
   article.learning-note .statistics-chart {
     min-width: 0;
+    margin: 0;
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--colour-border-strong);
+    background: transparent;
+  }
+
+  article.learning-note .statistics-chart figcaption {
+    display: grid;
+    gap: var(--space-1);
+    margin-bottom: var(--space-4);
+    color: var(--colour-text);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    line-height: 1.5;
+  }
+
+  article.learning-note .statistics-chart figcaption::before {
+    color: var(--colour-primary-strong);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--letter-spacing-label);
+  }
+
+  article.learning-note .statistics-chart:nth-child(1) figcaption::before {
+    content: "FIG 01";
+  }
+
+  article.learning-note .statistics-chart:nth-child(2) figcaption::before {
+    content: "FIG 02";
+  }
+
+  article.learning-note .statistics-chart:nth-child(3) figcaption::before {
+    content: "FIG 03";
+  }
+
+  article.learning-note .statistics-chart svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+    color: var(--colour-text-muted);
+  }
+
+  article.learning-note .statistics-chart > p {
+    margin: var(--space-4) 0 0;
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-sm);
+    line-height: 1.65;
+  }
+
+  article.learning-note .statistics-chart > p::before {
+    color: var(--colour-text);
+    font-weight: var(--font-weight-semibold);
+    content: "Reading. ";
+  }
+
+  article.learning-note .statistics-lab__explain {
+    max-width: 54rem;
+    margin-top: var(--space-9);
+    padding: var(--space-5) 0 var(--space-5) var(--space-5);
+    border-left: 3px solid var(--colour-primary);
+  }
+
+  article.learning-note .statistics-lab__explain h3 {
+    margin: 0 0 var(--space-2);
+    font-size: var(--font-size-lg);
+  }
+
+  article.learning-note .statistics-lab__explain p {
+    margin: 0;
+    color: var(--colour-text-muted);
+    line-height: 1.7;
   }
 
   article.learning-note .statistics-lab__formula-grid {
+    display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-6);
+    margin-top: var(--space-10);
+  }
+
+  article.learning-note .note-formula {
+    min-width: 0;
+    margin: 0;
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--colour-border);
+    background: transparent;
+  }
+
+  article.learning-note .note-formula figcaption {
+    margin-bottom: var(--space-3);
+    color: var(--colour-text);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  article.learning-note .note-formula code {
+    display: block;
+    padding: 0;
+    background: transparent;
+    color: var(--colour-primary-strong);
+    font-size: clamp(1rem, 0.8vw, 1.15rem);
+    line-height: 1.6;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  article.learning-note .note-formula p {
+    margin: var(--space-3) 0 0;
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-sm);
+    line-height: 1.6;
+  }
+
+  article.learning-note .r-playground {
+    display: grid;
+    gap: var(--space-5);
+    margin-top: var(--space-12);
+    padding: var(--space-8) 0 0;
+    border: 0;
+    border-top: 1px solid var(--colour-border-strong);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  article.learning-note .r-playground h3 {
+    margin: 0 0 var(--space-2);
+    font-size: clamp(1.35rem, 1.4vw, 1.7rem);
+  }
+
+  article.learning-note .r-playground > div:first-child > p:last-child {
+    max-width: 50rem;
+    margin: 0;
+    color: var(--colour-text-muted);
+    line-height: 1.7;
+  }
+
+  article.learning-note .r-playground label {
+    display: grid;
+    gap: var(--space-2);
+    color: var(--colour-text);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  article.learning-note .r-playground textarea {
+    width: 100%;
+    min-height: 15rem;
+    resize: vertical;
+    padding: var(--space-4);
+    border: 1px solid var(--colour-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--colour-surface-subtle);
+    color: var(--colour-text);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-sm);
+    line-height: 1.65;
+  }
+
+  article.learning-note .r-playground__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  article.learning-note .r-playground__output {
+    display: block;
+    min-height: 7rem;
+    max-height: 22rem;
+    overflow: auto;
+    padding: var(--space-4);
+    border-left: 3px solid var(--colour-primary);
+    background: var(--colour-surface-subtle);
+    color: var(--colour-text);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-sm);
+    line-height: 1.65;
+    white-space: pre-wrap;
   }
 
   article.learning-note > .related-notes {
@@ -437,8 +718,20 @@
       font-size: clamp(2.25rem, 10vw, 3.4rem);
     }
 
-    article.learning-note .learning-note-hero__meta {
+    article.learning-note .learning-note-hero__meta,
+    article.learning-note .statistics-lab__metrics,
+    article.learning-note .statistics-lab__visuals,
+    article.learning-note .statistics-lab__formula-grid {
       grid-template-columns: 1fr;
+    }
+
+    article.learning-note .statistics-chart:first-child {
+      grid-column: auto;
+    }
+
+    article.learning-note .statistics-lab__controls {
+      grid-template-columns: 1fr;
+      align-items: stretch;
     }
 
     article.learning-note .learning-note-hero__facts > div {
@@ -470,16 +763,6 @@
       overflow-x: auto;
       white-space: nowrap;
       scrollbar-width: thin;
-    }
-
-    article.learning-note .statistics-lab__visuals,
-    article.learning-note .statistics-lab__metrics,
-    article.learning-note .statistics-lab__formula-grid {
-      grid-template-columns: 1fr;
-    }
-
-    article.learning-note .statistics-chart:first-child {
-      grid-column: auto;
     }
   }
 }
