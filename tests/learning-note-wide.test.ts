@@ -1,25 +1,24 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-const css = readFileSync("src/styles/learning-note-wide.css", "utf8");
+const css = readFileSync("src/styles/learning-note-editorial.css", "utf8");
 
-describe("Learning Note wide-screen layout", () => {
-  it("only applies the expanded frame above the desktop breakpoint", () => {
-    expect(css).toContain("@media (min-width: 74.001rem)");
-    expect(css).toContain("@media (min-width: 100rem)");
-  });
-
-  it("gives teaching content substantially more horizontal reading space", () => {
-    expect(css).toContain("width: min(112rem");
+describe("Learning Note handbook layout", () => {
+  it("uses a single spacious long-form frame", () => {
+    expect(css).toContain("width: min(94rem");
+    expect(css).toContain("grid-template-columns: minmax(14rem, 16rem) minmax(0, 1fr)");
     expect(css).toContain("max-width: 72rem");
-    expect(css).toContain("width: min(118rem");
-    expect(css).toContain("max-width: 76rem");
   });
 
-  it("lets figures, tables, code and the interactive lab use the article width", () => {
-    expect(css).toContain("article.learning-note .learning-note__body > table");
-    expect(css).toContain("article.learning-note .learning-note__body > pre");
-    expect(css).toContain("article.learning-note .statistics-lab");
-    expect(css).toContain("max-width: none");
+  it("keeps prose readable while allowing teaching material to breathe", () => {
+    expect(css).toContain("max-width: 58rem");
+    expect(css).toContain("line-height: 1.95");
+    expect(css).toContain("width: min(100%, 64rem)");
+  });
+
+  it("stacks interactive figures instead of crowding them into dashboard columns", () => {
+    expect(css).toContain("article.learning-note .statistics-lab__visuals");
+    expect(css).toContain("grid-template-columns: 1fr");
+    expect(css).toContain("article.learning-note .r-playground");
   });
 });
