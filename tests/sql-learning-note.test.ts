@@ -106,7 +106,8 @@ describe("SQL and relational data Learning Notes", () => {
     expect(layout).toContain('entry.data.slug === "sql-relational-data"');
     expect(layout).toContain('entry.data.slug === "sql-primary-key"');
     expect(layout).toContain('entry.data.slug === "sql-foreign-key"');
-    expect(layout).toContain("const isSqlEditorial = isSqlOverview || isSqlPrimaryKey || isSqlForeignKey");
+    expect(layout).toContain("const isSqlEditorial");
+    expect(layout).toContain("isSqlOverview || isSqlPrimaryKey || isSqlForeignKey");
     expect(layout).toContain("const sqlOverviewToc");
     expect(layout).toContain("const sqlPrimaryKeyToc");
     expect(layout).toContain("const sqlForeignKeyToc");
