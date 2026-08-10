@@ -334,11 +334,10 @@
     display: none;
   }
 
-  /* The teaching lab reads like an editorial chapter, not a dashboard card. */
   article.learning-note .statistics-lab {
     width: 100%;
     max-width: 64rem;
-    margin: var(--space-12) 0 var(--space-14);
+    margin: var(--space-12) 0;
     padding: var(--space-10) 0;
     border: 0;
     border-block: 1px solid var(--colour-border-strong);
@@ -349,7 +348,7 @@
 
   article.learning-note .statistics-lab__heading {
     max-width: 54rem;
-    margin-bottom: var(--space-7);
+    margin-bottom: var(--space-6);
   }
 
   article.learning-note .learning-note-kicker {
@@ -379,7 +378,7 @@
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: end;
     gap: var(--space-5);
-    margin-block: var(--space-7);
+    margin-block: var(--space-6);
     padding-block: var(--space-5);
     border-block: 1px solid var(--colour-border);
   }
@@ -508,7 +507,7 @@
 
   article.learning-note .statistics-lab__explain {
     max-width: 54rem;
-    margin-top: var(--space-9);
+    margin-top: var(--space-8);
     padding: var(--space-5) 0 var(--space-5) var(--space-5);
     border-left: 3px solid var(--colour-primary);
   }
