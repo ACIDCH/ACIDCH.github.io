@@ -12,7 +12,7 @@
     gap: clamp(var(--space-8), 5vw, var(--space-16));
     width: 100%;
     margin: var(--space-6) 0 var(--space-10);
-    padding: clamp(var(--space-7), 4.5vw, var(--space-12)) 0;
+    padding: clamp(var(--space-8), 4.5vw, var(--space-12)) 0;
     border: 0;
     border-block: 1px solid var(--colour-border);
     border-radius: 0;
@@ -85,7 +85,7 @@
     grid-template-columns: minmax(12rem, 13.5rem) minmax(0, 52rem) minmax(12rem, 15rem);
     justify-content: space-between;
     align-items: start;
-    gap: clamp(var(--space-7), 3.2vw, var(--space-12));
+    gap: clamp(var(--space-8), 3.2vw, var(--space-12));
     width: 100%;
   }
 
@@ -99,7 +99,7 @@
 
   .learning-note__body > h2 {
     max-width: 22ch;
-    margin-top: var(--space-14);
+    margin-top: var(--space-16);
     margin-bottom: var(--space-5);
     font-size: clamp(2.05rem, 2.55vw, 2.85rem);
     line-height: 1.12;
@@ -137,7 +137,7 @@
   }
 
   .learning-note__body > blockquote {
-    margin: var(--space-7) 0;
+    margin: var(--space-8) 0;
     padding: var(--space-4) var(--space-5);
     border-left: 3px solid var(--colour-primary);
     background: color-mix(in srgb, var(--colour-primary) 7%, transparent);
@@ -150,7 +150,7 @@
 
   .learning-note__body > table {
     width: 100%;
-    margin: var(--space-7) 0 var(--space-8);
+    margin: var(--space-8) 0;
     border-collapse: separate;
     border-spacing: 0;
     overflow: hidden;
@@ -183,7 +183,7 @@
 
   .learning-note__body > pre {
     width: min(100%, 52rem);
-    margin-block: var(--space-7);
+    margin-block: var(--space-8);
   }
 
   .learning-note-toc {
@@ -297,8 +297,8 @@
 
   .statistics-lab {
     width: 100%;
-    margin: var(--space-14) 0 var(--space-8);
-    padding: clamp(var(--space-6), 3.5vw, var(--space-9));
+    margin: var(--space-16) 0 var(--space-8);
+    padding: clamp(var(--space-6), 3.5vw, var(--space-10));
     box-shadow: none;
   }
 
@@ -407,7 +407,7 @@
     .learning-note__body > h2 {
       max-width: none;
       margin-top: var(--space-10);
-      padding-top: var(--space-7);
+      padding-top: var(--space-8);
       font-size: clamp(1.85rem, 8vw, 2.35rem);
     }
 
