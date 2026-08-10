@@ -394,6 +394,56 @@ plant | product | region | period | cost | capacity | demand
 
 高维模型的数据工程和数学模型往往是同一个问题的两面。
 
+## Composite key 是高维参数表的身份约束
+
+长表中的一行通常由多个字段共同确定身份，例如运输成本表：
+
+```text
+plant + region
+```
+
+或者更复杂的 lane 报价：
+
+```text
+carrier + origin + destination + period
+```
+
+这些字段组合就是业务 composite key。
+
+在进入模型之前，应该检查：
+
+```text
+同一 key 是否重复？
+应有 key 是否缺失？
+是否出现不属于集合的孤立 key？
+```
+
+例如 `(north, metro)` 出现两条不同成本，如果代码简单转成字典，后一条可能悄悄覆盖前一条。模型仍然能运行，但输入已经失去唯一性。
+
+因此高维优化的数据校验不仅是检查 `NULL`，还要检查 key uniqueness 与 key completeness。
+
+## Dense key space 与实际有效 key space 要分开统计
+
+完整笛卡尔积：
+
+```text
+K × P × R × T
+```
+
+代表所有理论组合。
+
+但真实模型可能只允许其中一部分。可以分别计算：
+
+```text
+potential combinations = |K| × |P| × |R| × |T|
+valid combinations     = |A|
+sparsity ratio         = |A| / potential combinations
+```
+
+如果理论组合有 100,000 个，而 valid set 只有 12,000 个，直接生成 dense variables 再用约束把 88,000 个变量压到 0，通常既浪费模型规模，也降低结果可读性。
+
+先建立 `A` 这样的有效 tuple set，再生成变量，更能反映真实网络结构。
+
 ## Sparse model：并不是所有组合都应该生成变量
 
 如果某产品根本不能在某工厂生产：
@@ -442,6 +492,30 @@ x[a] for a ∈ A
 模型越大，手工肉眼检查越不可靠。
 
 因此应把这些检查写成自动化断言。
+
+## 可以先做“索引审计”，再创建任何变量
+
+一个实用的 pre-model audit 可以按顺序执行：
+
+```text
+1. 每个 set 的元素唯一且非空
+2. 参数 key 只能引用合法 set 成员
+3. 需要完整覆盖的参数没有 missing combinations
+4. sparse 参数只包含明确允许的 valid combinations
+5. composite keys 无重复
+6. 每个 constraint family 的预期行数可以提前计算
+7. 每个 variable family 的预期变量数可以提前计算
+```
+
+例如理论上有 2 个工厂、3 个区域，那么运输变量应为：
+
+```text
+2 × 3 = 6
+```
+
+如果创建后得到 5 个，应立即查找缺失 arc；如果得到 7 个，应检查重复或非法 key。
+
+这种规模断言能在求解之前发现结构问题，比从最终目标值倒推错误更可靠。
 
 ## 变量命名是调试工具
 
@@ -509,6 +583,10 @@ number of periods
 ### 只看代码能否运行，不统计实际生成多少变量与约束
 
 一个无意多乘一个维度的模型也可能正常运行，只是规模暴涨。
+
+### 参数 key 重复却直接转成字典
+
+重复项可能被静默覆盖，应在建模前先验证 composite key 唯一性。
 
 ## 核心判断
 
