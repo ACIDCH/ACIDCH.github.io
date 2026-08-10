@@ -48,6 +48,23 @@ const pageChecks = [
     forbiddenMarkers: [">简介<"],
   },
   {
+    path: "zh/notes/",
+    markers: ["学习笔记", "统计学与 R", "SQL 与关系数据"],
+    forbiddenMarkers: [">简介<"],
+  },
+  {
+    path: "zh/notes/sql-relational-data/",
+    markers: [
+      "SQL 与关系数据",
+      "主键",
+      "外键",
+      "索引",
+      "data-primary-key-lab",
+      "data-sql-playground",
+    ],
+    forbiddenMarkers: [">简介<"],
+  },
+  {
     path: "zh/projects/customer-churn-machine-learning/",
     markers: [
       "Machine Learning",
