@@ -10,6 +10,7 @@ import LearningNoteHero from "../components/learning/LearningNoteHero.astro";
 import LearningNoteToc from "../components/learning/LearningNoteToc.astro";
 import NormalDistributionLab from "../components/learning/NormalDistributionLab.astro";
 import PrimaryKeyLab from "../components/learning/PrimaryKeyLab.astro";
+import ProjectionColumnsLab from "../components/learning/ProjectionColumnsLab.astro";
 import RegressionLab from "../components/learning/RegressionLab.astro";
 import RelationalModelExplorer from "../components/learning/RelationalModelExplorer.astro";
 import RelationshipCardinalityLab from "../components/learning/RelationshipCardinalityLab.astro";
@@ -34,13 +35,15 @@ const isSqlForeignKey = entry.data.slug === "sql-foreign-key";
 const isSqlRelationships = entry.data.slug === "sql-relationships";
 const isSqlSelect = entry.data.slug === "sql-select";
 const isSqlWhere = entry.data.slug === "sql-where";
+const isSqlProjection = entry.data.slug === "sql-projection";
 const isSqlEditorial =
   isSqlOverview ||
   isSqlPrimaryKey ||
   isSqlForeignKey ||
   isSqlRelationships ||
   isSqlSelect ||
-  isSqlWhere;
+  isSqlWhere ||
+  isSqlProjection;
 const isHandbook = isStatisticsHandbook || isSqlEditorial;
 
 const statisticsToc = [
@@ -234,21 +237,49 @@ const sqlWhereToc = [
   { id: "下一步不只筛选行还要选择列", label: "下一步" },
 ];
 
-const learningToc = isSqlWhere
-  ? sqlWhereToc
-  : isSqlSelect
-    ? sqlSelectToc
-    : isSqlRelationships
-      ? sqlRelationshipsToc
-      : isSqlForeignKey
-        ? sqlForeignKeyToc
-        : isSqlPrimaryKey
-          ? sqlPrimaryKeyToc
-          : isSqlOverview
-            ? sqlOverviewToc
-            : statisticsToc;
+const sqlProjectionToc = [
+  { id: "从筛选行进入选择列", label: "进入 Projection" },
+  { id: "projection-改变的是结果集的列", label: "Projection 与结果列" },
+  { id: "不返回某列不等于删除某列", label: "结果集 vs Schema" },
+  { id: "结果列的顺序由-select-列表决定", label: "列顺序" },
+  { id: "列别名改变结果集字段名", label: "列别名" },
+  { id: "as-为什么值得保留", label: "AS 与可读性" },
+  { id: "projection-可以和-where-组合", label: "Projection + WHERE" },
+  { id: "表达式也可以成为结果列", label: "表达式列" },
+  { id: "别名应该表达业务语义", label: "业务语义" },
+  { id: "重复或模糊的输出列名会制造风险", label: "输出列名风险" },
+  { id: "select-星号为什么不适合作为长期接口", label: "SELECT * 边界" },
+  { id: "projection-不负责排序", label: "Projection vs ORDER BY" },
+  { id: "在浏览器里实际运行-projection", label: "运行 Projection" },
+  { id: "business-analytics-中-projection-是结果接口设计", label: "结果接口设计" },
+  { id: "常见错误", label: "常见错误" },
+  { id: "projection-可以按这个顺序检查", label: "Projection 检查" },
+  { id: "本篇的核心判断", label: "核心判断" },
+  { id: "下一步控制结果的行顺序", label: "下一步" },
+];
+
+const learningToc = isSqlProjection
+  ? sqlProjectionToc
+  : isSqlWhere
+    ? sqlWhereToc
+    : isSqlSelect
+      ? sqlSelectToc
+      : isSqlRelationships
+        ? sqlRelationshipsToc
+        : isSqlForeignKey
+          ? sqlForeignKeyToc
+          : isSqlPrimaryKey
+            ? sqlPrimaryKeyToc
+            : isSqlOverview
+              ? sqlOverviewToc
+              : statisticsToc;
 const handbookTitle =
-  isSqlPrimaryKey || isSqlForeignKey || isSqlRelationships || isSqlSelect || isSqlWhere
+  isSqlPrimaryKey ||
+  isSqlForeignKey ||
+  isSqlRelationships ||
+  isSqlSelect ||
+  isSqlWhere ||
+  isSqlProjection
     ? entry.data.title
     : isSqlOverview
       ? "SQL 与关系数据"
@@ -433,6 +464,24 @@ const noteStructuredData = {
                       data-learning-block="sql-playground"
                     >
                       <SqlPlayground defaultPreset="where-gte" focus="where" />
+                    </div>
+                  </>
+                )
+              }
+              {
+                isSqlProjection && (
+                  <>
+                    <div
+                      class="learning-note__inline-block"
+                      data-learning-block="projection-columns-lab"
+                    >
+                      <ProjectionColumnsLab />
+                    </div>
+                    <div
+                      class="learning-note__inline-block"
+                      data-learning-block="sql-playground"
+                    >
+                      <SqlPlayground defaultPreset="projection-columns" focus="projection" />
                     </div>
                   </>
                 )
