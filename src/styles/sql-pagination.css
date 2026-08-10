@@ -1,0 +1,61 @@
+@media (max-width: 42rem) {
+  .pagination-lab__output {
+    overflow-x: visible;
+  }
+
+  .pagination-lab__output table,
+  .pagination-lab__output tbody,
+  .pagination-lab__output tr,
+  .pagination-lab__output td {
+    display: block;
+    width: 100%;
+  }
+
+  .pagination-lab__output thead {
+    display: none;
+  }
+
+  .pagination-lab__output tbody {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .pagination-lab__output tr {
+    padding: var(--space-4);
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-md);
+    background: var(--colour-surface);
+  }
+
+  .pagination-lab__output td {
+    display: grid;
+    grid-template-columns: minmax(6rem, 0.8fr) minmax(0, 1.2fr);
+    gap: var(--space-3);
+    padding: 0.3rem 0;
+    border: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .pagination-lab__output td::before {
+    color: var(--colour-text-muted);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-xs);
+  }
+
+  .pagination-lab__output td:nth-child(1)::before {
+    content: "order_id";
+  }
+
+  .pagination-lab__output td:nth-child(2)::before {
+    content: "customer_id";
+  }
+
+  .pagination-lab__output td:nth-child(3)::before {
+    content: "order_date";
+  }
+
+  .pagination-lab__output td:nth-child(4)::before {
+    content: "order_value";
+  }
+}
