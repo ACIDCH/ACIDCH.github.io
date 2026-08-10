@@ -28,7 +28,11 @@ const checks = [
       "进入知识库",
       "全部笔记",
     ],
-    orderedMarkers: ["按标签浏览", "按主题进入知识库", "全部笔记"],
+    orderedMarkers: [
+      'class="tag-cloud-panel"',
+      'class="learning-series-map"',
+      'class="notes-results-heading"',
+    ],
   },
   {
     path: "zh/notes/series/decision-models/",
