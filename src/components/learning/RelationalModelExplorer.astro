@@ -51,49 +51,60 @@
 
     <section data-model-panel="relational">
       <div class="relational-model-explorer__diagram relational-model-explorer__relations" aria-label="关系模型多表示意">
-        <div class="relational-model-explorer__schema-row">
-          <div class="relational-model-explorer__table">
-            <strong>customers</strong>
-            <span>customer_id · PK</span>
-          </div>
-          <div class="relational-model-explorer__relation">1 → N</div>
-          <div class="relational-model-explorer__table">
-            <strong>orders</strong>
-            <span>order_id · PK</span>
-            <span>customer_id · FK</span>
-          </div>
-        </div>
-        <div class="relational-model-explorer__schema-row relational-model-explorer__schema-row--wide">
-          <div class="relational-model-explorer__table">
-            <strong>orders</strong>
-            <span>order_id · PK</span>
-          </div>
-          <div class="relational-model-explorer__relation">1 → N</div>
-          <div class="relational-model-explorer__table">
-            <strong>order_items</strong>
-            <span>order_id · FK</span>
-            <span>product_id · FK</span>
-          </div>
-          <div class="relational-model-explorer__relation">N ← 1</div>
-          <div class="relational-model-explorer__table">
-            <strong>products</strong>
-            <span>product_id · PK</span>
+        <div class="relational-model-explorer__schema-group">
+          <p>关系 1 · 客户拥有订单</p>
+          <div class="relational-model-explorer__schema-row">
+            <div class="relational-model-explorer__table">
+              <strong>customers</strong>
+              <span>customer_id · PK</span>
+            </div>
+            <div class="relational-model-explorer__relation" data-mobile-label="1 ↓ N">1 → N</div>
+            <div class="relational-model-explorer__table">
+              <strong>orders</strong>
+              <span>order_id · PK</span>
+              <span>customer_id · FK</span>
+            </div>
           </div>
         </div>
-        <div class="relational-model-explorer__schema-row">
-          <div class="relational-model-explorer__table">
-            <strong>customers</strong>
-            <span>customer_id · PK</span>
+
+        <div class="relational-model-explorer__schema-group">
+          <p>关系 2 · 订单通过明细连接产品</p>
+          <div class="relational-model-explorer__schema-row relational-model-explorer__schema-row--wide">
+            <div class="relational-model-explorer__table">
+              <strong>orders</strong>
+              <span>order_id · PK</span>
+            </div>
+            <div class="relational-model-explorer__relation" data-mobile-label="1 ↓ N">1 → N</div>
+            <div class="relational-model-explorer__table">
+              <strong>order_items</strong>
+              <span>order_id · FK</span>
+              <span>product_id · FK</span>
+            </div>
+            <div class="relational-model-explorer__relation" data-mobile-label="N ↓ 1">N ← 1</div>
+            <div class="relational-model-explorer__table">
+              <strong>products</strong>
+              <span>product_id · PK</span>
+            </div>
           </div>
-          <div class="relational-model-explorer__relation">1 ↔ 1</div>
-          <div class="relational-model-explorer__table">
-            <strong>customer_profiles</strong>
-            <span>customer_id · PK + FK</span>
+        </div>
+
+        <div class="relational-model-explorer__schema-group">
+          <p>关系 3 · 客户拥有一条扩展资料</p>
+          <div class="relational-model-explorer__schema-row">
+            <div class="relational-model-explorer__table">
+              <strong>customers</strong>
+              <span>customer_id · PK</span>
+            </div>
+            <div class="relational-model-explorer__relation" data-mobile-label="1 ↓ 1">1 ↔ 1</div>
+            <div class="relational-model-explorer__table">
+              <strong>customer_profiles</strong>
+              <span>customer_id · PK + FK</span>
+            </div>
           </div>
         </div>
       </div>
       <p class="relational-model-explorer__reading">
-        关系模型把同一批实体拆成结构一致的二维表，再通过 PK、FK、联合主键与唯一性规则表达连接。后续 SQL 查询不必沿固定路径，而是声明需要怎样组合这些关系。
+        关系模型把同一批实体拆成结构一致的二维表，再通过 PK、FK、联合主键与唯一性规则表达连接。这里分成三段关系视图，是为了让同一个表在不同关联中的角色都清楚可见；它们仍属于同一套 schema。
       </p>
     </section>
   </div>
@@ -218,17 +229,27 @@
 
   .relational-model-explorer__relations {
     display: grid;
-    gap: var(--space-4);
+    gap: var(--space-5);
   }
 
-  .relational-model-explorer__schema-row {
-    padding-bottom: var(--space-4);
+  .relational-model-explorer__schema-group {
+    display: grid;
+    gap: var(--space-3);
+    padding-bottom: var(--space-5);
     border-bottom: 1px solid var(--colour-border);
   }
 
-  .relational-model-explorer__schema-row:last-child {
+  .relational-model-explorer__schema-group:last-child {
     padding-bottom: 0;
     border-bottom: 0;
+  }
+
+  .relational-model-explorer__schema-group > p {
+    margin: 0;
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: 0.03em;
   }
 
   .relational-model-explorer__table {
@@ -262,9 +283,17 @@
       justify-items: stretch;
     }
 
-    .relational-model-explorer__network-main > span,
+    .relational-model-explorer__network-main > span {
+      text-align: center;
+    }
+
     .relational-model-explorer__schema-row > .relational-model-explorer__relation {
-      transform: rotate(90deg);
+      font-size: 0;
+    }
+
+    .relational-model-explorer__schema-row > .relational-model-explorer__relation::after {
+      content: attr(data-mobile-label);
+      font-size: var(--font-size-sm);
     }
 
     .relational-model-explorer__node,
