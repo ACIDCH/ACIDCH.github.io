@@ -87,11 +87,12 @@ jobs:
           sudo apt-get install -y --no-install-recommends fonts-noto-cjk
           fc-cache -f
 
-      - name: Capture SQL 01–08 visual proofs
+      - name: Capture SQL 01–09 visual proofs
         if: github.event_name == 'pull_request'
         run: |
           python3 scripts/capture-pr-sql-visuals.py
           python3 scripts/capture-pr-sql08-visuals.py
+          python3 scripts/capture-pr-sql09-visuals.py
 
       - name: Upload pull-request static artifact
         if: github.event_name == 'pull_request'
@@ -181,6 +182,7 @@ jobs:
         run: |
           npm run verify:production -- "${{ needs.deploy.outputs.page_url }}" "${{ needs.quality.outputs.deploy_sha }}"
           node scripts/verify-sql08-production.mjs "${{ needs.deploy.outputs.page_url }}" "${{ needs.quality.outputs.deploy_sha }}"
+          node scripts/verify-sql09-production.mjs "${{ needs.deploy.outputs.page_url }}" "${{ needs.quality.outputs.deploy_sha }}"
 
       - name: Publish auditable production verification receipt
         if: always()
