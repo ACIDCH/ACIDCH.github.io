@@ -11,7 +11,9 @@ import LearningNoteToc from "../components/learning/LearningNoteToc.astro";
 import NormalDistributionLab from "../components/learning/NormalDistributionLab.astro";
 import PrimaryKeyLab from "../components/learning/PrimaryKeyLab.astro";
 import RegressionLab from "../components/learning/RegressionLab.astro";
+import RelationalModelExplorer from "../components/learning/RelationalModelExplorer.astro";
 import RelationshipCardinalityLab from "../components/learning/RelationshipCardinalityLab.astro";
+import SqlDatasetExplorer from "../components/learning/SqlDatasetExplorer.astro";
 import SqlPlayground from "../components/learning/SqlPlayground.astro";
 import "../styles/learning-note-editorial.css";
 import { getCanonicalUrl } from "../utils/urls";
@@ -114,15 +116,20 @@ const statisticsToc = [
 ];
 
 const sqlOverviewToc = [
+  { id: "为什么需要数据库", label: "为什么需要数据库" },
+  { id: "数据不只有一种组织模型", label: "三种数据模型" },
   { id: "关系数据库为什么不是一个大表", label: "关系数据库与业务实体" },
+  { id: "整个-sql-系列使用同一份业务数据", label: "统一业务数据集" },
   { id: "一行到底代表什么", label: "记录粒度" },
-  { id: "行列与字段分别在表达什么", label: "行与字段" },
-  { id: "字段名称只是开始数据类型同样重要", label: "数据类型" },
+  { id: "recordrowcolumn-与-field-怎样对应", label: "Record / Field" },
+  { id: "数据类型不是装饰而是字段语义的一部分", label: "数据类型" },
   { id: "null-到底表示什么", label: "NULL" },
-  { id: "表结构和表中的数据是两件事", label: "Schema 与 Data" },
+  { id: "schema-和-data-是两件事", label: "Schema 与 Data" },
   { id: "为什么同一个信息不应该到处重复", label: "减少重复信息" },
-  { id: "多张表是如何组成一个业务模型的", label: "多表业务模型" },
-  { id: "sql-查询为什么依赖正确的数据结构", label: "结构与查询" },
+  { id: "sql-是什么", label: "SQL 与 DDL/DML/DQL" },
+  { id: "标准-sql-和数据库方言不要混淆", label: "标准与方言" },
+  { id: "sql-关键字为什么统一大写", label: "书写约定" },
+  { id: "常见关系数据库有哪些", label: "主流关系数据库" },
   { id: "建表前可以先问这几个问题", label: "建表检查" },
   { id: "关系模型接下来还缺什么", label: "进入主键" },
 ];
@@ -305,6 +312,24 @@ const noteStructuredData = {
                       data-learning-after-heading="回归分析"
                     >
                       <RegressionLab />
+                    </div>
+                  </>
+                )
+              }
+              {
+                isSqlOverview && (
+                  <>
+                    <div
+                      class="learning-note__inline-block"
+                      data-learning-block="relational-model-explorer"
+                    >
+                      <RelationalModelExplorer />
+                    </div>
+                    <div
+                      class="learning-note__inline-block"
+                      data-learning-block="sql-dataset-explorer"
+                    >
+                      <SqlDatasetExplorer />
                     </div>
                   </>
                 )
