@@ -1,0 +1,163 @@
+---
+import { optimisationUniverse } from "../../data/supply-chain-optimisation";
+const payload = JSON.stringify({ carriers: optimisationUniverse.carriers, periods: optimisationUniverse.periods }).replace(/</g, "\\u003c");
+---
+
+<section class="dm-lab" data-flow-lab aria-labelledby="flow-title">
+  <div class="dm-lab__intro">
+    <p class="learning-note-kicker">互动实验 · Supply Chain Flow</p>
+    <h3 id="flow-title">运输分配与多期库存，为什么都可以看成“流量必须守恒”？</h3>
+    <p>在同一个实验中切换运输商分配和多期生产库存。前者检查总货量与运输商上下限，后者检查每期生产、需求与库存结转。</p>
+  </div>
+
+  <div class="dm-lab__chips">
+    <button type="button" data-flow-mode="carrier" aria-pressed="true">Carrier allocation</button>
+    <button type="button" data-flow-mode="period" aria-pressed="false">Multi-period flow</button>
+  </div>
+
+  <div data-flow-panel="carrier">
+    <div class="dm-lab__equation">min Σ unitCost[s] · volume[s]
+s.t. Σ volume[s] = 860
+     min[s] ≤ volume[s] ≤ max[s]</div>
+    <div class="dm-lab__controls">
+      <label>Carrier A volume<input data-carrier-input="a" type="range" min="180" max="420" step="10" value="300" /></label>
+      <label>Carrier B volume<input data-carrier-input="b" type="range" min="120" max="360" step="10" value="300" /></label>
+      <label>Carrier C volume<input data-carrier-input="c" type="range" min="0" max="300" step="10" value="260" /></label>
+    </div>
+    <div class="dm-lab__metrics" aria-live="polite">
+      <div class="dm-lab__metric"><span>Allocated</span><strong data-carrier-total>860</strong></div>
+      <div class="dm-lab__metric"><span>Demand</span><strong>860</strong></div>
+      <div class="dm-lab__metric"><span>Transport cost</span><strong data-carrier-cost>6198</strong></div>
+      <div class="dm-lab__metric"><span>Status</span><strong data-carrier-status>Feasible</strong></div>
+    </div>
+    <div class="dm-lab__bar-list" data-carrier-bars></div>
+    <div class="dm-lab__callout"><strong>Flow interpretation</strong><span data-carrier-reading>总分配正好覆盖需求，并且所有运输商都在承诺区间内。</span></div>
+  </div>
+
+  <div data-flow-panel="period" hidden>
+    <div class="dm-lab__actions">
+      <button type="button" data-production-plan="match" aria-pressed="true">Demand match</button>
+      <button type="button" data-production-plan="smooth" aria-pressed="false">Smooth 225</button>
+      <button type="button" data-production-plan="batch" aria-pressed="false">Two batches</button>
+    </div>
+    <div class="dm-lab__equation">endingInventory[t] = beginningInventory[t] + production[t] - demand[t]
+beginningInventory[t+1] = endingInventory[t]</div>
+    <div class="dm-lab__metrics" aria-live="polite">
+      <div class="dm-lab__metric"><span>Total production</span><strong data-period-production>900</strong></div>
+      <div class="dm-lab__metric"><span>Setups</span><strong data-period-setups>4</strong></div>
+      <div class="dm-lab__metric"><span>Holding units</span><strong data-period-holding>0</strong></div>
+      <div class="dm-lab__metric"><span>Total cost</span><strong data-period-cost>12480</strong></div>
+    </div>
+    <div class="dm-lab__table-wrap">
+      <table>
+        <thead><tr><th>Period</th><th>Demand</th><th>Production</th><th>Ending inventory</th></tr></thead>
+        <tbody data-period-body></tbody>
+      </table>
+    </div>
+    <div class="dm-lab__callout"><strong>Planning interpretation</strong><span data-period-reading>逐期匹配需求没有库存成本，但四期都需要启动生产，因此 setup cost 较高。</span></div>
+  </div>
+
+  <script is:inline type="application/json" data-flow-source set:html={payload} />
+</section>
+
+<script>
+  type Carrier = { id: string; name: string; minVolume: number; maxVolume: number; unitCost: number };
+  type Period = { period: number; demand: number; productionCost: number; holdingCost: number; setupCost: number };
+  let flowCleanup: (() => void) | undefined;
+  function initFlowLab() {
+    flowCleanup?.();
+    const root = document.querySelector<HTMLElement>("[data-flow-lab]");
+    const source = root?.querySelector<HTMLScriptElement>("[data-flow-source]");
+    if (!root || !source) return;
+    const data = JSON.parse(source.textContent || "{}") as { carriers: Carrier[]; periods: Period[] };
+    const controller = new AbortController();
+    const field = (selector: string) => root.querySelector<HTMLElement>(selector);
+
+    function renderCarriers() {
+      const volumes = new Map<string, number>();
+      data.carriers.forEach((carrier) => {
+        const input = root.querySelector<HTMLInputElement>(`[data-carrier-input="${carrier.id}"]`);
+        volumes.set(carrier.id, Number(input?.value || 0));
+      });
+      const total = data.carriers.reduce((sum, carrier) => sum + (volumes.get(carrier.id) || 0), 0);
+      const cost = data.carriers.reduce((sum, carrier) => sum + (volumes.get(carrier.id) || 0) * carrier.unitCost, 0);
+      const boundsOk = data.carriers.every((carrier) => {
+        const volume = volumes.get(carrier.id) || 0;
+        return volume >= carrier.minVolume && volume <= carrier.maxVolume;
+      });
+      const feasible = boundsOk && total === 860;
+      field("[data-carrier-total]")!.textContent = String(total);
+      field("[data-carrier-cost]")!.textContent = cost.toFixed(0);
+      field("[data-carrier-status]")!.textContent = feasible ? "Feasible" : "Check flow";
+      const bars = field("[data-carrier-bars]");
+      if (bars) {
+        bars.replaceChildren();
+        data.carriers.forEach((carrier) => {
+          const volume = volumes.get(carrier.id) || 0;
+          const row = document.createElement("div"); row.className = "dm-lab__bar-row";
+          const label = document.createElement("span"); label.textContent = `${carrier.name} · ${volume}`;
+          const track = document.createElement("div"); track.className = "dm-lab__bar-track";
+          const fill = document.createElement("div"); fill.className = "dm-lab__bar-fill"; fill.style.setProperty("--bar-width", `${(volume / carrier.maxVolume) * 100}%`);
+          const bound = document.createElement("strong"); bound.textContent = `${carrier.minVolume}–${carrier.maxVolume}`;
+          track.append(fill); row.append(label, track, bound); bars.append(row);
+        });
+      }
+      field("[data-carrier-reading]")!.textContent = feasible
+        ? "总分配正好覆盖 860 的需求，并且每家运输商都在最低承诺量与最大承运量之间。"
+        : total !== 860
+          ? `当前分配为 ${total}，与需求 860 相差 ${Math.abs(860 - total)}；成本数字只有在流量平衡成立后才具有可比性。`
+          : "总量已经平衡，但至少一家运输商违反了承诺上下限；需要重新分配而不是只比较单位成本。";
+    }
+
+    const plans: Record<string, number[]> = {
+      match: data.periods.map((period) => period.demand),
+      smooth: [225, 225, 225, 225],
+      batch: [440, 0, 460, 0],
+    };
+    const planCopy: Record<string, string> = {
+      match: "逐期匹配需求没有库存成本，但四期都需要启动生产，因此 setup cost 较高。",
+      smooth: "平滑生产减少了产量波动，但仍然每期启动，并产生跨期库存；它不一定比逐期匹配更便宜。",
+      batch: "两次大批量生产把 setup 次数从 4 降到 2，同时用库存覆盖下一期需求；固定启动节省需要与持有成本比较。",
+    };
+
+    function renderPeriod(planId: string) {
+      const production = plans[planId];
+      let inventory = 0; let holdingUnits = 0; let setups = 0; let productionCost = 0; let setupCost = 0;
+      const body = root.querySelector<HTMLTableSectionElement>("[data-period-body]");
+      body?.replaceChildren();
+      data.periods.forEach((period, index) => {
+        const qty = production[index] || 0;
+        inventory += qty - period.demand;
+        holdingUnits += Math.max(0, inventory);
+        if (qty > 0) { setups += 1; setupCost += period.setupCost; }
+        productionCost += qty * period.productionCost;
+        const tr = document.createElement("tr");
+        [period.period, period.demand, qty, inventory].forEach((value) => { const td = document.createElement("td"); td.textContent = String(value); tr.append(td); });
+        body?.append(tr);
+      });
+      const holdingCost = holdingUnits * data.periods[0].holdingCost;
+      const totalCost = productionCost + setupCost + holdingCost;
+      field("[data-period-production]")!.textContent = String(production.reduce((sum, value) => sum + value, 0));
+      field("[data-period-setups]")!.textContent = String(setups);
+      field("[data-period-holding]")!.textContent = String(holdingUnits);
+      field("[data-period-cost]")!.textContent = totalCost.toFixed(0);
+      field("[data-period-reading]")!.textContent = planCopy[planId];
+      root.querySelectorAll<HTMLButtonElement>("[data-production-plan]").forEach((button) => button.setAttribute("aria-pressed", String(button.dataset.productionPlan === planId)));
+    }
+
+    root.querySelectorAll<HTMLButtonElement>("[data-flow-mode]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const mode = button.dataset.flowMode;
+        root.querySelectorAll<HTMLButtonElement>("[data-flow-mode]").forEach((candidate) => candidate.setAttribute("aria-pressed", String(candidate === button)));
+        root.querySelectorAll<HTMLElement>("[data-flow-panel]").forEach((panel) => { panel.hidden = panel.dataset.flowPanel !== mode; });
+      }, { signal: controller.signal });
+    });
+    root.querySelectorAll<HTMLInputElement>("[data-carrier-input]").forEach((input) => input.addEventListener("input", renderCarriers, { signal: controller.signal }));
+    root.querySelectorAll<HTMLButtonElement>("[data-production-plan]").forEach((button) => button.addEventListener("click", () => renderPeriod(button.dataset.productionPlan || "match"), { signal: controller.signal }));
+    renderCarriers(); renderPeriod("match");
+    flowCleanup = () => controller.abort();
+  }
+  document.addEventListener("astro:before-swap", () => flowCleanup?.());
+  document.addEventListener("astro:page-load", initFlowLab);
+  initFlowLab();
+</script>
