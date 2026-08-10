@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "astro build && node scripts/validate-ci.mjs && node scripts/verify-built-churn.mjs",
+    "build": "astro build && node scripts/audit-learning-notes.mjs && node scripts/validate-ci.mjs && node scripts/verify-built-churn.mjs",
     "preview": "astro preview",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
