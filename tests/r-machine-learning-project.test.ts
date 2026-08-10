@@ -43,6 +43,8 @@ describe("R machine learning flagship project", () => {
   const comparison = readFileSync("src/components/ModelComparisonLab.astro", "utf8");
   const evaluation = readFileSync("src/components/ModelEvaluation.astro", "utf8");
   const onThisPage = readFileSync("src/components/ChurnOnThisPage.astro", "utf8");
+  const deepDiveShell = readFileSync("src/components/RDeepDiveShell.astro", "utf8");
+  const deepDiveNav = readFileSync("src/components/TechnicalDeepDiveNav.astro", "utf8");
   const correlationExplorer = readFileSync(
     "src/components/ChurnCorrelationExplorer.astro",
     "utf8",
@@ -78,6 +80,8 @@ describe("R machine learning flagship project", () => {
     neural,
     comparison,
     evaluation,
+    deepDiveShell,
+    deepDiveNav,
   ].join("\n");
 
   it("publishes one indexable Chinese flagship project", () => {
@@ -200,6 +204,8 @@ describe("R machine learning flagship project", () => {
     expect(mainPage).toContain("<ChurnOddsRatioChart");
     expect(rocExplorer).toContain("0.9053");
     expect(oddsRatioChart).toContain("data-native-or-item");
+    expect(deepDiveNav).toContain("继续深入分析");
+    expect(deepDiveShell).toContain("继续阅读技术专题");
   });
 
   it("reproduces the neural experiment with original seeds and fixed architecture", () => {
@@ -243,7 +249,7 @@ describe("R machine learning flagship project", () => {
 
   it("excludes prohibited public terms, identity, paths and false runtime claims", () => {
     expect(publicSource).not.toMatch(
-      /BUSINFO704|Assignment|Task [1-4]|Submission|课程项目|课程报告|样板页|试点页|暂不索引|V1\.0|正式版|固定结果|保存的固定结果|不会触发训练|浏览器本地计算|源文件|内部核实|匿名访问|课程文件|正式版 V3|稍后补充/,
+      /BUSINFO\s*704|\b704\b|Assignment|Task [1-4]|Submission|课程项目|课程报告|样板页|试点页|暂不索引|V1\.0|正式版|固定结果|保存的固定结果|不会触发训练|浏览器本地计算|源文件|内部核实|匿名访问|课程文件|正式版 V3|稍后补充/,
     );
     expect(publicSource).not.toMatch(
       /在线训练 R|实时机器学习|实时模型训练|浏览器运行 R|[A-Z]:\\/,
