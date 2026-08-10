@@ -20,6 +20,7 @@ const sqlSources = [
   "src/content/notes/sql-select.zh.md",
   "src/content/notes/sql-where.zh.md",
   "src/content/notes/sql-projection.zh.md",
+  "src/content/notes/sql-order-by.zh.md",
   "src/components/learning/RelationalModelExplorer.astro",
   "src/components/learning/PrimaryKeyLab.astro",
   "src/components/learning/ForeignKeyLab.astro",
@@ -27,6 +28,7 @@ const sqlSources = [
   "src/components/learning/SqlDatasetExplorer.astro",
   "src/components/learning/WhereFilterLab.astro",
   "src/components/learning/ProjectionColumnsLab.astro",
+  "src/components/learning/OrderByLab.astro",
   "src/components/learning/SqlPlayground.astro",
 ].map(read);
 
@@ -149,6 +151,7 @@ describe("SQL Learning Notes integrity contract", () => {
     const primary = read("src/content/notes/sql-primary-key.zh.md");
     const foreign = read("src/content/notes/sql-foreign-key.zh.md");
     const where = read("src/content/notes/sql-where.zh.md");
+    const orderBy = read("src/content/notes/sql-order-by.zh.md");
 
     expect(primary).toContain("AUTO_INCREMENT` 是 MySQL 方言");
     expect(primary).toContain("SQLite 的 INTEGER PRIMARY KEY 有什么特殊之处");
@@ -157,6 +160,11 @@ describe("SQL Learning Notes integrity contract", () => {
     expect(foreign).toContain("SQLite 的 `ALTER TABLE` 支持范围比 MySQL/PostgreSQL 受限");
     expect(where).toContain("标准 SQL 常用");
     expect(where).toContain("`LIKE` 的大小写行为、字符排序与 collation 规则会随数据库与配置变化");
+    expect(orderBy).toContain("不同数据库对默认 NULL 排序位置并不完全一致");
+    expect(orderBy).toContain("SQLite / MySQL");
+    expect(orderBy).toContain("PostgreSQL");
+    expect(orderBy).toContain("NULLS FIRST");
+    expect(orderBy).toContain("NULLS LAST");
   });
 
   it("keeps SELECT semantics explicit and appropriate for the local sql.js environment", () => {
@@ -239,6 +247,22 @@ describe("SQL Learning Notes integrity contract", () => {
     ]);
   });
 
+  it("keeps ORDER BY examples aligned with canonical row order", () => {
+    expect(
+      [...sqlOrders].sort((a, b) => a.order_value - b.order_value).map((row) => row.order_id),
+    ).toEqual([50002, 50001, 50004, 50003]);
+    expect(
+      [...sqlOrders].sort((a, b) => b.order_value - a.order_value).map((row) => row.order_id),
+    ).toEqual([50003, 50004, 50001, 50002]);
+    expect(
+      [...sqlOrders]
+        .sort(
+          (a, b) => a.customer_id - b.customer_id || b.order_date.localeCompare(a.order_date),
+        )
+        .map((row) => row.order_id),
+    ).toEqual([50002, 50001, 50003, 50004]);
+  });
+
   it("makes interactive visuals read from canonical data instead of private copies", () => {
     const primaryLab = read("src/components/learning/PrimaryKeyLab.astro");
     const relationshipLab = read(
@@ -247,6 +271,7 @@ describe("SQL Learning Notes integrity contract", () => {
     const datasetExplorer = read("src/components/learning/SqlDatasetExplorer.astro");
     const whereFilterLab = read("src/components/learning/WhereFilterLab.astro");
     const projectionLab = read("src/components/learning/ProjectionColumnsLab.astro");
+    const orderByLab = read("src/components/learning/OrderByLab.astro");
     const playground = read("src/components/learning/SqlPlayground.astro");
 
     [
@@ -255,6 +280,7 @@ describe("SQL Learning Notes integrity contract", () => {
       datasetExplorer,
       whereFilterLab,
       projectionLab,
+      orderByLab,
       playground,
     ].forEach((source) => {
       expect(source).toContain("sql-learning");
@@ -269,5 +295,7 @@ describe("SQL Learning Notes integrity contract", () => {
     expect(whereFilterLab).toContain("segment IN ('Retail', 'Enterprise')");
     expect(projectionLab).toContain("customer_id AS customer_key");
     expect(projectionLab).toContain("WHERE order_value >= 500");
+    expect(orderByLab).toContain("sqlLearningSeedSql");
+    expect(orderByLab).toContain("ORDER BY order_value DESC, order_id ASC");
   });
 });
