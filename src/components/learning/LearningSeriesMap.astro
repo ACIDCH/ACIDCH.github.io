@@ -2,6 +2,7 @@
 import { getCollection } from "astro:content";
 import { learningSeries } from "../../data/learning-series";
 import { getLocalizedPath } from "../../utils/paths";
+import LearningSeriesIcon from "./LearningSeriesIcon.astro";
 
 const publishedNotes = (await getCollection("notes")).filter(
   (entry) => entry.data.locale === "zh" && !entry.data.draft,
@@ -13,51 +14,50 @@ const displayedSeries = [...learningSeries].sort((left, right) => {
 });
 const folderTitle = (slug: string, fallback: string) =>
   slug === "decision-models" ? "供应链与优化" : fallback;
-const folderDescription = (slug: string, fallback: string) =>
-  slug === "decision-models"
-    ? "把供应链问题统一归纳为优化建模、LP/MILP、敏感性、PuLP、多维模型、运输分配与多期生产库存等连续知识模块。"
-    : fallback;
+const folderDescription = (slug: string, fallback: string) => {
+  const descriptions: Record<string, string> = {
+    "decision-models": "优化建模、LP/MILP、PuLP、运输与多期库存。",
+    sql: "关系数据、查询、连接、聚合与事务。",
+    "r-statistics": "描述统计、概率、估计与统计检验。",
+    regression: "回归解释、预测、诊断与统计建模。",
+    python: "数据处理、清洗、分析与可复现工作流。",
+  };
+  return descriptions[slug] ?? fallback;
+};
 ---
 
 <section class="learning-series-map" aria-labelledby="learning-series-map-title">
-  <div class="learning-series-map__heading">
-    <p class="status">学习笔记文件夹</p>
-    <h2 id="learning-series-map-title">按主题进入知识库</h2>
-    <p>每个文件夹是一条完整学习主线。进入文件夹后，可以按模块顺序直接阅读已经发布的长篇笔记。</p>
+  <div class="learning-series-map__heading learning-series-map__heading--compact">
+    <div>
+      <p class="status">知识库</p>
+      <h2 id="learning-series-map-title">按主题进入知识库</h2>
+    </div>
+    <p>按完整学习主线进入对应知识库；模块明细放在文件夹内部，首页只保留必要信息。</p>
   </div>
-  <div class="learning-series-map__grid learning-folder-grid">
+
+  <div class="learning-folder-grid">
     {
       displayedSeries.map((series) => {
         const noteCount = publishedNotes.filter(
           (entry) => entry.data.seriesSlug === series.slug,
         ).length;
-        const isSupplyChain = series.slug === "decision-models";
         const title = folderTitle(series.slug, series.title);
+        const href = getLocalizedPath(`/notes/series/${series.slug}/`, "zh");
         return (
-          <article
-            class:list={["learning-folder", isSupplyChain && "learning-folder--featured"]}
-            data-learning-folder={series.slug}
-          >
-            <div class="learning-folder__topline">
-              <span aria-hidden="true" class="learning-folder__icon">▱</span>
-              <span>{noteCount} 篇已发布</span>
+          <article class="learning-folder" data-learning-folder={series.slug}>
+            <div class="learning-folder__icon" aria-hidden="true">
+              <LearningSeriesIcon slug={series.slug} />
             </div>
-            <h3>
-              <a href={getLocalizedPath(`/notes/series/${series.slug}/`, "zh")}>
-                {title}
-              </a>
-            </h3>
-            <p>{folderDescription(series.slug, series.description)}</p>
-            <ul>
-              {series.modules.slice(0, isSupplyChain ? 4 : 3).map((module) => (
-                <li>
-                  <strong>{module.code}</strong> {module.title}
-                </li>
-              ))}
-            </ul>
-            <div class="learning-folder__footer">
-              <span>{series.modules.length} 个核心模块</span>
-              <a href={getLocalizedPath(`/notes/series/${series.slug}/`, "zh")}>打开文件夹 →</a>
+            <div class="learning-folder__content">
+              <div class="learning-folder__title-row">
+                <h3><a href={href}>{title}</a></h3>
+                <span class="learning-folder__count">{noteCount} 篇</span>
+              </div>
+              <p>{folderDescription(series.slug, series.description)}</p>
+              <div class="learning-folder__meta">
+                <span>{series.modules.length} 个模块</span>
+                <a href={href} aria-label={`打开${title}知识库`}>进入知识库 →</a>
+              </div>
             </div>
           </article>
         );
@@ -67,48 +67,152 @@ const folderDescription = (slug: string, fallback: string) =>
 </section>
 
 <style>
+  .learning-series-map {
+    display: grid;
+    gap: var(--space-5);
+    padding-block: var(--space-4) var(--space-6);
+  }
+
+  .learning-series-map__heading--compact {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: var(--space-6);
+  }
+
+  .learning-series-map__heading--compact > div {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .learning-series-map__heading--compact > p {
+    max-width: 38rem;
+    text-align: right;
+  }
+
   .learning-folder-grid {
-    align-items: stretch;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4);
   }
 
   .learning-folder {
-    position: relative;
     display: grid;
-    grid-template-rows: auto auto 1fr auto auto;
-    gap: var(--space-3);
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-4);
     min-width: 0;
+    padding: var(--space-5);
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-xl);
+    background: var(--colour-surface);
+    box-shadow: var(--shadow-sm);
+    transition:
+      border-color var(--duration-fast) var(--ease-standard),
+      box-shadow var(--duration-fast) var(--ease-standard),
+      transform var(--duration-fast) var(--ease-standard);
   }
 
-  .learning-folder--featured {
+  .learning-folder:hover {
     border-color: var(--colour-border-strong);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
   }
 
-  .learning-folder__topline,
-  .learning-folder__footer {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-2);
-    color: var(--colour-text-muted);
-    font-size: var(--font-size-sm);
+  .learning-folder:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+    width: calc(50% - var(--space-2));
+    justify-self: center;
   }
 
   .learning-folder__icon {
-    font-size: 1.15rem;
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-lg);
+    color: var(--colour-primary-strong);
+    background: var(--colour-surface-subtle);
+  }
+
+  .learning-folder__content {
+    display: grid;
+    gap: var(--space-2);
+    min-width: 0;
+  }
+
+  .learning-folder__title-row,
+  .learning-folder__meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
   }
 
   .learning-folder h3 {
     margin: 0;
+    font-size: var(--font-size-lg);
   }
 
-  .learning-folder__footer {
-    margin-top: var(--space-2);
-    padding-top: var(--space-3);
-    border-top: 1px solid var(--colour-border);
+  .learning-folder h3 a {
+    color: var(--colour-text);
+    text-decoration: none;
   }
 
-  .learning-folder__footer a {
+  .learning-folder h3 a:hover {
+    color: var(--colour-primary-strong);
+  }
+
+  .learning-folder__count {
+    flex: 0 0 auto;
+    padding: 0.25rem 0.55rem;
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-pill);
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-xs);
     font-weight: var(--font-weight-semibold);
+  }
+
+  .learning-folder__meta {
+    padding-top: var(--space-2);
+    border-top: 1px solid var(--colour-border);
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-sm);
+  }
+
+  .learning-folder__meta a {
+    font-weight: var(--font-weight-semibold);
+    text-decoration: none;
+  }
+
+  @media (max-width: 52rem) {
+    .learning-series-map__heading--compact {
+      display: grid;
+      align-items: start;
+    }
+
+    .learning-series-map__heading--compact > p {
+      text-align: left;
+    }
+
+    .learning-folder-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .learning-folder:last-child:nth-child(odd) {
+      grid-column: auto;
+      width: 100%;
+    }
+  }
+
+  @media (max-width: 32rem) {
+    .learning-folder {
+      grid-template-columns: 1fr;
+    }
+
+    .learning-folder__icon {
+      width: 2.75rem;
+      height: 2.75rem;
+    }
   }
 </style>
