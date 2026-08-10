@@ -10,6 +10,7 @@ const notes = {
   relationships: read("src/content/notes/sql-relationships.zh.md"),
   select: read("src/content/notes/sql-select.zh.md"),
   where: read("src/content/notes/sql-where.zh.md"),
+  projection: read("src/content/notes/sql-projection.zh.md"),
 };
 const layout = read("src/layouts/NoteLayout.astro");
 const noteList = read("src/components/NoteList.astro");
@@ -23,10 +24,11 @@ const relationshipLab = read(
   "src/components/learning/RelationshipCardinalityLab.astro",
 );
 const whereFilterLab = read("src/components/learning/WhereFilterLab.astro");
+const projectionLab = read("src/components/learning/ProjectionColumnsLab.astro");
 const sqlPlayground = read("src/components/learning/SqlPlayground.astro");
 
 describe("SQL and relational data Learning Notes", () => {
-  it("publishes SQL 01 through SQL 06 in one stable series", () => {
+  it("publishes SQL 01 through SQL 07 in one stable series", () => {
     [
       [notes.overview, "sql-relational-data", 1],
       [notes.primaryKey, "sql-primary-key", 2],
@@ -34,6 +36,7 @@ describe("SQL and relational data Learning Notes", () => {
       [notes.relationships, "sql-relationships", 4],
       [notes.select, "sql-select", 5],
       [notes.where, "sql-where", 6],
+      [notes.projection, "sql-projection", 7],
     ].forEach(([note, slug, order]) => {
       expect(note).toContain(`slug: ${slug}`);
       expect(note).toContain("seriesSlug: sql");
@@ -169,7 +172,31 @@ describe("SQL and relational data Learning Notes", () => {
     expect(notes.where).toContain("segment IN ('Retail', 'Enterprise')");
   });
 
-  it("renders SQL 01 through SQL 06 through the shared editorial layout", () => {
+  it("gives SQL 07 a complete Projection and result-shape sequence", () => {
+    [
+      "## 从筛选行进入选择列",
+      "## Projection 改变的是结果集的列",
+      "## 不返回某列不等于删除某列",
+      "## 结果列的顺序由 SELECT 列表决定",
+      "## 列别名改变结果集字段名",
+      "## AS 为什么值得保留",
+      "## Projection 可以和 WHERE 组合",
+      "## 表达式也可以成为结果列",
+      "## 别名应该表达业务语义",
+      "## 重复或模糊的输出列名会制造风险",
+      "## SELECT 星号为什么不适合作为长期接口",
+      "## Projection 不负责排序",
+      "## Business Analytics 中 Projection 是结果接口设计",
+      "## 下一步控制结果的行顺序",
+    ].forEach((term) => expect(notes.projection).toContain(term));
+    expect(notes.projection).toContain('data-learning-slot="projection-columns-lab"');
+    expect(notes.projection).toContain('data-learning-slot="sql-playground"');
+    expect(notes.projection).toContain("3 rows × 3 columns");
+    expect(notes.projection).toContain("customer_id AS customer_key");
+    expect(notes.projection).toContain("ROUND(order_value * 1.10, 2) AS scenario_value");
+  });
+
+  it("renders SQL 01 through SQL 07 through the shared editorial layout", () => {
     [
       "sql-relational-data",
       "sql-primary-key",
@@ -177,6 +204,7 @@ describe("SQL and relational data Learning Notes", () => {
       "sql-relationships",
       "sql-select",
       "sql-where",
+      "sql-projection",
     ].forEach((slug) => expect(layout).toContain(`entry.data.slug === "${slug}"`));
     [
       "const sqlOverviewToc",
@@ -185,6 +213,7 @@ describe("SQL and relational data Learning Notes", () => {
       "const sqlRelationshipsToc",
       "const sqlSelectToc",
       "const sqlWhereToc",
+      "const sqlProjectionToc",
     ].forEach((term) => expect(layout).toContain(term));
     expect(layout).toContain("<LearningNoteHero title={handbookTitle} />");
   });
@@ -196,6 +225,7 @@ describe("SQL and relational data Learning Notes", () => {
     expect(layout).toContain("<ForeignKeyLab />");
     expect(layout).toContain("<RelationshipCardinalityLab />");
     expect(layout).toContain("<WhereFilterLab />");
+    expect(layout).toContain("<ProjectionColumnsLab />");
     expect(relationalModelExplorer).toContain('data-model-choice="hierarchical"');
     expect(relationalModelExplorer).toContain('data-model-choice="network"');
     expect(relationalModelExplorer).toContain('data-model-choice="relational"');
@@ -207,6 +237,11 @@ describe("SQL and relational data Learning Notes", () => {
     expect(whereFilterLab).toContain('data-where-rule="between"');
     expect(whereFilterLab).toContain('data-where-rule="null"');
     expect(whereFilterLab).toContain("KEEP ✓");
+    expect(projectionLab).toContain('data-projection-mode="columns"');
+    expect(projectionLab).toContain('data-projection-mode="alias"');
+    expect(projectionLab).toContain('data-projection-mode="where"');
+    expect(projectionLab).toContain("sqlCustomers");
+    expect(projectionLab).toContain("sqlOrders");
   });
 
   it("keeps only the SQL overview as the compact handbook card", () => {
@@ -218,6 +253,7 @@ describe("SQL and relational data Learning Notes", () => {
       "sql-relationships",
       "sql-select",
       "sql-where",
+      "sql-projection",
     ].forEach((slug) => expect(noteList).not.toContain(`"${slug}":`));
   });
 
@@ -231,8 +267,13 @@ describe("SQL and relational data Learning Notes", () => {
     expect(sqlPlayground).toContain('value: "where-gte"');
     expect(sqlPlayground).toContain('value: "where-grouped"');
     expect(sqlPlayground).toContain('value: "where-null"');
+    expect(sqlPlayground).toContain('value: "projection-columns"');
+    expect(sqlPlayground).toContain('value: "projection-alias"');
+    expect(sqlPlayground).toContain('value: "projection-expression"');
     expect(sqlPlayground).toContain("SELECT 1 AS execution_ok");
     expect(sqlPlayground).toContain("order_value BETWEEN 400 AND 600");
+    expect(sqlPlayground).toContain("customer_id AS customer_key");
+    expect(sqlPlayground).toContain("ROUND(order_value * 1.10, 2) AS scenario_value");
     expect(sqlPlayground).toContain("sql.js@1.14.1");
     expect(sqlPlayground).toContain("data-sql-result-summary");
   });
