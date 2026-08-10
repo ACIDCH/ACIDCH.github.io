@@ -8,7 +8,9 @@ import DescriptiveStatisticsLab from "../components/learning/DescriptiveStatisti
 import LearningNoteHero from "../components/learning/LearningNoteHero.astro";
 import LearningNoteToc from "../components/learning/LearningNoteToc.astro";
 import NormalDistributionLab from "../components/learning/NormalDistributionLab.astro";
+import PrimaryKeyLab from "../components/learning/PrimaryKeyLab.astro";
 import RegressionLab from "../components/learning/RegressionLab.astro";
+import SqlPlayground from "../components/learning/SqlPlayground.astro";
 import "../styles/learning-note-editorial.css";
 import { getCanonicalUrl } from "../utils/urls";
 import BaseLayout from "./BaseLayout.astro";
@@ -20,8 +22,11 @@ interface Props {
 
 const { entry, alternatePath } = Astro.props;
 const { Content } = await render(entry);
-const isHandbook = entry.data.slug === "descriptive-statistics";
-const learningToc = [
+const isStatisticsHandbook = entry.data.slug === "descriptive-statistics";
+const isSqlHandbook = entry.data.slug === "sql-relational-data";
+const isHandbook = isStatisticsHandbook || isSqlHandbook;
+
+const statisticsToc = [
   {
     id: "描述性统计量",
     label: "描述性统计量",
@@ -95,6 +100,21 @@ const learningToc = [
   },
   { id: "一条完整的统计学习路径", label: "完整学习路径" },
 ];
+
+const sqlToc = [
+  { id: "关系表到底在保存什么", label: "关系表与记录粒度" },
+  { id: "主键怎样唯一定位一条记录", label: "主键" },
+  { id: "外键表之间怎样建立关系", label: "外键与表关系" },
+  { id: "索引为什么有的查询更快", label: "索引" },
+  { id: "从结构走向查询主键和外键为什么重要", label: "从结构走向查询" },
+  { id: "关系模型中的三个核心角色", label: "三个核心角色" },
+  { id: "建表时可以按什么顺序思考", label: "建表顺序" },
+  { id: "下一步", label: "下一步" },
+];
+
+const learningToc = isSqlHandbook ? sqlToc : statisticsToc;
+const handbookTitle = isSqlHandbook ? "SQL 与关系数据" : "统计学与 R";
+
 const notes = await getCollection("notes");
 const projects = await getCollection("projects");
 const relatedNotes = notes.filter(
@@ -148,35 +168,62 @@ const noteStructuredData = {
     {
       isHandbook ? (
         <>
-          <LearningNoteHero title="统计学与 R" />
+          <LearningNoteHero title={handbookTitle} />
           <div class="learning-note__grid">
             <LearningNoteToc items={learningToc} />
             <div class="learning-note__body">
               <Content />
-              <div class="learning-note__inline-block" data-learning-block="statistics-lab">
-                <DescriptiveStatisticsLab />
-              </div>
-              <div
-                class="learning-note__inline-block"
-                data-learning-block="normal-distribution-lab"
-                data-learning-after-heading="连续概率分布"
-              >
-                <NormalDistributionLab />
-              </div>
-              <div
-                class="learning-note__inline-block"
-                data-learning-block="correlation-lab"
-                data-learning-after-heading="相关性可视化展示"
-              >
-                <CorrelationLab />
-              </div>
-              <div
-                class="learning-note__inline-block"
-                data-learning-block="regression-lab"
-                data-learning-after-heading="回归分析"
-              >
-                <RegressionLab />
-              </div>
+              {
+                isStatisticsHandbook && (
+                  <>
+                    <div
+                      class="learning-note__inline-block"
+                      data-learning-block="statistics-lab"
+                    >
+                      <DescriptiveStatisticsLab />
+                    </div>
+                    <div
+                      class="learning-note__inline-block"
+                      data-learning-block="normal-distribution-lab"
+                      data-learning-after-heading="连续概率分布"
+                    >
+                      <NormalDistributionLab />
+                    </div>
+                    <div
+                      class="learning-note__inline-block"
+                      data-learning-block="correlation-lab"
+                      data-learning-after-heading="相关性可视化展示"
+                    >
+                      <CorrelationLab />
+                    </div>
+                    <div
+                      class="learning-note__inline-block"
+                      data-learning-block="regression-lab"
+                      data-learning-after-heading="回归分析"
+                    >
+                      <RegressionLab />
+                    </div>
+                  </>
+                )
+              }
+              {
+                isSqlHandbook && (
+                  <>
+                    <div
+                      class="learning-note__inline-block"
+                      data-learning-block="primary-key-lab"
+                    >
+                      <PrimaryKeyLab />
+                    </div>
+                    <div
+                      class="learning-note__inline-block"
+                      data-learning-block="sql-playground"
+                    >
+                      <SqlPlayground />
+                    </div>
+                  </>
+                )
+              }
             </div>
           </div>
         </>
