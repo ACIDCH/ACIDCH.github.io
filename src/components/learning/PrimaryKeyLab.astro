@@ -20,7 +20,7 @@ const serializedRows = JSON.stringify(sqlCustomers).replace(/</g, "\\u003c");
   </div>
 
   <div class="primary-key-lab__stage">
-    <div class="primary-key-lab__table-wrap">
+    <div class="primary-key-lab__table-wrap" aria-label="桌面客户记录表">
       <table>
         <thead>
           <tr>
@@ -33,6 +33,8 @@ const serializedRows = JSON.stringify(sqlCustomers).replace(/</g, "\\u003c");
         <tbody data-key-table-body></tbody>
       </table>
     </div>
+
+    <div class="primary-key-lab__cards" data-key-cards aria-label="移动端客户记录"></div>
 
     <aside class="primary-key-lab__reading" aria-live="polite">
       <span>当前候选</span>
@@ -125,10 +127,6 @@ const serializedRows = JSON.stringify(sqlCustomers).replace(/</g, "\\u003c");
     white-space: nowrap;
   }
 
-  .primary-key-lab td::before {
-    content: none;
-  }
-
   .primary-key-lab th[data-active-key="true"],
   .primary-key-lab td[data-active-key="true"] {
     background: var(--colour-surface-subtle);
@@ -138,6 +136,10 @@ const serializedRows = JSON.stringify(sqlCustomers).replace(/</g, "\\u003c");
     text-decoration: underline;
     text-decoration-style: dotted;
     text-underline-offset: 0.25em;
+  }
+
+  .primary-key-lab__cards {
+    display: none;
   }
 
   .primary-key-lab__reading {
@@ -181,54 +183,62 @@ const serializedRows = JSON.stringify(sqlCustomers).replace(/</g, "\\u003c");
 
   @media (max-width: 42rem) {
     .primary-key-lab__table-wrap {
-      overflow-x: visible;
-    }
-
-    .primary-key-lab table,
-    .primary-key-lab tbody,
-    .primary-key-lab tr,
-    .primary-key-lab td {
-      display: block;
-      width: 100%;
-    }
-
-    .primary-key-lab thead {
       display: none;
     }
 
-    .primary-key-lab tbody {
+    .primary-key-lab__cards {
       display: grid;
       gap: var(--space-3);
     }
 
-    .primary-key-lab tbody tr {
-      padding: var(--space-2) var(--space-3);
+    .primary-key-lab__card {
+      margin: 0;
+      padding: var(--space-3);
       border: 1px solid var(--colour-border);
       border-radius: var(--radius-sm);
       background: var(--colour-surface);
     }
 
-    .primary-key-lab td {
+    .primary-key-lab__card-row {
       display: grid;
       grid-template-columns: 7.4rem minmax(0, 1fr);
       gap: var(--space-3);
-      padding: 0.52rem 0;
-      white-space: normal;
-      overflow-wrap: anywhere;
+      padding: 0.48rem 0;
+      border-bottom: 1px solid var(--colour-border);
     }
 
-    .primary-key-lab td::before {
-      content: attr(data-label);
-      color: var(--colour-text-muted);
-      font-family: var(--font-mono);
-      font-size: var(--font-size-xs);
-      text-decoration: none;
+    .primary-key-lab__card-row:last-child {
+      border-bottom: 0;
     }
 
-    .primary-key-lab td[data-active-key="true"] {
+    .primary-key-lab__card-row[data-active-key="true"] {
       margin-inline: calc(var(--space-2) * -1);
       padding-inline: var(--space-2);
       border-radius: var(--radius-sm);
+      background: var(--colour-surface-subtle);
+    }
+
+    .primary-key-lab__card dt,
+    .primary-key-lab__card dd {
+      margin: 0;
+      min-width: 0;
+    }
+
+    .primary-key-lab__card dt {
+      color: var(--colour-text-muted);
+      font-family: var(--font-mono);
+      font-size: var(--font-size-xs);
+    }
+
+    .primary-key-lab__card dd {
+      overflow-wrap: anywhere;
+      font-size: var(--font-size-sm);
+    }
+
+    .primary-key-lab__card-row[data-changed="true"] dd {
+      text-decoration: underline;
+      text-decoration-style: dotted;
+      text-underline-offset: 0.25em;
     }
 
     .primary-key-lab__checks {
@@ -266,6 +276,7 @@ const serializedRows = JSON.stringify(sqlCustomers).replace(/</g, "\\u003c");
     if (!root) return;
 
     const body = root.querySelector<HTMLTableSectionElement>("[data-key-table-body]");
+    const cards = root.querySelector<HTMLElement>("[data-key-cards]");
     const current = root.querySelector<HTMLElement>("[data-key-current]");
     const reading = root.querySelector<HTMLElement>("[data-key-reading]");
     const checks = root.querySelector<HTMLElement>("[data-key-checks]");
@@ -277,6 +288,7 @@ const serializedRows = JSON.stringify(sqlCustomers).replace(/</g, "\\u003c");
     );
     if (
       !body ||
+      !cards ||
       !current ||
       !reading ||
       !checks ||
@@ -289,6 +301,7 @@ const serializedRows = JSON.stringify(sqlCustomers).replace(/</g, "\\u003c");
 
     const labRoot = root;
     const tableBody = body;
+    const cardList = cards;
     const currentOutput = current;
     const readingOutput = reading;
     const checksOutput = checks;
@@ -305,12 +318,6 @@ const serializedRows = JSON.stringify(sqlCustomers).replace(/</g, "\\u003c");
       phone: "手机号可能被更换、回收或重新分配。它适合保存业务联系信息，不适合作为稳定身份。",
     };
     const fields: VisibleField[] = ["customer_id", "customer_name", "email", "phone"];
-    const labels: Record<VisibleField, string> = {
-      customer_id: "customer_id",
-      customer_name: "customer_name",
-      email: "email",
-      phone: "phone",
-    };
 
     function rows() {
       return originalRows.map((row) => {
@@ -321,6 +328,14 @@ const serializedRows = JSON.stringify(sqlCustomers).replace(/</g, "\\u003c");
           phone: "021-555-902",
         };
       });
+    }
+
+    function isChangedField(row: CustomerRow, field: VisibleField) {
+      return (
+        changed &&
+        row.customer_id === 1002 &&
+        (field === "email" || field === "phone")
+      );
     }
 
     function renderChecks(currentRows: CustomerRow[]) {
@@ -340,26 +355,47 @@ const serializedRows = JSON.stringify(sqlCustomers).replace(/</g, "\\u003c");
       });
     }
 
-    function render() {
-      const currentRows = rows();
+    function renderDesktopTable(currentRows: CustomerRow[]) {
       tableBody.replaceChildren();
       currentRows.forEach((row) => {
         const tr = document.createElement("tr");
         fields.forEach((field) => {
           const td = document.createElement("td");
           td.textContent = String(row[field]);
-          td.dataset.label = labels[field];
           if (field === selected) td.dataset.activeKey = "true";
-          if (
-            changed &&
-            row.customer_id === 1002 &&
-            (field === "email" || field === "phone")
-          )
-            td.dataset.changed = "true";
+          if (isChangedField(row, field)) td.dataset.changed = "true";
           tr.append(td);
         });
         tableBody.append(tr);
       });
+    }
+
+    function renderMobileCards(currentRows: CustomerRow[]) {
+      cardList.replaceChildren();
+      currentRows.forEach((row) => {
+        const card = document.createElement("dl");
+        card.className = "primary-key-lab__card";
+        fields.forEach((field) => {
+          const wrapper = document.createElement("div");
+          wrapper.className = "primary-key-lab__card-row";
+          wrapper.dataset.activeKey = String(field === selected);
+          if (isChangedField(row, field)) wrapper.dataset.changed = "true";
+
+          const term = document.createElement("dt");
+          term.textContent = field;
+          const value = document.createElement("dd");
+          value.textContent = String(row[field]);
+          wrapper.append(term, value);
+          card.append(wrapper);
+        });
+        cardList.append(card);
+      });
+    }
+
+    function render() {
+      const currentRows = rows();
+      renderDesktopTable(currentRows);
+      renderMobileCards(currentRows);
 
       labRoot.querySelectorAll<HTMLElement>("th[data-field]").forEach((cell) => {
         cell.dataset.activeKey = String(cell.dataset.field === selected);
