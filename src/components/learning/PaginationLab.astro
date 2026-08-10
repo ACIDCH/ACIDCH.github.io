@@ -237,8 +237,8 @@ LIMIT 2 OFFSET 0;</code></pre>
   .pagination-lab__window-head {
     display: flex;
     flex-wrap: wrap;
-    align-items: baseline;
     justify-content: space-between;
+    align-items: baseline;
     gap: var(--space-2);
     margin-bottom: var(--space-3);
   }
@@ -361,10 +361,7 @@ LIMIT 2 OFFSET 0;</code></pre>
       grid-template-columns: 1fr 1fr;
     }
 
-    .pagination-lab__metrics {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
+    .pagination-lab__metrics,
     .pagination-lab__rail {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -451,6 +448,12 @@ LIMIT 2 OFFSET 0;</code></pre>
   let sqlModulePromise: Promise<SqlModule> | undefined;
   const cdnBase = "https://cdn.jsdelivr.net/npm/sql.js@1.14.1/dist/";
 
+  function required<T extends Element>(root: ParentNode, selector: string): T {
+    const node = root.querySelector<T>(selector);
+    if (!node) throw new Error(`Missing PaginationLab element: ${selector}`);
+    return node;
+  }
+
   function getInitSqlJs(): Promise<InitSqlJs> {
     const existing = Reflect.get(window, "initSqlJs");
     if (typeof existing === "function") return Promise.resolve(existing as InitSqlJs);
@@ -507,52 +510,27 @@ LIMIT 2 OFFSET 0;</code></pre>
     const root = document.querySelector<HTMLElement>("[data-pagination-lab]");
     if (!root) return;
 
-    const sourceNode = root.querySelector<HTMLScriptElement>("[data-pagination-source]");
-    const pageSizeSelect = root.querySelector<HTMLSelectElement>("[data-pagination-page-size]");
-    const pageIndexInput = root.querySelector<HTMLInputElement>("[data-pagination-page-index]");
-    const prevButton = root.querySelector<HTMLButtonElement>("[data-pagination-prev]");
-    const nextButton = root.querySelector<HTMLButtonElement>("[data-pagination-next]");
-    const beyondButton = root.querySelector<HTMLButtonElement>("[data-pagination-demo-beyond]");
-    const runButton = root.querySelector<HTMLButtonElement>("[data-pagination-run]");
-    const formula = root.querySelector<HTMLElement>("[data-pagination-formula]");
-    const totalMetric = root.querySelector<HTMLElement>("[data-pagination-total]");
-    const sizeMetric = root.querySelector<HTMLElement>("[data-pagination-size]");
-    const pagesMetric = root.querySelector<HTMLElement>("[data-pagination-pages]");
-    const offsetMetric = root.querySelector<HTMLElement>("[data-pagination-offset]");
-    const range = root.querySelector<HTMLElement>("[data-pagination-range]");
-    const rail = root.querySelector<HTMLElement>("[data-pagination-rail]");
-    const sql = root.querySelector<HTMLElement>("[data-pagination-sql]");
-    const body = root.querySelector<HTMLTableSectionElement>("[data-pagination-body]");
-    const cards = root.querySelector<HTMLElement>("[data-pagination-cards]");
-    const reading = root.querySelector<HTMLElement>("[data-pagination-reading]");
-    const status = root.querySelector<HTMLElement>("[data-pagination-status]");
-    const summary = root.querySelector<HTMLElement>("[data-pagination-summary]");
-    const output = root.querySelector<HTMLElement>("[data-pagination-output]");
-
-    if (
-      !sourceNode ||
-      !pageSizeSelect ||
-      !pageIndexInput ||
-      !prevButton ||
-      !nextButton ||
-      !beyondButton ||
-      !runButton ||
-      !formula ||
-      !totalMetric ||
-      !sizeMetric ||
-      !pagesMetric ||
-      !offsetMetric ||
-      !range ||
-      !rail ||
-      !sql ||
-      !body ||
-      !cards ||
-      !reading ||
-      !status ||
-      !summary ||
-      !output
-    )
-      return;
+    const sourceNode = required<HTMLScriptElement>(root, "[data-pagination-source]");
+    const pageSizeSelect = required<HTMLSelectElement>(root, "[data-pagination-page-size]");
+    const pageIndexInput = required<HTMLInputElement>(root, "[data-pagination-page-index]");
+    const prevButton = required<HTMLButtonElement>(root, "[data-pagination-prev]");
+    const nextButton = required<HTMLButtonElement>(root, "[data-pagination-next]");
+    const beyondButton = required<HTMLButtonElement>(root, "[data-pagination-demo-beyond]");
+    const runButton = required<HTMLButtonElement>(root, "[data-pagination-run]");
+    const formula = required<HTMLElement>(root, "[data-pagination-formula]");
+    const totalMetric = required<HTMLElement>(root, "[data-pagination-total]");
+    const sizeMetric = required<HTMLElement>(root, "[data-pagination-size]");
+    const pagesMetric = required<HTMLElement>(root, "[data-pagination-pages]");
+    const offsetMetric = required<HTMLElement>(root, "[data-pagination-offset]");
+    const range = required<HTMLElement>(root, "[data-pagination-range]");
+    const rail = required<HTMLElement>(root, "[data-pagination-rail]");
+    const sql = required<HTMLElement>(root, "[data-pagination-sql]");
+    const body = required<HTMLTableSectionElement>(root, "[data-pagination-body]");
+    const cards = required<HTMLElement>(root, "[data-pagination-cards]");
+    const reading = required<HTMLElement>(root, "[data-pagination-reading]");
+    const status = required<HTMLElement>(root, "[data-pagination-status]");
+    const summary = required<HTMLElement>(root, "[data-pagination-summary]");
+    const output = required<HTMLElement>(root, "[data-pagination-output]");
 
     const source = JSON.parse(sourceNode.textContent || "{}") as Source;
     const ordered = [...source.orders].sort(
@@ -561,19 +539,18 @@ LIMIT 2 OFFSET 0;</code></pre>
     const controller = new AbortController();
     let db: SqlDatabase | undefined;
 
-    function pageSize() {
+    const pageSize = () => {
       const parsed = Number(pageSizeSelect.value);
       return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : 2;
-    }
+    };
 
-    function pageIndex() {
+    const pageIndex = () => {
       const parsed = Number(pageIndexInput.value);
       return Number.isFinite(parsed) && parsed >= 1 ? Math.floor(parsed) : 1;
-    }
+    };
 
-    function queryFor(size: number, offset: number) {
-      return `SELECT\n  order_id,\n  customer_id,\n  order_date,\n  order_value\nFROM orders\nORDER BY order_value DESC, order_id ASC\nLIMIT ${size} OFFSET ${offset};`;
-    }
+    const queryFor = (size: number, offset: number) =>
+      `SELECT\n  order_id,\n  customer_id,\n  order_date,\n  order_value\nFROM orders\nORDER BY order_value DESC, order_id ASC\nLIMIT ${size} OFFSET ${offset};`;
 
     function renderRail(size: number, offset: number) {
       rail.replaceChildren();
@@ -673,14 +650,15 @@ LIMIT 2 OFFSET 0;</code></pre>
       summary.textContent = `${result.values.length} rows × ${result.columns.length} columns`;
       const table = document.createElement("table");
       const thead = document.createElement("thead");
-      const hr = document.createElement("tr");
+      const headRow = document.createElement("tr");
       result.columns.forEach((column) => {
         const th = document.createElement("th");
         th.textContent = column;
-        hr.append(th);
+        headRow.append(th);
       });
-      thead.append(hr);
+      thead.append(headRow);
       table.append(thead);
+
       const tbody = document.createElement("tbody");
       result.values.forEach((row) => {
         const tr = document.createElement("tr");
@@ -704,8 +682,7 @@ LIMIT 2 OFFSET 0;</code></pre>
         db?.close();
         db = new SQL.Database();
         db.run(source.seedSql);
-        const results = db.exec(sql.textContent || "");
-        renderSqlResults(results);
+        renderSqlResults(db.exec(sql.textContent || ""));
         status.textContent = "SQLite 执行完成，结果窗口与当前分页参数一致。";
         status.dataset.state = "success";
       } catch (error) {
