@@ -182,6 +182,12 @@
     const choiceButtons = Array.from(root.querySelectorAll<HTMLButtonElement>("[data-key-choice]"));
     if (!body || !current || !reading || !changeButton || !resetButton || choiceButtons.length === 0) return;
 
+    const labRoot = root;
+    const tableBody = body;
+    const currentOutput = current;
+    const readingOutput = reading;
+    const changeControl = changeButton;
+    const resetControl = resetButton;
     const controller = new AbortController();
     const originalRows = [
       { customer_id: "1001", customer_name: "North Retail", email: "north@example.com", phone: "021-440-810" },
@@ -205,7 +211,7 @@
     }
 
     function render() {
-      body.replaceChildren();
+      tableBody.replaceChildren();
       rows().forEach((row, rowIndex) => {
         const tr = document.createElement("tr");
         ["customer_id", "customer_name", "email", "phone"].forEach((field) => {
@@ -215,19 +221,19 @@
           if (changed && rowIndex === 1 && (field === "email" || field === "phone")) td.dataset.changed = "true";
           tr.append(td);
         });
-        body.append(tr);
+        tableBody.append(tr);
       });
 
-      root.querySelectorAll<HTMLElement>("th[data-field]").forEach((cell) => {
+      labRoot.querySelectorAll<HTMLElement>("th[data-field]").forEach((cell) => {
         cell.dataset.activeKey = String(cell.dataset.field === selected);
       });
       choiceButtons.forEach((button) => {
         button.setAttribute("aria-pressed", String(button.dataset.keyChoice === selected));
       });
-      current.textContent = selected;
-      reading.textContent = messages[selected];
-      changeButton.textContent = changed ? "业务字段已经变化" : "模拟业务字段变化";
-      changeButton.disabled = changed;
+      currentOutput.textContent = selected;
+      readingOutput.textContent = messages[selected];
+      changeControl.textContent = changed ? "业务字段已经变化" : "模拟业务字段变化";
+      changeControl.disabled = changed;
     }
 
     choiceButtons.forEach((button) => {
@@ -241,7 +247,7 @@
       );
     });
 
-    changeButton.addEventListener(
+    changeControl.addEventListener(
       "click",
       () => {
         changed = true;
@@ -250,7 +256,7 @@
       { signal: controller.signal },
     );
 
-    resetButton.addEventListener(
+    resetControl.addEventListener(
       "click",
       () => {
         selected = "customer_id";
