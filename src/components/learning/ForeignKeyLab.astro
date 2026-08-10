@@ -234,15 +234,19 @@
     const parentRows = Array.from(root.querySelectorAll<HTMLElement>("[data-parent-row]"));
     if (!choice || !result || !status || !reading) return;
 
+    const choiceControl = choice;
+    const resultOutput = result;
+    const statusOutput = status;
+    const readingOutput = reading;
     const controller = new AbortController();
     const validKeys = new Set(["1001", "1002", "1003"]);
 
     function render() {
-      const value = choice.value;
+      const value = choiceControl.value;
       const valid = validKeys.has(value);
-      result.dataset.state = valid ? "valid" : "invalid";
-      status.textContent = valid ? "引用有效" : "引用无效";
-      reading.textContent = valid
+      resultOutput.dataset.state = valid ? "valid" : "invalid";
+      statusOutput.textContent = valid ? "引用有效" : "引用无效";
+      readingOutput.textContent = valid
         ? `customer_id = ${value} 能在 customers.customer_id 中找到对应记录，因此引用完整。`
         : `customer_id = ${value} 在 customers.customer_id 中不存在。启用外键约束时，这条订单不能被插入。`;
       parentRows.forEach((row) => {
@@ -250,7 +254,7 @@
       });
     }
 
-    choice.addEventListener("change", render, { signal: controller.signal });
+    choiceControl.addEventListener("change", render, { signal: controller.signal });
     render();
     foreignKeyCleanup = () => controller.abort();
   }
