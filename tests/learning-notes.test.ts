@@ -39,6 +39,8 @@ describe("Learning Notes sample", () => {
     expect(note).toContain("更值得先看的统计量");
     expect(note).toContain("总体平均需要多少响应能力");
     expect(note).toContain("图形不是装饰");
+    expect(note).toContain("如果真正想回答的问题是");
+    expect(note).toContain("继续学习：");
   });
 
   it("does not place restricted course labels or public identity in the note", () => {
@@ -63,7 +65,16 @@ describe("Learning Notes sample", () => {
     expect(hero).toContain('aria-label="本页核心读数"');
   });
 
-  it("keeps the desktop TOC in its own grid column and removes the competing sticky rail", () => {
+  it("places the interactive lab inside the article flow before the decision section", () => {
+    const slotIndex = note.indexOf('data-learning-slot="statistics-lab"');
+    expect(slotIndex).toBeGreaterThan(note.indexOf("## R 中的最小工作流"));
+    expect(slotIndex).toBeLessThan(note.indexOf("## 把统计量放回决策"));
+    expect(layout).toContain('data-learning-block="statistics-lab"');
+    expect(layout).toContain("placeLearningBlocks");
+    expect(layout).toContain('block.dataset.learningPlaced = "true"');
+  });
+
+  it("keeps the desktop TOC in its own grid column and uses short navigation labels", () => {
     expect(editorialCss).toContain("grid-template-columns: minmax(13rem, 15rem) minmax(0, 64rem)");
     expect(editorialCss).toContain("grid-column: 1");
     expect(editorialCss).toContain("grid-column: 2");
@@ -71,7 +82,20 @@ describe("Learning Notes sample", () => {
     expect(editorialCss).toContain("max-height: calc(100dvh");
     expect(editorialCss).toContain("position: static");
     expect(editorialCss).not.toContain("learning-note-rail");
+    expect(layout).toContain('label: "业务问题"');
+    expect(layout).toContain('label: "中心位置"');
+    expect(layout).toContain('label: "如何用于决策"');
     expect(toc).toContain("IntersectionObserver");
+  });
+
+  it("treats the statistics lab as editorial figures, formulas and a runnable teaching block", () => {
+    expect(editorialCss).toContain('content: "FIG 01"');
+    expect(editorialCss).toContain('content: "FIG 02"');
+    expect(editorialCss).toContain('content: "FIG 03"');
+    expect(editorialCss).toContain('content: "Reading. "');
+    expect(editorialCss).toContain("article.learning-note .note-formula");
+    expect(editorialCss).toContain("article.learning-note .r-playground");
+    expect(editorialCss).toContain('[data-learning-block]:not([data-learning-placed="true"])');
   });
 
   it("uses only defined spacing tokens in the dedicated Learning Note stylesheet", () => {
