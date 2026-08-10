@@ -64,12 +64,12 @@ s.t. 3·Core + 4·Premium ≤ Material
     feasibleCleanup?.();
     const root = document.querySelector<HTMLElement>("[data-feasible-lab]");
     if (!root) return;
-    const materialInput = root.querySelector<HTMLInputElement>("[data-material-capacity]");
-    const labourInput = root.querySelector<HTMLInputElement>("[data-labour-capacity]");
-    const polygon = root.querySelector<SVGPolygonElement>("[data-feasible-polygon]");
-    const materialLine = root.querySelector<SVGLineElement>("[data-material-line]");
-    const labourLine = root.querySelector<SVGLineElement>("[data-labour-line]");
-    const point = root.querySelector<SVGCircleElement>("[data-opt-point]");
+    const materialInput = root.querySelector<HTMLInputElement>("[data-material-capacity]")!;
+    const labourInput = root.querySelector<HTMLInputElement>("[data-labour-capacity]")!;
+    const polygon = root.querySelector<SVGPolygonElement>("[data-feasible-polygon]")!;
+    const materialLine = root.querySelector<SVGLineElement>("[data-material-line]")!;
+    const labourLine = root.querySelector<SVGLineElement>("[data-labour-line]")!;
+    const point = root.querySelector<SVGCircleElement>("[data-opt-point]")!;
     if (!materialInput || !labourInput || !polygon || !materialLine || !labourLine || !point) return;
     const controller = new AbortController();
     const field = (selector: string) => root.querySelector<HTMLElement>(selector);
