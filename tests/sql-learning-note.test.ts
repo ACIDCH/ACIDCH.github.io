@@ -9,6 +9,7 @@ const notes = {
   foreignKey: read("src/content/notes/sql-foreign-key.zh.md"),
   relationships: read("src/content/notes/sql-relationships.zh.md"),
   select: read("src/content/notes/sql-select.zh.md"),
+  where: read("src/content/notes/sql-where.zh.md"),
 };
 const layout = read("src/layouts/NoteLayout.astro");
 const noteList = read("src/components/NoteList.astro");
@@ -21,16 +22,18 @@ const foreignKeyLab = read("src/components/learning/ForeignKeyLab.astro");
 const relationshipLab = read(
   "src/components/learning/RelationshipCardinalityLab.astro",
 );
+const whereFilterLab = read("src/components/learning/WhereFilterLab.astro");
 const sqlPlayground = read("src/components/learning/SqlPlayground.astro");
 
 describe("SQL and relational data Learning Notes", () => {
-  it("publishes SQL 01 through SQL 05 in one stable series", () => {
+  it("publishes SQL 01 through SQL 06 in one stable series", () => {
     [
       [notes.overview, "sql-relational-data", 1],
       [notes.primaryKey, "sql-primary-key", 2],
       [notes.foreignKey, "sql-foreign-key", 3],
       [notes.relationships, "sql-relationships", 4],
       [notes.select, "sql-select", 5],
+      [notes.where, "sql-where", 6],
     ].forEach(([note, slug, order]) => {
       expect(note).toContain(`slug: ${slug}`);
       expect(note).toContain("seriesSlug: sql");
@@ -138,13 +141,42 @@ describe("SQL and relational data Learning Notes", () => {
     expect(notes.select).not.toContain("## WHERE");
   });
 
-  it("renders SQL 01 through SQL 05 through the shared editorial layout", () => {
+  it("gives SQL 06 a complete WHERE and predicate-logic sequence", () => {
+    [
+      "## 从“读取整张表”进入“只保留需要的记录”",
+      "## WHERE 改变的是结果集的“行”",
+      "## 比较运算符是条件表达式的基础",
+      "## AND：所有条件都必须成立",
+      "## OR：任意一个条件成立即可",
+      "## NOT：对一个条件取反",
+      "## NOT、AND、OR 有优先级",
+      "## 括号比记忆优先级更可靠",
+      "## 范围条件为什么经常写错？",
+      "## BETWEEN：更直接地表达闭区间",
+      "## IN：一个字段允许落在多个离散值中",
+      "## LIKE：按文本模式筛选",
+      "## NULL 不能用 = NULL 判断",
+      "## WHERE 中存在三值逻辑",
+      "## WHERE 和 ORDER BY 解决的不是同一个问题",
+      "## WHERE 不等于“查询一定很快”",
+      "## Business Analytics 中的 WHERE 通常来自业务规则",
+      "## 下一步：不只筛选行，还要选择列",
+    ].forEach((term) => expect(notes.where).toContain(term));
+    expect(notes.where).toContain('data-learning-slot="where-filter-lab"');
+    expect(notes.where).toContain('data-learning-slot="sql-playground"');
+    expect(notes.where).toContain("WHERE phone IS NULL");
+    expect(notes.where).toContain("BETWEEN 400 AND 600");
+    expect(notes.where).toContain("segment IN ('Retail', 'Enterprise')");
+  });
+
+  it("renders SQL 01 through SQL 06 through the shared editorial layout", () => {
     [
       "sql-relational-data",
       "sql-primary-key",
       "sql-foreign-key",
       "sql-relationships",
       "sql-select",
+      "sql-where",
     ].forEach((slug) => expect(layout).toContain(`entry.data.slug === "${slug}"`));
     [
       "const sqlOverviewToc",
@@ -152,6 +184,7 @@ describe("SQL and relational data Learning Notes", () => {
       "const sqlForeignKeyToc",
       "const sqlRelationshipsToc",
       "const sqlSelectToc",
+      "const sqlWhereToc",
     ].forEach((term) => expect(layout).toContain(term));
     expect(layout).toContain("<LearningNoteHero title={handbookTitle} />");
   });
@@ -162,6 +195,7 @@ describe("SQL and relational data Learning Notes", () => {
     expect(layout).toContain("<PrimaryKeyLab />");
     expect(layout).toContain("<ForeignKeyLab />");
     expect(layout).toContain("<RelationshipCardinalityLab />");
+    expect(layout).toContain("<WhereFilterLab />");
     expect(relationalModelExplorer).toContain('data-model-choice="hierarchical"');
     expect(relationalModelExplorer).toContain('data-model-choice="network"');
     expect(relationalModelExplorer).toContain('data-model-choice="relational"');
@@ -170,14 +204,21 @@ describe("SQL and relational data Learning Notes", () => {
     expect(foreignKeyLab).toContain('data-fk-mode="constraint"');
     expect(foreignKeyLab).toContain('data-fk-mode="logical"');
     expect(relationshipLab).toContain('data-relation-choice="many-to-many"');
+    expect(whereFilterLab).toContain('data-where-rule="between"');
+    expect(whereFilterLab).toContain('data-where-rule="null"');
+    expect(whereFilterLab).toContain("KEEP ✓");
   });
 
   it("keeps only the SQL overview as the compact handbook card", () => {
     expect(noteList).toContain('"sql-relational-data": "SQL 与关系数据"');
     expect(noteList).toContain("isCompactHandbook");
-    ["sql-primary-key", "sql-foreign-key", "sql-relationships", "sql-select"].forEach(
-      (slug) => expect(noteList).not.toContain(`"${slug}":`),
-    );
+    [
+      "sql-primary-key",
+      "sql-foreign-key",
+      "sql-relationships",
+      "sql-select",
+      "sql-where",
+    ].forEach((slug) => expect(noteList).not.toContain(`"${slug}":`));
   });
 
   it("keeps a focused lazy-loaded SQLite playground reusable across SQL topics", () => {
@@ -187,7 +228,11 @@ describe("SQL and relational data Learning Notes", () => {
     expect(sqlPlayground).toContain('value: "duplicate"');
     expect(sqlPlayground).toContain('value: "foreign-key"');
     expect(sqlPlayground).toContain('value: "expression"');
+    expect(sqlPlayground).toContain('value: "where-gte"');
+    expect(sqlPlayground).toContain('value: "where-grouped"');
+    expect(sqlPlayground).toContain('value: "where-null"');
     expect(sqlPlayground).toContain("SELECT 1 AS execution_ok");
+    expect(sqlPlayground).toContain("order_value BETWEEN 400 AND 600");
     expect(sqlPlayground).toContain("sql.js@1.14.1");
     expect(sqlPlayground).toContain("data-sql-result-summary");
   });
