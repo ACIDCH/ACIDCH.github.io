@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import process from "node:process";
 
+const courseMarkers = ["704", "BUSINFO704", "BUSINFO 704", "课程项目", "课程报告"];
 const checks = [
   {
     file: "dist/zh/index.html",
@@ -30,6 +31,7 @@ const checks = [
     ],
     forbidden: [
       ">简介<",
+      ...courseMarkers,
       "numeric-distributions.webp",
       "predictor-comparisons.webp",
       "categorical-churn-rates.webp",
@@ -38,6 +40,17 @@ const checks = [
       "odds-ratio-ci.webp",
     ],
   },
+  ...[
+    "data-validation",
+    "model-comparison",
+    "model-selection-error-analysis",
+    "logistic-interpretation",
+    "neural-network",
+  ].map((slug) => ({
+    file: `dist/zh/projects/customer-churn-machine-learning/${slug}/index.html`,
+    markers: ["继续阅读技术专题"],
+    forbidden: [">简介<", ...courseMarkers],
+  })),
 ];
 
 const failures = [];
@@ -65,5 +78,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  "Built Customer Churn acceptance passed: navigation, technology identity, native visuals and raster removal are present in dist/.",
+  "Built Customer Churn acceptance passed: public navigation, technology identity, deep-dive wording, native visuals and raster removal are present in dist/.",
 );
