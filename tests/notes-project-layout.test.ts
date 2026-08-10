@@ -31,14 +31,16 @@ describe("Learning Notes and project-grid information architecture", () => {
     expect(notesExplorer).toContain('button.setAttribute("aria-pressed"');
   });
 
-  it("renders compact two-column knowledge folders instead of module preview lists", () => {
+  it("renders compact knowledge folders in two balanced desktop rows", () => {
     expect(seriesMap).toContain("LearningSeriesIcon");
-    expect(seriesMap).toContain("grid-template-columns: repeat(2, minmax(0, 1fr))");
+    expect(seriesMap).toContain("grid-template-columns: repeat(6, minmax(0, 1fr))");
+    expect(seriesMap).toContain("grid-column: span 2");
+    expect(seriesMap).toContain("nth-last-child(2):nth-child(3n + 1)");
+    expect(seriesMap).toContain("last-child:nth-child(3n + 2)");
     expect(seriesMap).toContain("进入知识库 →");
     expect(seriesMap).toContain("个模块");
     expect(seriesMap).not.toContain("series.modules.slice");
     expect(seriesMap).not.toContain("<ul>");
-    expect(seriesMap).toContain("last-child:nth-child(odd)");
   });
 
   it("uses one shared balanced two-column project grid everywhere ProjectList is reused", () => {
