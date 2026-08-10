@@ -277,6 +277,35 @@ inventory[p,t-1]
 
 因此 time dimension 带来的不是简单“变量数量 × T”，而是**状态转移结构**。
 
+## State variable 与 flow variable 的维度含义不同
+
+多期供应链中可以把变量分成两类：
+
+```text
+Flow
+→ 某个时期内发生的活动，例如 production[k,p,t]、shipment[k,r,t]
+
+State
+→ 某个时期结束后仍保留的状态，例如 inventory[r,p,t]、backlog[r,p,t]
+```
+
+Flow 通常在一个时期内产生和消耗资源；State 则通过 `t-1 → t` 把时期连接起来。
+
+例如库存：
+
+```text
+inventory[p,t]
+= inventory[p,t-1] + production[p,t] - demand[p,t]
+```
+
+如果把 inventory 错误地当作每期独立 flow，就可能漏掉跨期守恒关系。反过来，把 shipment 当作长期累积 state，也会造成重复结转。
+
+因此加入时间维度时，不只要问“变量有没有 t”，还要问：
+
+> **这个变量描述当期活动，还是描述期末状态？**
+
+这决定它是否需要与上一期或下一期建立状态转移约束。
+
 ## 添加 binary dimension 会进一步增加求解难度
 
 例如：
@@ -381,6 +410,44 @@ plant | product | region | period | quantity
 ```
 
 模型结果需要回到业务维度才能解释。
+
+## 聚合结果必须能回算到原始高维变量
+
+高维模型常常向管理层展示：
+
+```text
+Total production by plant
+Total transport cost by region
+Inventory by period
+```
+
+这些汇总视图很有用，但必须保持可追溯关系。
+
+例如：
+
+```text
+plant_total[k]
+= Σ_p Σ_r Σ_t x[k,p,r,t]
+```
+
+如果结果表中的工厂总量与底层变量重新求和不一致，可能意味着：
+
+```text
+漏掉某个 index
+重复聚合某些记录
+结果提取时只保留了部分 valid combinations
+过滤零值时误删了非常小但非零的量
+```
+
+因此可以建立 aggregation reconciliation：
+
+```text
+Grand total from detailed variables
+= Grand total from plant summary
+= Grand total from period summary
+```
+
+多个切片从不同维度汇总后应回到同一个总量。这个检查特别适合发现高维结果处理代码中的重复和漏项。
 
 ## Slice 是调试高维模型的核心方法
 
@@ -523,6 +590,10 @@ max Σ_k Σ_p Σ_v Σ_s profit[p] x[k,p,v,s]
 ### 变量多就直接认定需要更强 solver
 
 先检查 formulation 是否稀疏、Big-M 是否紧、索引是否重复。
+
+### 汇总表无法回算到底层变量
+
+高维结果需要 aggregation reconciliation，防止结果提取阶段产生重复或漏项。
 
 ## 核心判断
 
