@@ -70,6 +70,27 @@ describe("production deployment contracts", () => {
     expect(verifier).toContain("50008");
   });
 
+  it("verifies SQL09 Pagination and its four browser proofs", async () => {
+    const workflow = await source(".github/workflows/deploy.yml");
+    const verifier = await source("scripts/verify-sql09-production.mjs");
+    const capture = await source("scripts/capture-pr-sql09-visuals.py");
+
+    expect(workflow).toContain("Capture SQL 01–09 visual proofs");
+    expect(workflow).toContain("python3 scripts/capture-pr-sql09-visuals.py");
+    expect(workflow).toContain("node scripts/verify-sql09-production.mjs");
+    expect(verifier).toContain('path: "zh/notes/sql-pagination/"');
+    expect(verifier).toContain("Pagination：把有序结果切成可重复的页面窗口");
+    expect(verifier).toContain("data-pagination-page-size");
+    expect(verifier).toContain("data-pagination-page-index");
+    expect(verifier).toContain("data-pagination-run");
+    expect(verifier).toContain("50008");
+    expect(capture).toContain("sql09-pagination-page2-desktop.png");
+    expect(capture).toContain("sql09-pagination-sqlite-page2-desktop.png");
+    expect(capture).toContain("sql09-pagination-page2-mobile.png");
+    expect(capture).toContain("sql09-pagination-sqlite-page2-mobile.png");
+    expect(capture).toContain("expected = 30");
+  });
+
   it("publishes a machine-readable commit status after live verification", async () => {
     const workflow = await source(".github/workflows/deploy.yml");
 

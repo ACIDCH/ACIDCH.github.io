@@ -39,6 +39,10 @@ const handbooks = [
     source: "sql-order-by.zh.md",
     route: "sql-order-by",
   },
+  {
+    source: "sql-pagination.zh.md",
+    route: "sql-pagination",
+  },
 ];
 
 const forbidden = [

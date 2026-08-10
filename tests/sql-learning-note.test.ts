@@ -12,6 +12,7 @@ const notes = {
   where: read("src/content/notes/sql-where.zh.md"),
   projection: read("src/content/notes/sql-projection.zh.md"),
   orderBy: read("src/content/notes/sql-order-by.zh.md"),
+  pagination: read("src/content/notes/sql-pagination.zh.md"),
 };
 const layout = read("src/layouts/NoteLayout.astro");
 const noteList = read("src/components/NoteList.astro");
@@ -27,10 +28,11 @@ const relationshipLab = read(
 const whereFilterLab = read("src/components/learning/WhereFilterLab.astro");
 const projectionLab = read("src/components/learning/ProjectionColumnsLab.astro");
 const orderByLab = read("src/components/learning/OrderByLab.astro");
+const paginationLab = read("src/components/learning/PaginationLab.astro");
 const sqlPlayground = read("src/components/learning/SqlPlayground.astro");
 
 describe("SQL and relational data Learning Notes", () => {
-  it("publishes SQL 01 through SQL 08 in one stable series", () => {
+  it("publishes SQL 01 through SQL 09 in one stable series", () => {
     [
       [notes.overview, "sql-relational-data", 1],
       [notes.primaryKey, "sql-primary-key", 2],
@@ -40,6 +42,7 @@ describe("SQL and relational data Learning Notes", () => {
       [notes.where, "sql-where", 6],
       [notes.projection, "sql-projection", 7],
       [notes.orderBy, "sql-order-by", 8],
+      [notes.pagination, "sql-pagination", 9],
     ].forEach(([note, slug, order]) => {
       expect(note).toContain(`slug: ${slug}`);
       expect(note).toContain("seriesSlug: sql");
@@ -181,7 +184,28 @@ describe("SQL and relational data Learning Notes", () => {
     );
   });
 
-  it("renders SQL 01 through SQL 08 through one editorial layout with generated TOCs", () => {
+  it("keeps SQL 09 Pagination complete from OFFSET windows through keyset boundaries", () => {
+    [
+      "## 从排序结果进入页面窗口",
+      "## LIMIT 定义页面最多返回多少行",
+      "## OFFSET 定义先跳过多少行",
+      "## 页码从 1 开始，OFFSET 从 0 开始",
+      "## 总页数来自总记录数与 pageSize",
+      "## 越界 OFFSET 通常返回空结果，而不是报错",
+      "## Pagination 必须建立在稳定 ORDER BY 上",
+      "## OFFSET 越深，数据库通常需要跳过越多记录",
+      "## 数据在翻页期间发生变化，会产生另一类问题",
+      "## Keyset pagination 用“上一页最后一个键”继续向后找",
+      "## Keyset pagination 不是永远更好",
+      "## 分页中的 COUNT 也要和查询口径一致",
+    ].forEach((term) => expect(notes.pagination).toContain(term));
+    expect(notes.pagination).toContain('data-learning-slot="pagination-lab"');
+    expect(notes.pagination).toContain("OFFSET = pageSize × (pageIndex - 1)");
+    expect(notes.pagination).toContain("LIMIT 2 OFFSET 2");
+    expect(notes.pagination).toContain("order_value DESC, order_id ASC");
+  });
+
+  it("renders SQL 01 through SQL 09 through one editorial layout with generated TOCs", () => {
     expect(layout).toContain('const isSqlEditorial = entry.data.seriesSlug === "sql"');
     expect(layout).toContain("const { Content, headings } = await render(entry)");
     expect(layout).toContain("const sqlGeneratedToc = headings");
@@ -196,6 +220,7 @@ describe("SQL and relational data Learning Notes", () => {
       "sql-where",
       "sql-projection",
       "sql-order-by",
+      "sql-pagination",
     ].forEach((slug) => expect(layout).toContain(`entry.data.slug === "${slug}"`));
     expect(layout).toContain("<LearningNoteHero title={handbookTitle} />");
     expect(layout).not.toContain("const sqlOverviewToc");
@@ -212,6 +237,7 @@ describe("SQL and relational data Learning Notes", () => {
       "<WhereFilterLab />",
       "<ProjectionColumnsLab />",
       "<OrderByLab />",
+      "<PaginationLab />",
     ].forEach((marker) => expect(layout).toContain(marker));
     expect(relationalModelExplorer).toContain('data-model-choice="relational"');
     expect(datasetExplorer).toContain('data-dataset-choice="order-items"');
@@ -223,6 +249,11 @@ describe("SQL and relational data Learning Notes", () => {
     expect(orderByLab).toContain('data-order-rule="multi"');
     expect(orderByLab).toContain('data-order-rule="stable"');
     expect(orderByLab).toContain("data-order-sql-run");
+    expect(paginationLab).toContain("data-pagination-page-size");
+    expect(paginationLab).toContain("data-pagination-page-index");
+    expect(paginationLab).toContain("data-pagination-demo-beyond");
+    expect(paginationLab).toContain("data-pagination-run");
+    expect(paginationLab).toContain("sqlLearningSeedSql");
   });
 
   it("keeps only the SQL overview as the compact handbook card", () => {
@@ -236,6 +267,7 @@ describe("SQL and relational data Learning Notes", () => {
       "sql-where",
       "sql-projection",
       "sql-order-by",
+      "sql-pagination",
     ].forEach((slug) => expect(noteList).not.toContain(`"${slug}":`));
   });
 
@@ -254,7 +286,7 @@ describe("SQL and relational data Learning Notes", () => {
     expect(sqlPlayground).toContain("data-sql-result-summary");
   });
 
-  it("keeps all published SQL 01–08 notes free of course-facing, private and first-person labels", () => {
+  it("keeps all published SQL 01–09 notes free of course-facing, private and first-person labels", () => {
     Object.values(notes).forEach((note) => {
       expect(note).not.toMatch(/BUSINFO|Assignment|Submission|课程项目|课程作业/u);
       expect(note).not.toMatch(/Xintao Liu|刘鑫/u);

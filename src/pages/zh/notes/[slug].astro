@@ -2,6 +2,7 @@
 import { getCollection, type CollectionEntry } from "astro:content";
 import { findTranslation } from "../../../i18n/content";
 import NoteLayout from "../../../layouts/NoteLayout.astro";
+import "../../../styles/sql-pagination.css";
 import { getLocalizedPath } from "../../../utils/paths";
 
 export async function getStaticPaths() {
