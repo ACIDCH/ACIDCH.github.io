@@ -2,6 +2,7 @@
 interface Item {
   id: string;
   label: string;
+  children?: Item[];
 }
 
 interface Props {
@@ -9,22 +10,25 @@ interface Props {
 }
 
 const { items } = Astro.props;
+
+const renderItems = (entries: Item[], nested = false) => (
+  <ol class:list={[nested && "learning-note-toc__nested"]}>
+    {entries.map((item) => (
+      <li>
+        <a href={`#${item.id}`} data-learning-toc-link>
+          {item.label}
+        </a>
+        {item.children?.length ? renderItems(item.children, true) : null}
+      </li>
+    ))}
+  </ol>
+);
 ---
 
 <nav class="learning-note-toc" aria-label="本页目录" data-learning-note-toc>
   <details open>
     <summary>本页内容</summary>
-    <ol>
-      {
-        items.map((item) => (
-          <li>
-            <a href={`#${item.id}`} data-learning-toc-link>
-              {item.label}
-            </a>
-          </li>
-        ))
-      }
-    </ol>
+    {renderItems(items)}
   </details>
 </nav>
 
@@ -56,7 +60,7 @@ const { items } = Astro.props;
           )[0];
         if (visible) setActive((visible.target as HTMLElement).id);
       },
-      { rootMargin: "-18% 0px -68% 0px", threshold: 0 },
+      { rootMargin: "-16% 0px -72% 0px", threshold: 0 },
     );
     sections.forEach((section) => observer.observe(section));
     tocCleanup = () => observer.disconnect();
