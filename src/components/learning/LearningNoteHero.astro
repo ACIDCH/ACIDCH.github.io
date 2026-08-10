@@ -6,6 +6,34 @@ interface Props {
 const { title } = Astro.props;
 ---
 
-<header class="learning-note-hero" data-learning-note-hero>
+<header class="learning-note-titlebar" data-learning-note-hero>
   <h1>{title}</h1>
 </header>
+
+<style>
+  .learning-note-titlebar {
+    width: 100%;
+    margin: 0 0 var(--space-10);
+    padding: 0 0 var(--space-5);
+    border-bottom: 1px solid var(--colour-border-strong);
+  }
+
+  .learning-note-titlebar h1 {
+    max-width: none;
+    margin: 0;
+    font-size: clamp(2.2rem, 3vw, 3.45rem);
+    line-height: 1.15;
+    letter-spacing: var(--letter-spacing-tight);
+    text-wrap: balance;
+  }
+
+  @media (max-width: 48rem) {
+    .learning-note-titlebar {
+      margin-bottom: var(--space-7);
+    }
+
+    .learning-note-titlebar h1 {
+      font-size: clamp(2rem, 10vw, 2.8rem);
+    }
+  }
+</style>
