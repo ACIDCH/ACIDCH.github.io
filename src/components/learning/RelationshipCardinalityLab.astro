@@ -1,3 +1,23 @@
+---
+import {
+  sqlCustomerProfiles,
+  sqlCustomers,
+  sqlOrderItems,
+  sqlOrders,
+  sqlProducts,
+} from "../../data/sql-learning";
+
+const customer = sqlCustomers.find((row) => row.customer_id === 1001)!;
+const customerOrders = sqlOrders.filter((row) => row.customer_id === customer.customer_id);
+const focusOrder = sqlOrders.find((row) => row.order_id === 50001)!;
+const focusOrderItems = sqlOrderItems.filter((row) => row.order_id === focusOrder.order_id);
+const focusProduct = sqlProducts.find((row) => row.product_id === 301)!;
+const focusProductOrders = sqlOrderItems
+  .filter((row) => row.product_id === focusProduct.product_id)
+  .map((item) => item.order_id);
+const profile = sqlCustomerProfiles.find((row) => row.customer_id === customer.customer_id)!;
+---
+
 <section
   class="relationship-cardinality-lab"
   data-relationship-cardinality-lab
@@ -5,9 +25,9 @@
 >
   <div class="relationship-cardinality-lab__intro">
     <p class="learning-note-kicker">互动图表 · Relationship Cardinality</p>
-    <h3 id="relationship-cardinality-title">同样是“有关联”，为什么表结构会不同？</h3>
+    <h3 id="relationship-cardinality-title">同样是“有关联”，为什么表结构和 JOIN 行数会不同？</h3>
     <p>
-      在一对多、多对多和一对一之间切换，观察外键放在哪里、是否需要中间表，以及一条记录能够匹配多少条记录。
+      在一对多、多对多和一对一之间切换。所有 ID 都来自统一 SQL 数据集，并同时显示关系结构与连接后的自然粒度。
     </p>
   </div>
 
@@ -32,22 +52,26 @@
       <div class="relationship-cardinality-lab__schema">
         <div class="relationship-cardinality-lab__table">
           <span>customers · 1</span>
-          <strong>customer_id = 1001</strong>
-          <small>North Retail</small>
+          <strong>customer_id = {customer.customer_id}</strong>
+          <small>{customer.customer_name}</small>
         </div>
         <div class="relationship-cardinality-lab__arrow">
-          <strong>1 → N</strong>
+          <strong>1 → {customerOrders.length}</strong>
           <span>orders.customer_id · FK</span>
         </div>
         <div class="relationship-cardinality-lab__table">
           <span>orders · N</span>
-          <strong>50001 → 1001</strong>
-          <strong>50002 → 1001</strong>
-          <strong>50008 → 1001</strong>
+          {customerOrders.map((order) => (
+            <strong>{order.order_id} → {order.customer_id}</strong>
+          ))}
         </div>
       </div>
+      <div class="relationship-cardinality-lab__metric">
+        <span>如果只连接这个客户</span>
+        <strong>{customerOrders.length} JOIN rows</strong>
+      </div>
       <p class="relationship-cardinality-lab__reading">
-        一个客户可以拥有多张订单，而每张订单只引用一个客户。外键放在“多”的一方：<code>orders.customer_id</code>。
+        一个客户可以拥有多张订单，而每张订单只引用一个客户。外键放在“多”的一方：<code>orders.customer_id</code>。客户 {customer.customer_id} 在当前数据集中确实只有 {customerOrders.length} 张订单，不再使用不存在的示例 ID。
       </p>
     </section>
 
@@ -55,24 +79,30 @@
       <div class="relationship-cardinality-lab__schema relationship-cardinality-lab__schema--three">
         <div class="relationship-cardinality-lab__table">
           <span>orders</span>
-          <strong>50001</strong>
-          <strong>50002</strong>
+          <strong>{focusOrder.order_id}</strong>
+          <small>{focusOrderItems.length} product lines</small>
         </div>
         <div class="relationship-cardinality-lab__bridge">
           <span>order_items · bridge</span>
-          <strong>50001 · 301</strong>
-          <strong>50001 · 305</strong>
-          <strong>50002 · 301</strong>
+          {focusOrderItems.map((item) => (
+            <strong>{item.order_id} · {item.product_id}</strong>
+          ))}
           <small>PK (order_id, product_id)</small>
         </div>
         <div class="relationship-cardinality-lab__table">
           <span>products</span>
-          <strong>301 · Forecast Kit</strong>
-          <strong>305 · Sensor Pack</strong>
+          {focusOrderItems.map((item) => {
+            const product = sqlProducts.find((row) => row.product_id === item.product_id)!;
+            return <strong>{product.product_id} · {product.product_name}</strong>;
+          })}
         </div>
       </div>
+      <div class="relationship-cardinality-lab__metric">
+        <span>交叉检查 product {focusProduct.product_id}</span>
+        <strong>{focusProductOrders.length} orders · {focusProductOrders.join(" / ")}</strong>
+      </div>
       <p class="relationship-cardinality-lab__reading">
-        一张订单可以包含多个产品，一个产品也可以出现在多张订单中。中间表把 N:M 拆成两个 1:N 关系，并保存两侧的外键。
+        一张订单可以包含多个产品，一个产品也可以出现在多张订单中。中间表把 N:M 拆成两个 1:N，并让一行稳定表示“某产品在某订单中的一次关系”。
       </p>
     </section>
 
@@ -80,21 +110,25 @@
       <div class="relationship-cardinality-lab__schema">
         <div class="relationship-cardinality-lab__table">
           <span>customers · 1</span>
-          <strong>customer_id = 1001</strong>
-          <small>North Retail</small>
+          <strong>customer_id = {customer.customer_id}</strong>
+          <small>{customer.customer_name}</small>
         </div>
         <div class="relationship-cardinality-lab__arrow">
           <strong>1 ↔ 1</strong>
-          <span>UNIQUE customer_id</span>
+          <span>PK + FK customer_id</span>
         </div>
         <div class="relationship-cardinality-lab__table">
           <span>customer_profiles · 1</span>
-          <strong>customer_id = 1001</strong>
-          <small>timezone · Pacific/Auckland</small>
+          <strong>customer_id = {profile.customer_id}</strong>
+          <small>{profile.timezone} · {profile.preferred_channel}</small>
         </div>
       </div>
+      <div class="relationship-cardinality-lab__metric">
+        <span>当前 profile 匹配</span>
+        <strong>1 customer ↔ 1 profile</strong>
+      </div>
       <p class="relationship-cardinality-lab__reading">
-        每个客户最多对应一条扩展资料。除了外键引用，还需要保证引用列不会重复，才能把关系限制为一对一。
+        每个客户最多对应一条扩展资料。这里直接让 <code>customer_profiles.customer_id</code> 同时承担主键和外键，因此同一客户 ID 在 profile 表中不能重复。
       </p>
     </section>
   </div>
@@ -122,7 +156,8 @@
   .relationship-cardinality-lab__reading,
   .relationship-cardinality-lab__arrow span,
   .relationship-cardinality-lab__table small,
-  .relationship-cardinality-lab__bridge small {
+  .relationship-cardinality-lab__bridge small,
+  .relationship-cardinality-lab__metric span {
     color: var(--colour-text-muted);
   }
 
@@ -206,6 +241,26 @@
     font-size: var(--font-size-xs);
   }
 
+  .relationship-cardinality-lab__metric {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+    padding: var(--space-3) 0;
+    border-top: 1px solid var(--colour-border);
+    border-bottom: 1px solid var(--colour-border);
+  }
+
+  .relationship-cardinality-lab__metric span {
+    font-size: var(--font-size-xs);
+  }
+
+  .relationship-cardinality-lab__metric strong {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-sm);
+  }
+
   .relationship-cardinality-lab__reading {
     max-width: 58rem;
     margin: var(--space-5) 0 0;
@@ -225,6 +280,13 @@
 
     .relationship-cardinality-lab__arrow strong {
       max-width: 10rem;
+    }
+  }
+
+  @media (max-width: 36rem) {
+    .relationship-cardinality-lab__metric {
+      align-items: flex-start;
+      flex-direction: column;
     }
   }
 </style>
