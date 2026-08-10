@@ -73,7 +73,7 @@ beginningInventory[t+1] = endingInventory[t]</div>
 
   function initFlowLab() {
     flowCleanup?.();
-    const root = document.querySelector<HTMLElement>("[data-flow-lab]");
+    const root = document.querySelector<HTMLElement>("[data-flow-lab]")!;
     const source = root?.querySelector<HTMLScriptElement>("[data-flow-source]");
     if (!root || !source) return;
     const data = JSON.parse(source.textContent || "{}") as { carriers: Carrier[]; periods: Period[] };

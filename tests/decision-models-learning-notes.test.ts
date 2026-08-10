@@ -48,12 +48,15 @@ describe("Supply chain and decision model Learning Notes", () => {
 
   it("keeps all ten public notes published, ordered and substantial", () => {
     notes.forEach((note, index) => {
+      const file = noteFiles[index];
       expect(note).toContain("seriesSlug: decision-models");
       expect(note).toContain(`order: ${index + 1}`);
       expect(note).toContain("status: published");
       expect(note).toContain("draft: false");
-      expect(note.length).toBeGreaterThan(5500);
-      expect((note.match(/^## /gmu) || []).length).toBeGreaterThanOrEqual(9);
+      expect.soft(note.length, `${file} should remain a substantial long-form note`).toBeGreaterThan(5500);
+      expect
+        .soft((note.match(/^## /gmu) || []).length, `${file} should retain a deep section hierarchy`)
+        .toBeGreaterThanOrEqual(9);
     });
   });
 

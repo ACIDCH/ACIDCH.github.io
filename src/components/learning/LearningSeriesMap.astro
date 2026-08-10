@@ -1,34 +1,114 @@
 ---
+import { getCollection } from "astro:content";
 import { learningSeries } from "../../data/learning-series";
 import { getLocalizedPath } from "../../utils/paths";
+
+const publishedNotes = (await getCollection("notes")).filter(
+  (entry) => entry.data.locale === "zh" && !entry.data.draft,
+);
+const displayedSeries = [...learningSeries].sort((left, right) => {
+  if (left.slug === "decision-models") return -1;
+  if (right.slug === "decision-models") return 1;
+  return 0;
+});
+const folderTitle = (slug: string, fallback: string) =>
+  slug === "decision-models" ? "供应链与优化" : fallback;
+const folderDescription = (slug: string, fallback: string) =>
+  slug === "decision-models"
+    ? "把供应链问题统一归纳为优化建模、LP/MILP、敏感性、PuLP、多维模型、运输分配与多期生产库存等连续知识模块。"
+    : fallback;
 ---
 
 <section class="learning-series-map" aria-labelledby="learning-series-map-title">
   <div class="learning-series-map__heading">
-    <p class="status">知识地图</p>
-    <h2 id="learning-series-map-title">五条学习主线</h2>
-    <p>每条主线按问题、方法与可复查实践组织。已发布文章会逐步接入相应模块。</p>
+    <p class="status">学习笔记文件夹</p>
+    <h2 id="learning-series-map-title">按主题进入知识库</h2>
+    <p>每个文件夹是一条完整学习主线。进入文件夹后，可以按模块顺序直接阅读已经发布的长篇笔记。</p>
   </div>
-  <div class="learning-series-map__grid">
+  <div class="learning-series-map__grid learning-folder-grid">
     {
-      learningSeries.map((series) => (
-        <article>
-          <h3>
-            <a href={getLocalizedPath(`/notes/series/${series.slug}/`, "zh")}>
-              {series.title}
-            </a>
-          </h3>
-          <p>{series.description}</p>
-          <ul>
-            {series.modules.slice(0, 3).map((module) => (
-              <li>
-                <strong>{module.code}</strong> {module.title}
-              </li>
-            ))}
-          </ul>
-          <span>{series.modules.length} 个核心模块</span>
-        </article>
-      ))
+      displayedSeries.map((series) => {
+        const noteCount = publishedNotes.filter(
+          (entry) => entry.data.seriesSlug === series.slug,
+        ).length;
+        const isSupplyChain = series.slug === "decision-models";
+        const title = folderTitle(series.slug, series.title);
+        return (
+          <article
+            class:list={["learning-folder", isSupplyChain && "learning-folder--featured"]}
+            data-learning-folder={series.slug}
+          >
+            <div class="learning-folder__topline">
+              <span aria-hidden="true" class="learning-folder__icon">▱</span>
+              <span>{noteCount} 篇已发布</span>
+            </div>
+            <h3>
+              <a href={getLocalizedPath(`/notes/series/${series.slug}/`, "zh")}>
+                {title}
+              </a>
+            </h3>
+            <p>{folderDescription(series.slug, series.description)}</p>
+            <ul>
+              {series.modules.slice(0, isSupplyChain ? 4 : 3).map((module) => (
+                <li>
+                  <strong>{module.code}</strong> {module.title}
+                </li>
+              ))}
+            </ul>
+            <div class="learning-folder__footer">
+              <span>{series.modules.length} 个核心模块</span>
+              <a href={getLocalizedPath(`/notes/series/${series.slug}/`, "zh")}>打开文件夹 →</a>
+            </div>
+          </article>
+        );
+      })
     }
   </div>
 </section>
+
+<style>
+  .learning-folder-grid {
+    align-items: stretch;
+  }
+
+  .learning-folder {
+    position: relative;
+    display: grid;
+    grid-template-rows: auto auto 1fr auto auto;
+    gap: var(--space-3);
+    min-width: 0;
+  }
+
+  .learning-folder--featured {
+    border-color: var(--colour-border-strong);
+  }
+
+  .learning-folder__topline,
+  .learning-folder__footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-sm);
+  }
+
+  .learning-folder__icon {
+    font-size: 1.15rem;
+  }
+
+  .learning-folder h3 {
+    margin: 0;
+  }
+
+  .learning-folder__footer {
+    margin-top: var(--space-2);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--colour-border);
+  }
+
+  .learning-folder__footer a {
+    font-weight: var(--font-weight-semibold);
+  }
+</style>

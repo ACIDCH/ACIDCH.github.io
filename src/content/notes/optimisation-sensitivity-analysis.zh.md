@@ -222,6 +222,37 @@ Supplier disruption
 
 缺点是需要更多运行和结果整理，而且参数组合设计本身需要判断。
 
+## One-at-a-time 与多参数情景回答的问题不同
+
+一种常见做法是一次只改变一个参数：
+
+```text
+material capacity: 220 → 240 → 260
+其他参数保持不变
+```
+
+这种 one-at-a-time 分析有利于理解单个参数的方向和边际影响，也更容易画出清晰曲线。
+
+但真实冲击往往不是独立发生。例如需求上升时，运输费、加班费和采购价格也可能一起变化。此时需要组合情景：
+
+```text
+High-demand + high-fuel-cost
+Supplier disruption + overtime available
+Low demand + reduced warehouse capacity
+```
+
+因此两类方法可以互补：
+
+```text
+OAT
+→ 理解单参数机制
+
+Multi-parameter scenario
+→ 检查现实组合压力下的方案表现
+```
+
+如果只做 OAT，容易低估参数联动造成的非线性或决策切换。
+
 ## 参数变化要观察的不只是目标值
 
 例如材料增加 20 单位后：
@@ -267,6 +298,33 @@ Decision sensitivity
 ```
 
 后者往往更影响执行风险。
+
+## Switch point 比单个情景结果更值得记录
+
+如果参数连续变化，可以寻找“最优决策第一次发生变化”的临界点。
+
+例如逐步提高某运输商单位成本：
+
+```text
+6.7
+6.8
+6.9
+7.0
+...
+```
+
+在某一价格前，Carrier B 始终承担最大允许货量；超过某个阈值后，模型开始把流量转给其他运输商。这个阈值就是一个有管理意义的 switch point。
+
+同样可以寻找：
+
+```text
+设施从关闭变开启的需求阈值
+需要加班的产量阈值
+产品组合发生切换的利润阈值
+库存策略从平滑生产转向批量生产的 setup-cost 阈值
+```
+
+记录 switch point 能把敏感性分析从“几个散点结果”升级成决策规则：参数在什么范围内变化不需要改计划，超过哪里才需要重新配置。
 
 ## Integer/MILP 中不要机械套 LP shadow price
 
@@ -383,6 +441,28 @@ for each parameter value:
 ```
 
 这比“低/中/高”三个点更容易发现结构边界。
+
+## 敏感性结果需要保存基准口径和重求解条件
+
+如果只保存一张“参数—目标”图，过一段时间很难判断它对应哪一版模型。
+
+一个可复查的 sensitivity record 至少应包含：
+
+```text
+base scenario identifier
+parameter changed
+baseline value
+scenario value
+solver status
+objective value
+decision variables of interest
+binding/slack summary
+model version
+```
+
+如果模型结构、需求数据或成本口径已经变化，旧 shadow price 和 switch point 不能直接拿来指导新决策。
+
+这也是敏感性分析区别于普通图表的地方：每个结论都依赖一个明确的优化基准状态。
 
 ## 常见错误
 
