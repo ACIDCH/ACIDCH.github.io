@@ -3,45 +3,31 @@ import { join } from "node:path";
 import process from "node:process";
 
 const handbooks = [
+  { source: "descriptive-statistics.zh.md", route: "descriptive-statistics" },
+  { source: "sql-relational-data.zh.md", route: "sql-relational-data" },
+  { source: "sql-primary-key.zh.md", route: "sql-primary-key" },
+  { source: "sql-foreign-key.zh.md", route: "sql-foreign-key" },
+  { source: "sql-relationships.zh.md", route: "sql-relationships" },
+  { source: "sql-select.zh.md", route: "sql-select" },
+  { source: "sql-where.zh.md", route: "sql-where" },
+  { source: "sql-projection.zh.md", route: "sql-projection" },
+  { source: "sql-order-by.zh.md", route: "sql-order-by" },
+  { source: "sql-pagination.zh.md", route: "sql-pagination" },
+  { source: "optimisation-model-anatomy.zh.md", route: "optimisation-model-anatomy" },
+  { source: "unconstrained-optimisation.zh.md", route: "unconstrained-optimisation" },
+  { source: "constrained-optimisation.zh.md", route: "constrained-optimisation" },
   {
-    source: "descriptive-statistics.zh.md",
-    route: "descriptive-statistics",
+    source: "optimisation-sensitivity-analysis.zh.md",
+    route: "optimisation-sensitivity-analysis",
   },
+  { source: "binary-milp-decisions.zh.md", route: "binary-milp-decisions" },
+  { source: "sets-indices-model-scale.zh.md", route: "sets-indices-model-scale" },
+  { source: "pulp-model-architecture.zh.md", route: "pulp-model-architecture" },
+  { source: "multidimensional-optimisation.zh.md", route: "multidimensional-optimisation" },
+  { source: "transportation-models.zh.md", route: "transportation-models" },
   {
-    source: "sql-relational-data.zh.md",
-    route: "sql-relational-data",
-  },
-  {
-    source: "sql-primary-key.zh.md",
-    route: "sql-primary-key",
-  },
-  {
-    source: "sql-foreign-key.zh.md",
-    route: "sql-foreign-key",
-  },
-  {
-    source: "sql-relationships.zh.md",
-    route: "sql-relationships",
-  },
-  {
-    source: "sql-select.zh.md",
-    route: "sql-select",
-  },
-  {
-    source: "sql-where.zh.md",
-    route: "sql-where",
-  },
-  {
-    source: "sql-projection.zh.md",
-    route: "sql-projection",
-  },
-  {
-    source: "sql-order-by.zh.md",
-    route: "sql-order-by",
-  },
-  {
-    source: "sql-pagination.zh.md",
-    route: "sql-pagination",
+    source: "multi-period-production-inventory.zh.md",
+    route: "multi-period-production-inventory",
   },
 ];
 

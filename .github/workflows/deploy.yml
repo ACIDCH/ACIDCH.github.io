@@ -94,6 +94,10 @@ jobs:
           python3 scripts/capture-pr-sql08-visuals.py
           python3 scripts/capture-pr-sql09-visuals.py
 
+      - name: Capture decision-model visual proofs
+        if: github.event_name == 'pull_request'
+        run: python3 scripts/capture-pr-decision-model-visuals.py
+
       - name: Upload pull-request static artifact
         if: github.event_name == 'pull_request'
         uses: actions/upload-artifact@v7
@@ -102,6 +106,7 @@ jobs:
           path: |
             dist
             visual-proofs
+            decision-proofs
           if-no-files-found: error
           retention-days: 3
 
@@ -183,6 +188,7 @@ jobs:
           npm run verify:production -- "${{ needs.deploy.outputs.page_url }}" "${{ needs.quality.outputs.deploy_sha }}"
           node scripts/verify-sql08-production.mjs "${{ needs.deploy.outputs.page_url }}" "${{ needs.quality.outputs.deploy_sha }}"
           node scripts/verify-sql09-production.mjs "${{ needs.deploy.outputs.page_url }}" "${{ needs.quality.outputs.deploy_sha }}"
+          node scripts/verify-decision-models-production.mjs "${{ needs.deploy.outputs.page_url }}" "${{ needs.quality.outputs.deploy_sha }}"
 
       - name: Publish auditable production verification receipt
         if: always()

@@ -1,0 +1,58 @@
+---
+const steps = [
+  { id: "sets", label: "Sets", math: "K = plants, P = products, R = regions", code: 'K = ["north", "south"]\nP = ["core", "premium"]\nR = ["metro", "coast", "inland"]', why: "Sets define the valid index universe before variables and constraints are generated." },
+  { id: "params", label: "Parameters", math: "c[k,r], cap[k], demand[r]", code: 'capacity = {"north": 520, "south": 420}\ndemand = {"metro": 360, "coast": 280, "inland": 220}', why: "Parameters are known inputs; keeping them outside algebra prevents hard-coded magic numbers." },
+  { id: "vars", label: "Variables", math: "x[k,r] ≥ 0", code: 'x = LpVariable.dicts("flow", (K, R), lowBound=0)', why: "Decision variables describe what the solver is allowed to choose." },
+  { id: "objective", label: "Objective", math: "min Σₖ Σᵣ c[k,r]·x[k,r]", code: 'model += lpSum(cost[k][r] * x[k][r] for k in K for r in R)', why: "The objective translates business preference into one comparable scalar measure." },
+  { id: "constraints", label: "Constraints", math: "Σᵣ x[k,r] ≤ cap[k]; Σₖ x[k,r] = demand[r]", code: 'for k in K:\n    model += lpSum(x[k][r] for r in R) <= capacity[k]\nfor r in R:\n    model += lpSum(x[k][r] for k in K) == demand[r]', why: "Constraint families are generated systematically from sets rather than copied cell by cell." },
+  { id: "solve", label: "Solve & inspect", math: "status → objective → variable values → constraint diagnostics", code: 'model.solve(PULP_CBC_CMD(msg=False))\nprint(LpStatus[model.status])\nprint(value(model.objective))', why: "A solver status is part of the result. Variable values are only meaningful after feasibility and optimality are checked." },
+];
+const payload = JSON.stringify(steps).replace(/</g, "\\u003c");
+---
+
+<section class="dm-lab" data-pulp-lab aria-labelledby="pulp-title">
+  <div class="dm-lab__intro">
+    <p class="learning-note-kicker">互动实验 · Mathematical Model ↔ PuLP</p>
+    <h3 id="pulp-title">从数学符号到代码，哪一层应该对应哪一段？</h3>
+    <p>逐步切换模型层，避免把所有逻辑塞进一个代码块。结构清晰时，规模扩展、调试和审计都会更容易。</p>
+  </div>
+  <div class="dm-lab__chips">
+    {steps.map((step, index) => <button type="button" data-pulp-step={step.id} aria-pressed={index === 0 ? "true" : "false"}>{step.label}</button>)}
+  </div>
+  <div class="dm-lab__grid" aria-live="polite">
+    <article class="dm-lab__panel"><h4>Mathematical layer</h4><div class="dm-lab__equation" data-pulp-math>{steps[0].math}</div></article>
+    <article class="dm-lab__panel"><h4>PuLP layer</h4><div class="dm-lab__code" data-pulp-code>{steps[0].code}</div></article>
+  </div>
+  <div class="dm-lab__callout"><strong>Why this layer exists</strong><span data-pulp-why>{steps[0].why}</span></div>
+  <script is:inline type="application/json" data-pulp-source set:html={payload} />
+</section>
+
+<script>
+  type Step = { id: string; label: string; math: string; code: string; why: string };
+  let pulpCleanup: (() => void) | undefined;
+  function initPulpLab() {
+    pulpCleanup?.();
+    const root = document.querySelector<HTMLElement>("[data-pulp-lab]");
+    const source = root?.querySelector<HTMLScriptElement>("[data-pulp-source]");
+    if (!root || !source) return;
+    const steps = JSON.parse(source.textContent || "[]") as Step[];
+    const math = root.querySelector<HTMLElement>("[data-pulp-math]");
+    const code = root.querySelector<HTMLElement>("[data-pulp-code]");
+    const why = root.querySelector<HTMLElement>("[data-pulp-why]");
+    const controller = new AbortController();
+    root.querySelectorAll<HTMLButtonElement>("[data-pulp-step]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const step = steps.find((item) => item.id === button.dataset.pulpStep);
+        if (!step) return;
+        root.querySelectorAll<HTMLButtonElement>("[data-pulp-step]").forEach((candidate) => candidate.setAttribute("aria-pressed", String(candidate === button)));
+        if (math) math.textContent = step.math;
+        if (code) code.textContent = step.code;
+        if (why) why.textContent = step.why;
+      }, { signal: controller.signal });
+    });
+    pulpCleanup = () => controller.abort();
+  }
+  document.addEventListener("astro:before-swap", () => pulpCleanup?.());
+  document.addEventListener("astro:page-load", initPulpLab);
+  initPulpLab();
+</script>

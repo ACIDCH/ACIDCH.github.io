@@ -1,0 +1,121 @@
+---
+import { capacityNetValue, optimisationUniverse, unconstrainedOptimum } from "../../data/supply-chain-optimisation";
+
+const choices = optimisationUniverse.capacityContract.operationalChoices.map((capacity) => ({
+  capacity,
+  value: capacityNetValue(capacity),
+  gap: capacityNetValue(unconstrainedOptimum) - capacityNetValue(capacity),
+}));
+const payload = JSON.stringify({ choices, optimum: unconstrainedOptimum }).replace(/</g, "\\u003c");
+---
+
+<section class="dm-lab" data-unconstrained-lab aria-labelledby="unconstrained-title">
+  <div class="dm-lab__intro">
+    <p class="learning-note-kicker">互动实验 · Unconstrained Optimisation</p>
+    <h3 id="unconstrained-title">数学最优点与可执行运营选择之间差多少？</h3>
+    <p>拖动容量，观察净价值曲线的边际改善何时归零，并比较 575、600、625 三个可执行选择的机会成本。</p>
+  </div>
+
+  <div class="dm-lab__controls">
+    <label for="capacity-choice">
+      <span>Capacity decision</span>
+      <input id="capacity-choice" data-capacity-slider type="range" min="450" max="750" step="5" value="600" />
+    </label>
+  </div>
+
+  <div class="dm-lab__metrics" aria-live="polite">
+    <div class="dm-lab__metric"><span>Selected capacity</span><strong data-capacity-value>600</strong></div>
+    <div class="dm-lab__metric"><span>Net value</span><strong data-net-value>{capacityNetValue(600).toFixed(0)}</strong></div>
+    <div class="dm-lab__metric"><span>Marginal slope</span><strong data-slope-value>0.00</strong></div>
+    <div class="dm-lab__metric"><span>Gap to optimum</span><strong data-gap-value>0</strong></div>
+  </div>
+
+  <svg class="dm-lab__svg" data-capacity-chart viewBox="0 0 760 300" role="img" aria-label="Capacity net value curve with the selected point and mathematical optimum">
+    <line x1="55" y1="250" x2="730" y2="250" stroke="currentColor" opacity="0.35" />
+    <line x1="55" y1="25" x2="55" y2="250" stroke="currentColor" opacity="0.35" />
+    <path data-capacity-curve fill="none" stroke="currentColor" stroke-width="3" />
+    <line data-optimum-line y1="30" y2="250" stroke="currentColor" stroke-dasharray="7 6" opacity="0.45" />
+    <circle data-selected-point r="7" fill="currentColor" />
+    <text x="55" y="278" fill="currentColor" opacity="0.7">450</text>
+    <text x="690" y="278" fill="currentColor" opacity="0.7">750 capacity</text>
+    <text data-optimum-label y="48" fill="currentColor">optimum 600</text>
+  </svg>
+
+  <div class="dm-lab__bar-list">
+    {choices.map((choice) => (
+      <div class="dm-lab__bar-row">
+        <span>{choice.capacity} capacity</span>
+        <div class="dm-lab__bar-track"><div class="dm-lab__bar-fill" style={`--bar-width:${Math.max(8, 100 - choice.gap / 3)}%`}></div></div>
+        <strong>-{choice.gap.toFixed(0)}</strong>
+      </div>
+    ))}
+  </div>
+
+  <div class="dm-lab__callout">
+    <strong>Decision interpretation</strong>
+    <span data-capacity-reading>600 是数学最优点；在这个点附近，小幅偏离只产生较小的净价值损失。</span>
+  </div>
+
+  <script is:inline type="application/json" data-capacity-source set:html={payload} />
+</section>
+
+<script>
+  let unconstrainedCleanup: (() => void) | undefined;
+  const netValue = (x: number) => 96 * x - 0.08 * x * x - 18000;
+  const slope = (x: number) => 96 - 0.16 * x;
+
+  function initUnconstrainedLab() {
+    unconstrainedCleanup?.();
+    const root = document.querySelector<HTMLElement>("[data-unconstrained-lab]");
+    if (!root) return;
+    const slider = root.querySelector<HTMLInputElement>("[data-capacity-slider]");
+    const value = root.querySelector<HTMLElement>("[data-capacity-value]");
+    const result = root.querySelector<HTMLElement>("[data-net-value]");
+    const slopeValue = root.querySelector<HTMLElement>("[data-slope-value]");
+    const gap = root.querySelector<HTMLElement>("[data-gap-value]");
+    const curve = root.querySelector<SVGPathElement>("[data-capacity-curve]");
+    const point = root.querySelector<SVGCircleElement>("[data-selected-point]");
+    const optimumLine = root.querySelector<SVGLineElement>("[data-optimum-line]");
+    const optimumLabel = root.querySelector<SVGTextElement>("[data-optimum-label]");
+    const reading = root.querySelector<HTMLElement>("[data-capacity-reading]");
+    if (!slider || !value || !result || !slopeValue || !gap || !curve || !point || !optimumLine || !optimumLabel || !reading) return;
+
+    const controller = new AbortController();
+    const minX = 450;
+    const maxX = 750;
+    const values = Array.from({ length: 61 }, (_, index) => minX + index * 5);
+    const minY = Math.min(...values.map(netValue));
+    const maxY = Math.max(...values.map(netValue));
+    const sx = (x: number) => 55 + ((x - minX) / (maxX - minX)) * 675;
+    const sy = (y: number) => 245 - ((y - minY) / (maxY - minY)) * 205;
+    curve.setAttribute("d", values.map((x, index) => `${index === 0 ? "M" : "L"}${sx(x).toFixed(1)},${sy(netValue(x)).toFixed(1)}`).join(" "));
+    const optX = sx(600);
+    optimumLine.setAttribute("x1", String(optX));
+    optimumLine.setAttribute("x2", String(optX));
+    optimumLabel.setAttribute("x", String(optX + 8));
+
+    function render() {
+      const x = Number(slider.value);
+      const y = netValue(x);
+      const optimum = netValue(600);
+      const loss = optimum - y;
+      value.textContent = String(x);
+      result.textContent = y.toFixed(0);
+      slopeValue.textContent = slope(x).toFixed(2);
+      gap.textContent = loss.toFixed(0);
+      point.setAttribute("cx", String(sx(x)));
+      point.setAttribute("cy", String(sy(y)));
+      if (x === 600) reading.textContent = "600 是数学最优点：边际斜率为 0，继续增加或减少容量都会降低净价值。";
+      else if (Math.abs(x - 600) <= 25) reading.textContent = `${x} 与数学最优点很接近，净价值损失约 ${loss.toFixed(0)} 个价值单位；这类差距可以与整批容量、排班或标准规格的运营便利性一起比较。`;
+      else reading.textContent = `${x} 已明显偏离最优区域，净价值损失扩大到约 ${loss.toFixed(0)}；此时运营便利性需要提供更强理由才能支持偏离。`;
+    }
+
+    slider.addEventListener("input", render, { signal: controller.signal });
+    render();
+    unconstrainedCleanup = () => controller.abort();
+  }
+
+  document.addEventListener("astro:before-swap", () => unconstrainedCleanup?.());
+  document.addEventListener("astro:page-load", initUnconstrainedLab);
+  initUnconstrainedLab();
+</script>

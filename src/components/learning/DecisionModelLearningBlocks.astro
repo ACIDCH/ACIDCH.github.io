@@ -1,0 +1,78 @@
+---
+import FeasibleRegionSensitivityLab from "./FeasibleRegionSensitivityLab.astro";
+import FixedChargeMilpLab from "./FixedChargeMilpLab.astro";
+import ModelScaleLab from "./ModelScaleLab.astro";
+import OptimisationAnatomyLab from "./OptimisationAnatomyLab.astro";
+import PlanningHorizonLab from "./PlanningHorizonLab.astro";
+import PulpModelAnatomyLab from "./PulpModelAnatomyLab.astro";
+import SupplyChainFlowLab from "./SupplyChainFlowLab.astro";
+import UnconstrainedTradeoffLab from "./UnconstrainedTradeoffLab.astro";
+
+interface Props {
+  slug: string;
+}
+
+const { slug } = Astro.props;
+---
+
+{
+  slug === "optimisation-model-anatomy" && (
+    <div class="learning-note__inline-block" data-learning-block="optimisation-anatomy">
+      <OptimisationAnatomyLab />
+    </div>
+  )
+}
+{
+  slug === "unconstrained-optimisation" && (
+    <div class="learning-note__inline-block" data-learning-block="unconstrained-tradeoff">
+      <UnconstrainedTradeoffLab />
+    </div>
+  )
+}
+{
+  (slug === "constrained-optimisation" || slug === "optimisation-sensitivity-analysis") && (
+    <div class="learning-note__inline-block" data-learning-block="feasible-region-sensitivity">
+      <FeasibleRegionSensitivityLab />
+    </div>
+  )
+}
+{
+  slug === "binary-milp-decisions" && (
+    <div class="learning-note__inline-block" data-learning-block="fixed-charge-milp">
+      <FixedChargeMilpLab />
+    </div>
+  )
+}
+{
+  (slug === "sets-indices-model-scale" || slug === "multidimensional-optimisation") && (
+    <div class="learning-note__inline-block" data-learning-block="model-scale">
+      <ModelScaleLab />
+    </div>
+  )
+}
+{
+  slug === "pulp-model-architecture" && (
+    <div class="learning-note__inline-block" data-learning-block="pulp-model-anatomy">
+      <PulpModelAnatomyLab />
+    </div>
+  )
+}
+{
+  slug === "transportation-models" && (
+    <>
+      <div class="learning-note__inline-block" data-learning-block="planning-horizon">
+        <PlanningHorizonLab />
+      </div>
+      <div class="learning-note__inline-block" data-learning-block="supply-chain-flow">
+        <SupplyChainFlowLab defaultMode="carrier" />
+      </div>
+    </>
+  )
+}
+{
+  slug === "multi-period-production-inventory" && (
+    <div class="learning-note__inline-block" data-learning-block="supply-chain-flow">
+      <SupplyChainFlowLab defaultMode="period" />
+    </div>
+  )
+}
