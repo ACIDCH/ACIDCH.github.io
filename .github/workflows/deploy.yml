@@ -163,6 +163,9 @@ jobs:
     needs: [quality, deploy]
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
+      statuses: write
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
@@ -178,3 +181,34 @@ jobs:
         run: |
           npm run verify:production -- "${{ needs.deploy.outputs.page_url }}" "${{ needs.quality.outputs.deploy_sha }}"
           node scripts/verify-sql08-production.mjs "${{ needs.deploy.outputs.page_url }}" "${{ needs.quality.outputs.deploy_sha }}"
+
+      - name: Publish auditable production verification receipt
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET_SHA: ${{ needs.quality.outputs.deploy_sha }}
+          REPOSITORY: ${{ github.repository }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        shell: bash
+        run: |
+          state="failure"
+          description="GitHub Pages live verification failed"
+          if [ "${{ job.status }}" = "success" ]; then
+            state="success"
+            description="GitHub Pages live verification passed"
+          fi
+
+          payload=$(jq -n \
+            --arg state "$state" \
+            --arg context "production/live-verification" \
+            --arg description "$description" \
+            --arg target_url "$RUN_URL" \
+            '{state: $state, context: $context, description: $description, target_url: $target_url}')
+
+          curl --fail-with-body --silent --show-error \
+            --request POST \
+            --header "Accept: application/vnd.github+json" \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            "$GITHUB_API_URL/repos/$REPOSITORY/statuses/$TARGET_SHA" \
+            --data "$payload"
