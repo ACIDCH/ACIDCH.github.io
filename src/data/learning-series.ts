@@ -213,26 +213,59 @@ export const learningSeries: LearningSeries[] = [
     slug: "decision-models",
     title: "供应链与决策模型",
     description:
-      "通过网络、库存、模拟与优化模型，将成本、服务与约束转为可比较的决策结构。",
-    tools: ["Excel", "优化", "模拟"],
+      "从优化问题解剖、LP/MILP、敏感性、Sets 与 Indices 进入 PuLP 和高维模型，再把容量、成本、合同、运输与库存流转成可审计的供应链决策。",
+    tools: ["Excel Solver", "Python", "PuLP", "优化"],
     modules: [
-      { code: "DM 01", title: "问题建模", summary: "定义决策变量、目标与约束。" },
+      {
+        code: "DM 01",
+        title: "优化问题解剖",
+        summary: "区分目标、参数、决策变量、约束、变量域与可行性。",
+      },
       {
         code: "DM 02",
-        title: "网络与运输",
-        summary: "用节点、路径、需求与容量表达流动。",
+        title: "无约束优化",
+        summary: "从函数形状、边际变化和二阶信息理解最优点与近最优区域。",
       },
       {
         code: "DM 03",
-        title: "库存决策",
-        summary: "把需求波动、补货与服务水平放在同一口径。",
+        title: "受约束优化与可行域",
+        summary: "用资源约束、角点、binding 与 slack 解释线性规划。",
       },
       {
         code: "DM 04",
-        title: "蒙特卡洛模拟",
-        summary: "用重复随机抽样观察不确定性下的结果范围。",
+        title: "敏感性分析",
+        summary: "把 RHS、shadow price、目标系数和情景变化转为资源价值判断。",
       },
-      { code: "DM 05", title: "敏感性分析", summary: "识别结论对关键输入变化的反应。" },
+      {
+        code: "DM 05",
+        title: "二进制决策与 MILP",
+        summary: "用 fixed charge、linking constraints 与逻辑约束表达结构性选择。",
+      },
+      {
+        code: "DM 06",
+        title: "Sets、Indices 与模型规模",
+        summary: "用变量族、约束族、基数和稀疏索引控制模型扩展。",
+      },
+      {
+        code: "DM 07",
+        title: "PuLP 模型架构",
+        summary: "把数学模型映射到数据、变量、目标、约束、求解与诊断代码。",
+      },
+      {
+        code: "DM 08",
+        title: "多维优化模型",
+        summary: "从 0D 到 n-D 管理产品、工厂、资源、技能与时期维度。",
+      },
+      {
+        code: "DM 09",
+        title: "供应链规划与运输分配",
+        summary: "连接战略网络、战术合同与运营流量，并建立运输平衡模型。",
+      },
+      {
+        code: "DM 10",
+        title: "多期生产、库存与履约",
+        summary: "用库存结转、setup、holding 与 shortage 建立跨期流量优化。",
+      },
     ],
   },
 ];
