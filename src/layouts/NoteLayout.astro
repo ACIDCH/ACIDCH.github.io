@@ -15,6 +15,7 @@ import RelationalModelExplorer from "../components/learning/RelationalModelExplo
 import RelationshipCardinalityLab from "../components/learning/RelationshipCardinalityLab.astro";
 import SqlDatasetExplorer from "../components/learning/SqlDatasetExplorer.astro";
 import SqlPlayground from "../components/learning/SqlPlayground.astro";
+import WhereFilterLab from "../components/learning/WhereFilterLab.astro";
 import "../styles/learning-note-editorial.css";
 import { getCanonicalUrl } from "../utils/urls";
 import BaseLayout from "./BaseLayout.astro";
@@ -32,12 +33,14 @@ const isSqlPrimaryKey = entry.data.slug === "sql-primary-key";
 const isSqlForeignKey = entry.data.slug === "sql-foreign-key";
 const isSqlRelationships = entry.data.slug === "sql-relationships";
 const isSqlSelect = entry.data.slug === "sql-select";
+const isSqlWhere = entry.data.slug === "sql-where";
 const isSqlEditorial =
   isSqlOverview ||
   isSqlPrimaryKey ||
   isSqlForeignKey ||
   isSqlRelationships ||
-  isSqlSelect;
+  isSqlSelect ||
+  isSqlWhere;
 const isHandbook = isStatisticsHandbook || isSqlEditorial;
 
 const statisticsToc = [
@@ -207,19 +210,45 @@ const sqlSelectToc = [
   { id: "下一步只保留满足条件的记录", label: "下一步" },
 ];
 
-const learningToc = isSqlSelect
-  ? sqlSelectToc
-  : isSqlRelationships
-    ? sqlRelationshipsToc
-    : isSqlForeignKey
-      ? sqlForeignKeyToc
-      : isSqlPrimaryKey
-        ? sqlPrimaryKeyToc
-        : isSqlOverview
-          ? sqlOverviewToc
-          : statisticsToc;
+const sqlWhereToc = [
+  { id: "从读取整张表进入只保留需要的记录", label: "进入条件查询" },
+  { id: "where-改变的是结果集的行", label: "WHERE 与结果行" },
+  { id: "比较运算符是条件表达式的基础", label: "比较运算" },
+  { id: "and所有条件都必须成立", label: "AND" },
+  { id: "or任意一个条件成立即可", label: "OR" },
+  { id: "not对一个条件取反", label: "NOT" },
+  { id: "notandor-有优先级", label: "逻辑优先级" },
+  { id: "括号比记忆优先级更可靠", label: "括号" },
+  { id: "范围条件为什么经常写错", label: "范围条件" },
+  { id: "between更直接地表达闭区间", label: "BETWEEN" },
+  { id: "in一个字段允许落在多个离散值中", label: "IN" },
+  { id: "like按文本模式筛选", label: "LIKE" },
+  { id: "where-中存在三值逻辑", label: "NULL 与三值逻辑" },
+  { id: "where-和-order-by-解决的不是同一个问题", label: "WHERE vs ORDER BY" },
+  { id: "在浏览器里实际运行这些条件", label: "运行 WHERE" },
+  { id: "where-不等于查询一定很快", label: "筛选 vs 查询性能" },
+  { id: "business-analytics-中的-where-通常来自业务规则", label: "业务规则" },
+  { id: "常见错误", label: "常见错误" },
+  { id: "条件查询可以按这个顺序检查", label: "条件检查" },
+  { id: "本篇的核心判断", label: "核心判断" },
+  { id: "下一步不只筛选行还要选择列", label: "下一步" },
+];
+
+const learningToc = isSqlWhere
+  ? sqlWhereToc
+  : isSqlSelect
+    ? sqlSelectToc
+    : isSqlRelationships
+      ? sqlRelationshipsToc
+      : isSqlForeignKey
+        ? sqlForeignKeyToc
+        : isSqlPrimaryKey
+          ? sqlPrimaryKeyToc
+          : isSqlOverview
+            ? sqlOverviewToc
+            : statisticsToc;
 const handbookTitle =
-  isSqlPrimaryKey || isSqlForeignKey || isSqlRelationships || isSqlSelect
+  isSqlPrimaryKey || isSqlForeignKey || isSqlRelationships || isSqlSelect || isSqlWhere
     ? entry.data.title
     : isSqlOverview
       ? "SQL 与关系数据"
@@ -388,6 +417,24 @@ const noteStructuredData = {
                   >
                     <SqlPlayground defaultPreset="customers" />
                   </div>
+                )
+              }
+              {
+                isSqlWhere && (
+                  <>
+                    <div
+                      class="learning-note__inline-block"
+                      data-learning-block="where-filter-lab"
+                    >
+                      <WhereFilterLab />
+                    </div>
+                    <div
+                      class="learning-note__inline-block"
+                      data-learning-block="sql-playground"
+                    >
+                      <SqlPlayground defaultPreset="where-gte" focus="where" />
+                    </div>
+                  </>
                 )
               }
             </div>
