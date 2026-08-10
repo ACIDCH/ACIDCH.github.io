@@ -1,0 +1,270 @@
+<section class="primary-key-lab" data-primary-key-lab aria-labelledby="primary-key-lab-title">
+  <div class="primary-key-lab__intro">
+    <p class="learning-note-kicker">互动图表 · 主键设计</p>
+    <h3 id="primary-key-lab-title">如果客户换了邮箱，哪一个字段还能稳定代表同一条记录？</h3>
+    <p>
+      在下方切换候选主键，再模拟业务字段变化。重点观察：唯一并不等于稳定，带业务含义的字段即使当前没有重复，也可能在业务过程中被修改。
+    </p>
+  </div>
+
+  <div class="primary-key-lab__controls" role="group" aria-label="选择候选主键">
+    <button type="button" data-key-choice="customer_id" aria-pressed="true">customer_id</button>
+    <button type="button" data-key-choice="email" aria-pressed="false">email</button>
+    <button type="button" data-key-choice="phone" aria-pressed="false">phone</button>
+  </div>
+
+  <div class="primary-key-lab__stage">
+    <div class="primary-key-lab__table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th data-field="customer_id">customer_id</th>
+            <th>customer_name</th>
+            <th data-field="email">email</th>
+            <th data-field="phone">phone</th>
+          </tr>
+        </thead>
+        <tbody data-key-table-body></tbody>
+      </table>
+    </div>
+
+    <aside class="primary-key-lab__reading" aria-live="polite">
+      <span>当前候选</span>
+      <strong data-key-current>customer_id</strong>
+      <p data-key-reading>
+        与业务含义分离，值稳定且唯一，适合作为记录的持久标识。
+      </p>
+      <button type="button" class="button button--secondary" data-key-change>
+        模拟业务字段变化
+      </button>
+      <button type="button" class="button button--ghost" data-key-reset>
+        重置
+      </button>
+    </aside>
+  </div>
+</section>
+
+<style>
+  .primary-key-lab {
+    margin: var(--space-12) 0;
+    padding: var(--space-7) 0 var(--space-8);
+    border-top: 1px solid var(--colour-border-strong);
+    border-bottom: 1px solid var(--colour-border-strong);
+  }
+
+  .primary-key-lab__intro {
+    max-width: 58rem;
+  }
+
+  .primary-key-lab__intro h3 {
+    margin: var(--space-2) 0 var(--space-3);
+    font-size: clamp(1.35rem, 1.5vw, 1.8rem);
+    line-height: 1.35;
+  }
+
+  .primary-key-lab__intro p:last-child,
+  .primary-key-lab__reading p,
+  .primary-key-lab__reading span {
+    color: var(--colour-text-muted);
+  }
+
+  .primary-key-lab__controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: var(--space-6) 0 var(--space-5);
+  }
+
+  .primary-key-lab__controls button {
+    padding: 0.55rem 0.8rem;
+    border: 1px solid var(--colour-border);
+    border-radius: 999px;
+    background: var(--colour-surface);
+    color: var(--colour-text);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .primary-key-lab__controls button[aria-pressed="true"] {
+    border-color: var(--colour-primary);
+    background: var(--colour-primary-soft);
+    color: var(--colour-primary-strong);
+  }
+
+  .primary-key-lab__stage {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(15rem, 19rem);
+    gap: var(--space-6);
+    align-items: start;
+  }
+
+  .primary-key-lab__table-wrap {
+    overflow-x: auto;
+  }
+
+  .primary-key-lab table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-sm);
+  }
+
+  .primary-key-lab th,
+  .primary-key-lab td {
+    padding: 0.75rem 0.85rem;
+    border-bottom: 1px solid var(--colour-border);
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  .primary-key-lab th[data-active-key="true"],
+  .primary-key-lab td[data-active-key="true"] {
+    background: var(--colour-primary-soft);
+  }
+
+  .primary-key-lab td[data-changed="true"] {
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-underline-offset: 0.25em;
+  }
+
+  .primary-key-lab__reading {
+    padding-left: var(--space-5);
+    border-left: 1px solid var(--colour-border-strong);
+  }
+
+  .primary-key-lab__reading span {
+    display: block;
+    font-size: var(--font-size-xs);
+  }
+
+  .primary-key-lab__reading strong {
+    display: block;
+    margin-top: var(--space-1);
+    font-size: clamp(1.4rem, 2vw, 2rem);
+    font-family: var(--font-mono);
+  }
+
+  .primary-key-lab__reading p {
+    margin: var(--space-3) 0 var(--space-5);
+    line-height: 1.75;
+  }
+
+  .primary-key-lab__reading .button + .button {
+    margin-top: var(--space-2);
+  }
+
+  @media (max-width: 58rem) {
+    .primary-key-lab__stage {
+      grid-template-columns: 1fr;
+    }
+
+    .primary-key-lab__reading {
+      padding: var(--space-4) 0 0;
+      border-top: 1px solid var(--colour-border-strong);
+      border-left: 0;
+    }
+  }
+</style>
+
+<script>
+  let primaryKeyCleanup: (() => void) | undefined;
+
+  function initPrimaryKeyLab() {
+    primaryKeyCleanup?.();
+    const root = document.querySelector<HTMLElement>("[data-primary-key-lab]");
+    if (!root) return;
+
+    const body = root.querySelector<HTMLTableSectionElement>("[data-key-table-body]");
+    const current = root.querySelector<HTMLElement>("[data-key-current]");
+    const reading = root.querySelector<HTMLElement>("[data-key-reading]");
+    const changeButton = root.querySelector<HTMLButtonElement>("[data-key-change]");
+    const resetButton = root.querySelector<HTMLButtonElement>("[data-key-reset]");
+    const choiceButtons = Array.from(root.querySelectorAll<HTMLButtonElement>("[data-key-choice]"));
+    if (!body || !current || !reading || !changeButton || !resetButton || choiceButtons.length === 0) return;
+
+    const controller = new AbortController();
+    const originalRows = [
+      { customer_id: "1001", customer_name: "North Retail", email: "north@example.com", phone: "021-440-810" },
+      { customer_id: "1002", customer_name: "Coast Foods", email: "coast@example.com", phone: "021-440-811" },
+      { customer_id: "1003", customer_name: "Alpine Labs", email: "alpine@example.com", phone: "021-440-812" },
+    ];
+    let selected = "customer_id";
+    let changed = false;
+
+    const messages: Record<string, string> = {
+      customer_id: "与业务含义分离，值稳定且唯一，适合作为记录的持久标识。",
+      email: "当前可以唯一，但邮箱属于业务字段。客户更换邮箱时，记录身份不应该跟着改变。",
+      phone: "手机号可能被更换、回收或重新分配。它适合保存业务联系信息，不适合作为稳定身份。",
+    };
+
+    function rows() {
+      return originalRows.map((row, index) => {
+        if (!changed || index !== 1) return { ...row };
+        return { ...row, email: "accounts@coast.example", phone: "021-555-902" };
+      });
+    }
+
+    function render() {
+      body.replaceChildren();
+      rows().forEach((row, rowIndex) => {
+        const tr = document.createElement("tr");
+        ["customer_id", "customer_name", "email", "phone"].forEach((field) => {
+          const td = document.createElement("td");
+          td.textContent = row[field as keyof typeof row];
+          if (field === selected) td.dataset.activeKey = "true";
+          if (changed && rowIndex === 1 && (field === "email" || field === "phone")) td.dataset.changed = "true";
+          tr.append(td);
+        });
+        body.append(tr);
+      });
+
+      root.querySelectorAll<HTMLElement>("th[data-field]").forEach((cell) => {
+        cell.dataset.activeKey = String(cell.dataset.field === selected);
+      });
+      choiceButtons.forEach((button) => {
+        button.setAttribute("aria-pressed", String(button.dataset.keyChoice === selected));
+      });
+      current.textContent = selected;
+      reading.textContent = messages[selected];
+      changeButton.textContent = changed ? "业务字段已经变化" : "模拟业务字段变化";
+      changeButton.disabled = changed;
+    }
+
+    choiceButtons.forEach((button) => {
+      button.addEventListener(
+        "click",
+        () => {
+          selected = button.dataset.keyChoice || "customer_id";
+          render();
+        },
+        { signal: controller.signal },
+      );
+    });
+
+    changeButton.addEventListener(
+      "click",
+      () => {
+        changed = true;
+        render();
+      },
+      { signal: controller.signal },
+    );
+
+    resetButton.addEventListener(
+      "click",
+      () => {
+        selected = "customer_id";
+        changed = false;
+        render();
+      },
+      { signal: controller.signal },
+    );
+
+    render();
+    primaryKeyCleanup = () => controller.abort();
+  }
+
+  document.addEventListener("astro:before-swap", () => primaryKeyCleanup?.());
+  document.addEventListener("astro:page-load", initPrimaryKeyLab);
+  initPrimaryKeyLab();
+</script>
