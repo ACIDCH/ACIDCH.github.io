@@ -75,21 +75,108 @@ export const learningSeries: LearningSeries[] = [
     slug: "sql",
     title: "SQL 与关系数据",
     description:
-      "从关系模型到可复查查询，把业务问题翻译为稳定的数据结构、连接条件与结果表。",
-    tools: ["SQL", "关系数据库"],
+      "从关系数据库、键与表关系进入查询、数据修改、索引与事务，把业务问题翻译成可复查的数据结构和结果集。",
+    tools: ["SQL", "SQLite", "关系数据库"],
     modules: [
-      { code: "SQL 01", title: "关系模型基础", summary: "表、主键、外键与记录粒度。" },
-      { code: "SQL 02", title: "筛选与排序", summary: "用明确条件缩小分析对象。" },
-      { code: "SQL 03", title: "聚合与分组", summary: "按正确粒度得到可解释的汇总。" },
+      {
+        code: "SQL 01",
+        title: "Relational Database",
+        summary: "数据库、关系模型、记录与字段、数据类型、NULL、SQL 操作类别与方言。",
+      },
+      {
+        code: "SQL 02",
+        title: "Primary Key",
+        summary: "用稳定、唯一、非空且尽量业务无关的键标识记录。",
+      },
+      {
+        code: "SQL 03",
+        title: "Foreign Key",
+        summary: "建立父表与子表引用，并理解引用完整性与数据库约束。",
+      },
       {
         code: "SQL 04",
-        title: "表连接",
-        summary: "识别一对一、一对多与重复计数风险。",
+        title: "One-to-Many / Many-to-Many / One-to-One",
+        summary: "用外键、UNIQUE 与中间表表达关系基数并控制 JOIN 粒度。",
       },
       {
         code: "SQL 05",
-        title: "子查询与窗口函数",
-        summary: "处理排名、时间比较和分组内计算。",
+        title: "SELECT",
+        summary: "读取表数据，理解 SELECT、FROM、星号与二维结果集。",
+      },
+      {
+        code: "SQL 06",
+        title: "WHERE",
+        summary: "用比较、逻辑与空值条件筛选需要的记录。",
+      },
+      {
+        code: "SQL 07",
+        title: "Projection",
+        summary: "选择需要的列、计算表达式并使用清晰的结果列别名。",
+      },
+      {
+        code: "SQL 08",
+        title: "ORDER BY",
+        summary: "按一个或多个字段稳定排序查询结果。",
+      },
+      {
+        code: "SQL 09",
+        title: "Pagination",
+        summary: "理解分页窗口、LIMIT/OFFSET 与稳定排序的重要性。",
+      },
+      {
+        code: "SQL 10",
+        title: "Aggregation",
+        summary: "使用 COUNT、SUM、AVG、MIN 与 MAX 汇总记录。",
+      },
+      {
+        code: "SQL 11",
+        title: "GROUP BY",
+        summary: "按业务维度分组聚合并保持结果粒度清楚。",
+      },
+      {
+        code: "SQL 12",
+        title: "JOIN",
+        summary: "沿主外键关系连接表，并识别 INNER 与 OUTER JOIN 的保留规则。",
+      },
+      {
+        code: "SQL 13",
+        title: "Subquery",
+        summary: "把查询结果作为后续查询输入，处理分层筛选与比较问题。",
+      },
+      {
+        code: "SQL 14",
+        title: "INSERT",
+        summary: "按字段和值的对应关系安全插入一条或多条记录。",
+      },
+      {
+        code: "SQL 15",
+        title: "UPDATE",
+        summary: "用条件精确修改已有记录并避免无意的全表更新。",
+      },
+      {
+        code: "SQL 16",
+        title: "DELETE",
+        summary: "用条件删除记录并理解引用关系带来的限制。",
+      },
+      {
+        code: "SQL 17",
+        title: "Index",
+        summary: "理解索引如何改变查找路径，以及读取收益与写入维护成本。",
+      },
+      {
+        code: "SQL 18",
+        title: "Transaction",
+        summary: "用事务把多条修改组织成一个原子工作单元。",
+      },
+      {
+        code: "SQL 19",
+        title: "Isolation",
+        summary: "理解并发读写中的隔离级别、脏读、不可重复读与幻读。",
+      },
+      {
+        code: "SQL 20",
+        title: "Analytics SQL Case Study",
+        summary: "把建模、查询、连接、聚合与数据质量检查组合成完整分析案例。",
       },
     ],
   },

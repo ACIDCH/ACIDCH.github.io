@@ -1,0 +1,346 @@
+---
+import { sqlCustomers } from "../../data/sql-learning";
+---
+
+<section class="foreign-key-lab" data-foreign-key-lab aria-labelledby="foreign-key-lab-title">
+  <div class="foreign-key-lab__intro">
+    <p class="learning-note-kicker">互动图表 · 引用完整性</p>
+    <h3 id="foreign-key-lab-title">一个订单能否指向不存在的客户？</h3>
+    <p>
+      客户 ID 来自统一 SQL 数据集。切换订单中的 <code>customer_id</code>，再切换“数据库外键约束”与“只有逻辑引用”，观察无效引用在两个设计中的差别。
+    </p>
+  </div>
+
+  <div class="foreign-key-lab__mode" role="group" aria-label="选择引用检查模式">
+    <button type="button" data-fk-mode="constraint" aria-pressed="true">数据库 FOREIGN KEY</button>
+    <button type="button" data-fk-mode="logical" aria-pressed="false">仅逻辑外键</button>
+  </div>
+
+  <div class="foreign-key-lab__relation" aria-label="当前引用规则">
+    <span>orders.customer_id</span>
+    <strong data-fk-relation-label>FK → PK</strong>
+    <span>customers.customer_id</span>
+  </div>
+
+  <div class="foreign-key-lab__grid">
+    <div class="foreign-key-lab__table-wrap">
+      <p class="foreign-key-lab__label">父表 · customers</p>
+      <table>
+        <thead>
+          <tr>
+            <th>customer_id · PK</th>
+            <th>customer_name</th>
+          </tr>
+        </thead>
+        <tbody>
+          {sqlCustomers.map((customer) => (
+            <tr data-parent-row={customer.customer_id}>
+              <td>{customer.customer_id}</td>
+              <td>{customer.customer_name}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <aside class="foreign-key-lab__candidate" aria-live="polite">
+      <p class="foreign-key-lab__label">子表 · 候选新订单</p>
+      <dl>
+        <div><dt>order_id</dt><dd>50999</dd></div>
+        <div>
+          <dt>customer_id</dt>
+          <dd>
+            <select data-foreign-key-choice aria-label="选择订单 customer_id">
+              {sqlCustomers.map((customer) => (
+                <option value={customer.customer_id}>{customer.customer_id}</option>
+              ))}
+              <option value="9999">9999 · 不存在</option>
+            </select>
+          </dd>
+        </div>
+        <div><dt>order_value</dt><dd>99.00</dd></div>
+      </dl>
+      <div class="foreign-key-lab__result" data-foreign-key-result data-state="valid">
+        <strong data-foreign-key-status>引用有效</strong>
+        <p data-foreign-key-reading></p>
+      </div>
+      <div class="foreign-key-lab__decision" data-fk-decision></div>
+    </aside>
+  </div>
+</section>
+
+<style>
+  .foreign-key-lab {
+    margin: var(--space-12) 0;
+    padding: var(--space-7) 0 var(--space-8);
+    border-top: 1px solid var(--colour-border-strong);
+    border-bottom: 1px solid var(--colour-border-strong);
+  }
+
+  .foreign-key-lab__intro {
+    max-width: 58rem;
+  }
+
+  .foreign-key-lab__intro h3 {
+    margin: var(--space-2) 0 var(--space-3);
+    font-size: clamp(1.35rem, 1.5vw, 1.8rem);
+    line-height: 1.35;
+  }
+
+  .foreign-key-lab__intro p:last-child,
+  .foreign-key-lab__label,
+  .foreign-key-lab__result p,
+  .foreign-key-lab dt,
+  .foreign-key-lab__decision {
+    color: var(--colour-text-muted);
+  }
+
+  .foreign-key-lab__mode {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: var(--space-6) 0 var(--space-4);
+  }
+
+  .foreign-key-lab__mode button {
+    padding: 0.55rem 0.8rem;
+    border: 1px solid var(--colour-border);
+    border-radius: 999px;
+    background: var(--colour-surface);
+    color: var(--colour-text);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .foreign-key-lab__mode button[aria-pressed="true"] {
+    border-color: var(--colour-primary);
+    background: var(--colour-surface-subtle);
+    color: var(--colour-primary-strong);
+  }
+
+  .foreign-key-lab__relation {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    gap: var(--space-3);
+    align-items: center;
+    margin-bottom: var(--space-5);
+    padding: var(--space-3) var(--space-4);
+    border-top: 1px solid var(--colour-border-strong);
+    border-bottom: 1px solid var(--colour-border-strong);
+    color: var(--colour-text-muted);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-xs);
+    text-align: center;
+  }
+
+  .foreign-key-lab__relation strong {
+    padding: 0.3rem 0.65rem;
+    border: 1px solid var(--colour-border);
+    border-radius: 999px;
+    color: var(--colour-text);
+    background: var(--colour-surface-subtle);
+    font-size: var(--font-size-sm);
+  }
+
+  .foreign-key-lab__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(19rem, 0.9fr);
+    gap: var(--space-7);
+    align-items: start;
+  }
+
+  .foreign-key-lab__table-wrap {
+    min-width: 0;
+  }
+
+  .foreign-key-lab__label {
+    margin: 0 0 var(--space-2);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: 0.04em;
+  }
+
+  .foreign-key-lab table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    font-size: var(--font-size-sm);
+  }
+
+  .foreign-key-lab th,
+  .foreign-key-lab td {
+    padding: 0.72rem 0.8rem;
+    border-bottom: 1px solid var(--colour-border);
+    text-align: left;
+  }
+
+  .foreign-key-lab th:first-child,
+  .foreign-key-lab td:first-child {
+    width: 42%;
+    font-family: var(--font-mono);
+  }
+
+  .foreign-key-lab tr[data-active-parent="true"] td {
+    background: var(--colour-surface-subtle);
+  }
+
+  .foreign-key-lab__candidate {
+    padding-left: var(--space-5);
+    border-left: 1px solid var(--colour-border-strong);
+  }
+
+  .foreign-key-lab__candidate dl {
+    margin: 0;
+  }
+
+  .foreign-key-lab__candidate dl > div {
+    display: grid;
+    grid-template-columns: minmax(7rem, 1fr) minmax(0, 1fr);
+    gap: var(--space-3);
+    padding: 0.7rem 0;
+    border-bottom: 1px solid var(--colour-border);
+  }
+
+  .foreign-key-lab dt,
+  .foreign-key-lab dd {
+    margin: 0;
+    font-size: var(--font-size-sm);
+  }
+
+  .foreign-key-lab dd {
+    font-family: var(--font-mono);
+  }
+
+  .foreign-key-lab select {
+    width: 100%;
+    padding: 0.45rem 0.55rem;
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-sm);
+    background: var(--colour-surface);
+    color: var(--colour-text);
+    font: inherit;
+  }
+
+  .foreign-key-lab__result,
+  .foreign-key-lab__decision {
+    margin-top: var(--space-4);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--colour-border-strong);
+  }
+
+  .foreign-key-lab__result strong {
+    display: block;
+    margin-bottom: var(--space-2);
+  }
+
+  .foreign-key-lab__result[data-state="invalid"] strong {
+    color: var(--colour-danger, #9a3f38);
+  }
+
+  .foreign-key-lab__result p,
+  .foreign-key-lab__decision {
+    margin-bottom: 0;
+    line-height: 1.7;
+  }
+
+  .foreign-key-lab__decision {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-xs);
+  }
+
+  @media (max-width: 58rem) {
+    .foreign-key-lab__relation {
+      grid-template-columns: 1fr;
+      justify-items: start;
+      text-align: left;
+    }
+
+    .foreign-key-lab__grid {
+      grid-template-columns: 1fr;
+      gap: var(--space-5);
+    }
+
+    .foreign-key-lab__candidate {
+      padding: var(--space-4) 0 0;
+      border-top: 1px solid var(--colour-border-strong);
+      border-left: 0;
+    }
+  }
+</style>
+
+<script>
+  let foreignKeyCleanup: (() => void) | undefined;
+
+  function initForeignKeyLab() {
+    foreignKeyCleanup?.();
+    const root = document.querySelector<HTMLElement>("[data-foreign-key-lab]");
+    if (!root) return;
+
+    const choice = root.querySelector<HTMLSelectElement>("[data-foreign-key-choice]");
+    const result = root.querySelector<HTMLElement>("[data-foreign-key-result]");
+    const status = root.querySelector<HTMLElement>("[data-foreign-key-status]");
+    const reading = root.querySelector<HTMLElement>("[data-foreign-key-reading]");
+    const decision = root.querySelector<HTMLElement>("[data-fk-decision]");
+    const relationLabel = root.querySelector<HTMLElement>("[data-fk-relation-label]");
+    const modeButtons = Array.from(root.querySelectorAll<HTMLButtonElement>("[data-fk-mode]"));
+    const parentRows = Array.from(root.querySelectorAll<HTMLElement>("[data-parent-row]"));
+    if (!choice || !result || !status || !reading || !decision || !relationLabel) return;
+
+    const choiceControl = choice;
+    const resultOutput = result;
+    const statusOutput = status;
+    const readingOutput = reading;
+    const decisionOutput = decision;
+    const relationOutput = relationLabel;
+    const controller = new AbortController();
+    const validKeys = new Set(parentRows.map((row) => row.dataset.parentRow || ""));
+    let mode: "constraint" | "logical" = "constraint";
+
+    function render() {
+      const value = choiceControl.value;
+      const valid = validKeys.has(value);
+      resultOutput.dataset.state = valid ? "valid" : "invalid";
+      statusOutput.textContent = valid ? "引用有效" : "引用无效";
+      readingOutput.textContent = valid
+        ? `customer_id = ${value} 能在 customers.customer_id 中找到对应记录。`
+        : `customer_id = ${value} 在 customers.customer_id 中不存在，因此形成孤立引用。`;
+
+      if (mode === "constraint") {
+        relationOutput.textContent = "FK → PK";
+        decisionOutput.textContent = valid
+          ? "FOREIGN KEY mode → INSERT can proceed"
+          : "FOREIGN KEY mode → database rejects INSERT";
+      } else {
+        relationOutput.textContent = "logical → PK";
+        decisionOutput.textContent = valid
+          ? "logical-only mode → application can accept this reference"
+          : "logical-only mode → database itself would not stop this orphan reference";
+      }
+
+      parentRows.forEach((row) => {
+        row.dataset.activeParent = String(valid && row.dataset.parentRow === value);
+      });
+      modeButtons.forEach((button) => {
+        button.setAttribute("aria-pressed", String(button.dataset.fkMode === mode));
+      });
+    }
+
+    choiceControl.addEventListener("change", render, { signal: controller.signal });
+    modeButtons.forEach((button) => {
+      button.addEventListener(
+        "click",
+        () => {
+          mode = button.dataset.fkMode === "logical" ? "logical" : "constraint";
+          render();
+        },
+        { signal: controller.signal },
+      );
+    });
+    render();
+    foreignKeyCleanup = () => controller.abort();
+  }
+
+  document.addEventListener("astro:before-swap", () => foreignKeyCleanup?.());
+  document.addEventListener("astro:page-load", initForeignKeyLab);
+  initForeignKeyLab();
+</script>

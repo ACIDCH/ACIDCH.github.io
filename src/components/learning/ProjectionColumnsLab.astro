@@ -1,0 +1,411 @@
+---
+import { sqlCustomers, sqlOrders } from "../../data/sql-learning";
+
+const payload = JSON.stringify({ customers: sqlCustomers, orders: sqlOrders }).replace(/</g, "\\u003c");
+---
+
+<section class="projection-lab" data-projection-lab aria-labelledby="projection-lab-title">
+  <div class="projection-lab__intro">
+    <p class="learning-note-kicker">互动图表 · Result Shape</p>
+    <h3 id="projection-lab-title">同一批记录，SELECT 列表怎样改变结果结构？</h3>
+    <p>
+      所有模式都读取 SQL 系列的 canonical dataset。切换后同时观察行数、列数、输出字段名与列顺序；Projection 只改变当前结果集，不修改原表 schema。
+    </p>
+  </div>
+
+  <div class="projection-lab__controls" role="group" aria-label="选择 Projection 示例">
+    <button type="button" data-projection-mode="all" aria-pressed="false">SELECT *</button>
+    <button type="button" data-projection-mode="columns" aria-pressed="true">选择三列</button>
+    <button type="button" data-projection-mode="reorder" aria-pressed="false">重排列</button>
+    <button type="button" data-projection-mode="alias" aria-pressed="false">列别名</button>
+    <button type="button" data-projection-mode="where" aria-pressed="false">WHERE + Projection</button>
+  </div>
+
+  <div class="projection-lab__statement">
+    <span>SELECT</span>
+    <code data-projection-statement>customer_id, customer_name, segment FROM customers</code>
+  </div>
+
+  <div class="projection-lab__metrics" aria-live="polite">
+    <div><span>Rows</span><strong data-projection-rows>3</strong></div>
+    <div><span>Columns</span><strong data-projection-columns>3</strong></div>
+    <div><span>Grain</span><strong data-projection-grain>customer</strong></div>
+  </div>
+
+  <div class="projection-lab__table-wrap">
+    <table>
+      <thead data-projection-head></thead>
+      <tbody data-projection-body></tbody>
+    </table>
+  </div>
+
+  <div class="projection-lab__cards" data-projection-cards aria-label="Projection mobile records"></div>
+
+  <p class="projection-lab__reading" data-projection-reading aria-live="polite">
+    3 条 customer 记录全部保留，结果从原表 5 列缩小为 3 列。
+  </p>
+  <script is:inline type="application/json" data-projection-source set:html={payload} />
+</section>
+
+<style>
+  .projection-lab {
+    margin: var(--space-12) 0;
+    padding: var(--space-7) 0 var(--space-8);
+    border-top: 1px solid var(--colour-border-strong);
+    border-bottom: 1px solid var(--colour-border-strong);
+  }
+
+  .projection-lab__intro {
+    max-width: 58rem;
+  }
+
+  .projection-lab__intro h3 {
+    margin: var(--space-2) 0 var(--space-3);
+    font-size: clamp(1.35rem, 1.5vw, 1.8rem);
+    line-height: 1.35;
+  }
+
+  .projection-lab__intro p:last-child,
+  .projection-lab__metrics span,
+  .projection-lab__reading {
+    color: var(--colour-text-muted);
+  }
+
+  .projection-lab__controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: var(--space-6) 0 var(--space-4);
+  }
+
+  .projection-lab__controls button {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--colour-border);
+    border-radius: 999px;
+    background: var(--colour-surface);
+    color: var(--colour-text);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .projection-lab__controls button[aria-pressed="true"] {
+    border-color: var(--colour-primary);
+    background: var(--colour-surface-subtle);
+    color: var(--colour-primary-strong);
+  }
+
+  .projection-lab__statement {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-3);
+    align-items: baseline;
+    padding: var(--space-4);
+    border: 1px solid var(--colour-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--colour-surface-subtle);
+  }
+
+  .projection-lab__statement span {
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .projection-lab__statement code {
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+
+  .projection-lab__metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-3);
+    margin: var(--space-4) 0;
+  }
+
+  .projection-lab__metrics > div {
+    display: grid;
+    gap: var(--space-1);
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--colour-border);
+  }
+
+  .projection-lab__metrics span {
+    font-size: var(--font-size-xs);
+  }
+
+  .projection-lab__metrics strong {
+    font-family: var(--font-mono);
+  }
+
+  .projection-lab__table-wrap {
+    overflow-x: auto;
+  }
+
+  .projection-lab table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-sm);
+  }
+
+  .projection-lab th,
+  .projection-lab td {
+    padding: 0.7rem 0.75rem;
+    border-bottom: 1px solid var(--colour-border);
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  .projection-lab th {
+    color: var(--colour-text-muted);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .projection-lab__cards {
+    display: none;
+  }
+
+  .projection-lab__reading {
+    max-width: 58rem;
+    margin: var(--space-4) 0 0;
+    line-height: 1.75;
+  }
+
+  @media (max-width: 42rem) {
+    .projection-lab__statement {
+      grid-template-columns: 1fr;
+    }
+
+    .projection-lab__metrics {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-2);
+    }
+
+    .projection-lab__table-wrap {
+      display: none;
+    }
+
+    .projection-lab__cards {
+      display: grid;
+      gap: var(--space-3);
+    }
+
+    .projection-lab__cards :global(article) {
+      padding: var(--space-4);
+      border: 1px solid var(--colour-border);
+      border-radius: var(--radius-md);
+      background: var(--colour-surface);
+    }
+
+    .projection-lab__cards :global(dl) {
+      display: grid;
+      grid-template-columns: minmax(6.5rem, 0.8fr) minmax(0, 1.2fr);
+      gap: var(--space-2) var(--space-3);
+      margin: 0;
+      font-size: var(--font-size-sm);
+    }
+
+    .projection-lab__cards :global(dt) {
+      color: var(--colour-text-muted);
+      overflow-wrap: anywhere;
+    }
+
+    .projection-lab__cards :global(dd) {
+      margin: 0;
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+  }
+</style>
+
+<script>
+  type Customer = {
+    customer_id: number;
+    customer_name: string;
+    email: string;
+    phone: string;
+    segment: string;
+  };
+  type Order = {
+    order_id: number;
+    customer_id: number;
+    order_date: string;
+    order_value: number;
+  };
+  type Data = { customers: Customer[]; orders: Order[] };
+  type Mode = "all" | "columns" | "reorder" | "alias" | "where";
+  type Cell = string | number | null;
+  type ResultShape = {
+    statement: string;
+    columns: string[];
+    rows: Cell[][];
+    grain: string;
+    reading: string;
+  };
+
+  let projectionCleanup: (() => void) | undefined;
+
+  function initProjectionLab() {
+    projectionCleanup?.();
+    const root = document.querySelector<HTMLElement>("[data-projection-lab]");
+    if (!root) return;
+
+    const source = root.querySelector<HTMLScriptElement>("[data-projection-source]");
+    const statement = root.querySelector<HTMLElement>("[data-projection-statement]");
+    const rowCount = root.querySelector<HTMLElement>("[data-projection-rows]");
+    const columnCount = root.querySelector<HTMLElement>("[data-projection-columns]");
+    const grain = root.querySelector<HTMLElement>("[data-projection-grain]");
+    const head = root.querySelector<HTMLTableSectionElement>("[data-projection-head]");
+    const body = root.querySelector<HTMLTableSectionElement>("[data-projection-body]");
+    const cards = root.querySelector<HTMLElement>("[data-projection-cards]");
+    const reading = root.querySelector<HTMLElement>("[data-projection-reading]");
+    const buttons = Array.from(
+      root.querySelectorAll<HTMLButtonElement>("[data-projection-mode]"),
+    );
+    if (
+      !source ||
+      !statement ||
+      !rowCount ||
+      !columnCount ||
+      !grain ||
+      !head ||
+      !body ||
+      !cards ||
+      !reading
+    )
+      return;
+
+    const statementOutput = statement;
+    const rowCountOutput = rowCount;
+    const columnCountOutput = columnCount;
+    const grainOutput = grain;
+    const tableHead = head;
+    const tableBody = body;
+    const cardOutput = cards;
+    const readingOutput = reading;
+    const data = JSON.parse(source.textContent || "{}") as Data;
+    const controller = new AbortController();
+
+    const makeResult = (mode: Mode): ResultShape => {
+      if (mode === "all") {
+        return {
+          statement: "* FROM customers",
+          columns: ["customer_id", "customer_name", "email", "phone", "segment"],
+          rows: data.customers.map((row) => [
+            row.customer_id,
+            row.customer_name,
+            row.email,
+            row.phone,
+            row.segment,
+          ]),
+          grain: "customer",
+          reading: "SELECT * 保留 3 条 customer 记录并返回全部 5 列。",
+        };
+      }
+      if (mode === "reorder") {
+        return {
+          statement: "segment, customer_name, customer_id FROM customers",
+          columns: ["segment", "customer_name", "customer_id"],
+          rows: data.customers.map((row) => [row.segment, row.customer_name, row.customer_id]),
+          grain: "customer",
+          reading: "记录数不变，结果列顺序完全由 SELECT 列表决定。",
+        };
+      }
+      if (mode === "alias") {
+        return {
+          statement:
+            "customer_id AS customer_key, customer_name AS customer, segment AS customer_segment FROM customers",
+          columns: ["customer_key", "customer", "customer_segment"],
+          rows: data.customers.map((row) => [row.customer_id, row.customer_name, row.segment]),
+          grain: "customer",
+          reading: "AS 只重命名当前结果集字段；原表 schema 与字段名没有改变。",
+        };
+      }
+      if (mode === "where") {
+        const selected = data.orders.filter((row) => row.order_value >= 500);
+        return {
+          statement:
+            "order_id, customer_id, order_value AS value FROM orders WHERE order_value >= 500",
+          columns: ["order_id", "customer_id", "value"],
+          rows: selected.map((row) => [row.order_id, row.customer_id, row.order_value]),
+          grain: "order",
+          reading: "WHERE 先把 4 行缩小为 2 行，Projection 再把 4 列塑造成 3 列。",
+        };
+      }
+      return {
+        statement: "customer_id, customer_name, segment FROM customers",
+        columns: ["customer_id", "customer_name", "segment"],
+        rows: data.customers.map((row) => [row.customer_id, row.customer_name, row.segment]),
+        grain: "customer",
+        reading: "3 条 customer 记录全部保留，结果从原表 5 列缩小为 3 列。",
+      };
+    };
+
+    function render(mode: Mode) {
+      const result = makeResult(mode);
+      statementOutput.textContent = result.statement;
+      rowCountOutput.textContent = String(result.rows.length);
+      columnCountOutput.textContent = String(result.columns.length);
+      grainOutput.textContent = result.grain;
+      readingOutput.textContent = result.reading;
+
+      tableHead.replaceChildren();
+      const headRow = document.createElement("tr");
+      result.columns.forEach((column) => {
+        const th = document.createElement("th");
+        th.textContent = column;
+        headRow.append(th);
+      });
+      tableHead.append(headRow);
+
+      tableBody.replaceChildren();
+      result.rows.forEach((row) => {
+        const tr = document.createElement("tr");
+        row.forEach((value) => {
+          const td = document.createElement("td");
+          td.textContent = value === null ? "NULL" : String(value);
+          tr.append(td);
+        });
+        tableBody.append(tr);
+      });
+
+      cardOutput.replaceChildren();
+      result.rows.forEach((row) => {
+        const article = document.createElement("article");
+        const list = document.createElement("dl");
+        result.columns.forEach((column, index) => {
+          const term = document.createElement("dt");
+          term.textContent = column;
+          const description = document.createElement("dd");
+          const value = row[index];
+          description.textContent = value === null ? "NULL" : String(value);
+          list.append(term, description);
+        });
+        article.append(list);
+        cardOutput.append(article);
+      });
+
+      buttons.forEach((button) => {
+        button.setAttribute(
+          "aria-pressed",
+          String(button.dataset.projectionMode === mode),
+        );
+      });
+    }
+
+    buttons.forEach((button) => {
+      button.addEventListener(
+        "click",
+        () => render((button.dataset.projectionMode || "columns") as Mode),
+        { signal: controller.signal },
+      );
+    });
+
+    render("columns");
+    projectionCleanup = () => controller.abort();
+  }
+
+  document.addEventListener("astro:before-swap", () => projectionCleanup?.());
+  document.addEventListener("astro:page-load", initProjectionLab);
+  initProjectionLab();
+</script>

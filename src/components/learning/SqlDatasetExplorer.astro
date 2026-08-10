@@ -1,0 +1,274 @@
+---
+import {
+  sqlCustomerProfiles,
+  sqlCustomers,
+  sqlDatasetCounts,
+  sqlOrderItems,
+  sqlOrders,
+  sqlOrderTotal,
+  sqlProducts,
+} from "../../data/sql-learning";
+---
+
+<section class="sql-dataset-explorer" data-sql-dataset-explorer aria-labelledby="sql-dataset-explorer-title">
+  <div class="sql-dataset-explorer__intro">
+    <p class="learning-note-kicker">互动数据集 · Single Source of Truth</p>
+    <h3 id="sql-dataset-explorer-title">整个 SQL 系列都沿用这一组业务数据</h3>
+    <p>
+      后续主键、外键、关系、查询与连接示例都以这组记录为准。切换表可以同时检查记录粒度、主外键字段和当前样例数量。金额字段只作为 demo numeric value，不额外假设货币单位。
+    </p>
+  </div>
+
+  <div class="sql-dataset-explorer__metrics" aria-label="数据集摘要">
+    <div><span>customers</span><strong>{sqlDatasetCounts.customers}</strong></div>
+    <div><span>orders</span><strong>{sqlDatasetCounts.orders}</strong></div>
+    <div><span>products</span><strong>{sqlDatasetCounts.products}</strong></div>
+    <div><span>order_items</span><strong>{sqlDatasetCounts.orderItems}</strong></div>
+    <div><span>order_value total</span><strong>{sqlOrderTotal.toFixed(2)}</strong></div>
+  </div>
+
+  <div class="sql-dataset-explorer__controls" role="group" aria-label="选择数据表">
+    <button type="button" data-dataset-choice="customers" aria-pressed="true">customers</button>
+    <button type="button" data-dataset-choice="orders" aria-pressed="false">orders</button>
+    <button type="button" data-dataset-choice="products" aria-pressed="false">products</button>
+    <button type="button" data-dataset-choice="order-items" aria-pressed="false">order_items</button>
+    <button type="button" data-dataset-choice="profiles" aria-pressed="false">customer_profiles</button>
+  </div>
+
+  <div class="sql-dataset-explorer__panels" aria-live="polite">
+    <section data-dataset-panel="customers">
+      <p class="sql-dataset-explorer__grain"><strong>粒度：</strong>One row = one customer · <code>customer_id</code> 是主键</p>
+      <div class="sql-dataset-explorer__table-wrap">
+        <table>
+          <thead><tr><th>customer_id</th><th>customer_name</th><th>email</th><th>phone</th><th>segment</th></tr></thead>
+          <tbody>
+            {sqlCustomers.map((row) => (
+              <tr><td>{row.customer_id}</td><td>{row.customer_name}</td><td>{row.email}</td><td>{row.phone}</td><td>{row.segment}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section data-dataset-panel="orders" hidden>
+      <p class="sql-dataset-explorer__grain"><strong>粒度：</strong>One row = one order · <code>customer_id</code> 引用 customers</p>
+      <div class="sql-dataset-explorer__table-wrap">
+        <table>
+          <thead><tr><th>order_id</th><th>customer_id</th><th>order_date</th><th>order_value</th></tr></thead>
+          <tbody>
+            {sqlOrders.map((row) => (
+              <tr><td>{row.order_id}</td><td>{row.customer_id}</td><td>{row.order_date}</td><td>{row.order_value.toFixed(2)}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section data-dataset-panel="products" hidden>
+      <p class="sql-dataset-explorer__grain"><strong>粒度：</strong>One row = one product · <code>product_id</code> 是主键</p>
+      <div class="sql-dataset-explorer__table-wrap">
+        <table>
+          <thead><tr><th>product_id</th><th>product_name</th><th>category</th></tr></thead>
+          <tbody>
+            {sqlProducts.map((row) => (
+              <tr><td>{row.product_id}</td><td>{row.product_name}</td><td>{row.category}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section data-dataset-panel="order-items" hidden>
+      <p class="sql-dataset-explorer__grain"><strong>粒度：</strong>One row = one product line within one order · 联合主键 <code>(order_id, product_id)</code></p>
+      <div class="sql-dataset-explorer__table-wrap">
+        <table>
+          <thead><tr><th>order_id</th><th>product_id</th><th>quantity</th><th>unit_price</th><th>line_value</th></tr></thead>
+          <tbody>
+            {sqlOrderItems.map((row) => (
+              <tr><td>{row.order_id}</td><td>{row.product_id}</td><td>{row.quantity}</td><td>{row.unit_price.toFixed(2)}</td><td>{(row.quantity * row.unit_price).toFixed(2)}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section data-dataset-panel="profiles" hidden>
+      <p class="sql-dataset-explorer__grain"><strong>粒度：</strong>One row = one optional customer profile · <code>customer_id</code> 同时是 PK 与 FK</p>
+      <div class="sql-dataset-explorer__table-wrap">
+        <table>
+          <thead><tr><th>customer_id</th><th>timezone</th><th>preferred_channel</th></tr></thead>
+          <tbody>
+            {sqlCustomerProfiles.map((row) => (
+              <tr><td>{row.customer_id}</td><td>{row.timezone}</td><td>{row.preferred_channel}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <div class="sql-dataset-explorer__relation" aria-label="关系摘要">
+    <code>customers 1 → N orders 1 → N order_items N ← 1 products</code>
+    <code>customers 1 ↔ 1 customer_profiles</code>
+  </div>
+</section>
+
+<style>
+  .sql-dataset-explorer {
+    margin: var(--space-12) 0;
+    padding: var(--space-7) 0 var(--space-8);
+    border-top: 1px solid var(--colour-border-strong);
+    border-bottom: 1px solid var(--colour-border-strong);
+  }
+
+  .sql-dataset-explorer__intro {
+    max-width: 58rem;
+  }
+
+  .sql-dataset-explorer__intro h3 {
+    margin: var(--space-2) 0 var(--space-3);
+    font-size: clamp(1.35rem, 1.5vw, 1.8rem);
+    line-height: 1.35;
+  }
+
+  .sql-dataset-explorer__intro p:last-child,
+  .sql-dataset-explorer__grain,
+  .sql-dataset-explorer__relation {
+    color: var(--colour-text-muted);
+  }
+
+  .sql-dataset-explorer__metrics {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: var(--space-3);
+    margin: var(--space-6) 0 var(--space-5);
+  }
+
+  .sql-dataset-explorer__metrics > div {
+    display: grid;
+    gap: var(--space-1);
+    padding: var(--space-3);
+    border-top: 1px solid var(--colour-border-strong);
+    border-bottom: 1px solid var(--colour-border);
+  }
+
+  .sql-dataset-explorer__metrics span {
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-xs);
+  }
+
+  .sql-dataset-explorer__metrics strong {
+    font-family: var(--font-mono);
+    font-size: 1.15rem;
+  }
+
+  .sql-dataset-explorer__controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+  }
+
+  .sql-dataset-explorer__controls button {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--colour-border);
+    border-radius: 999px;
+    background: var(--colour-surface);
+    color: var(--colour-text);
+    font-family: var(--font-mono);
+    cursor: pointer;
+  }
+
+  .sql-dataset-explorer__controls button[aria-pressed="true"] {
+    border-color: var(--colour-primary);
+    background: var(--colour-surface-subtle);
+    color: var(--colour-primary-strong);
+  }
+
+  .sql-dataset-explorer__grain {
+    margin: 0 0 var(--space-3);
+  }
+
+  .sql-dataset-explorer__table-wrap {
+    overflow-x: auto;
+  }
+
+  .sql-dataset-explorer table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-sm);
+  }
+
+  .sql-dataset-explorer th,
+  .sql-dataset-explorer td {
+    padding: 0.72rem 0.8rem;
+    border-bottom: 1px solid var(--colour-border);
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  .sql-dataset-explorer th {
+    color: var(--colour-text-muted);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .sql-dataset-explorer__relation {
+    display: grid;
+    gap: var(--space-2);
+    margin-top: var(--space-5);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--colour-border-strong);
+  }
+
+  @media (max-width: 64rem) {
+    .sql-dataset-explorer__metrics {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 36rem) {
+    .sql-dataset-explorer__metrics {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script>
+  let sqlDatasetCleanup: (() => void) | undefined;
+
+  function initSqlDatasetExplorer() {
+    sqlDatasetCleanup?.();
+    const root = document.querySelector<HTMLElement>("[data-sql-dataset-explorer]");
+    if (!root) return;
+
+    const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>("[data-dataset-choice]"));
+    const panels = Array.from(root.querySelectorAll<HTMLElement>("[data-dataset-panel]"));
+    if (buttons.length === 0 || panels.length === 0) return;
+
+    const controller = new AbortController();
+
+    function selectTable(selected: string) {
+      buttons.forEach((button) => {
+        button.setAttribute("aria-pressed", String(button.dataset.datasetChoice === selected));
+      });
+      panels.forEach((panel) => {
+        panel.hidden = panel.dataset.datasetPanel !== selected;
+      });
+    }
+
+    buttons.forEach((button) => {
+      button.addEventListener(
+        "click",
+        () => selectTable(button.dataset.datasetChoice || "customers"),
+        { signal: controller.signal },
+      );
+    });
+
+    selectTable("customers");
+    sqlDatasetCleanup = () => controller.abort();
+  }
+
+  document.addEventListener("astro:before-swap", () => sqlDatasetCleanup?.());
+  document.addEventListener("astro:page-load", initSqlDatasetExplorer);
+  initSqlDatasetExplorer();
+</script>

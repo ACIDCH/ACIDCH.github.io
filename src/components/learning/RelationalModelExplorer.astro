@@ -1,0 +1,344 @@
+<section class="relational-model-explorer" data-relational-model-explorer aria-labelledby="relational-model-explorer-title">
+  <div class="relational-model-explorer__intro">
+    <p class="learning-note-kicker">互动图解 · 数据模型</p>
+    <h3 id="relational-model-explorer-title">同一批业务信息，可以怎样组织？</h3>
+    <p>
+      三种视图始终使用同一组 customers、orders、products、order_items 与 customer_profiles。切换模型，观察同一批实体的关系在不同结构中怎样被表达。
+    </p>
+  </div>
+
+  <div class="relational-model-explorer__controls" role="group" aria-label="选择数据模型">
+    <button type="button" data-model-choice="hierarchical" aria-pressed="false">层次模型</button>
+    <button type="button" data-model-choice="network" aria-pressed="false">网状模型</button>
+    <button type="button" data-model-choice="relational" aria-pressed="true">关系模型</button>
+  </div>
+
+  <div class="relational-model-explorer__panels" aria-live="polite">
+    <section data-model-panel="hierarchical" hidden>
+      <div class="relational-model-explorer__diagram relational-model-explorer__tree" aria-label="层次模型树状示意">
+        <div class="relational-model-explorer__tree-line relational-model-explorer__tree-line--root">Business data</div>
+        <div class="relational-model-explorer__tree-line">├─ Customers</div>
+        <div class="relational-model-explorer__tree-line">│  ├─ Orders</div>
+        <div class="relational-model-explorer__tree-line">│  │  └─ Order Items</div>
+        <div class="relational-model-explorer__tree-line">│  └─ Customer Profiles</div>
+        <div class="relational-model-explorer__tree-line">└─ Products</div>
+      </div>
+      <p class="relational-model-explorer__reading">
+        树形层级很容易表达 Customers → Orders，但 order_items 同时还需要关联 Products。严格树结构难以自然表达“一个节点同时连接另一条分支”，这正是层次模型面对多重关系时的限制。
+      </p>
+    </section>
+
+    <section data-model-panel="network" hidden>
+      <div class="relational-model-explorer__diagram relational-model-explorer__network" aria-label="网状模型多连接示意">
+        <div class="relational-model-explorer__network-main">
+          <div class="relational-model-explorer__node">Customers</div>
+          <span>↔</span>
+          <div class="relational-model-explorer__node">Orders</div>
+          <span>↔</span>
+          <div class="relational-model-explorer__node">Order Items</div>
+          <span>↔</span>
+          <div class="relational-model-explorer__node">Products</div>
+        </div>
+        <div class="relational-model-explorer__network-secondary">
+          <span>↕</span>
+          <div class="relational-model-explorer__node">Customer Profiles</div>
+        </div>
+      </div>
+      <p class="relational-model-explorer__reading">
+        网状模型允许节点沿多条路径连接，因此能更直接表达 Orders、Products 与 Order Items 的交叉关系；代价是应用需要理解并沿具体连接结构访问数据。
+      </p>
+    </section>
+
+    <section data-model-panel="relational">
+      <div class="relational-model-explorer__diagram relational-model-explorer__relations" aria-label="关系模型多表示意">
+        <div class="relational-model-explorer__schema-group">
+          <p>关系 1 · 客户拥有订单</p>
+          <div class="relational-model-explorer__schema-row">
+            <div class="relational-model-explorer__table">
+              <strong>customers</strong>
+              <span>customer_id · PK</span>
+            </div>
+            <div class="relational-model-explorer__relation" data-mobile-label="1 ↓ N">1 → N</div>
+            <div class="relational-model-explorer__table">
+              <strong>orders</strong>
+              <span>order_id · PK</span>
+              <span>customer_id · FK</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="relational-model-explorer__schema-group">
+          <p>关系 2 · 订单通过明细连接产品</p>
+          <div class="relational-model-explorer__schema-row relational-model-explorer__schema-row--wide">
+            <div class="relational-model-explorer__table">
+              <strong>orders</strong>
+              <span>order_id · PK</span>
+            </div>
+            <div class="relational-model-explorer__relation" data-mobile-label="1 ↓ N">1 → N</div>
+            <div class="relational-model-explorer__table">
+              <strong>order_items</strong>
+              <span>order_id · FK</span>
+              <span>product_id · FK</span>
+            </div>
+            <div class="relational-model-explorer__relation" data-mobile-label="N ↓ 1">N ← 1</div>
+            <div class="relational-model-explorer__table">
+              <strong>products</strong>
+              <span>product_id · PK</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="relational-model-explorer__schema-group">
+          <p>关系 3 · 客户拥有一条扩展资料</p>
+          <div class="relational-model-explorer__schema-row">
+            <div class="relational-model-explorer__table">
+              <strong>customers</strong>
+              <span>customer_id · PK</span>
+            </div>
+            <div class="relational-model-explorer__relation" data-mobile-label="1 ↓ 1">1 ↔ 1</div>
+            <div class="relational-model-explorer__table">
+              <strong>customer_profiles</strong>
+              <span>customer_id · PK + FK</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="relational-model-explorer__reading">
+        关系模型把同一批实体拆成结构一致的二维表，再通过 PK、FK、联合主键与唯一性规则表达连接。这里分成三段关系视图，是为了让同一个表在不同关联中的角色都清楚可见；它们仍属于同一套 schema。
+      </p>
+    </section>
+  </div>
+</section>
+
+<style>
+  .relational-model-explorer {
+    margin: var(--space-12) 0;
+    padding: var(--space-7) 0 var(--space-8);
+    border-top: 1px solid var(--colour-border-strong);
+    border-bottom: 1px solid var(--colour-border-strong);
+  }
+
+  .relational-model-explorer__intro,
+  .relational-model-explorer__reading {
+    max-width: 58rem;
+  }
+
+  .relational-model-explorer__intro h3 {
+    margin: var(--space-2) 0 var(--space-3);
+    font-size: clamp(1.35rem, 1.5vw, 1.8rem);
+    line-height: 1.35;
+  }
+
+  .relational-model-explorer__intro p:last-child,
+  .relational-model-explorer__reading {
+    color: var(--colour-text-muted);
+  }
+
+  .relational-model-explorer__controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: var(--space-6) 0 var(--space-5);
+  }
+
+  .relational-model-explorer__controls button {
+    padding: 0.55rem 0.8rem;
+    border: 1px solid var(--colour-border);
+    border-radius: 999px;
+    background: var(--colour-surface);
+    color: var(--colour-text);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .relational-model-explorer__controls button[aria-pressed="true"] {
+    border-color: var(--colour-primary);
+    background: var(--colour-surface-subtle);
+    color: var(--colour-primary-strong);
+  }
+
+  .relational-model-explorer__diagram {
+    min-height: 12rem;
+    padding: var(--space-5);
+    border: 1px solid var(--colour-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--colour-surface-subtle);
+  }
+
+  .relational-model-explorer__tree {
+    display: grid;
+    gap: var(--space-2);
+    align-content: center;
+  }
+
+  .relational-model-explorer__tree-line {
+    padding: 0.35rem 0.65rem;
+    color: var(--colour-text-muted);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-sm);
+  }
+
+  .relational-model-explorer__tree-line--root {
+    color: var(--colour-text);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .relational-model-explorer__network {
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    gap: var(--space-4);
+  }
+
+  .relational-model-explorer__network-main,
+  .relational-model-explorer__network-secondary,
+  .relational-model-explorer__schema-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  .relational-model-explorer__network-secondary {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .relational-model-explorer__node,
+  .relational-model-explorer__table {
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--colour-border-strong);
+    border-radius: var(--radius-sm);
+    background: var(--colour-surface);
+  }
+
+  .relational-model-explorer__node {
+    min-width: 7.5rem;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: var(--font-size-sm);
+  }
+
+  .relational-model-explorer__network span,
+  .relational-model-explorer__relation {
+    color: var(--colour-text-muted);
+    font-family: var(--font-mono);
+    text-align: center;
+  }
+
+  .relational-model-explorer__relations {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .relational-model-explorer__schema-group {
+    display: grid;
+    gap: var(--space-3);
+    padding-bottom: var(--space-5);
+    border-bottom: 1px solid var(--colour-border);
+  }
+
+  .relational-model-explorer__schema-group:last-child {
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+
+  .relational-model-explorer__schema-group > p {
+    margin: 0;
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: 0.03em;
+  }
+
+  .relational-model-explorer__table {
+    display: grid;
+    gap: var(--space-2);
+    min-width: min(100%, 13rem);
+  }
+
+  .relational-model-explorer__table strong,
+  .relational-model-explorer__table span {
+    font-family: var(--font-mono);
+  }
+
+  .relational-model-explorer__table span {
+    padding-top: var(--space-2);
+    border-top: 1px solid var(--colour-border);
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-xs);
+  }
+
+  .relational-model-explorer__reading {
+    margin: var(--space-4) 0 0;
+    line-height: 1.75;
+  }
+
+  @media (max-width: 48rem) {
+    .relational-model-explorer__network-main,
+    .relational-model-explorer__schema-row {
+      display: grid;
+      grid-template-columns: 1fr;
+      justify-items: stretch;
+    }
+
+    .relational-model-explorer__network-main > span {
+      text-align: center;
+    }
+
+    .relational-model-explorer__schema-row > .relational-model-explorer__relation {
+      font-size: 0;
+    }
+
+    .relational-model-explorer__schema-row > .relational-model-explorer__relation::after {
+      content: attr(data-mobile-label);
+      font-size: var(--font-size-sm);
+    }
+
+    .relational-model-explorer__node,
+    .relational-model-explorer__table {
+      width: 100%;
+    }
+  }
+</style>
+
+<script>
+  let relationalModelCleanup: (() => void) | undefined;
+
+  function initRelationalModelExplorer() {
+    relationalModelCleanup?.();
+    const root = document.querySelector<HTMLElement>("[data-relational-model-explorer]");
+    if (!root) return;
+
+    const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>("[data-model-choice]"));
+    const panels = Array.from(root.querySelectorAll<HTMLElement>("[data-model-panel]"));
+    if (buttons.length === 0 || panels.length === 0) return;
+
+    const controller = new AbortController();
+
+    function selectModel(selected: string) {
+      buttons.forEach((button) => {
+        button.setAttribute("aria-pressed", String(button.dataset.modelChoice === selected));
+      });
+      panels.forEach((panel) => {
+        panel.hidden = panel.dataset.modelPanel !== selected;
+      });
+    }
+
+    buttons.forEach((button) => {
+      button.addEventListener(
+        "click",
+        () => selectModel(button.dataset.modelChoice || "relational"),
+        { signal: controller.signal },
+      );
+    });
+
+    selectModel("relational");
+    relationalModelCleanup = () => controller.abort();
+  }
+
+  document.addEventListener("astro:before-swap", () => relationalModelCleanup?.());
+  document.addEventListener("astro:page-load", initRelationalModelExplorer);
+  initRelationalModelExplorer();
+</script>

@@ -1,0 +1,342 @@
+---
+import {
+  sqlCustomerProfiles,
+  sqlCustomers,
+  sqlOrderItems,
+  sqlOrders,
+  sqlProducts,
+} from "../../data/sql-learning";
+
+const customer = sqlCustomers.find((row) => row.customer_id === 1001)!;
+const customerOrders = sqlOrders.filter((row) => row.customer_id === customer.customer_id);
+const focusOrder = sqlOrders.find((row) => row.order_id === 50001)!;
+const focusOrderItems = sqlOrderItems.filter((row) => row.order_id === focusOrder.order_id);
+const focusProduct = sqlProducts.find((row) => row.product_id === 301)!;
+const focusProductOrders = sqlOrderItems
+  .filter((row) => row.product_id === focusProduct.product_id)
+  .map((item) => item.order_id);
+const profile = sqlCustomerProfiles.find((row) => row.customer_id === customer.customer_id)!;
+---
+
+<section
+  class="relationship-cardinality-lab"
+  data-relationship-cardinality-lab
+  aria-labelledby="relationship-cardinality-title"
+>
+  <div class="relationship-cardinality-lab__intro">
+    <p class="learning-note-kicker">互动图表 · Relationship Cardinality</p>
+    <h3 id="relationship-cardinality-title">同样是“有关联”，为什么表结构和 JOIN 行数会不同？</h3>
+    <p>
+      在一对多、多对多和一对一之间切换。所有 ID 都来自统一 SQL 数据集，并同时显示关系结构与连接后的自然粒度。
+    </p>
+  </div>
+
+  <div
+    class="relationship-cardinality-lab__controls"
+    role="group"
+    aria-label="选择关系类型"
+  >
+    <button type="button" data-relation-choice="one-to-many" aria-pressed="true">
+      一对多 1:N
+    </button>
+    <button type="button" data-relation-choice="many-to-many" aria-pressed="false">
+      多对多 N:M
+    </button>
+    <button type="button" data-relation-choice="one-to-one" aria-pressed="false">
+      一对一 1:1
+    </button>
+  </div>
+
+  <div class="relationship-cardinality-lab__panels" aria-live="polite">
+    <section data-relation-panel="one-to-many">
+      <div class="relationship-cardinality-lab__schema">
+        <div class="relationship-cardinality-lab__table">
+          <span>customers · 1</span>
+          <strong>customer_id = {customer.customer_id}</strong>
+          <small>{customer.customer_name}</small>
+        </div>
+        <div class="relationship-cardinality-lab__arrow">
+          <strong>1 → {customerOrders.length}</strong>
+          <span>orders.customer_id · FK</span>
+        </div>
+        <div class="relationship-cardinality-lab__table">
+          <span>orders · N</span>
+          {customerOrders.map((order) => (
+            <strong>{order.order_id} → {order.customer_id}</strong>
+          ))}
+        </div>
+      </div>
+      <div class="relationship-cardinality-lab__metric">
+        <span>如果只连接这个客户</span>
+        <strong>{customerOrders.length} JOIN rows</strong>
+      </div>
+      <p class="relationship-cardinality-lab__reading">
+        一个客户可以拥有多张订单，而每张订单只引用一个客户。外键放在“多”的一方：<code>orders.customer_id</code>。客户 {customer.customer_id} 在当前数据集中确实只有 {customerOrders.length} 张订单，不再使用不存在的示例 ID。
+      </p>
+    </section>
+
+    <section data-relation-panel="many-to-many" hidden>
+      <div class="relationship-cardinality-lab__schema relationship-cardinality-lab__schema--three">
+        <div class="relationship-cardinality-lab__table">
+          <span>orders</span>
+          <strong>{focusOrder.order_id}</strong>
+          <small>{focusOrderItems.length} product lines</small>
+        </div>
+        <div class="relationship-cardinality-lab__bridge">
+          <span>order_items · bridge</span>
+          {focusOrderItems.map((item) => (
+            <strong>{item.order_id} · {item.product_id}</strong>
+          ))}
+          <small>PK (order_id, product_id)</small>
+        </div>
+        <div class="relationship-cardinality-lab__table">
+          <span>products</span>
+          {focusOrderItems.map((item) => {
+            const product = sqlProducts.find((row) => row.product_id === item.product_id)!;
+            return <strong>{product.product_id} · {product.product_name}</strong>;
+          })}
+        </div>
+      </div>
+      <div class="relationship-cardinality-lab__metric">
+        <span>交叉检查 product {focusProduct.product_id}</span>
+        <strong>{focusProductOrders.length} orders · {focusProductOrders.join(" / ")}</strong>
+      </div>
+      <p class="relationship-cardinality-lab__reading">
+        一张订单可以包含多个产品，一个产品也可以出现在多张订单中。中间表把 N:M 拆成两个 1:N，并让一行稳定表示“某产品在某订单中的一次关系”。
+      </p>
+    </section>
+
+    <section data-relation-panel="one-to-one" hidden>
+      <div class="relationship-cardinality-lab__schema">
+        <div class="relationship-cardinality-lab__table">
+          <span>customers · 1</span>
+          <strong>customer_id = {customer.customer_id}</strong>
+          <small>{customer.customer_name}</small>
+        </div>
+        <div class="relationship-cardinality-lab__arrow">
+          <strong>1 ↔ 1</strong>
+          <span>PK + FK customer_id</span>
+        </div>
+        <div class="relationship-cardinality-lab__table">
+          <span>customer_profiles · 1</span>
+          <strong>customer_id = {profile.customer_id}</strong>
+          <small>{profile.timezone} · {profile.preferred_channel}</small>
+        </div>
+      </div>
+      <div class="relationship-cardinality-lab__metric">
+        <span>当前 profile 匹配</span>
+        <strong>1 customer ↔ 1 profile</strong>
+      </div>
+      <p class="relationship-cardinality-lab__reading">
+        每个客户最多对应一条扩展资料。这里直接让 <code>customer_profiles.customer_id</code> 同时承担主键和外键，因此同一客户 ID 在 profile 表中不能重复。
+      </p>
+    </section>
+  </div>
+</section>
+
+<style>
+  .relationship-cardinality-lab {
+    margin: var(--space-12) 0;
+    padding: var(--space-7) 0 var(--space-8);
+    border-top: 1px solid var(--colour-border-strong);
+    border-bottom: 1px solid var(--colour-border-strong);
+  }
+
+  .relationship-cardinality-lab__intro {
+    max-width: 58rem;
+  }
+
+  .relationship-cardinality-lab__intro h3 {
+    margin: var(--space-2) 0 var(--space-3);
+    font-size: clamp(1.35rem, 1.5vw, 1.8rem);
+    line-height: 1.35;
+  }
+
+  .relationship-cardinality-lab__intro p:last-child,
+  .relationship-cardinality-lab__reading,
+  .relationship-cardinality-lab__arrow span,
+  .relationship-cardinality-lab__table small,
+  .relationship-cardinality-lab__bridge small,
+  .relationship-cardinality-lab__metric span {
+    color: var(--colour-text-muted);
+  }
+
+  .relationship-cardinality-lab__controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: var(--space-6) 0 var(--space-5);
+  }
+
+  .relationship-cardinality-lab__controls button {
+    padding: 0.55rem 0.8rem;
+    border: 1px solid var(--colour-border);
+    border-radius: 999px;
+    background: var(--colour-surface);
+    color: var(--colour-text);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .relationship-cardinality-lab__controls button[aria-pressed="true"] {
+    border-color: var(--colour-primary);
+    background: var(--colour-surface-subtle);
+    color: var(--colour-primary-strong);
+  }
+
+  .relationship-cardinality-lab__schema {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(8rem, 11rem) minmax(0, 1fr);
+    gap: var(--space-4);
+    align-items: center;
+  }
+
+  .relationship-cardinality-lab__schema--three {
+    grid-template-columns: minmax(0, 0.8fr) minmax(14rem, 1.2fr) minmax(0, 0.9fr);
+  }
+
+  .relationship-cardinality-lab__table,
+  .relationship-cardinality-lab__bridge {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-4);
+    border: 1px solid var(--colour-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--colour-surface);
+  }
+
+  .relationship-cardinality-lab__bridge {
+    background: var(--colour-surface-subtle);
+  }
+
+  .relationship-cardinality-lab__table span,
+  .relationship-cardinality-lab__bridge span {
+    font-size: var(--font-size-xs);
+    color: var(--colour-text-muted);
+  }
+
+  .relationship-cardinality-lab__table strong,
+  .relationship-cardinality-lab__bridge strong,
+  .relationship-cardinality-lab__bridge small {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-sm);
+  }
+
+  .relationship-cardinality-lab__arrow {
+    display: grid;
+    gap: var(--space-2);
+    justify-items: center;
+    text-align: center;
+  }
+
+  .relationship-cardinality-lab__arrow strong {
+    width: 100%;
+    padding: 0.5rem 0.65rem;
+    border-top: 1px solid var(--colour-border-strong);
+    border-bottom: 1px solid var(--colour-border-strong);
+    font-family: var(--font-mono);
+  }
+
+  .relationship-cardinality-lab__arrow span {
+    font-size: var(--font-size-xs);
+  }
+
+  .relationship-cardinality-lab__metric {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+    padding: var(--space-3) 0;
+    border-top: 1px solid var(--colour-border);
+    border-bottom: 1px solid var(--colour-border);
+  }
+
+  .relationship-cardinality-lab__metric span {
+    font-size: var(--font-size-xs);
+  }
+
+  .relationship-cardinality-lab__metric strong {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-sm);
+  }
+
+  .relationship-cardinality-lab__reading {
+    max-width: 58rem;
+    margin: var(--space-5) 0 0;
+    line-height: 1.75;
+  }
+
+  @media (max-width: 62rem) {
+    .relationship-cardinality-lab__schema,
+    .relationship-cardinality-lab__schema--three {
+      grid-template-columns: 1fr;
+    }
+
+    .relationship-cardinality-lab__arrow {
+      justify-items: start;
+      text-align: left;
+    }
+
+    .relationship-cardinality-lab__arrow strong {
+      max-width: 10rem;
+    }
+  }
+
+  @media (max-width: 36rem) {
+    .relationship-cardinality-lab__metric {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+  }
+</style>
+
+<script>
+  let relationshipCardinalityCleanup: (() => void) | undefined;
+
+  function initRelationshipCardinalityLab() {
+    relationshipCardinalityCleanup?.();
+    const root = document.querySelector<HTMLElement>("[data-relationship-cardinality-lab]");
+    if (!root) return;
+
+    const buttons = Array.from(
+      root.querySelectorAll<HTMLButtonElement>("[data-relation-choice]"),
+    );
+    const panels = Array.from(
+      root.querySelectorAll<HTMLElement>("[data-relation-panel]"),
+    );
+    if (buttons.length === 0 || panels.length === 0) return;
+
+    const controller = new AbortController();
+
+    function selectRelation(selected: string) {
+      buttons.forEach((button) => {
+        button.setAttribute(
+          "aria-pressed",
+          String(button.dataset.relationChoice === selected),
+        );
+      });
+      panels.forEach((panel) => {
+        panel.hidden = panel.dataset.relationPanel !== selected;
+      });
+    }
+
+    buttons.forEach((button) => {
+      button.addEventListener(
+        "click",
+        () => selectRelation(button.dataset.relationChoice || "one-to-many"),
+        { signal: controller.signal },
+      );
+    });
+
+    selectRelation("one-to-many");
+    relationshipCardinalityCleanup = () => controller.abort();
+  }
+
+  document.addEventListener(
+    "astro:before-swap",
+    () => relationshipCardinalityCleanup?.(),
+  );
+  document.addEventListener("astro:page-load", initRelationshipCardinalityLab);
+  initRelationshipCardinalityLab();
+</script>

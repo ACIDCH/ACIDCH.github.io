@@ -11,6 +11,34 @@ const handbooks = [
     source: "sql-relational-data.zh.md",
     route: "sql-relational-data",
   },
+  {
+    source: "sql-primary-key.zh.md",
+    route: "sql-primary-key",
+  },
+  {
+    source: "sql-foreign-key.zh.md",
+    route: "sql-foreign-key",
+  },
+  {
+    source: "sql-relationships.zh.md",
+    route: "sql-relationships",
+  },
+  {
+    source: "sql-select.zh.md",
+    route: "sql-select",
+  },
+  {
+    source: "sql-where.zh.md",
+    route: "sql-where",
+  },
+  {
+    source: "sql-projection.zh.md",
+    route: "sql-projection",
+  },
+  {
+    source: "sql-order-by.zh.md",
+    route: "sql-order-by",
+  },
 ];
 
 const forbidden = [
