@@ -9,6 +9,10 @@ interface Props {
 }
 
 const { entries, locale } = Astro.props;
+const handbookTitles: Record<string, string> = {
+  "descriptive-statistics": "统计学与 R",
+  "sql-relational-data": "SQL 与关系数据",
+};
 ---
 
 {
@@ -17,9 +21,12 @@ const { entries, locale } = Astro.props;
   ) : (
     <ul class="content-list">
       {entries.map((entry) => {
-        const isStatisticsHandbook =
-          entry.data.locale === "zh" && entry.data.slug === "descriptive-statistics";
-        const displayTitle = isStatisticsHandbook ? "统计学与 R" : entry.data.title;
+        const displayTitle =
+          entry.data.locale === "zh"
+            ? (handbookTitles[entry.data.slug] ?? entry.data.title)
+            : entry.data.title;
+        const isCompactHandbook =
+          entry.data.locale === "zh" && Boolean(handbookTitles[entry.data.slug]);
 
         return (
           <li
@@ -31,8 +38,8 @@ const { entries, locale } = Astro.props;
             data-tools={entry.data.tools.join("|").toLocaleLowerCase()}
             data-series={(entry.data.series ?? "").toLocaleLowerCase()}
           >
-            <article class:list={["note-card", isStatisticsHandbook && "note-card--handbook"]}>
-              {isStatisticsHandbook ? (
+            <article class:list={["note-card", isCompactHandbook && "note-card--handbook"]}>
+              {isCompactHandbook ? (
                 <h2>
                   <a href={getLocalizedPath(`/notes/${entry.data.slug}/`, locale)}>
                     {displayTitle}
