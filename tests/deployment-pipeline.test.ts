@@ -19,6 +19,8 @@ describe("production deployment contracts", () => {
     expect(workflow).toContain(
       "github.event.pull_request.merged == true && 'main' || github.sha",
     );
+    expect(workflow).toContain("github.event_name == 'push'");
+    expect(workflow).toContain("&& 'main' || github.ref");
     expect(workflow).not.toContain("github.event.pull_request.head.sha");
     expect(workflow).not.toContain("types: [opened, synchronize, reopened, closed]");
   });
@@ -53,5 +55,18 @@ describe("production deployment contracts", () => {
     expect(verifier).toContain(">简介<");
     expect(verifier).toContain("service-interactions.webp");
     expect(verifier).toContain("data-model-evaluation");
+  });
+
+  it("verifies SQL08 itself after the Pages deployment", async () => {
+    const workflow = await source(".github/workflows/deploy.yml");
+    const verifier = await source("scripts/verify-sql08-production.mjs");
+
+    expect(workflow).toContain("node scripts/verify-sql08-production.mjs");
+    expect(verifier).toContain('path: "zh/notes/sql-order-by/"');
+    expect(verifier).toContain("ORDER BY：把结果顺序变成明确的数据契约");
+    expect(verifier).toContain('data-order-rule="multi"');
+    expect(verifier).toContain('data-order-rule="stable"');
+    expect(verifier).toContain("data-order-sql-run");
+    expect(verifier).toContain("50008");
   });
 });
