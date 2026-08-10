@@ -36,7 +36,8 @@ describe("Learning Notes sample", () => {
 
   it("adds comparison tables and decision-oriented reading prompts", () => {
     expect(note).toContain("同样均值，但波动和尾部明显更大");
-    expect(note).toContain("业务问题 | 更值得先看的统计量");
+    expect(note).toContain("更值得先看的统计量");
+    expect(note).toContain("总体平均需要多少响应能力");
     expect(note).toContain("图形不是装饰");
   });
 
