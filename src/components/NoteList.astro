@@ -27,16 +27,20 @@ const handbookTitles: Record<string, string> = {
             : entry.data.title;
         const isCompactHandbook =
           entry.data.locale === "zh" && Boolean(handbookTitles[entry.data.slug]);
+        const displaySeries =
+          entry.data.locale === "zh" && entry.data.seriesSlug === "decision-models"
+            ? "供应链与优化"
+            : entry.data.series;
 
         return (
           <li
             data-reveal
             data-note-card
-            data-search={`${entry.data.title} ${displayTitle} ${entry.data.summary} ${entry.data.tags.join(" ")} ${entry.data.topics.join(" ")} ${entry.data.tools.join(" ")} ${entry.data.series ?? ""}`.toLocaleLowerCase()}
+            data-search={`${entry.data.title} ${displayTitle} ${entry.data.summary} ${entry.data.tags.join(" ")} ${entry.data.topics.join(" ")} ${entry.data.tools.join(" ")} ${displaySeries ?? ""}`.toLocaleLowerCase()}
             data-tags={entry.data.tags.join("|").toLocaleLowerCase()}
             data-topics={entry.data.topics.join("|").toLocaleLowerCase()}
             data-tools={entry.data.tools.join("|").toLocaleLowerCase()}
-            data-series={(entry.data.series ?? "").toLocaleLowerCase()}
+            data-series={(displaySeries ?? "").toLocaleLowerCase()}
           >
             <article class:list={["note-card", isCompactHandbook && "note-card--handbook"]}>
               {isCompactHandbook ? (
@@ -62,12 +66,12 @@ const handbookTitles: Record<string, string> = {
                     </a>
                   </h2>
                   <p>{entry.data.summary}</p>
-                  {(entry.data.series ||
+                  {(displaySeries ||
                     entry.data.tags.length ||
                     entry.data.topics.length ||
                     entry.data.tools.length) && (
                     <div class="note-card__metadata">
-                      {entry.data.series && <span class="tag">{entry.data.series}</span>}
+                      {displaySeries && <span class="tag">{displaySeries}</span>}
                       {entry.data.tags.map((tag) => (
                         <a
                           class="tag"
