@@ -24,6 +24,7 @@ const archivedChurnRasterMarkers = [
   "holdout-roc.webp",
   "odds-ratio-ci.webp",
 ];
+const churnCourseMarkers = ["704", "BUSINFO704", "BUSINFO 704", "课程项目", "课程报告"];
 
 const pageChecks = [
   {
@@ -53,32 +54,36 @@ const pageChecks = [
       "data-risk-explorer",
       "data-native-or",
     ],
-    forbiddenMarkers: [">简介<", ...archivedChurnRasterMarkers],
+    forbiddenMarkers: [
+      ">简介<",
+      ...churnCourseMarkers,
+      ...archivedChurnRasterMarkers,
+    ],
   },
   {
     path: "zh/projects/customer-churn-machine-learning/data-validation/",
-    markers: ["Technical Deep Dive", "30,000"],
-    forbiddenMarkers: [">简介<"],
+    markers: ["Technical Deep Dive", "30,000", "继续阅读技术专题"],
+    forbiddenMarkers: [">简介<", ...churnCourseMarkers],
   },
   {
     path: "zh/projects/customer-churn-machine-learning/model-comparison/",
-    markers: ["Technical Deep Dive", "Logistic Regression"],
-    forbiddenMarkers: [">简介<"],
+    markers: ["Technical Deep Dive", "Logistic Regression", "继续阅读技术专题"],
+    forbiddenMarkers: [">简介<", ...churnCourseMarkers],
   },
   {
     path: "zh/projects/customer-churn-machine-learning/model-selection-error-analysis/",
-    markers: ["Technical Deep Dive", "2,022"],
-    forbiddenMarkers: [">简介<"],
+    markers: ["Technical Deep Dive", "2,022", "继续阅读技术专题"],
+    forbiddenMarkers: [">简介<", ...churnCourseMarkers],
   },
   {
     path: "zh/projects/customer-churn-machine-learning/logistic-interpretation/",
-    markers: ["Technical Deep Dive", "15.9"],
-    forbiddenMarkers: [">简介<"],
+    markers: ["Technical Deep Dive", "15.9", "继续阅读技术专题"],
+    forbiddenMarkers: [">简介<", ...churnCourseMarkers],
   },
   {
     path: "zh/projects/customer-churn-machine-learning/neural-network/",
-    markers: ["Technical Deep Dive", "nnet"],
-    forbiddenMarkers: [">简介<"],
+    markers: ["Technical Deep Dive", "nnet", "继续阅读技术专题"],
+    forbiddenMarkers: [">简介<", ...churnCourseMarkers],
   },
 ];
 
@@ -160,7 +165,7 @@ for (let attempt = 1; attempt <= attempts; attempt += 1) {
   try {
     await verifyProduction();
     console.log(
-      `Production verified: ${baseUrl.href} is serving ${expectedSha} and all UI, route and raster contracts passed.`,
+      `Production verified: ${baseUrl.href} is serving ${expectedSha} and all UI, route, public-language and raster contracts passed.`,
     );
     process.exit(0);
   } catch (error) {
