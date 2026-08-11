@@ -1,13 +1,15 @@
 ---
 interface Props {
   title: string;
+  summary?: string;
 }
 
-const { title } = Astro.props;
+const { title, summary } = Astro.props;
 ---
 
 <header class="learning-note-titlebar" data-learning-note-hero>
   <h1>{title}</h1>
+  {summary && <p class="learning-note-titlebar__lead">{summary}</p>}
 </header>
 
 <style>
@@ -25,6 +27,14 @@ const { title } = Astro.props;
     line-height: 1.15;
     letter-spacing: var(--letter-spacing-tight);
     text-wrap: balance;
+  }
+
+  .learning-note-titlebar__lead {
+    max-width: 52rem;
+    margin: var(--space-4) 0 0;
+    color: var(--colour-text-muted);
+    font-size: clamp(1rem, 1.3vw, 1.12rem);
+    line-height: 1.8;
   }
 
   @media (max-width: 48rem) {
