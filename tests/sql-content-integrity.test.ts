@@ -165,11 +165,11 @@ describe("SQL Learning Notes integrity contract", () => {
     expect(where).toContain("大小写");
     expect(where).toContain("排序规则");
     expect(where).toContain("pattern matching");
-    expect(orderBy).toContain("不同数据库对默认 NULL 排序位置并不完全一致");
-    expect(orderBy).toContain("SQLite / MySQL");
+    expect(orderBy).toContain("如果排序列包含 NULL，不同数据库的默认位置可能不同");
     expect(orderBy).toContain("PostgreSQL");
     expect(orderBy).toContain("NULLS FIRST");
     expect(orderBy).toContain("NULLS LAST");
+    expect(orderBy).toContain("collation");
   });
 
   it("keeps SELECT semantics explicit and appropriate for the local sql.js environment", () => {
