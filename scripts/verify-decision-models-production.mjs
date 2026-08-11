@@ -43,49 +43,49 @@ const checks = [
       "DM 01",
       "DM 10",
       "已发布 · 点击进入完整笔记",
-      "PuLP",
-      "多期生产、库存与履约",
+      "PuLP 建模",
+      "多期生产与库存优化",
     ],
   },
   {
     path: "zh/notes/optimisation-model-anatomy/",
-    markers: ["优化建模基础：把业务问题拆成目标、参数、决策与约束", "data-optimisation-anatomy"],
+    markers: ["优化建模基础", "data-optimisation-anatomy"],
   },
   {
     path: "zh/notes/unconstrained-optimisation/",
-    markers: ["无约束优化：从函数形状、边际变化到可执行决策", "data-unconstrained-lab", "optimum 600"],
+    markers: ["无约束优化", "data-unconstrained-lab", "optimum 600"],
   },
   {
     path: "zh/notes/constrained-optimisation/",
-    markers: ["受约束优化：从可行域、角点到绑定约束", "data-feasible-lab", "42·Core + 58·Premium"],
+    markers: ["受约束优化", "data-feasible-lab", "42·Core + 58·Premium"],
   },
   {
     path: "zh/notes/optimisation-sensitivity-analysis/",
-    markers: ["优化敏感性分析：资源松弛、影子价格与决策稳健性", "Shadow price", "data-feasible-lab"],
+    markers: ["敏感性分析", "Shadow price", "data-feasible-lab"],
   },
   {
     path: "zh/notes/binary-milp-decisions/",
-    markers: ["二进制决策与 MILP：把“开不开、选不选”写进优化模型", "data-milp-lab", "linking constraint"],
+    markers: ["二进制决策与 MILP", "data-milp-lab", "linking constraint"],
   },
   {
     path: "zh/notes/sets-indices-model-scale/",
-    markers: ["Sets 与 Indices：让优化模型从几个变量扩展到真实业务规模", "data-scale-lab", "Decision variables"],
+    markers: ["集合与索引", "data-scale-lab", "Sparse indexing"],
   },
   {
     path: "zh/notes/pulp-model-architecture/",
-    markers: ["PuLP 优化编程架构：从数学模型到可审计代码", "data-pulp-lab", "LpVariable.dicts"],
+    markers: ["PuLP 建模", "data-pulp-lab", "LpVariable.dicts"],
   },
   {
     path: "zh/notes/multidimensional-optimisation/",
-    markers: ["多维优化模型：从二维矩阵扩展到产品、工厂、技能与时期", "data-scale-lab", "4D"],
+    markers: ["多维优化模型", "data-scale-lab", "Mass balance"],
   },
   {
     path: "zh/notes/transportation-models/",
-    markers: ["供应链规划与运输分配：从战略网络到战术承运量", "data-horizon-lab", "data-flow-lab", "Carrier allocation"],
+    markers: ["供应链规划与运输分配", "data-horizon-lab", "data-flow-lab", "Carrier allocation"],
   },
   {
     path: "zh/notes/multi-period-production-inventory/",
-    markers: ["多期生产与库存优化：用流量平衡连接今天与未来", "data-flow-lab", 'data-default-mode="period"', "Two batches"],
+    markers: ["多期生产与库存优化", "data-flow-lab", 'data-default-mode="period"', "12324"],
   },
 ];
 
