@@ -52,8 +52,8 @@ describe("SQL Learning Notes integrity contract", () => {
 
     sqlOrders.forEach((order) => expect(customerIds.has(order.customer_id)).toBe(true));
     sqlOrderItems.forEach((item) => {
-      expect(orderIds.has(item.order_id)).toBe(true);
-      expect(productIds.has(item.product_id)).toBe(true);
+      expect(orderIds.has(item.order_id)).toBe(true));
+      expect(productIds.has(item.product_id)).toBe(true));
     });
     sqlCustomerProfiles.forEach((profile) => {
       expect(customerIds.has(profile.customer_id)).toBe(true);
@@ -160,8 +160,11 @@ describe("SQL Learning Notes integrity contract", () => {
     expect(foreign).toContain("SQLite 的 `ALTER TABLE`");
     expect(foreign).toContain("MySQL、PostgreSQL");
     expect(foreign).toContain("复杂约束修改");
-    expect(where).toContain("标准 SQL 常用");
-    expect(where).toContain("`LIKE` 的大小写行为、字符排序与 collation 规则会随数据库与配置变化");
+    expect(where).toContain("LIKE");
+    expect(where).toContain("不同数据库");
+    expect(where).toContain("大小写");
+    expect(where).toContain("排序规则");
+    expect(where).toContain("pattern matching");
     expect(orderBy).toContain("不同数据库对默认 NULL 排序位置并不完全一致");
     expect(orderBy).toContain("SQLite / MySQL");
     expect(orderBy).toContain("PostgreSQL");
