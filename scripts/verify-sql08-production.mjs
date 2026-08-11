@@ -25,7 +25,7 @@ const checks = [
   {
     path: "zh/notes/sql-order-by/",
     markers: [
-      "ORDER BY：把结果顺序变成明确的数据契约",
+      "ORDER BY 排序",
       "ASC 是默认方向",
       "多列排序",
       "tie-breaker",

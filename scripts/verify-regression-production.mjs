@@ -47,37 +47,37 @@ const checks = [
       "REG 01",
       "REG 07",
       "简单线性回归",
-      "Logistic Regression",
+      "逻辑回归",
       "已发布 · 点击进入完整笔记",
     ],
   },
   {
     path: "zh/notes/regression-foundations/",
-    markers: ["简单线性回归：从散点图、最小二乘到区间预测", "data-regression-lab"],
+    markers: ["简单线性回归", "data-regression-lab"],
   },
   {
     path: "zh/notes/regression-diagnostics/",
-    markers: ["回归诊断：残差、正态性、异方差与模型失配", "data-regression-diagnostics"],
+    markers: ["回归诊断", "data-regression-diagnostics"],
   },
   {
     path: "zh/notes/nonlinear-regression-interactions/",
-    markers: ["非线性回归与交互：多项式、类别变量和条件效应", "data-polynomial-regression"],
+    markers: ["非线性回归与交互项", "data-polynomial-regression"],
   },
   {
     path: "zh/notes/multiple-regression-multicollinearity/",
-    markers: ["多元线性回归：条件效应、共线性与系数稳定性", "data-multicollinearity"],
+    markers: ["多元线性回归", "data-multicollinearity"],
   },
   {
     path: "zh/notes/influential-observations/",
-    markers: ["异常点与影响点：Leverage、Cook’s Distance 与 DFBETA", "data-regression-diagnostics"],
+    markers: ["异常点与影响点", "data-regression-diagnostics"],
   },
   {
     path: "zh/notes/regression-feature-selection/",
-    markers: ["特征选择与正则化：Adjusted R²、BIC、CV、Ridge 与 Lasso", "data-model-selection"],
+    markers: ["特征选择与正则化", "data-model-selection"],
   },
   {
     path: "zh/notes/logistic-regression/",
-    markers: ["Logistic Regression：从 Log-Odds 到概率、阈值与分类决策", "data-logistic-lab"],
+    markers: ["逻辑回归", "data-logistic-lab"],
   },
 ];
 

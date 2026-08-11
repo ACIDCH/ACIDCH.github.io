@@ -2,13 +2,13 @@
 translationKey: sql-order-by
 locale: zh
 slug: sql-order-by
-title: ORDER BY：把结果顺序变成明确的数据契约
-summary: 基于统一 orders 数据理解 ORDER BY 如何控制升序、降序与多列排序，并进一步处理并列值、稳定 tie-breaker、别名、NULL、文本排序和分页前的确定性问题。
+title: ORDER BY 排序
+summary: 查询能返回正确的记录，不代表顺序也可靠。这里从升序、降序和多列排序开始，说明为什么稳定排序需要 tie-breaker，以及它和分页有什么关系。
 tags:
   - ORDER BY
-  - ASC
-  - DESC
   - 排序
+  - SQL 查询
+  - 稳定顺序
 topics:
   - 数据查询
   - 数据理解
@@ -19,7 +19,7 @@ tools:
 series: SQL 与关系数据
 seriesSlug: sql
 order: 8
-publishedAt: 2026-08-11
+publishedAt: 2026-08-10
 updatedAt: 2026-08-11
 status: published
 draft: false
@@ -28,40 +28,30 @@ relatedProjects:
   - sales-profitability-warehouse
 relatedNotes:
   - sql-projection
+  - sql-pagination
 ---
 
 ## 从结果结构进入结果顺序
 
-前面的查询已经分别回答了三个问题：
+SELECT 决定返回哪些列，WHERE 决定哪些行留下。即使这两步都正确，数据库仍然没有承诺“这些行会按什么顺序出现”。
 
-```text
-SELECT      → 从哪里读取、返回什么结果
-WHERE       → 哪些行进入结果集
-Projection  → 哪些列进入结果集
-```
-
-但还有一个经常被忽略的问题：
-
-> 这些结果行应该以什么顺序出现？
-
-例如：
+如果结果顺序对报表、Top-N 或分页有意义，就要明确写 `ORDER BY`。
 
 ```sql
-SELECT order_id, order_value
-FROM orders;
+SELECT
+  customer_id,
+  customer_name
+FROM customers
+ORDER BY customer_id ASC;
 ```
 
-可能在当前环境中看起来像按 `order_id` 返回，但这不构成查询保证。
+排序不是为了让表格看起来整齐，而是在需要顺序时把规则真正写进查询。
 
-没有 `ORDER BY` 时，数据库可以根据存储布局、扫描方式、索引、执行计划或后续优化选择不同的返回顺序。
-
-因此：
-
-> **需要稳定顺序时，必须显式声明 `ORDER BY`。**
+<div data-learning-slot="order-by-lab"></div>
 
 ## ORDER BY 改变的是结果行的排列顺序
 
-统一数据集中的 `orders`：
+当前订单表：
 
 | order_id | customer_id | order_date | order_value |
 |---:|---:|---|---:|
@@ -70,7 +60,7 @@ FROM orders;
 | 50003 | 1002 | 2026-07-06 | 760.00 |
 | 50004 | 1003 | 2026-07-09 | 510.00 |
 
-如果需要按订单金额从低到高：
+按金额升序：
 
 ```sql
 SELECT order_id, order_value
@@ -78,44 +68,36 @@ FROM orders
 ORDER BY order_value ASC;
 ```
 
-结果顺序是：
+结果：
 
 ```text
-50002 · 185
-50001 · 420
-50004 · 510
-50003 · 760
+50002 | 185
+50001 | 420
+50004 | 510
+50003 | 760
 ```
 
-这里没有减少行，也没有改变列结构。
-
-```text
-Rows    4 → 4
-Columns 2 → 2
-Order   changed
-```
-
-<div data-learning-slot="order-by-lab"></div>
+列没有变，行数也没有变，只是排列顺序改变了。
 
 ## ASC 是默认方向，但显式写出更容易复查
 
+下面两种写法在常见数据库中效果相同：
+
+```sql
+ORDER BY customer_id
+```
+
+```sql
+ORDER BY customer_id ASC
+```
+
 `ASC` 表示 ascending，也就是升序。
 
-下面两条语句在常见 SQL 数据库中表示相同方向：
-
-```sql
-ORDER BY order_value
-```
-
-```sql
-ORDER BY order_value ASC
-```
-
-在教学、报表 SQL 和长期维护查询中，显式写出 `ASC` 往往更容易复查，尤其是在多列排序中同时出现升序与降序时。
+虽然可以省略，但在团队代码和多列排序里显式写出来更清楚。数字通常从小到大，日期从早到晚，文本则还会受到 collation 影响。
 
 ## DESC 把排序方向反转
 
-如果需要金额最大的订单先出现：
+按金额从高到低：
 
 ```sql
 SELECT order_id, order_value
@@ -123,177 +105,122 @@ FROM orders
 ORDER BY order_value DESC;
 ```
 
-结果变成：
+结果：
 
 ```text
-50003 · 760
-50004 · 510
-50001 · 420
-50002 · 185
+50003 | 760
+50004 | 510
+50001 | 420
+50002 | 185
 ```
 
-`DESC` 只作用于它前面的排序表达式。
+按日期从新到旧则可以写：
+
+```sql
+ORDER BY order_date DESC
+```
 
 ## 多列排序是逐层解决并列值
 
-真实数据经常出现相同排序值。
+如果只按 `customer_id` 排序，订单 50001 和 50002 都属于客户 1001，它们在第一排序键上并列。
 
-当前 `orders` 中客户 1001 有两张订单：
-
-```text
-50001 · 2026-07-03
-50002 · 2026-07-05
-```
-
-先按客户编号升序，再让同一客户内部按日期降序：
+可以加第二个排序键：
 
 ```sql
-SELECT order_id, customer_id, order_date
-FROM orders
 ORDER BY customer_id ASC, order_date DESC;
 ```
 
-排序逻辑不是“同时随意参考两个字段”，而是：
+数据库先按 `customer_id` 排；相同时，再按 `order_date` 从新到旧。
+
+多列排序可以读成：
 
 ```text
-第 1 个 key: customer_id ASC
-↓ 如果相同
-第 2 个 key: order_date DESC
+先看第一列
+相同再看第二列
+还相同再看第三列
 ```
-
-因此客户 1001 内部会得到：
-
-```text
-50002 · 2026-07-05
-50001 · 2026-07-03
-```
-
-随后才是客户 1002 和 1003。
 
 ## 每一个排序列都有自己的方向
 
-下面两种写法完全不同：
+多列 ORDER BY 里，每个字段都可以单独指定 ASC 或 DESC。
+
+例如：
 
 ```sql
-ORDER BY customer_id ASC, order_date DESC
+ORDER BY customer_id ASC, order_date DESC, order_id ASC;
 ```
 
-```sql
-ORDER BY customer_id DESC, order_date DESC
+含义是：
+
+```text
+customer_id 从小到大
+同一客户内，日期从新到旧
+如果日期仍相同，再按 order_id 从小到大
 ```
 
-排序方向是逐个表达式解释的。
-
-如果第二个字段没有写方向：
-
-```sql
-ORDER BY customer_id DESC, order_date
-```
-
-那么 `order_date` 使用默认 `ASC`。
-
-因此多列排序中显式写出每个方向通常更清晰。
+不要把第一个字段的方向自动套到后面。方向属于每一个排序表达式本身。
 
 ## 只有第一排序键还不一定形成稳定总顺序
 
-假设查询写成：
+假设分页只写：
 
 ```sql
-ORDER BY customer_id ASC
+ORDER BY order_value DESC
 ```
 
-客户 1001 的两张订单具有相同的 `customer_id`。
+如果以后两张订单金额相同，它们之间没有确定顺序。
 
-这个条件只保证：
-
-```text
-customer 1001
-排在
-customer 1002
-之前
-```
-
-但并没有声明客户 1001 的两张订单谁先谁后。
-
-如果下游逻辑要求完全确定的顺序，可以继续加入 tie-breaker：
+更稳妥的写法是加入唯一 tie-breaker：
 
 ```sql
-ORDER BY
-  customer_id ASC,
-  order_date DESC,
-  order_id ASC;
+ORDER BY order_value DESC, order_id ASC;
 ```
 
-最终的 `order_id` 是唯一键，因此能够在前面的排序值全部相同时继续打破并列。
+只要 `order_id` 唯一，所有记录最终都有明确位置。
 
-这类写法尤其重要于：
+当前数据因此得到稳定顺序：
 
 ```text
-分页
-Top N
-导出文件
-可重复测试
-前端列表
-按顺序逐条处理的流程
+50003
+50004
+50001
+50002
 ```
 
-## 稳定排序不是“排序算法稳定性”这个概念
-
-这里所说的稳定结果，是指 SQL 查询本身给出了足够的排序键，使结果顺序可以被明确推导。
-
-它不应该依赖：
-
-```text
-数据库碰巧沿用插入顺序
-当前执行计划碰巧没变
-某个索引碰巧输出同样顺序
-同值记录碰巧保持上次排列
-```
-
-如果业务需要可重复顺序，应把 tie-breaker 写进 `ORDER BY`。
+这种 deterministic ordering 对分页、排行榜和可重复测试都很重要。
 
 ## WHERE、Projection 与 ORDER BY 怎样组合
 
-例如，需要：
-
-> 只看金额至少为 400 的订单，只返回三个字段，并按金额从高到低排列。
-
-可以写成：
+只看金额至少 400 的订单，只返回 ID 和金额，再从高到低排列：
 
 ```sql
 SELECT
   order_id,
-  customer_id,
   order_value
 FROM orders
 WHERE order_value >= 400
-ORDER BY order_value DESC;
+ORDER BY order_value DESC, order_id ASC;
 ```
 
-当前结果：
-
-| order_id | customer_id | order_value |
-|---:|---:|---:|
-| 50003 | 1002 | 760.00 |
-| 50004 | 1003 | 510.00 |
-| 50001 | 1001 | 420.00 |
-
-可以把职责拆开理解：
+可以把查询逻辑拆成：
 
 ```text
-WHERE
-决定哪些行留下
+FROM
+→ 数据从哪里来
 
-Projection
-决定哪些列输出
+WHERE
+→ 哪些行留下
+
+SELECT
+→ 显示哪些列
 
 ORDER BY
-决定留下的行怎样排列
+→ 最终怎样排列
 ```
 
 ## ORDER BY 为什么放在 WHERE 后面
 
-SQL 写法遵循：
+SQL 的书写顺序不是随便排的：
 
 ```sql
 SELECT ...
@@ -302,9 +229,11 @@ WHERE ...
 ORDER BY ...;
 ```
 
-`WHERE` 先定义进入结果集的记录集合，`ORDER BY` 再对最终结果排序。
+业务上先筛出符合条件的记录，再对最终结果排序更容易理解。
 
-因此下面的顺序是错误的：
+数据库内部实际执行计划可能因为优化器而调整，但 SQL 语法层面仍然要求 ORDER BY 位于 WHERE 之后。
+
+这也是为什么不能写：
 
 ```sql
 SELECT *
@@ -313,25 +242,11 @@ ORDER BY order_value DESC
 WHERE order_value >= 400;
 ```
 
-数据库会把它视为不合法的语法结构。
+这种语法顺序会直接报错。
 
 ## 可以按输出别名排序
 
-Projection 中已经建立过结果列别名。
-
-例如：
-
-```sql
-SELECT
-  order_id,
-  order_value AS value
-FROM orders
-ORDER BY value DESC;
-```
-
-常见数据库允许 `ORDER BY` 引用输出列别名。
-
-这对表达式列尤其有用：
+如果 SELECT 里创建了别名：
 
 ```sql
 SELECT
@@ -341,237 +256,164 @@ FROM orders
 ORDER BY scenario_value DESC;
 ```
 
-这样不需要在 `ORDER BY` 中再次完整重复表达式。
+常见数据库允许 ORDER BY 使用 `scenario_value`。
+
+这能避免把复杂表达式重复一遍，也让查询更容易读。
+
+不过别名在不同子句中的可见性规则并不相同。能在 ORDER BY 使用，不代表 WHERE 也一定能直接引用同一个别名。
 
 ## 也能按列位置排序，但长期代码不推荐
 
-一些数据库支持：
+部分数据库允许：
 
 ```sql
-SELECT order_id, order_date, order_value
+SELECT
+  order_id,
+  order_value
 FROM orders
-ORDER BY 3 DESC;
+ORDER BY 2 DESC;
 ```
 
-这里的 `3` 表示结果集第 3 列，也就是 `order_value`。
+这里 `2` 表示按 SELECT 结果的第二列排序，也就是 `order_value`。
 
-这种写法短，但存在维护风险：
+这种写法短，但可维护性差。一旦 SELECT 列顺序变化，排序含义也会跟着变。
 
-```text
-SELECT 列顺序一变
-→ ORDER BY 3 的含义也跟着变
-```
-
-稳定分析代码通常优先使用明确的列名或别名：
+长期代码更适合明确写字段或别名：
 
 ```sql
 ORDER BY order_value DESC
 ```
 
-## ORDER BY 表达式不一定必须直接显示出来
-
-排序键可以是表达式。
-
-例如：
-
-```sql
-SELECT order_id, order_value
-FROM orders
-ORDER BY ROUND(order_value * 1.10, 2) DESC;
-```
-
-结果仍然只输出两个字段。
-
-不过如果表达式代表重要业务指标，显式投影并给予清晰别名通常更容易审计：
-
-```sql
-SELECT
-  order_id,
-  ROUND(order_value * 1.10, 2) AS scenario_value
-FROM orders
-ORDER BY scenario_value DESC;
-```
-
 ## NULL 排序不能只凭直觉推断
 
-`NULL` 表示缺失或未知值，并不是普通数字或空字符串。
-
-不同数据库对默认 NULL 排序位置并不完全一致。
+如果排序列包含 NULL，不同数据库的默认位置可能不同。
 
 例如：
 
-```text
-SQLite / MySQL
-ASC  时 NULL 通常在前
-DESC 时 NULL 通常在后
-
-PostgreSQL
-ASC  默认 NULLS LAST
-DESC 默认 NULLS FIRST
+```sql
+ORDER BY phone ASC
 ```
 
-SQLite 与 PostgreSQL 支持显式的：
+NULL 是最前还是最后，不能把某一个数据库当前行为当成统一 SQL 规则。
+
+PostgreSQL 支持：
 
 ```sql
 NULLS FIRST
 NULLS LAST
 ```
 
-当 NULL 的展示位置属于业务规则时，不应只依赖数据库默认值。
-
-跨数据库迁移时，这也是必须重新验证的排序语义之一。
+其他数据库可能有不同做法。如果 NULL 位置影响业务结果，应查看具体数据库并显式处理。
 
 ## 文本排序还受到 collation 影响
 
-数字排序相对直观，但文本排序还涉及 collation（排序规则）。
+文本排序不仅涉及字母顺序，还可能受到：
 
-例如大小写、语言字符与重音符号的比较方式可能受：
+- 大小写；
+- 重音符号；
+- 语言环境；
+- Unicode 规则；
+- 数据库 collation。
 
-```text
-数据库
-列定义
-连接或会话设置
-显式 COLLATE
+因此：
+
+```sql
+ORDER BY customer_name ASC
 ```
 
-影响。
+并不等于所有数据库都按完全相同的“肉眼字母表”排序。
 
-因此不能简单把“字母排序”理解成所有数据库都完全一致的字符码顺序。
-
-如果报表、主数据列表或跨系统接口对文本顺序有严格要求，应明确数据库使用的 collation 规则并进行验证。
-
-## ORDER BY 不等于查询一定很慢，也不等于一定很快
-
-数据库为了满足 `ORDER BY`，可能：
-
-```text
-执行显式排序
-或
-利用合适的索引顺序读取
-```
-
-是否能够利用索引，取决于：
-
-```text
-排序字段
-排序方向
-多列顺序
-WHERE 条件
-索引结构
-优化器判断
-返回数据比例
-```
-
-因此不能仅看到 `ORDER BY` 就断言性能差，也不能因为存在索引就断言一定不会排序。
-
-索引设计将在后面的 Index 笔记中单独处理。
+当前示例以英文名称为主，主要用于理解 ORDER BY 结构；正式多语言系统还需要明确字符集和 collation。
 
 ## ORDER BY 是分页之前的关键前提
 
-下一篇会进入 Pagination。
+如果每页显示两条订单，却没有稳定 ORDER BY，第一页和第二页实际上没有清楚定义。
 
-分页的本质是从一个有序结果集中截取某一段。
+分页应该先建立：
 
-如果分页查询没有一个足够确定的 `ORDER BY`，那么：
-
-```text
-第 1 页最后一条是谁？
-第 2 页第一条是谁？
-并列记录跨页后怎样分配？
+```sql
+ORDER BY order_value DESC, order_id ASC
 ```
 
-都可能没有稳定答案。
+这样的确定顺序，再用 LIMIT / OFFSET 截取页面。
 
-因此分页之前首先应建立明确且可重复的排序契约。
+所以分页不是“先 LIMIT，再看数据库给什么顺序”。页面窗口必须建立在稳定序列上。
 
 ## Business Analytics 中 ORDER BY 常见在哪里
 
-排序不仅用于“看起来整齐”。
+排序在分析工作中远不只是展示功能。
 
-典型分析用途包括：
+常见场景包括：
 
 ```text
-金额最高的订单优先审阅
-最新交易排在前面
-客户内部按时间排序
-异常值从高到低检查
-报表导出保持可重复顺序
-Top N 前先定义排名依据
-分页接口提供确定顺序
+找金额最高的订单
+查看最新交易
+按风险分数排客户
+制作 Top-N 产品榜单
+为分页建立固定顺序
+按时间检查异常变化
 ```
-
-真正关键的是：
-
-> **排序字段必须对应业务问题，而不是只为了视觉效果。**
-
-## 常见错误
-
-### 1. 把默认返回顺序当成数据库保证
-
-错误。
-
-没有 `ORDER BY` 时不能依赖结果顺序。
-
-### 2. 忘记 DESC 只作用于对应表达式
 
 例如：
 
 ```sql
-ORDER BY customer_id DESC, order_date
+SELECT order_id, order_value
+FROM orders
+ORDER BY order_value DESC
+LIMIT 3;
 ```
 
-第二个字段仍然是默认 `ASC`。
+这里 ORDER BY 决定“最高”的含义，LIMIT 只是从已经排好的结果里取前三条。
 
-### 3. 多列排序没有理解优先级
+## 排序成本和索引有关，但不能只看语法
 
-第二个 key 只在第一个 key 相同时才用于继续排序。
+ORDER BY 可能需要数据库执行额外排序。数据量很大时，排序列和 WHERE 条件上是否有合适索引会影响性能。
 
-### 4. 并列值没有 tie-breaker
+但索引不是“看到 ORDER BY 就自动建一个”。还需要结合：
 
-如果下游要求完全确定顺序，仅排序一个非唯一字段通常不够。
+- WHERE 条件；
+- 多列组合；
+- 排序方向；
+- 返回行数；
+- 数据分布；
+- 实际执行计划。
 
-### 5. 把 ORDER BY 写到 WHERE 前面
+索引会在后续专题继续展开。这里先把顺序契约写清楚。
 
-SQL 子句顺序不合法。
+## 常见的排序错误
 
-### 6. 跨数据库假设 NULL 默认位置相同
+### 依赖原表当前行序
 
-SQLite、MySQL 与 PostgreSQL 的默认 NULL 排序存在差异。
+没有 ORDER BY，就没有业务层面的顺序保证。
 
-### 7. 使用 ORDER BY 3 却忽略 SELECT 列顺序会变化
+### 只排第一键，却要求结果完全可重复
 
-列位置写法短，但维护性较弱。
+有并列值时需要 tie-breaker。
 
-## 排序查询可以按这个顺序检查
+### 把列顺序当成行排序
 
-```text
-1. 业务问题真正需要按什么字段排序？
-2. 每个字段分别是 ASC 还是 DESC？
-3. 第一排序键是否可能出现并列？
-4. 是否需要唯一 tie-breaker 形成稳定总顺序？
-5. WHERE 与 Projection 是否已经定义正确的行和列？
-6. NULL 的位置是否属于业务规则？
-7. 文本排序是否受 collation 影响？
-8. 下游是否会分页、Top N 或逐条处理？
-9. 是否错误依赖当前看到的默认顺序？
-```
+SELECT 列表控制列，ORDER BY 控制行。
 
-## 本篇的核心判断
+### 忽略 NULL 和文本 collation
 
-`ORDER BY` 的核心不是让表格“看起来有序”，而是：
+不同数据库默认行为可能不同。
 
-> **把结果行的排列规则写成查询本身可以验证的数据契约。**
+### 分页时没有稳定排序
 
-只要顺序会影响解释、分页、导出、排名或下游处理，就应显式声明排序键，并在需要时加入 tie-breaker。
+页面内容可能在并列值附近出现重复或遗漏。
+
+## 一套实用的排序检查顺序
+
+1. 先确认业务真正想按什么排；
+2. 明确每个字段是 ASC 还是 DESC；
+3. 第一排序键可能并列时增加第二键；
+4. 最终最好用唯一键形成完整 tie-breaker；
+5. NULL 位置重要时显式处理；
+6. 文本排序需要时确认 collation；
+7. 做分页前先保证 ORDER BY 稳定。
 
 ## 下一步从有序结果中截取一页
 
-SQL 09 将进入：
+ORDER BY 看起来只是把行重新排一下，但只要结果需要被重复查看、导出、排名或分页，它就变成查询契约的一部分。
 
-```text
-Pagination
-```
-
-下一步需要回答：
-
-> 当结果已经具有明确顺序后，怎样只取其中一段，同时保证分页逻辑可重复？
+下一篇会直接建立在稳定排序上：先明确页面大小，再用 LIMIT 和 OFFSET 切出一段结果；数据量变大以后，再比较 keyset pagination。

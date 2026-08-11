@@ -2,8 +2,8 @@
 translationKey: multi-period-production-inventory
 locale: zh
 slug: multi-period-production-inventory
-title: 多期生产与库存优化：用流量平衡连接今天与未来
-summary: 把每期生产、需求、库存、setup cost、holding cost 与 shortage/backorder 放进同一时间网络，理解库存结转、批量生产、平滑计划、终端库存和滚动规划如何形成跨期优化决策。
+title: 多期生产与库存优化
+summary: 今天多生产一点，可能是在为下个月省一次开机成本；今天少生产，也可能把问题推成未来的缺货。这里用四个时期比较按需生产、平滑生产和批量生产三种计划。
 tags:
   - Multi-period Planning
   - Inventory
@@ -29,229 +29,134 @@ relatedNotes:
   - transportation-models
 ---
 
-## 多期模型的关键不是“多复制几列”，而是时期之间互相影响
+## 多期问题的难点，是今天的决定会留到以后
 
-单期生产模型只需要决定：
+单期生产模型只需要问：这一期生产多少？
 
-```text
-这一期生产多少？
-```
+加入时间以后，问题立刻变得不一样。今天多生产的部分不会消失，而是变成下一期库存；今天少生产，也可能留下 shortage 或 backorder。一次 setup 还可能覆盖未来几个时期的需求。
 
-多期模型则必须同时考虑：
+所以多期模型真正连接的是一连串状态：
 
 ```text
-今天多生产的部分会进入库存
-库存会成为下一期的可用供给
-今天少生产可能导致未来 shortage 或 backorder
-某次生产 setup 可以覆盖多个时期
+期初库存
++
+本期生产
+-
+本期需求
+=
+期末库存
 ```
 
-因此时间维度的核心是**状态结转 state transition**。
+下一期再从这个期末库存继续往下走。
 
 <div data-learning-slot="supply-chain-flow"></div>
 
-## 最基本的库存平衡方程
+## 最重要的一条式子是库存平衡
 
-对每个时期 t：
+设：
 
-```text
-EndingInventory[t]
-=
-BeginningInventory[t]
-+ Production[t]
-- Demand[t]
-```
+\[
+I_t=\text{时期 t 的期末库存}
+\]
 
-并且：
+\[
+Q_t=\text{时期 t 的生产量}
+\]
 
-```text
-BeginningInventory[t+1] = EndingInventory[t]
-```
+\[
+D_t=\text{时期 t 的需求}
+\]
 
-合并后可以写成：
+最基础的 inventory balance 是：
 
-```text
-Inventory[t]
-=
-Inventory[t-1]
-+ Production[t]
-- Demand[t]
-```
+\[
+I_t=I_{t-1}+Q_t-D_t
+\]
 
-这条方程把所有时期连接起来。
+这条式子把相邻时期真正连了起来。
 
-如果某一期生产过多，不会凭空消失；它会成为未来库存。
+如果 P1 多生产 40 单位，P1 期末库存就多 40；到了 P2，这 40 会成为可用供给，不需要重新生产。
 
-## 时间耦合让“本期最便宜”不一定是全局最优
+多期模型如果只是把四个单期模型并排放在一起，却没有这条跨期平衡，就没有真正建出时间关系。
 
-假设第 4 期需求很高。
+## 用四个时期看三种完全不同的生产计划
 
-如果只逐期优化：
+当前需求是：
 
-```text
-Period 1 只看 Period 1
-Period 2 只看 Period 2
-...
-```
-
-可能等到第 4 期才发现产能不足。
-
-多期模型可以提前生产并持有库存：
-
-```text
-Period 3 额外生产
-→ EndingInventory[3] > 0
-→ Period 4 可用
-```
-
-即使提前生产产生 holding cost，也可能比 shortage、加急或扩容便宜。
-
-## 一个四期合成需求序列
-
-```text
-Period 1 demand = 180
-Period 2 demand = 260
-Period 3 demand = 150
-Period 4 demand = 310
-```
+| 时期 | 需求 |
+|---|---:|
+| P1 | 180 |
+| P2 | 260 |
+| P3 | 150 |
+| P4 | 310 |
 
 总需求：
 
-```text
-900
-```
+\[
+180+260+150+310=900
+\]
 
-如果生产成本固定为：
+每单位生产成本都是 12，每次启动生产的 setup cost 是 420，每单位期末库存的 holding cost 是 1.2。
 
-```text
-12 / unit
-```
-
-只看总生产量，所有满足 900 总产量的方案生产成本都相同。
-
-真正改变总成本的是：
+这组数据可以比较三种很直观的计划：
 
 ```text
-setup cost
-holding cost
-shortage / backorder cost
-capacity
+Demand-match
+→ 每期刚好生产当期需求
+
+Smooth
+→ 每期生产 225
+
+Batch
+→ P1 生产 440，P3 生产 460
 ```
 
-## Setup cost 会推动模型减少生产启动次数
+三种计划都最终提供 900 单位，但成本结构完全不同。
 
-假设每次只要某期有生产，就产生：
+## 按需生产几乎不留库存，但每期都要启动
+
+Demand-match 计划：
 
 ```text
-setupCost = 420
+P1 180
+P2 260
+P3 150
+P4 310
 ```
 
-需要 binary variable：
+每期生产量刚好等于需求，所以库存一直为 0。
 
-```text
-y[t] = 1 if production occurs in period t
-       0 otherwise
-```
+生产成本：
 
-生产量联动：
+\[
+900\times12=10800
+\]
 
-```text
-Production[t] ≤ Capacity[t] · y[t]
-```
+四个时期都有生产，因此 setup 次数是 4：
 
-目标加入：
+\[
+4\times420=1680
+\]
 
-```text
-Σ_t setupCost[t] · y[t]
-```
+没有 holding cost，所以总成本：
 
-于是模型开始权衡：
+\[
+10800+1680=12480
+\]
 
-```text
-多次小批生产
-→ inventory 较低
-→ setup 次数较多
+这是一种很“干净”的计划：没有提前生产，也没有库存，但为此付出了四次 setup。
 
-少次大批生产
-→ setup 次数较少
-→ inventory 较高
-```
+## 平滑生产让产量稳定，却会产生库存
 
-这就是典型 lot-sizing trade-off。
+总需求 900，分四期平均：
 
-## Holding cost 给提前生产定价
+\[
+900/4=225
+\]
 
-如果期末库存：
+Smooth 计划每期生产 225。
 
-```text
-Inventory[t] > 0
-```
-
-通常产生：
-
-```text
-holdingCost[t] · Inventory[t]
-```
-
-持有成本可能代表：
-
-- 仓储空间；
-- 资金占用；
-- 保险；
-- 损耗；
-- 过时风险；
-- 搬运成本。
-
-因此库存不是免费缓冲。
-
-## Demand matching 是一个基准计划，不一定最优
-
-最直接方案：
-
-```text
-Production[t] = Demand[t]
-```
-
-四期生产：
-
-```text
-180, 260, 150, 310
-```
-
-每期库存都回到 0。
-
-优点：
-
-```text
-holding cost = 0
-```
-
-缺点：
-
-```text
-4 次 setup
-```
-
-合成数据中：
-
-```text
-Production cost = 900 × 12 = 10,800
-Setup cost      = 4 × 420 = 1,680
-Holding cost    = 0
-Total           = 12,480
-```
-
-这个方案是很好的 benchmark，但不是因为直觉简单就一定最优。
-
-## Smooth production 可能降低波动，却增加库存
-
-例如每期固定生产：
-
-```text
-225, 225, 225, 225
-```
-
-库存轨迹：
+库存变化：
 
 ```text
 P1: 0 + 225 - 180 = 45
@@ -260,377 +165,287 @@ P3: 10 + 225 - 150 = 85
 P4: 85 + 225 - 310 = 0
 ```
 
-总正库存单位：
+期末库存累计：
 
-```text
-45 + 10 + 85 = 140
-```
+\[
+45+10+85+0=140
+\]
 
-如果 holding cost = 1.2：
+holding cost：
 
-```text
-Holding cost = 168
-```
+\[
+140\times1.2=168
+\]
 
-setup 仍然是 4 次，因此：
-
-```text
-Total = 10,800 + 1,680 + 168
-      = 12,648
-```
-
-生产更平滑，但在当前参数下总成本反而更高。
-
-这说明：
-
-> “平滑生产”是运营偏好，不是自动的经济最优。
-
-## Batch production 可以用库存换 setup 节省
-
-另一方案：
-
-```text
-440, 0, 460, 0
-```
-
-库存：
-
-```text
-P1: 440 - 180 = 260
-P2: 260 - 260 = 0
-P3: 460 - 150 = 310
-P4: 310 - 310 = 0
-```
-
-只生产两次：
-
-```text
-Setup cost = 2 × 420 = 840
-```
-
-库存单位：
-
-```text
-260 + 310 = 570
-```
-
-持有成本：
-
-```text
-570 × 1.2 = 684
-```
+仍然每期生产，所以 setup cost 也是 1680。
 
 总成本：
 
-```text
-10,800 + 840 + 684 = 12,324
-```
+\[
+10800+1680+168=12648
+\]
 
-在当前合成参数下，这个批量方案优于 demand matching。
+平滑计划比按需生产更稳定，但在这组成本参数下，稳定生产带来的库存成本让总成本更高。
 
-这并不证明“两批永远最好”，而是展示 setup 与 holding 的取舍。
+## 批量生产用库存换更少的 setup
 
-## Production capacity 会限制批量策略
-
-如果每期最大产能只有：
+Batch 计划：
 
 ```text
-300
+P1 440
+P2 0
+P3 460
+P4 0
 ```
 
-那么：
+库存变化：
 
 ```text
-Production[1] = 440
+P1: 0 + 440 - 180 = 260
+P2: 260 + 0 - 260 = 0
+P3: 0 + 460 - 150 = 310
+P4: 310 + 0 - 310 = 0
 ```
 
-就不可行。
+总 holding units：
 
-必须加入：
+\[
+260+0+310+0=570
+\]
+
+holding cost：
+
+\[
+570\times1.2=684
+\]
+
+只在 P1 和 P3 生产，所以 setup 次数是 2：
+
+\[
+2\times420=840
+\]
+
+生产成本仍然是 10800。
+
+总成本：
+
+\[
+10800+840+684=12324
+\]
+
+在当前参数下，Batch 是三种计划中成本最低的。
+
+## 最低成本为什么会偏向批量生产
+
+三种计划的生产总量都是 900，所以生产成本完全相同。
+
+真正不同的是：
 
 ```text
-Production[t] ≤ Capacity[t]
+Demand-match
+→ setup 多，库存少
+
+Smooth
+→ setup 多，也有库存
+
+Batch
+→ setup 少，但库存多
 ```
 
-如果还包含 setup binary：
+当前 setup cost 420 相对 holding cost 1.2 较高，所以模型愿意提前生产、持有库存，来减少启动次数。
+
+如果 holding cost 大幅上升，Batch 的优势会变小；如果 setup cost 接近 0，按需生产就会更有吸引力。
+
+这就是多期生产模型最核心的 trade-off。
+
+## Setup cost 往往需要 binary variable
+
+如果某期只要生产就支付一次 setup cost，可以定义：
+
+\[
+y_t\in\{0,1\}
+\]
 
 ```text
-Production[t] ≤ Capacity[t] · y[t]
+y_t = 1 → 时期 t 开始生产
+y_t = 0 → 时期 t 不生产
 ```
 
-产能边界会决定可以提前生产多少。
+目标函数加入：
 
-## Initial inventory 必须明确
+\[
+\sum_t SetupCost_t\cdot y_t
+\]
 
-第 1 期平衡：
+再用 linking constraint：
+
+\[
+Q_t\le M_ty_t
+\]
+
+如果 y=0，Q 必须为 0；如果 y=1，Q 可以在上限内生产。
+
+M 最好使用真实生产能力，而不是一个随意特别大的数字。
+
+## Holding cost 应该对应真正留下来的库存
+
+如果 holding cost 按每期期末库存计费，目标里是：
+
+\[
+\sum_t h_tI_t
+\]
+
+这意味着一件产品如果从 P1 一直存到 P3，会经历多期持有成本。
+
+所以“提前生产 100 单位”并不是只付一次库存费用。提前得越早，库存停留时间越长，总 holding cost 越高。
+
+这一点正是批量大小和生产时点之间的关键权衡。
+
+## 如果允许缺货，需要明确 shortage 和 backorder 是哪一种
+
+有些模型允许当期需求暂时不满足。
+
+这时需要先分清两种情况。
+
+**Lost sales**：当期没卖掉就永远失去，不会留到下期。
+
+**Backorder**：当期没满足的需求会结转，以后仍然要交付。
+
+Backorder 可以定义：
+
+\[
+B_t\ge0
+\]
+
+平衡式也要相应扩展，不能简单把负库存和真实库存混成一个变量而不解释。
+
+如果允许 backlog，目标函数通常还要加入 shortage penalty：
+
+\[
+\sum_t p_tB_t
+\]
+
+罚得越高，模型越不愿意延期满足需求。
+
+## 期末库存条件会明显影响最后几个时期
+
+多期模型必须明确规划期结束时库存应该怎样处理。
+
+常见条件包括：
 
 ```text
-Inventory[1]
-=
-InitialInventory
-+ Production[1]
-- Demand[1]
+I_T = 0
 ```
 
-如果 `InitialInventory` 忘记定义，模型可能默认从 0 开始，但现实仓库可能已经有库存。
-
-期初库存是参数，不是自动从模型里产生。
-
-## Terminal inventory 决定模型是否“把问题推到窗口外”
-
-如果规划到第 4 期就结束，模型可能为了降低成本把库存压到 0，或者在允许 shortage 时把未满足需求推到 horizon 之后。
-
-可以加入终端条件：
-
-```text
-Inventory[T] ≥ safetyTarget
-```
+表示不希望规划期末留下多余库存。
 
 或者：
 
 ```text
-Inventory[T] = targetEndingInventory
+I_T ≥ safety stock
 ```
 
-也可以给终端库存一个残值。
+要求留出下一周期所需的安全库存。
 
-终端条件决定模型如何看待规划窗口之后的未来。
+如果完全不管 terminal inventory，而期末库存又没有价值或成本设置不合理，模型可能在最后一期做出不符合真实业务的行为。
 
-## Backorder 与 lost sales 不是同一个概念
+终端条件本质上是在告诉模型：规划期结束不等于世界结束。
 
-如果需求没有当期满足，有两种常见含义。
+## 产能限制会让平滑和提前生产更重要
 
-### Backorder
+假设 P4 需求是 310，但 P4 最大产能只有 250。
 
-需求被延期，未来仍需交付。
+那么即使 P4 单期生产成本最低，也不可能在 P4 当期满足全部需求。必须在更早时期提前生产至少 60，并通过库存带到 P4。
 
-状态需要继续结转：
+此时 inventory 不再只是为了省 setup cost，而是为了满足未来的 capacity shortage。
+
+多期模型特别适合处理这种情况：某个时期的资源约束可以通过其他时期的提前生产来缓冲。
+
+## Rolling planning 用新信息不断重算，而不是一次锁死全年
+
+实际业务很少在年初就准确知道未来所有需求和成本。
+
+更常见的做法是 rolling horizon：
 
 ```text
-Backlog[t]
-=
-Backlog[t-1]
-+ Demand[t]
-- Fulfilment[t]
+先优化未来若干期
+↓
+执行最近一期
+↓
+拿到新的需求和库存信息
+↓
+把窗口向前滚动
+↓
+重新优化
 ```
 
-### Lost sales
+这样，远期计划可以保留方向，近期计划则随着新信息不断更新。
 
-未满足需求永久流失。
+滚动规划并不否定优化模型，反而更符合优化的使用方式：模型是反复更新的决策工具，不是一张生成一次就永远不变的年度表。
 
-通常使用：
+## 多期结果至少要核对三种平衡
+
+求解以后，最好逐期检查：
+
+### 库存平衡
+
+\[
+I_t-I_{t-1}-Q_t+D_t=0
+\]
+
+### 总量平衡
+
+如果起始和终端库存都为 0：
+
+\[
+\sum_t Q_t=\sum_t D_t
+\]
+
+当前例子就是：
+
+\[
+900=900
+\]
+
+### 成本回算
 
 ```text
-LostSales[t] ≥ 0
+production cost
++
+setup cost
++
+holding cost
++
+shortage cost（如果有）
 ```
 
-但不会像 backlog 一样自动进入下一期需求。
+应当和模型目标值一致。
 
-两者成本和客户影响不同，不能共用一个含糊的 `shortage` 变量而不解释语义。
+这些检查能避免“变量看起来合理，但跨期平衡有一处漏写”的问题。
 
-## Allow backorder 与 no-backorder 是两种不同模型
+## 三种计划放在一起，差异就很清楚
 
-如果不允许延期：
+| 计划 | Setup 次数 | Holding units | 总成本 |
+|---|---:|---:|---:|
+| Demand-match | 4 | 0 | 12480 |
+| Smooth | 4 | 140 | 12648 |
+| Batch | 2 | 570 | 12324 |
 
-```text
-Inventory[t] ≥ 0
-```
+当前成本下，Batch 最便宜，但这不是一条普遍规律。
 
-并要求需求完全满足。
+换一组 setup cost、holding cost、产能或需求，最优计划就可能改变。因此，这张比较表的价值不是记住 12324，而是看懂不同成本参数如何推动计划在“频繁生产”和“提前囤货”之间移动。
 
-如果允许 backorder，可以用净库存：
+## 一套实用的多期建模顺序
 
-```text
-NetInventory[t]
-```
+1. 明确每个时期的需求、产能和生产成本；
+2. 定义生产量和期末库存；
+3. 用 inventory balance 把相邻时期连起来；
+4. 如果有 setup cost，增加 binary variable 和 linking constraint；
+5. 决定是否允许 shortage / backorder；
+6. 明确初始库存和 terminal inventory；
+7. 求解后逐期检查库存平衡；
+8. 独立回算 setup、holding 和生产成本；
+9. 改变 setup cost、holding cost、产能和需求做情景比较；
+10. 实际执行时采用 rolling horizon，用最新信息重新优化。
 
-允许为负，但需要对负值单独计 penalty。
-
-更清晰的方法往往是分开：
-
-```text
-Inventory[t] ≥ 0
-Backlog[t] ≥ 0
-```
-
-并建立流量平衡。
-
-## Flow conservation 是多期库存模型的核心
-
-可以把每个时期看成一个网络节点。
-
-流入：
-
-```text
-Beginning inventory
-Production
-External supply
-```
-
-流出：
-
-```text
-Demand fulfilment
-Ending inventory
-Waste
-```
-
-因此库存优化和运输网络其实共享同一类思想：
-
-> 数量不会凭空出现或消失，除非模型显式定义了来源或损失。
-
-## Service level 可以进入约束
-
-例如要求至少满足 98% 总需求：
-
-```text
-Σ fulfilment[t] ≥ 0.98 × Σ demand[t]
-```
-
-也可以逐期要求：
-
-```text
-Fulfilment[t] ≥ serviceTarget[t]
-```
-
-逐期约束比总量约束更严格，因为总量达标可能掩盖某一时期的大缺货。
-
-服务水平口径必须与业务 KPI 一致。
-
-## 多产品模型需要增加产品 index
-
-```text
-Production[p,t]
-Inventory[p,t]
-Demand[p,t]
-```
-
-库存平衡：
-
-```text
-Inventory[p,t]
-=
-Inventory[p,t-1]
-+ Production[p,t]
-- Demand[p,t]
-```
-
-如果产品共享生产线：
-
-```text
-Σ_p processingTime[p] · Production[p,t]
-≤ AvailableTime[t]
-```
-
-这把产品组合和多期计划连接起来。
-
-## 多工厂模型再增加 plant index
-
-```text
-Production[k,p,t]
-```
-
-每个工厂产能：
-
-```text
-Σ_p time[k,p] · Production[k,p,t]
-≤ Capacity[k,t]
-```
-
-如果库存位于仓库而生产位于工厂，还需要 shipment variables，把生产和库存位置连接起来。
-
-这就是高维供应链模型自然形成的过程。
-
-## Rolling horizon 比一次性全年计划更接近现实
-
-长期计划通常不会一次求解后全年不变。
-
-Rolling horizon：
-
-```text
-1. 用最新数据求解未来若干期
-2. 只执行最前面一段
-3. 新需求与库存数据到达
-4. horizon 向前滚动
-5. 重新求解
-```
-
-优点是把优化和最新信息连接起来。
-
-需要注意：频繁重优化也可能造成 plan nervousness，也就是计划反复变动。
-
-因此可能需要冻结窗口或变更成本。
-
-## Setup、holding、backorder 的权重决定计划形状
-
-参数变化会系统性改变计划：
-
-```text
-setup cost ↑
-→ 倾向更少、更大的生产批次
-
-holding cost ↑
-→ 倾向更靠近需求发生时生产
-
-backorder penalty ↑
-→ 更积极提前准备库存或扩产
-
-capacity ↓
-→ 更依赖提前生产或允许 shortage
-```
-
-这是一类非常适合情景循环和敏感性曲线的模型。
-
-## 结果不仅要看 total cost
-
-一个多期计划至少应展示：
-
-```text
-production by period
-ending inventory by period
-setups
-shortage/backlog
-capacity utilisation
-service level
-total cost breakdown
-```
-
-两个方案总成本接近时，库存峰值、setup 次数和服务风险可能完全不同。
-
-## 常见错误
-
-### 忘记库存结转
-
-把每期当成独立模型，无法利用提前生产。
-
-### Initial inventory 写错
-
-会让所有后续时期库存都偏移。
-
-### 只对总需求做平衡
-
-可能在个别时期出现不可执行缺口。
-
-### Setup cost 没有 binary linking
-
-模型可能支付 0 setup 却产生正生产量。
-
-### Terminal condition 缺失
-
-模型可能利用 horizon 边界制造不现实结果。
-
-### Backorder 与 lost sales 混用
-
-会错误计算未来需求和服务影响。
-
-### 只比较总成本
-
-忽略库存峰值、产能压力和服务风险。
-
-## 核心判断
-
-多期生产与库存优化的核心是：
-
-> **用流量平衡把每个时期连接起来，让生产、库存、setup、holding 与 shortage 的成本取舍在整个 planning horizon 上共同优化，而不是逐期做孤立决策。**
-
-至此，供应链与决策模型主线已经从模型四要素、连续优化、约束、敏感性、MILP、Sets/Indices、PuLP 与高维模型，连接到网络运输和多期计划。后续可以在此基础上继续扩展 uncertainty、heuristics 与更大规模的现实求解策略。
+多期生产与库存优化最值得理解的，不是把一张单期模型横向复制很多列，而是承认一个事实：**今天的生产选择会改变明天拥有多少库存，也会改变未来还需要付什么成本。**

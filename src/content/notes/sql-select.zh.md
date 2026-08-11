@@ -2,8 +2,8 @@
 translationKey: sql-select
 locale: zh
 slug: sql-select
-title: SELECT：从关系表中读取第一份结果集
-summary: 从统一的 customers、orders、products 与 order_items 数据开始，理解 SELECT、星号、FROM、结果集和查询执行的基本含义，并通过浏览器 SQLite 运行不会修改数据的基础查询。
+title: SELECT 查询
+summary: 表结构弄清楚以后，下一步就是把数据读出来。这里从最简单的 SELECT 和 FROM 开始，说明结果集、星号和只读查询到底是什么意思。
 tags:
   - SELECT
   - 基本查询
@@ -20,7 +20,7 @@ series: SQL 与关系数据
 seriesSlug: sql
 order: 5
 publishedAt: 2026-08-10
-updatedAt: 2026-08-10
+updatedAt: 2026-08-11
 status: published
 draft: false
 isPlaceholder: false
@@ -33,55 +33,36 @@ relatedNotes:
 
 ## 从“数据怎样组织”进入“怎样读取数据”
 
-前四篇解决关系数据库的结构问题：
+前面几篇一直在处理表结构：一行是什么、主键怎么定、外键怎么连、表之间是什么关系。到了这里，终于开始真正向数据库提问。
 
-```text
-Relational Database
-↓
-Primary Key
-↓
-Foreign Key
-↓
-Relationship Cardinality
-```
-
-接下来开始真正向数据库提出查询。
-
-最基本的形式是：
+最简单的一条查询是：
 
 ```sql
 SELECT *
 FROM customers;
 ```
 
-它读取 `customers` 表中的数据，并返回一个结果集。
+它的意思很直接：从 `customers` 表中读取当前全部列和全部记录。
 
 ## SELECT * FROM customers 到底在说什么？
 
-把查询拆开：
-
-```sql
-SELECT *
-FROM customers;
-```
-
-可以读成：
+把这条语句拆开：
 
 ```text
 SELECT
-→ 发起读取查询
+→ 说明要读取什么
 
 *
 → 当前选择所有列
 
 FROM
-→ 指定数据来源
+→ 说明数据从哪里来
 
 customers
-→ 被读取的表
+→ 数据来源表
 ```
 
-统一数据集中的 `customers` 是：
+客户表现在有三条记录：
 
 | customer_id | customer_name | email | phone | segment |
 |---:|---|---|---|---|
@@ -89,20 +70,15 @@ customers
 | 1002 | Coast Foods | coast@example.com | 021-440-811 | Wholesale |
 | 1003 | Alpine Labs | alpine@example.com | 021-440-812 | Enterprise |
 
-因此 `SELECT * FROM customers` 会返回当前三条客户记录与全部五列。
+所以这条查询会返回 3 行、5 列。
+
+SQL 的基本阅读顺序可以先保持简单：**SELECT 决定要看什么，FROM 决定去哪里拿。**
 
 ## 星号 * 表示什么？
 
-在：
+`*` 表示当前数据源的全部列。
 
-```sql
-SELECT *
-FROM customers;
-```
-
-中，`*` 表示当前数据源的所有列。
-
-对于 `customers`：
+对 `customers` 来说就是：
 
 ```text
 customer_id
@@ -112,22 +88,22 @@ phone
 segment
 ```
 
-都会出现在结果中。
+在探索数据时，`SELECT *` 很方便，因为可以先快速看一张表长什么样。
 
-这一篇暂时不展开“只选择某几列”。那属于 SQL 07 Projection。
+不过正式分析或长期接口通常更适合明确写出需要的列。原因不是星号“不能用”，而是表以后加新字段时，`SELECT *` 的输出结构也会跟着变化。
+
+列选择会在 SQL 07 专门展开。
 
 ## 没有 WHERE 时会发生什么？
 
-最基础查询没有筛选条件：
+例如：
 
 ```sql
 SELECT *
 FROM orders;
 ```
 
-所以逻辑上会读取当前 `orders` 中所有记录。
-
-统一数据集有四张订单：
+没有筛选条件，所以返回当前订单表的全部记录：
 
 | order_id | customer_id | order_date | order_value |
 |---:|---:|---|---:|
@@ -136,19 +112,13 @@ FROM orders;
 | 50003 | 1002 | 2026-07-06 | 760.00 |
 | 50004 | 1003 | 2026-07-09 | 510.00 |
 
-因此未筛选的订单查询返回四行。
-
-SQL 06 才会加入 `WHERE`，让结果只保留满足条件的行。
+这里的重点不是记住“4 行”，而是理解：**SELECT 本身不负责筛选。** 如果只想要某些订单，需要再加 WHERE。
 
 ## 查询结果本身也是一个二维表
 
-`SELECT` 返回的是 **Result Set（结果集）**。
+数据库执行 SELECT 后，返回的是一个 result set。
 
-它仍然可以表示成：
-
-```text
-rows × columns
-```
+它看起来仍然像一张表：有列名，也有一行一行的记录。但这个结果集不等于原表本身。
 
 例如：
 
@@ -157,360 +127,164 @@ SELECT *
 FROM customers;
 ```
 
-当前结果是：
+得到的是 `customers` 当前状态的一次查询结果。程序、报表或分析工具可以继续使用这个结果，但查询并没有创建一张永久新表。
 
-```text
-3 rows × 5 columns
-```
-
-而：
-
-```sql
-SELECT *
-FROM orders;
-```
-
-当前结果是：
-
-```text
-4 rows × 4 columns
-```
-
-互动 SQL 运行器会直接显示这个维度摘要，让“结果集”不只是一个抽象定义。
-
-后续 WHERE、Projection、GROUP BY 与 JOIN，本质上都在改变结果集的行、列、粒度或组合方式。
+后面即使做筛选、排序、计算列，得到的也仍然是查询结果，而不是自动修改原始数据。
 
 ## SELECT 会修改原表吗？
 
-普通 `SELECT` 是读取操作。
-
-执行：
+正常的 SELECT 是读取操作。
 
 ```sql
-SELECT *
-FROM customers;
+SELECT * FROM orders;
 ```
 
-不会因为查询本身而新增、删除或改写客户记录。
+不会把订单删掉，也不会改变金额。
 
-这与后面的数据修改语句不同：
+真正修改数据的是：
 
-```text
+```sql
 INSERT
 UPDATE
 DELETE
 ```
 
-因此，面对一张陌生表时，SELECT 通常是最自然的探索入口。
-
-## 先运行最基础的查询
-
-下面的浏览器实验继续使用 SQL 01 展示过的同一 canonical dataset。
-
-默认打开：
-
-```sql
-SELECT *
-FROM customers
-ORDER BY customer_id;
-```
-
-这里额外写 `ORDER BY customer_id`，只是为了让教学界面的行顺序稳定，方便逐项对照。
-
-**没有 `ORDER BY` 时，不应该把数据库当前恰好返回的行顺序当成有保证的业务顺序。** 排序规则会在 SQL 08 单独讲解。
-
-还可以切换到：
-
-```sql
-SELECT *
-FROM orders
-ORDER BY order_id;
-```
-
-```sql
-SELECT *
-FROM products
-ORDER BY product_id;
-```
-
-```sql
-SELECT *
-FROM order_items
-ORDER BY order_id, product_id;
-```
-
-观察不同表的记录粒度与结果维度。
-
-<div data-learning-slot="sql-playground"></div>
-
-## 查询前先记住记录粒度
-
-SQL 01 已经建立一个核心问题：
-
-```text
-One row = ?
-```
-
-它在 SELECT 阶段仍然重要。
-
-```sql
-SELECT *
-FROM customers;
-```
-
-可以理解为：
-
-```text
-One result row = one customer
-```
-
-而：
-
-```sql
-SELECT *
-FROM order_items;
-```
-
-则是：
-
-```text
-One result row = one product line within one order
-```
-
-即使两条查询语法都很简单，结果的业务含义并不相同。
+这一区分很重要。学习 SQL 时，可以大胆在只读数据上尝试 SELECT、WHERE 和 ORDER BY；一旦进入 UPDATE 或 DELETE，就需要更严格地确认条件。
 
 ## SELECT 并不一定需要 FROM
 
-`SELECT` 也可以直接计算表达式。
-
-例如：
+有些数据库允许 SELECT 直接计算表达式：
 
 ```sql
-SELECT 100 + 200;
+SELECT 1;
 ```
 
-结果会返回：
+或者：
 
-```text
-300
+```sql
+SELECT 2 + 3 AS result;
 ```
 
-还可以运行：
+SQLite 可以直接运行：
 
 ```sql
 SELECT 1 AS execution_ok;
 ```
 
-它不需要读取业务表。
+结果是一行一列：
+
+```text
+execution_ok
+1
+```
+
+这类查询没有读取业务表，只是让数据库计算一个表达式。
 
 ### SELECT 1 是“连接检查”吗？
 
-在真实的 client/server 数据库应用中，`SELECT 1` 经常被用作很轻量的连接或 liveness 查询，因为如果客户端能够把 SQL 发给数据库并收到结果，至少说明这条查询链路能够工作。
+`SELECT 1` 本身只是一条很轻量的查询。
 
-但本系列浏览器实验使用的是当前页面内存中的 sql.js/SQLite，并不存在浏览器到远程数据库服务器的网络连接。
+在应用系统里，它经常被拿来做数据库连接或 health check，因为如果数据库连接正常，执行这条语句通常很快。但它并没有特殊的“检查连接”语法含义。
 
-因此，这里的：
+所以更准确的理解是：应用借助一条非常简单的 SELECT，确认数据库能不能正常响应。
 
-```sql
-SELECT 1 AS execution_ok;
-```
+## SELECT 可以返回表达式，不只返回原始字段
 
-只验证：
-
-```text
-SQLite engine loaded
-+
-SQL statement executed
-+
-result returned
-```
-
-不能把它描述成“验证远程数据库网络连接”。
-
-## 分号 ; 有什么作用？
-
-SQL 示例统一写成：
+即使暂时不进入完整 Projection，也可以看到 SELECT 的一个基本能力：结果列可以来自计算。
 
 ```sql
-SELECT *
-FROM customers;
-```
-
-末尾：
-
-```text
-;
-```
-
-标记一条 SQL statement 结束。
-
-某些客户端在只执行单条语句时可以接受省略分号，但脚本、多语句输入和跨工具复制时，明确分号能让语句边界更清楚。
-
-## SQL 关键字为什么经常写成大写？
-
-下面两种写法在许多数据库中都能被解析：
-
-```sql
-select * from customers;
-```
-
-```sql
-SELECT * FROM customers;
-```
-
-本系列统一使用第二种风格，让：
-
-```text
 SELECT
-FROM
-WHERE
-ORDER BY
-GROUP BY
-JOIN
+  order_id,
+  order_value,
+  order_value * 1.10 AS scenario_value
+FROM orders;
 ```
 
-与字段名、表名形成视觉区分。
+`scenario_value` 不需要预先存进订单表，它可以在查询时计算出来。
 
-这是一种书写规范，不是查询逻辑本身。
+SQL 的结果集因此不只是“原表复制”，而是可以根据需要重新组织数据。
 
 ## SELECT * 适合什么时候使用？
 
-在教学、小型表和第一次检查数据时：
+比较适合：
+
+- 初次查看一张小表；
+- 调试和探索；
+- 临时验证数据是否加载成功；
+- 教学示例里快速展示整表结构。
+
+不太适合：
+
+- 长期生产接口；
+- 只需要两三列却把宽表全部传回来；
+- 对列顺序有严格依赖的代码；
+- 需要稳定 schema 的报表。
+
+长期查询更清楚的写法通常是明确列名：
 
 ```sql
-SELECT *
+SELECT
+  customer_id,
+  customer_name,
+  segment
 FROM customers;
 ```
 
-非常直观，可以快速观察：
+## SQL 查询最好先从最小问题开始
 
-- 有哪些列；
-- 有哪些记录；
-- 值的大致格式；
-- 主键字段；
-- 是否存在 NULL；
-- 一行代表什么。
+刚开始写查询时，不必一次就把 WHERE、JOIN、GROUP BY 和 ORDER BY 全塞进去。
 
-但真实生产表可能有几十甚至上百列。长期把 `SELECT *` 写进分析管道可能带来：
+更容易调试的顺序是：
 
-- 读取不需要的列；
-- schema 新增列后结果结构意外变化；
-- 网络和内存传输增加；
-- 下游代码对列顺序或列集合产生隐式依赖。
-
-因此 `SELECT *` 是很好的学习起点，但不是所有生产查询的默认最佳实践。
-
-SQL 07 会进入明确列选择与别名。
-
-## 一份新表可以先这样读
-
-面对第一次看到的表，可以先运行基础 SELECT，然后检查：
-
-1. **结果有多少 rows × columns？**
-2. **一行代表什么？**
-3. **字段名称与数据类型是否符合预期？**
-4. **主键在哪里？**
-5. **是否出现 NULL？**
-6. **哪些字段可能用于 WHERE？**
-7. **哪些字段可能用于 JOIN？**
-8. **当前行顺序有没有明确 ORDER BY 保证？**
-
-这让 `SELECT *` 不只是“把表打印出来”，而成为数据理解入口。
-
-## 常见错误
-
-### 忘记 FROM 后面的表名
-
-```sql
-SELECT * FROM;
+```text
+先确认 FROM 的表对不对
+↓
+再确认 SELECT 的列对不对
+↓
+再加 WHERE
+↓
+再加排序、聚合或连接
 ```
 
-数据库不知道应该读取哪张表。
+如果最终查询结果不对，可以逐层回退，很快找到是哪一步改变了结果。
+
+<div data-learning-slot="sql-playground"></div>
+
+## 常见的几种初学错误
 
 ### 表名写错
 
-数据库中是：
-
-```text
-customers
+```sql
+SELECT * FROM customer;
 ```
 
-却查询：
+如果实际表叫 `customers`，数据库会直接报错。
+
+### 把字符串当字段名
 
 ```sql
-SELECT *
-FROM customer;
+SELECT "customer_name";
 ```
 
-通常会得到表不存在之类的错误。
+不同数据库对双引号语义不同。想读取字段时，最稳妥的是直接写正确列名；想写字符串常量则使用单引号。
 
-### 把 Result Set 误认为永久新表
+### 以为 SELECT * 会自动排序
 
-普通查询返回结果集，不会因为屏幕上显示了结果就自动创建永久表。
+没有 `ORDER BY` 时，数据库并不承诺返回顺序。当前看到的行序不能当成永久规则。
 
-### 认为 SELECT * 的行顺序天然稳定
+### 把结果集当成永久表
 
-没有 `ORDER BY` 时，不应依赖当前返回顺序。
+SELECT 返回的是一次查询结果。要真正创建表或视图，需要另外使用相应 DDL。
 
-### 只看数字，不看粒度
+## 这一篇先把查询骨架记住
 
-customers、orders 与 order_items 都可以 `SELECT *`，但一行代表完全不同的业务对象。
-
-### 在本地 sql.js 中把 SELECT 1 误解成网络连接测试
-
-当前实验没有远程数据库网络链路。它只是一个 SQL engine execution check。
-
-## 本篇的核心判断
-
-基础 SELECT 可以压缩成：
-
-```text
-SELECT
-→ 发起读取并定义结果表达式
-
-*
-→ 当前返回全部列
-
-FROM
-→ 指定数据来源
-
-Result Set
-→ 查询返回的 rows × columns
-```
-
-看到：
+最基础的结构只有：
 
 ```sql
-SELECT *
-FROM customers;
+SELECT ...
+FROM ...;
 ```
 
-应该能够准确解释：
+它回答两个问题：要什么数据，从哪里拿。
 
-- 从哪里读取；
-- 返回哪些列；
-- 当前有多少行；
-- 一行代表什么；
-- 是否会修改原表；
-- 当前顺序是否有 ORDER BY 保证。
-
-## 下一步：只保留满足条件的记录
-
-基础 SELECT 会读取整张表。
-
-真实分析通常会继续提出：
-
-```text
-只看 Retail 客户？
-只看金额超过 500 的订单？
-只看某个日期范围？
-同时满足多个条件？
-```
-
-SQL 06 将进入：
-
-```text
-WHERE
-```
-
-也就是条件查询。
+下一篇加入 WHERE，开始控制**哪些行**进入结果。到那时，同一张订单表就不再只能“全部读出来”，而是可以按金额、客户、日期或其他条件精确筛选。

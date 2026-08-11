@@ -2,13 +2,13 @@
 translationKey: sql-projection
 locale: zh
 slug: sql-projection
-title: Projection：只返回分析真正需要的列
-summary: 从统一 customers 与 orders 数据出发，理解 Projection 如何选择、重排列并重命名结果集字段，以及它与 WHERE、原表 schema、表达式列和下游分析接口之间的关系。
+title: 列选择与表达式
+summary: 查询不一定要把整张表原样搬出来。这里从选择几列开始，再加入别名和计算表达式，把结果整理成真正适合分析和报表使用的结构。
 tags:
   - Projection
   - SELECT
   - 列别名
-  - 结果集
+  - SQL 查询
 topics:
   - 数据查询
   - 数据理解
@@ -20,7 +20,7 @@ series: SQL 与关系数据
 seriesSlug: sql
 order: 7
 publishedAt: 2026-08-10
-updatedAt: 2026-08-10
+updatedAt: 2026-08-11
 status: published
 draft: false
 isPlaceholder: false
@@ -28,46 +28,14 @@ relatedProjects:
   - sales-profitability-warehouse
 relatedNotes:
   - sql-where
+  - sql-order-by
 ---
 
 ## 从筛选行进入选择列
 
-SQL 06 的 `WHERE` 回答的是：
+WHERE 决定哪些行留下，接下来要解决的是另一件事：结果里到底需要哪些列。
 
-```text
-哪些记录应该进入结果集？
-```
-
-例如：
-
-```sql
-SELECT *
-FROM orders
-WHERE order_value >= 500;
-```
-
-会从四张订单中保留两行。
-
-但结果仍然包含 `orders` 的全部四列。真实分析经常还需要回答另一个问题：
-
-```text
-结果里到底需要哪些字段？
-```
-
-这就是 Projection（投影查询）解决的问题。
-
-最基本的结构是：
-
-```sql
-SELECT column_1, column_2, column_3
-FROM table_name;
-```
-
-与 `SELECT *` 相比，Projection 明确声明结果集需要哪些列。
-
-## Projection 改变的是结果集的列
-
-统一数据集中的 `customers` 有五列：
+例如客户表有：
 
 ```text
 customer_id
@@ -77,79 +45,76 @@ phone
 segment
 ```
 
-基础查询：
+如果报表只需要客户 ID、名称和 segment，就没有必要把邮箱和电话一起返回。
 
 ```sql
-SELECT *
+SELECT
+  customer_id,
+  customer_name,
+  segment
 FROM customers;
 ```
 
-返回：
-
-```text
-3 rows × 5 columns
-```
-
-如果分析只需要客户标识、名称与细分：
-
-```sql
-SELECT customer_id, customer_name, segment
-FROM customers;
-```
-
-结果变成：
-
-```text
-3 rows × 3 columns
-```
-
-三条客户记录仍然存在，只是结果集不再返回 `email` 与 `phone`。
-
-因此可以把 SQL 06 与 SQL 07 的差别记成：
-
-```text
-WHERE       → 选择行
-Projection  → 选择列
-```
+这就是 SQL 里的 projection：控制结果集的列结构。
 
 <div data-learning-slot="projection-columns-lab"></div>
 
+## Projection 改变的是结果集的列
+
+原表有 5 列，并不代表每次查询都必须返回 5 列。
+
+下面这条查询：
+
+```sql
+SELECT
+  order_id,
+  order_value
+FROM orders;
+```
+
+只返回：
+
+| order_id | order_value |
+|---:|---:|
+| 50001 | 420.00 |
+| 50002 | 185.00 |
+| 50003 | 760.00 |
+| 50004 | 510.00 |
+
+订单表本身没有被修改，只是这次查询选择了两列。
+
+Projection 可以先理解成：**从原始表结构里挑出当前任务真正需要的字段。**
+
 ## 不返回某列不等于删除某列
 
-Projection 只影响当前查询结果。
-
-执行：
+下面的查询不包含 `email`：
 
 ```sql
-SELECT customer_id, customer_name
+SELECT
+  customer_id,
+  customer_name
 FROM customers;
 ```
 
-不会修改 `customers` 的 schema，也不会删除 `email`、`phone` 或 `segment`。
+但 `email` 仍然留在原表里。
 
-下一条查询仍然可以写：
+这是读取和修改的区别。SELECT 只定义结果集，不会把没有选中的列从数据库结构里删掉。
 
-```sql
-SELECT *
-FROM customers;
-```
-
-并再次得到全部五列。
-
-这和 `ALTER TABLE` 一类结构修改操作完全不同。
+真正删除字段属于 DDL 操作，需要类似 `ALTER TABLE`，风险和语义完全不同。
 
 ## 结果列的顺序由 SELECT 列表决定
 
-Projection 不要求沿用原表列顺序。
-
-例如：
+原表字段顺序不重要，只要查询明确写出需要的顺序：
 
 ```sql
-SELECT segment, customer_name, customer_id
+SELECT
+  segment,
+  customer_name,
+  customer_id
 FROM customers;
 ```
 
-结果列会按下面的顺序出现：
+结果就会按：
 
 ```text
 segment
@@ -157,21 +122,22 @@ customer_name
 customer_id
 ```
 
-而不是原表中的顺序。
+返回。
 
-这意味着 `SELECT` 列表本身就是一个结果接口定义：不仅决定“有哪些列”，也决定“这些列以什么顺序出现”。
+这在导出文件、API 或报表中很有用，因为输出结构可以和原始表不同。
+
+不过长期接口最好把列顺序当成明确契约，而不是依赖 `SELECT *` 当前刚好返回什么。
 
 ## 列别名改变结果集字段名
 
-有时数据库字段名适合存储，却不适合报表或数据接口。
+数据库字段名不一定适合直接展示。
 
 例如：
 
 ```sql
 SELECT
   customer_id AS customer_key,
-  customer_name AS customer,
-  segment AS customer_segment
+  customer_name AS name
 FROM customers;
 ```
 
@@ -179,91 +145,46 @@ FROM customers;
 
 ```text
 customer_key
-customer
-customer_segment
+name
 ```
 
-但原表字段依然叫：
+原表里的列名仍然是 `customer_id` 和 `customer_name`。
 
-```text
-customer_id
-customer_name
-segment
-```
+Alias 只改变这次结果集里的显示名或引用名，不会重命名数据库字段。
 
-列别名只属于当前结果集。
-
-## AS 为什么值得保留
-
-很多数据库允许省略 `AS`：
-
-```sql
-SELECT customer_id customer_key
-FROM customers;
-```
-
-也可以显式写成：
-
-```sql
-SELECT customer_id AS customer_key
-FROM customers;
-```
-
-两者在常见数据库中通常都能工作。
-
-本系列优先使用 `AS`，原因不是语法必须，而是可读性：
-
-```text
-原字段  AS  输出字段
-```
-
-在长查询中更容易区分列名、表达式和别名。
+对计算列来说，别名尤其重要，否则结果可能只有一段难读的表达式当列名。
 
 ## Projection 可以和 WHERE 组合
 
-行筛选与列选择可以同时出现。
-
-例如，只返回金额至少为 500 的订单，并且只保留分析需要的三列：
+选择列和筛选行是两件独立的事，所以可以一起使用：
 
 ```sql
 SELECT
   order_id,
-  customer_id,
-  order_value AS value
+  order_value
 FROM orders
 WHERE order_value >= 500;
 ```
 
-当前 canonical dataset 返回：
+结果只保留金额至少 500 的订单，同时只显示两列。
 
-| order_id | customer_id | value |
-|---:|---:|---:|
-| 50003 | 1002 | 760.00 |
-| 50004 | 1003 | 510.00 |
-
-结果是：
-
-```text
-2 rows × 3 columns
-```
-
-可以分两步理解：
+可以把逻辑分成：
 
 ```text
 WHERE
-4 rows → 2 rows
+→ 哪些行留下
 
-Projection
-4 columns → 3 columns
+SELECT
+→ 留下的行要显示哪些列
 ```
 
-行与列是两个独立维度。
+虽然 SQL 写法是 SELECT 在前，理解查询时不必把所有语句当成从左到右的一次性处理。
 
 ## 表达式也可以成为结果列
 
-Projection 不只能返回原始字段，也可以返回基于当前行计算出的表达式。
+SELECT 列表不只能写原始字段，还可以写计算。
 
-例如建立一个简单的情景值：
+例如假设需要看一个 10% 上调情景：
 
 ```sql
 SELECT
@@ -273,253 +194,169 @@ SELECT
 FROM orders;
 ```
 
-这里：
+`scenario_value` 没有存进 `orders` 表，而是在查询时计算出来。
 
-```text
-order_id
-order_value
-```
+这类 computed column 很适合：
 
-来自原表，而：
+- 比率；
+- 金额换算；
+- 情景值；
+- 日期差；
+- 文本拼接；
+- CASE 分类。
 
-```text
-scenario_value
-```
+SQL 查询因此可以承担一部分轻量的数据整形，而不必每次都先修改源表。
 
-是查询运行时生成的结果列。
+## 表达式需要给清楚的别名
 
-它不会被写回 `orders`。
-
-这类表达式列在 Business Analytics 中很常见，例如：
-
-```text
-情景价格
-折算金额
-单位成本
-比例指标
-日期派生字段
-```
-
-只要没有使用聚合、分组或其他会改变行结构的操作，当前这种逐行表达式仍然保持一条输入记录对应一条结果记录。
-
-## 别名应该表达业务语义
-
-技术上可以写：
+下面虽然能运行：
 
 ```sql
-SELECT order_value AS x
+SELECT order_value * 1.10
 FROM orders;
 ```
 
-但 `x` 几乎没有分析语义。
+但结果列名不适合长期使用。
 
-更容易维护的名称是：
-
-```sql
-SELECT order_value AS order_value_current
-FROM orders;
-```
-
-或在情景计算中：
-
-```sql
-SELECT ROUND(order_value * 1.10, 2) AS scenario_value
-FROM orders;
-```
-
-好的别名应该让下游使用者不必重新阅读整条 SQL 才知道该列代表什么。
-
-## 重复或模糊的输出列名会制造风险
-
-某些数据库允许结果集中出现重复列名，例如：
+更好的写法：
 
 ```sql
 SELECT
-  customer_id AS id,
-  customer_name AS id
-FROM customers;
+  order_value * 1.10 AS scenario_value
+FROM orders;
 ```
 
-即使数据库能够返回结果，下游程序、CSV 导出、DataFrame 或可视化工具也很难可靠地区分两个 `id`。
+一个好的别名应该说明结果是什么，而不是重复公式本身。
 
-因此应避免：
+如果后续 BI 工具或代码会引用这个字段，稳定、清楚的别名还能减少下游改动。
 
-```text
-重复别名
-过度缩写
-没有业务语义的临时名称
+## 同一个字段可以在结果里出现多次
+
+例如同时显示原金额和转换后的金额：
+
+```sql
+SELECT
+  order_value AS base_value,
+  ROUND(order_value * 1.10, 2) AS scenario_value
+FROM orders;
 ```
 
-结果集本身也是数据接口，列名应保持清晰且稳定。
+两列都来自同一个原始字段，但业务含义不同。
+
+Projection 的目标不是追求“每个源字段只用一次”，而是组织当前分析真正需要的结果结构。
 
 ## SELECT 星号为什么不适合作为长期接口
 
-`SELECT *` 对探索新表非常方便，但在稳定分析流程中存在几个风险：
+`SELECT *` 在探索阶段非常方便，但长期使用会带来几个问题。
 
-1. 表以后新增字段，结果集会自动变宽；
-2. 下游程序可能收到原本没有预期的新列；
-3. 不必要字段增加结果集宽度；
-4. 代码无法直接表达“哪些字段才是业务需要”。
+### 输出会随着表结构变化
 
-因此：
+数据库新增一列后，`SELECT *` 会自动多返回一列。下游程序如果假设固定 schema，可能突然出错。
 
-```text
-探索阶段
-SELECT * 很方便
+### 传输不需要的数据
 
-稳定分析或数据接口
-显式列列表更可靠
-```
+宽表中只需要 3 列，却把 50 列全部取回，会增加 I/O 和网络传输。
 
-这不是说 `SELECT *` 错误，而是使用场景不同。
+### 权限和隐私更难控制
+
+如果表后来增加敏感字段，旧的 `SELECT *` 查询可能在没有注意的情况下把新字段带出去。
+
+所以正式查询更适合明确列清单。
 
 ## Projection 不负责排序
 
-下面的查询：
-
-```sql
-SELECT customer_name, segment
-FROM customers;
-```
-
-只定义返回哪些列，并没有承诺结果行的顺序。
-
-即使当前看到的结果似乎总是按某个顺序出现，也不能把这种观察当成查询保证。
-
-要明确控制结果顺序，需要下一篇的：
-
-```sql
-ORDER BY
-```
-
-因此：
-
-```text
-Projection → 列
-WHERE      → 行
-ORDER BY   → 顺序
-```
-
-三者解决的是不同问题。
-
-## 在浏览器里实际运行 Projection
-
-下面的 SQLite 实验只保留 SQL 07 相关预设：
-
-- 三列 Projection；
-- 重排列顺序；
-- 使用 `AS` 重命名；
-- Projection + WHERE；
-- 表达式派生列。
-
-所有查询仍然运行在同一份 canonical dataset 上。
-
-<div data-learning-slot="sql-playground"></div>
-
-## Business Analytics 中 Projection 是结果接口设计
-
-在分析工作中，Projection 通常不是为了“少写几个字段”，而是在定义一个可消费的数据结果。
-
-例如向一个报表提供订单明细时，可能只需要：
+即使 SELECT 列表写成：
 
 ```sql
 SELECT
-  order_id,
-  order_date,
-  order_value
+  order_value,
+  order_id
 FROM orders;
 ```
 
-而不需要把所有内部字段都暴露给下游。
+也只是改变列顺序，不代表订单记录会按 `order_value` 排序。
 
-显式列选择可以帮助：
-
-```text
-明确数据契约
-减少无关字段
-稳定字段顺序
-统一业务命名
-降低下游耦合
-```
-
-## 常见错误
-
-### 1. 把 Projection 理解成修改表结构
-
-错误理解：
-
-```text
-SELECT 不返回 email
-→ email 被删除
-```
-
-正确理解：
-
-```text
-email 仍然存在于原表
-当前结果集只是没有选择它
-```
-
-### 2. 以为结果列必须沿用原表顺序
-
-错误。
-
-结果列顺序由 `SELECT` 列表决定。
-
-### 3. 以为别名会永久修改数据库字段名
-
-错误。
-
-`AS` 只改变当前结果集的列名。
-
-### 4. 使用没有语义的别名
-
-例如：
+行的排列需要 `ORDER BY`：
 
 ```sql
-AS a
-AS b
-AS x1
+ORDER BY order_value DESC
 ```
 
-短查询可能还能理解，进入长期报表或数据管道后会明显增加维护成本。
-
-### 5. 用 Projection 期待结果自动排序
-
-Projection 不定义行顺序。
-
-排序属于 `ORDER BY`。
-
-## Projection 可以按这个顺序检查
-
-执行一条投影查询前，可以依次确认：
+要把两个“顺序”分开：
 
 ```text
-1. 结果需要哪些业务字段？
-2. 是否真的需要 SELECT *？
-3. 列顺序是否符合下游消费方式？
-4. 原字段名是否需要更清晰的输出别名？
-5. 是否出现重复或含糊的结果列名？
-6. WHERE 是否已经正确决定需要哪些行？
-7. 是否错误地把 Projection 当成排序或 schema 修改？
-```
+SELECT 列表顺序
+→ 决定列怎么排
 
-## 本篇的核心判断
-
-Projection 的核心不是“隐藏几列”，而是：
-
-> **显式定义查询结果要暴露哪些字段、以什么顺序出现、用什么名称被下游理解。**
-
-`WHERE` 负责缩小记录集合；Projection 负责塑造结果的列结构。
-
-## 下一步控制结果的行顺序
-
-SQL 08 将进入：
-
-```text
 ORDER BY
+→ 决定行怎么排
 ```
 
-下一步需要回答：
+这两个概念名字都和顺序有关，却控制完全不同的方向。
 
-> 当结果已经选好行和列后，怎样明确控制记录的排序规则？
+## DISTINCT 也会影响结果，但它不是简单的列选择
+
+查询：
+
+```sql
+SELECT DISTINCT segment
+FROM customers;
+```
+
+只返回不同的 segment 值。
+
+这里 SELECT 先选择 `segment`，`DISTINCT` 再去掉重复行。
+
+因此，`DISTINCT` 会改变行数，不只是改变列。使用时应该明确它为什么需要，而不是看到重复就习惯性加上。
+
+如果重复来自一对多 JOIN，直接 DISTINCT 可能只是把粒度问题遮住。
+
+## 结果结构最好服务于下一个使用场景
+
+同一张表可以为不同用途返回完全不同的 projection。
+
+报表可能需要：
+
+```text
+order_id
+order_date
+order_value
+```
+
+机器学习特征表可能需要：
+
+```text
+customer_id
+segment
+scenario_value
+```
+
+API 可能只需要：
+
+```text
+customer_key
+name
+```
+
+SQL 不需要把数据库物理结构原样暴露给每个使用者。查询结果可以根据任务重新组织。
+
+## 写列清单时最常见的问题
+
+- 拼错列名；
+- 两张表 JOIN 后没有给同名字段加表别名；
+- 计算表达式没有 alias；
+- 把列顺序误认为行排序；
+- 用 `SELECT *` 作为长期接口；
+- 用 DISTINCT 掩盖本来应该检查的重复问题。
+
+## 一套简单的结果结构检查顺序
+
+1. 先确认当前任务真正需要哪些字段；
+2. SELECT 里明确写出列名；
+3. 给计算列和不直观字段加清楚的 alias；
+4. WHERE 负责行筛选，不要混淆；
+5. 需要排序时单独使用 ORDER BY；
+6. 看到重复时先检查粒度，再决定是否使用 DISTINCT；
+7. 长期接口避免依赖 `SELECT *`。
+
+Projection 的价值就是把“数据库里有什么”整理成“当前任务需要什么”。下一篇会继续处理结果顺序：列已经选好以后，怎样让行按照明确、可重复的规则排列。

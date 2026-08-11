@@ -63,7 +63,7 @@ describe("production deployment contracts", () => {
 
     expect(workflow).toContain("node scripts/verify-sql08-production.mjs");
     expect(verifier).toContain('path: "zh/notes/sql-order-by/"');
-    expect(verifier).toContain("ORDER BY：把结果顺序变成明确的数据契约");
+    expect(verifier).toContain("ORDER BY 排序");
     expect(verifier).toContain('data-order-rule="multi"');
     expect(verifier).toContain('data-order-rule="stable"');
     expect(verifier).toContain("data-order-sql-run");
@@ -79,7 +79,7 @@ describe("production deployment contracts", () => {
     expect(workflow).toContain("python3 scripts/capture-pr-sql09-visuals.py");
     expect(workflow).toContain("node scripts/verify-sql09-production.mjs");
     expect(verifier).toContain('path: "zh/notes/sql-pagination/"');
-    expect(verifier).toContain("Pagination：把有序结果切成可重复的页面窗口");
+    expect(verifier).toContain("分页查询");
     expect(verifier).toContain("data-pagination-page-size");
     expect(verifier).toContain("data-pagination-page-index");
     expect(verifier).toContain("data-pagination-run");

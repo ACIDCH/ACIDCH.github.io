@@ -2,8 +2,8 @@
 translationKey: sets-indices-model-scale
 locale: zh
 slug: sets-indices-model-scale
-title: Sets 与 Indices：让优化模型从几个变量扩展到真实业务规模
-summary: 从单变量、列表、矩阵进入高维优化模型，理解集合、索引、基数、参数字典、变量族与约束族如何控制规模增长，并避免逐格硬编码、维度错位和约束漏生成。
+title: 集合与索引
+summary: 小模型只有几个变量时，手写公式还算轻松；一旦加入产品、工厂、客户和时期，真正麻烦的是规模。这里讲集合、索引和参数字典怎样把模型组织起来。
 tags:
   - Sets
   - Indices
@@ -29,569 +29,396 @@ relatedNotes:
   - binary-milp-decisions
 ---
 
-## 小模型真正变难的原因通常不是公式，而是规模
+## 小模型变难，往往不是因为公式更复杂
 
-一个单变量模型：
-
-```text
-x = 总生产量
-```
-
-很容易管理。
-
-如果业务开始区分产品：
+只有两个产品时，可以直接写：
 
 ```text
-x[p]
+x_core
+x_premium
 ```
 
-再区分工厂：
+再手写两三条约束，模型很容易看懂。
+
+但业务一旦扩展到：
 
 ```text
-x[k,p]
+5 个产品
+4 个工厂
+6 个客户区域
+12 个时期
 ```
 
-再区分客户区域：
+如果继续给每个变量单独起名，代码很快就会失控。
 
-```text
-x[k,p,r]
-```
+真正需要解决的问题变成：**怎样让同一种决策按照业务维度批量生成，又能保证每个参数和约束都对应正确的对象。**
 
-再增加时期：
-
-```text
-x[k,p,r,t]
-```
-
-数学结构可能仍然只是“生产/运输量”，但变量数量已经按所有维度的组合成倍增长。
-
-这时继续逐个命名：
-
-```text
-x_north_core_metro_1
-x_north_core_coast_1
-...
-```
-
-会迅速失去可维护性。
+这就是 sets 和 indices 的作用。
 
 <div data-learning-slot="model-scale"></div>
 
-## Set 是一组有效业务对象
+## Set 只是“有哪些对象”的清单
+
+Set 可以先理解成一组业务对象。
 
 例如：
 
-```text
-K = {North Plant, South Plant}
-P = {Core Kit, Premium Kit}
-R = {Metro, Coast, Inland}
-T = {1,2,3,4}
+```python
+products = ["core", "premium"]
+plants = ["north", "south"]
+regions = ["metro", "coast", "inland"]
 ```
 
-这些集合不是为了让公式更抽象，而是明确：
-
-> 模型中哪些业务对象属于同一种维度。
-
-集合可以来自：
-
-- 主数据表；
-- 配置文件；
-- DataFrame 的唯一值；
-- 数据库维表；
-- 稳定的业务字典。
-
-不建议把同一组对象在多个代码位置重复手工输入，因为容易出现拼写和遗漏不一致。
-
-## Index 是集合中的一个元素位置
-
-如果：
+这三组集合分别回答：
 
 ```text
-k ∈ K
+有哪些产品？
+有哪些工厂？
+有哪些市场区域？
 ```
 
-表示 k 是工厂集合中的一个成员。
+集合本身不包含成本、容量或需求。它只是定义模型需要遍历哪些对象。
 
-类似：
+这个区分很重要。把“对象”和“对象的属性”分开以后，模型结构会清楚很多。
+
+## Index 表示当前正在说集合里的哪一个对象
+
+如果 p 表示产品集合中的一个元素：
+
+\[
+p\in P
+\]
+
+就可以把某个产品的产量写成：
+
+\[
+x_p
+\]
+
+如果 k 表示工厂：
+
+\[
+k\in K
+\]
+
+工厂 k 生产产品 p 的数量就可以写成：
+
+\[
+x_{k,p}
+\]
+
+这比：
 
 ```text
-p ∈ P
-r ∈ R
-t ∈ T
+north_core
+north_premium
+south_core
+south_premium
 ```
 
-所以：
+更容易扩展。
+
+将来增加第三个工厂，只需要向 `plants` 集合加一个元素，而不是重新复制整套变量和约束代码。
+
+## 一维、二维和三维变量只是业务区分越来越细
+
+不同维度可以这样读：
 
 ```text
-x[k,p,r,t]
-```
-
-表示一个**变量族**：对每一个有效的 `(k,p,r,t)` 组合，都存在一个变量。
-
-它不是一个变量名，而是一整组结构一致的变量。
-
-## Cardinality 决定变量数量
-
-集合大小写成：
-
-```text
-|K|, |P|, |R|, |T|
-```
-
-如果：
-
-```text
-|K| = 2
-|P| = 3
-|R| = 4
-|T| = 1
-```
-
-那么三维变量族：
-
-```text
-x[k,p,r]
-```
-
-总数是：
-
-```text
-2 × 3 × 4 = 24
-```
-
-若加入 12 个时期：
-
-```text
-2 × 3 × 4 × 12 = 288
-```
-
-如果再增加 5 种运输方式：
-
-```text
-2 × 3 × 4 × 12 × 5 = 1,440
-```
-
-这就是高维模型的 variable explosion。
-
-## 变量数量增长是乘法，约束数量也会增长
-
-例如：
-
-```text
-每个工厂每期一个容量约束
-```
-
-数量：
-
-```text
-|K| × |T|
-```
-
-每个产品 × 区域 × 时期一个需求约束：
-
-```text
-|P| × |R| × |T|
-```
-
-如果又增加服务等级、运输商、技能类型，constraint families 也会跟着增长。
-
-所以真实模型的复杂度往往来自：
-
-```text
-变量族数量
-+
-约束族数量
-+
-索引组合数量
-```
-
-而不是来自某个特别长的单一公式。
-
-## 0D、1D、2D、3D、4D 是业务粒度的逐步细化
-
-可以这样理解：
-
-```text
-0D
-x
-→ 一个总决策
-
-1D
 x[p]
 → 每个产品一个决策
 
-2D
-x[k,p]
-→ 每个工厂 × 产品一个决策
+x[k, p]
+→ 每个工厂、每个产品一个决策
 
-3D
-x[k,p,r]
-→ 工厂 × 产品 × 区域
-
-4D
-x[k,p,r,t]
-→ 再加入时期
+x[k, p, t]
+→ 每个工厂、每个产品、每个时期一个决策
 ```
 
-维度越高，模型可以表达的现实差异越多，但数据需求与验证成本也更高。
+维度不是为了让模型看起来高级。每增加一个 index，都是在回答一个实际问题：这个决策是否需要区分这一个业务维度？
 
-所以“增加一个维度”不是免费增强模型。
+如果不同工厂的成本和容量完全不同，就有必要区分工厂。如果所有时期都能用同一个总量表示，就没必要无故增加时间维度。
 
-## 参数必须和变量维度对齐
+模型维度应该跟决策粒度匹配。
 
-假设运输成本只和工厂、区域有关：
+## 参数也应该跟着索引组织
 
-```text
-c[k,r]
-```
+假设不同工厂到不同区域的运输成本不一样，可以写：
 
-而变量是：
+\[
+c_{k,r}
+\]
 
-```text
-x[k,p,r,t]
-```
-
-目标可以写：
-
-```text
-Σ_k Σ_p Σ_r Σ_t c[k,r] · x[k,p,r,t]
-```
-
-这里成本不需要复制成四维，只需要在循环中按照 k、r 查值。
-
-如果不同产品运输成本不同，则应变成：
-
-```text
-c[k,p,r]
-```
-
-维度设计应该由业务差异决定，而不是为了“看起来统一”把所有参数强行做成最高维。
-
-## 错位索引是最危险的静默错误之一
-
-例如变量：
-
-```text
-x[k,p,r]
-```
-
-但代码误把成本查成：
-
-```text
-cost[r][k]
-```
-
-如果字典恰好都有键，代码可能不会报错，却会使用错误数据。
-
-因此建议保持：
-
-```text
-数学索引顺序
-变量字典顺序
-参数字典顺序
-循环顺序
-```
-
-尽量一致。
-
-例如统一采用：
-
-```text
-plant → product → region → period
-```
-
-## Summation notation 是对循环的压缩表达
-
-数学：
-
-```text
-Σ_k Σ_r c[k,r] x[k,r]
-```
-
-Python：
+Python 中很自然地用 tuple key：
 
 ```python
-lpSum(cost[k][r] * x[k][r] for k in K for r in R)
+transport_cost = {
+    ("north", "metro"): 4.2,
+    ("north", "coast"): 5.4,
+    ("north", "inland"): 6.1,
+    ("south", "metro"): 5.1,
+    ("south", "coast"): 3.9,
+    ("south", "inland"): 4.6,
+}
 ```
 
-两者本质上表达同一件事。
+这里 key `(plant, region)` 本身就是参数的业务坐标。
 
-数学符号用于快速看结构，程序循环用于生成所有具体项。
-
-理解这种映射后，长公式不再需要逐项展开。
-
-## Constraint family 也是一组结构相同的约束
-
-例如每个工厂一个容量限制：
-
-```text
-Σ_r x[k,r] ≤ capacity[k]   ∀ k ∈ K
-```
-
-这里的：
-
-```text
-∀ k ∈ K
-```
-
-意味着会生成 `|K|` 条约束。
-
-Python：
+以后读：
 
 ```python
-for k in K:
-    model += lpSum(x[k][r] for r in R) <= capacity[k]
+transport_cost["south", "coast"]
 ```
 
-如果忘记 `for k in K`，就可能只生成一条约束，或者错误地把全部工厂容量混在一起。
+就能明确知道拿的是 South Plant 到 Coast 的单位运输成本。
 
-## Excel 网格和索引模型在本质上是同一个结构
+这种结构比把所有数字放进一个没有标签的长列表更安全。
 
-Excel 中常用二维表：
+## Composite key 最重要的是唯一和完整
 
-```text
-rows    = plants
-columns = regions
-cells   = shipment decision variables
-```
-
-这其实就是：
-
-```text
-x[k,r]
-```
-
-Excel 的行列标题承担了 index label 的作用。
-
-当模型扩展到三维以上时，电子表格往往需要：
-
-- 多个工作表；
-- 堆叠块；
-- 长表格式；
-- 辅助索引列。
-
-Python 则可以更自然地用 tuple keys 或嵌套字典表达 n-D 变量。
-
-这就是为什么规模扩大后，编程建模通常更容易维护。
-
-## Long format 更适合高维业务数据
-
-与其建立大量宽表，可以把数据存成：
-
-```text
-plant | product | region | period | cost | capacity | demand
-```
-
-每一行代表一个有效组合或参数记录。
-
-优点：
-
-- 容易过滤；
-- 容易 join；
-- 容易生成 tuple key；
-- 容易检查缺失组合；
-- 更适合数据库和 DataFrame。
-
-高维模型的数据工程和数学模型往往是同一个问题的两面。
-
-## Composite key 是高维参数表的身份约束
-
-长表中的一行通常由多个字段共同确定身份，例如运输成本表：
-
-```text
-plant + region
-```
-
-或者更复杂的 lane 报价：
-
-```text
-carrier + origin + destination + period
-```
-
-这些字段组合就是业务 composite key。
-
-在进入模型之前，应该检查：
-
-```text
-同一 key 是否重复？
-应有 key 是否缺失？
-是否出现不属于集合的孤立 key？
-```
-
-例如 `(north, metro)` 出现两条不同成本，如果代码简单转成字典，后一条可能悄悄覆盖前一条。模型仍然能运行，但输入已经失去唯一性。
-
-因此高维优化的数据校验不仅是检查 `NULL`，还要检查 key uniqueness 与 key completeness。
-
-## Dense key space 与实际有效 key space 要分开统计
-
-完整笛卡尔积：
-
-```text
-K × P × R × T
-```
-
-代表所有理论组合。
-
-但真实模型可能只允许其中一部分。可以分别计算：
-
-```text
-potential combinations = |K| × |P| × |R| × |T|
-valid combinations     = |A|
-sparsity ratio         = |A| / potential combinations
-```
-
-如果理论组合有 100,000 个，而 valid set 只有 12,000 个，直接生成 dense variables 再用约束把 88,000 个变量压到 0，通常既浪费模型规模，也降低结果可读性。
-
-先建立 `A` 这样的有效 tuple set，再生成变量，更能反映真实网络结构。
-
-## Sparse model：并不是所有组合都应该生成变量
-
-如果某产品根本不能在某工厂生产：
-
-```text
-North Plant × Premium Kit
-```
-
-可能是无效组合。
-
-一种做法是生成变量后强制：
-
-```text
-x[north,premium] = 0
-```
-
-另一种更紧凑的做法是只为 valid arcs / valid combinations 生成变量。
+多维参数最常见的问题之一，是 key 写错或重复。
 
 例如：
 
 ```text
-A = {(k,p,r) | combination is allowed}
+(north, metro)
 ```
 
-然后：
+在运输成本表中应该只出现一次。
+
+如果同一个组合出现两次，就要先弄清楚到底哪一个值正确；如果某个合法组合完全缺失，模型运行到相应索引时就会报错，或者被代码默认成错误的 0。
+
+因此，tuple key 不只是编程技巧，它实际上是一份数据契约：
 
 ```text
-x[a] for a ∈ A
+每个合法业务组合
+→ 应该有且只有一个对应参数
 ```
 
-这种 sparse indexing 可以显著减少模型规模。
+在大模型里，建模前先检查 key 的唯一性和完整性非常值得。
 
-## 高维模型必须增加数据完整性检查
+## Variable family 比单独创建变量更容易维护
 
-至少应检查：
+PuLP 可以按集合批量创建变量：
+
+```python
+x = pl.LpVariable.dicts(
+    "flow",
+    (plants, regions),
+    lowBound=0,
+)
+```
+
+这样会生成一整组变量：
 
 ```text
-每个需求组合是否有需求参数？
-每个可行运输弧是否有成本？
-每个工厂是否有容量？
-每个变量组合是否有必要系数？
-集合中是否存在拼写重复？
-参数表是否有 duplicate keys？
+flow[north][metro]
+flow[north][coast]
+flow[north][inland]
+flow[south][metro]
+flow[south][coast]
+flow[south][inland]
 ```
 
-模型越大，手工肉眼检查越不可靠。
+重点不在于少写了几行代码，而是所有变量都遵循同一规则。
 
-因此应把这些检查写成自动化断言。
+增加一个区域以后，新的变量会随集合自动生成，模型不需要手动复制一段新代码。
 
-## 可以先做“索引审计”，再创建任何变量
+## Constraint family 也应该按业务规则批量生成
 
-一个实用的 pre-model audit 可以按顺序执行：
+假设每个区域的需求必须满足：
+
+\[
+\sum_k x_{k,r}\ge demand_r\qquad\forall r\in R
+\]
+
+代码可以写成：
+
+```python
+for r in regions:
+    model += (
+        pl.lpSum(x[k][r] for k in plants) >= demand[r],
+        f"demand_{r}",
+    )
+```
+
+这不是“一条约束”，而是一整个 constraint family。
+
+区域有 3 个，就会生成 3 条；区域以后增加到 20 个，同一段代码仍然适用。
+
+这正是索引模型能够扩展的原因：规则写一次，实例按集合生成。
+
+## Model scale 可以在建模前先算一遍
+
+模型有多大，不必等求解器运行后才知道。
+
+如果变量是：
+
+\[
+x_{k,p,t}
+\]
+
+而：
 
 ```text
-1. 每个 set 的元素唯一且非空
-2. 参数 key 只能引用合法 set 成员
-3. 需要完整覆盖的参数没有 missing combinations
-4. sparse 参数只包含明确允许的 valid combinations
-5. composite keys 无重复
-6. 每个 constraint family 的预期行数可以提前计算
-7. 每个 variable family 的预期变量数可以提前计算
+|K| = 4 plants
+|P| = 5 products
+|T| = 12 periods
 ```
 
-例如理论上有 2 个工厂、3 个区域，那么运输变量应为：
+理论变量数是：
+
+\[
+4\times5\times12=240
+\]
+
+如果再加区域 r：
+
+\[
+x_{k,p,r,t}
+\]
+
+假设 6 个区域，就变成：
+
+\[
+4\times5\times6\times12=1440
+\]
+
+每增加一个维度，规模是乘法增长，不是简单加几列。
+
+提前计算变量数和约束数，可以帮助判断模型是否需要稀疏化、分解或减少无意义组合。
+
+## Dense model 和 sparse model 不应该混为一谈
+
+上面的乘法默认所有组合都有意义，但现实中经常不是这样。
+
+例如：
+
+- South Plant 不能生产 Premium；
+- 某些区域只能由 North Plant 服务；
+- 某个产品只在部分时期销售。
+
+如果仍然给所有组合创建变量，就会出现很多永远必须为 0 的变量。
+
+更紧凑的做法是先定义合法组合：
+
+```python
+valid_routes = [
+    ("north", "metro"),
+    ("north", "coast"),
+    ("south", "coast"),
+    ("south", "inland"),
+]
+```
+
+再只对这些组合创建变量。
+
+Sparse indexing 不只是节省内存，也能减少无意义解和逻辑约束，让模型更容易检查。
+
+## 逐格硬编码最容易留下漏项
+
+模型规模一大，最危险的写法通常是：
+
+```python
+model += x_north_metro + x_south_metro >= 360
+model += x_north_coast + x_south_coast >= 280
+model += x_north_inland + x_south_inland >= 220
+```
+
+在只有 3 个区域时看起来还能接受，但以后增加第 4 个区域，很容易忘记同步增加约束。
+
+循环或 indexed expression 的优势就在这里：集合是唯一来源，约束数量会跟着集合变化。
+
+同样，手工复制公式还容易出现 copy-paste 错误，例如 Coast 约束里误用了 Inland 的需求数字。
+
+## 建模前做 set/parameter audit 能省掉很多调试时间
+
+在创建变量之前，可以先检查：
 
 ```text
-2 × 3 = 6
+集合是否为空？
+ID 是否唯一？
+参数 key 是否全部合法？
+每个需要的组合是否都有参数？
+有没有多余的未知 key？
+数值单位是否一致？
 ```
 
-如果创建后得到 5 个，应立即查找缺失 arc；如果得到 7 个，应检查重复或非法 key。
+例如：
 
-这种规模断言能在求解之前发现结构问题，比从最终目标值倒推错误更可靠。
+```python
+expected = {(k, r) for k in plants for r in regions}
+actual = set(transport_cost)
 
-## 变量命名是调试工具
+missing = expected - actual
+extra = actual - expected
+```
 
-良好的求解器变量名称：
+这类检查比模型求解失败后再从上千个变量里找问题更高效。
+
+参数审计应该发生在建模前，而不是只在出现 `KeyError` 时临时补数据。
+
+## 变量命名会直接影响结果能不能调试
+
+求解器最终输出的通常是一组变量名和值。
+
+如果变量都叫：
+
+```text
+x_1
+x_2
+x_3
+```
+
+结果很难追溯。
+
+如果名称包含业务索引：
 
 ```text
 flow_north_metro
 flow_south_coast
+production_north_core_P1
 ```
 
-比：
+即使模型出了问题，也更容易定位是哪一个组合异常。
+
+好的命名还会影响日志、LP 文件和调试输出。规模越大，命名越不是“代码风格”，而是模型可审计性的一部分。
+
+## 结果不应该直接打印几千个变量
+
+高维模型求解后，如果把全部变量逐行打印，很快就失去可读性。
+
+更好的做法是按业务问题切片：
 
 ```text
-x1
-x2
-x3
+按工厂汇总总产量
+按区域汇总总配送量
+只显示非零变量
+只检查某个产品
+只看某一个时期
 ```
 
-更容易调试。
+例如：
 
-PuLP 的 dict variables 可以保留索引信息，求解后也更容易把结果还原成表格。
-
-## 模型规模要在求解之前估算
-
-在真正建模前可以先计算：
-
-```text
-number of continuous variables
-number of binary variables
-number of constraint rows
-number of valid arcs
-number of periods
+```python
+for k in plants:
+    total = sum(pl.value(x[k][r]) for r in regions)
+    print(k, total)
 ```
 
-这有助于决定：
+模型内部可以是高维的，但结果展示应该回到管理者能理解的粒度。
 
-- 是否仍适合 Excel Solver；
-- 是否要切换到 Python；
-- 是否要利用 sparse formulation；
-- 是否需要商业级求解器；
-- 是否要做 decomposition 或 heuristic。
+## 一套更稳妥的扩展顺序
 
-## 常见错误
+1. 先确认需要哪些业务维度；
+2. 给每个维度建立明确集合；
+3. 检查 ID 唯一性；
+4. 用 tuple key 或嵌套字典保存参数；
+5. 在建模前做参数完整性 audit；
+6. 用 variable family 批量创建变量；
+7. 用循环生成 constraint family；
+8. 对不可能发生的组合采用 sparse indexing；
+9. 提前估算变量和约束规模；
+10. 求解后按业务维度汇总结果，而不是直接输出全部变量。
 
-### 复制粘贴生成变量和约束
-
-规模一大就容易漏掉组合或引用错误。
-
-### 集合名称与数据键不一致
-
-例如 `North` 与 `north` 被当成两个对象。
-
-### 参数维度过高
-
-把本来只按区域变化的参数复制成四维，增加数据冗余和出错机会。
-
-### 参数维度过低
-
-真实成本按工厂变化，却只存一个产品平均成本，模型无法表达差异。
-
-### 生成所有笛卡尔积但实际大量组合无效
-
-会造成不必要的模型膨胀。
-
-### 只看代码能否运行，不统计实际生成多少变量与约束
-
-一个无意多乘一个维度的模型也可能正常运行，只是规模暴涨。
-
-### 参数 key 重复却直接转成字典
-
-重复项可能被静默覆盖，应在建模前先验证 composite key 唯一性。
-
-## 核心判断
-
-Sets 与 Indices 的核心价值是：
-
-> **把“很多类似变量和约束”定义成结构化的变量族和约束族，让模型规模可以随着业务维度扩展，而不是随着复制粘贴数量扩展。**
-
-下一篇把这套数学结构直接映射到 PuLP：从 sets、parameters、variables 到 objective、constraints、solve status，建立可维护的优化编程架构。
+集合与索引看起来只是编程结构，实际上决定了模型能不能从一个课堂大小的例子平稳扩展到真实业务。公式不一定变难，真正需要控制的是规模、对应关系和可追溯性。
