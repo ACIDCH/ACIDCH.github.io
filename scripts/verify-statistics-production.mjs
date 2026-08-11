@@ -63,7 +63,7 @@ const checks = [
   },
   {
     path: "zh/notes/stat-hypothesis-testing/",
-    markers: ["假设检验", "null hypothesis", "p-value", "Type I error", "Power", "p.adjust"],
+    markers: ["假设检验", "null hypothesis", "p-value", "第一类错误", "Power", "p.adjust"],
   },
   {
     path: "zh/notes/stat-categorical-data-analysis/",
