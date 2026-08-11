@@ -29,7 +29,7 @@ const checks = [
       "全部笔记",
     ],
     orderedMarkers: [
-      'class="tag-cloud-panel"',
+      "tag-cloud-panel--floating",
       'class="learning-series-map"',
       'class="notes-results-heading"',
     ],
