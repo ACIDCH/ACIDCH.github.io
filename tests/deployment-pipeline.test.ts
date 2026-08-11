@@ -140,8 +140,8 @@ describe("production deployment contracts", () => {
     expect(verifier).toContain("data-multicollinearity");
     expect(verifier).toContain("data-model-selection");
     expect(verifier).toContain("data-logistic-lab");
-    expect(capture).toContain("reg-tag-map-desktop.png");
-    expect(capture).toContain("reg-series-desktop.png");
+    expect(capture).toContain('browser.screenshot(f"reg-tag-map-{suffix}.png")');
+    expect(capture).toContain('browser.screenshot(f"reg-series-{suffix}.png")');
     expect(capture).toContain("reg01-outlier-desktop.png");
     expect(capture).toContain("reg07-logistic-threshold-mobile.png");
     expect(capture).toContain("expected = 10");
