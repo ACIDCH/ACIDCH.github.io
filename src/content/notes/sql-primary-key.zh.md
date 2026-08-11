@@ -139,7 +139,7 @@ email
 
 优点很明显：短、稳定、索引友好、JOIN 时容易处理，也不会因为业务字段变化而跟着变化。
 
-在 MySQL 中常见：
+`AUTO_INCREMENT` 是 MySQL 方言，常见写法是：
 
 ```sql
 customer_id BIGINT AUTO_INCREMENT PRIMARY KEY
