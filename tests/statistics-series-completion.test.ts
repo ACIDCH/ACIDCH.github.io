@@ -111,7 +111,7 @@ describe("completed R statistics learning series", () => {
       "Effect size",
       "Welch t-test",
       "paired = TRUE",
-      "multiple",
+      "多重检验",
       "p.adjust",
     ].forEach((marker) => expect(note).toContain(marker));
   });
