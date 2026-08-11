@@ -2,6 +2,7 @@
 import { getCollection, render, type CollectionEntry } from "astro:content";
 import ContextBack from "../components/ContextBack.astro";
 import NoteList from "../components/NoteList.astro";
+import DataScienceAdvancedSections from "../components/learning/DataScienceAdvancedSections.astro";
 import PredictionThresholdLab from "../components/learning/PredictionThresholdLab.astro";
 import ProjectList from "../components/ProjectList.astro";
 import LearningNoteHero from "../components/learning/LearningNoteHero.astro";
@@ -17,9 +18,27 @@ interface Props {
 
 const { entry, alternatePath } = Astro.props;
 const { Content, headings } = await render(entry);
-const toc = headings
+const renderedToc = headings
   .filter((heading) => heading.depth === 2 && heading.slug !== "写在前面")
   .map((heading) => ({ id: heading.slug, label: heading.text }));
+const advancedToc = entry.data.locale === "zh"
+  ? [
+      { id: "bayesian-hierarchical", label: "Bayesian 与层次模型补上了哪些信息" },
+      { id: "association-treatment-effect", label: "关联、预测和处理效应要分开" },
+      { id: "loss-bias-variance", label: "损失函数和偏差—方差决定模型在优化什么" },
+      { id: "resampling-selection", label: "特征选择也必须发生在 resampling 里面" },
+      { id: "calibration-decision-cost", label: "模型排序能力、概率校准和业务价值是三件事" },
+      { id: "model-evidence-checklist", label: "最后检查的是证据链，不是算法数量" },
+    ]
+  : [];
+const referenceIndex = renderedToc.findIndex((item) => item.id === "参考与许可");
+const toc = referenceIndex >= 0
+  ? [
+      ...renderedToc.slice(0, referenceIndex),
+      ...advancedToc,
+      ...renderedToc.slice(referenceIndex),
+    ]
+  : [...renderedToc, ...advancedToc];
 
 const notes = await getCollection("notes");
 const projects = await getCollection("projects");
@@ -70,6 +89,7 @@ const structuredData = {
       <LearningNoteToc items={toc} />
       <div class="learning-note__body">
         <Content />
+        <DataScienceAdvancedSections locale={entry.data.locale} />
         <div class="learning-note__inline-block" data-learning-block="prediction-threshold-lab">
           <PredictionThresholdLab />
         </div>
@@ -121,6 +141,17 @@ const structuredData = {
         block.dataset.learningPlaced = "true";
       }
     });
+
+    const advanced = document.querySelector<HTMLElement>(
+      ".data-science-note [data-data-science-advanced]",
+    );
+    const referenceHeading = document.querySelector<HTMLElement>(
+      '.data-science-note h2[id="参考与许可"]',
+    );
+    if (advanced && referenceHeading && advanced.nextElementSibling !== referenceHeading) {
+      referenceHeading.before(advanced);
+      advanced.dataset.learningPlaced = "true";
+    }
   }
 
   document.addEventListener("astro:page-load", placeDataScienceBlocks);
