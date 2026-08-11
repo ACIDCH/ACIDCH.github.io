@@ -1,0 +1,61 @@
+<section class="multicollinearity-lab" data-multicollinearity aria-labelledby="multicollinearity-title">
+  <div class="multicollinearity-lab__intro">
+    <p class="learning-note-kicker">互动计算 · Multicollinearity</p>
+    <h3 id="multicollinearity-title">预测变量越相似，单个系数越难稳定解释</h3>
+    <p>拖动两个解释变量之间的相关系数。VIF 根据 1 / (1 − R²) 更新，用来观察“信息重复”如何放大系数方差。</p>
+  </div>
+  <label class="multicollinearity-lab__slider">
+    <span>Predictor correlation：<output data-vif-correlation>0.40</output></span>
+    <input data-vif-slider type="range" min="0" max="95" step="5" value="40" />
+  </label>
+  <div class="multicollinearity-lab__metrics" aria-live="polite">
+    <dl><dt>R² of X₁ ~ X₂</dt><dd data-vif-r2>0.16</dd></dl>
+    <dl><dt>VIF</dt><dd data-vif-value>1.19</dd></dl>
+    <dl><dt>Interpretation</dt><dd data-vif-signal>信息重叠较低</dd></dl>
+  </div>
+  <div class="multicollinearity-lab__bar" aria-hidden="true"><span data-vif-bar></span></div>
+  <p class="multicollinearity-lab__note" data-vif-note>当前水平通常不会明显放大系数不确定性。</p>
+</section>
+
+<style>
+  .multicollinearity-lab { margin:var(--space-10) 0; padding:var(--space-6) 0; border-block:1px solid var(--colour-border-strong); }
+  .multicollinearity-lab__intro { max-width:58rem; }
+  .multicollinearity-lab h3 { margin:var(--space-2) 0 var(--space-3); font-size:clamp(1.35rem,1.6vw,1.85rem); }
+  .multicollinearity-lab__intro p:last-child,.multicollinearity-lab__note{color:var(--colour-text-muted);}
+  .multicollinearity-lab__slider{display:grid;gap:var(--space-2);max-width:48rem;margin:var(--space-5) 0;font-weight:var(--font-weight-medium);}
+  .multicollinearity-lab__slider input{width:100%;}
+  .multicollinearity-lab__metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-4);}
+  .multicollinearity-lab__metrics dl{margin:0;padding:var(--space-3) 0;border-bottom:1px solid var(--colour-border);}
+  .multicollinearity-lab__metrics dt{font-size:var(--font-size-xs);color:var(--colour-text-muted);}
+  .multicollinearity-lab__metrics dd{margin:var(--space-1) 0 0;font-weight:var(--font-weight-semibold);font-variant-numeric:tabular-nums;}
+  .multicollinearity-lab__bar{height:.6rem;margin-top:var(--space-5);overflow:hidden;border-radius:999px;background:var(--colour-surface-muted);}
+  .multicollinearity-lab__bar span{display:block;height:100%;width:12%;border-radius:inherit;background:var(--colour-primary);transition:width 160ms ease;}
+  .multicollinearity-lab__note{margin-top:var(--space-3);max-width:54rem;}
+  @media(max-width:48rem){.multicollinearity-lab__metrics{grid-template-columns:1fr;}}
+</style>
+
+<script>
+  let vifCleanup:(()=>void)|undefined;
+  function initVifLab(){
+    vifCleanup?.();
+    const root=document.querySelector<HTMLElement>("[data-multicollinearity]");if(!root)return;
+    const slider=root.querySelector<HTMLInputElement>("[data-vif-slider]");
+    const corr=root.querySelector<HTMLOutputElement>("[data-vif-correlation]");
+    const r2=root.querySelector<HTMLElement>("[data-vif-r2]");
+    const vif=root.querySelector<HTMLElement>("[data-vif-value]");
+    const signal=root.querySelector<HTMLElement>("[data-vif-signal]");
+    const bar=root.querySelector<HTMLElement>("[data-vif-bar]");
+    const note=root.querySelector<HTMLElement>("[data-vif-note]");
+    if(!slider||!corr||!r2||!vif||!signal||!bar||!note)return;
+    const controller=new AbortController();
+    const render=()=>{
+      const rho=Number(slider.value)/100;const modelR2=rho*rho;const value=1/(1-modelR2);
+      corr.value=rho.toFixed(2);r2.textContent=modelR2.toFixed(2);vif.textContent=value.toFixed(2);bar.style.width=`${Math.min(100,value/10*100)}%`;
+      if(value<2){signal.textContent="信息重叠较低";note.textContent="当前水平通常不会明显放大系数不确定性。";}
+      else if(value<5){signal.textContent="需要关注";note.textContent="系数的标准误可能开始明显扩大，应结合相关矩阵、业务定义和替代规格检查。";}
+      else{signal.textContent="高度共线";note.textContent="单个系数可能对样本扰动非常敏感；预测仍可能可用，但解释性需要更谨慎。";}
+    };
+    slider.addEventListener("input",render,{signal:controller.signal});render();vifCleanup=()=>controller.abort();
+  }
+  document.addEventListener("astro:before-swap",()=>vifCleanup?.());document.addEventListener("astro:page-load",initVifLab);initVifLab();
+</script>

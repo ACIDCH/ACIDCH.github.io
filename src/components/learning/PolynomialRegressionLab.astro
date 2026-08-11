@@ -1,0 +1,84 @@
+<section class="polynomial-regression-lab" data-polynomial-regression aria-labelledby="polynomial-regression-title">
+  <div>
+    <p class="learning-note-kicker">互动图表 · 函数形式</p>
+    <h3 id="polynomial-regression-title">增加次数，模型究竟是在捕捉结构还是追逐噪声？</h3>
+    <p>切换一次、二次和三次模型，观察拟合曲线、训练误差与边界外行为。复杂度增加并不自动意味着更好的可解释性或泛化。</p>
+  </div>
+  <div class="polynomial-regression-lab__controls" role="group" aria-label="多项式次数">
+    <button type="button" data-poly-degree="1" aria-pressed="false">Degree 1</button>
+    <button type="button" data-poly-degree="2" aria-pressed="true">Degree 2</button>
+    <button type="button" data-poly-degree="3" aria-pressed="false">Degree 3</button>
+  </div>
+  <div class="polynomial-regression-lab__metrics" aria-live="polite">
+    <dl><dt>模型</dt><dd data-poly-name>Quadratic</dd></dl>
+    <dl><dt>训练 RMSE</dt><dd data-poly-rmse>—</dd></dl>
+    <dl><dt>解释提醒</dt><dd data-poly-warning>优先检查曲率是否有业务含义</dd></dl>
+  </div>
+  <figure>
+    <svg viewBox="0 0 760 420" role="img" aria-label="多项式回归拟合曲线" data-poly-svg></svg>
+    <figcaption>演示数据固定。图中曲线用于比较函数形式，不代表次数越高越优；正式建模还需结合验证误差、残差结构与业务可解释性。</figcaption>
+  </figure>
+</section>
+
+<style>
+  .polynomial-regression-lab { margin: var(--space-10) 0; padding: var(--space-6) 0; border-block: 1px solid var(--colour-border-strong); }
+  .polynomial-regression-lab h3 { margin: var(--space-2) 0 var(--space-3); font-size: clamp(1.35rem,1.6vw,1.85rem); }
+  .polynomial-regression-lab > div:first-child { max-width: 58rem; }
+  .polynomial-regression-lab > div:first-child p:last-child, .polynomial-regression-lab figcaption { color: var(--colour-text-muted); }
+  .polynomial-regression-lab__controls { display:flex; flex-wrap:wrap; gap:var(--space-2); margin:var(--space-5) 0; }
+  .polynomial-regression-lab__controls button { padding:.55rem .8rem; border:1px solid var(--colour-border); border-radius:999px; background:var(--colour-surface); color:var(--colour-text); cursor:pointer; }
+  .polynomial-regression-lab__controls button[aria-pressed="true"] { border-color:var(--colour-primary); background:color-mix(in srgb,var(--colour-primary) 10%,var(--colour-surface)); }
+  .polynomial-regression-lab__metrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:var(--space-4); margin-bottom:var(--space-4); }
+  .polynomial-regression-lab__metrics dl { margin:0; padding:var(--space-3) 0; border-bottom:1px solid var(--colour-border); }
+  .polynomial-regression-lab__metrics dt { color:var(--colour-text-muted); font-size:var(--font-size-xs); }
+  .polynomial-regression-lab__metrics dd { margin:var(--space-1) 0 0; font-weight:var(--font-weight-semibold); }
+  .polynomial-regression-lab svg { display:block; width:100%; height:auto; }
+  .polynomial-regression-lab figcaption { margin-top:var(--space-3); font-size:var(--font-size-sm); line-height:1.7; }
+  @media(max-width:48rem){ .polynomial-regression-lab__metrics{grid-template-columns:1fr;} }
+</style>
+
+<script>
+  let polynomialCleanup: (() => void) | undefined;
+  function initPolynomialLab() {
+    polynomialCleanup?.();
+    const root=document.querySelector<HTMLElement>("[data-polynomial-regression]");
+    if(!root)return;
+    const svg=root.querySelector<SVGSVGElement>("[data-poly-svg]");
+    const buttons=Array.from(root.querySelectorAll<HTMLButtonElement>("[data-poly-degree]"));
+    const name=root.querySelector<HTMLElement>("[data-poly-name]");
+    const rmse=root.querySelector<HTMLElement>("[data-poly-rmse]");
+    const warning=root.querySelector<HTMLElement>("[data-poly-warning]");
+    if(!svg||!name||!rmse||!warning||buttons.length===0)return;
+    const controller=new AbortController();
+    const ns="http://www.w3.org/2000/svg";
+    const xs=[1,2,3,4,5,6,7,8,9,10,11,12];
+    const ys=[7.8,11.9,15.2,18.8,21.7,24.3,26.1,27.4,28.0,27.7,26.5,24.1];
+    const models={
+      1:(x:number)=>9.3+1.75*x,
+      2:(x:number)=>3.95+4.56*x-.205*x*x,
+      3:(x:number)=>5.2+3.65*x-.075*x*x-.006*x*x*x,
+    } as const;
+    const make=(tag:string,attrs:Record<string,string|number>)=>{const node=document.createElementNS(ns,tag);Object.entries(attrs).forEach(([k,v])=>node.setAttribute(k,String(v)));svg.append(node);return node;};
+    const draw=(degree:1|2|3)=>{
+      const predict=models[degree];
+      const error=Math.sqrt(ys.reduce((sum,y,index)=>sum+(y-predict(xs[index]))**2,0)/ys.length);
+      const names={1:"Linear",2:"Quadratic",3:"Cubic"};
+      const warnings={1:"可能遗漏系统性曲率",2:"优先检查曲率是否有业务含义",3:"边界外预测更容易失真"};
+      name.textContent=names[degree]; rmse.textContent=error.toFixed(2); warning.textContent=warnings[degree];
+      buttons.forEach(button=>button.setAttribute("aria-pressed",String(Number(button.dataset.polyDegree)===degree)));
+      svg.replaceChildren(); const left=58,right=720,top=28,bottom=350; const yMin=5,yMax=32;
+      const sx=(x:number)=>left+((x-.5)/12)*(right-left); const sy=(y:number)=>bottom-((y-yMin)/(yMax-yMin))*(bottom-top);
+      make("line",{x1:left,y1:bottom,x2:right,y2:bottom,stroke:"var(--colour-border-strong)"});
+      make("line",{x1:left,y1:top,x2:left,y2:bottom,stroke:"var(--colour-border-strong)"});
+      xs.forEach((x,index)=>make("circle",{cx:sx(x),cy:sy(ys[index]),r:5.5,fill:"var(--colour-primary)",opacity:.58}));
+      let path=""; for(let x=.5;x<=12.5;x+=.08){path+=`${path?" L":"M"} ${sx(x).toFixed(2)} ${sy(predict(x)).toFixed(2)}`;}
+      make("path",{d:path,fill:"none",stroke:"var(--colour-primary)","stroke-width":3});
+      const xl=make("text",{x:390,y:397,fill:"currentColor","font-size":12,"text-anchor":"middle"});xl.textContent="业务输入";
+      const yl=make("text",{x:18,y:190,fill:"currentColor","font-size":12,transform:"rotate(-90 18 190)","text-anchor":"middle"});yl.textContent="结果变量";
+    };
+    buttons.forEach(button=>button.addEventListener("click",()=>draw(Number(button.dataset.polyDegree) as 1|2|3),{signal:controller.signal}));
+    draw(2); polynomialCleanup=()=>controller.abort();
+  }
+  document.addEventListener("astro:before-swap",()=>polynomialCleanup?.());
+  document.addEventListener("astro:page-load",initPolynomialLab); initPolynomialLab();
+</script>

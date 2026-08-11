@@ -7,15 +7,16 @@ const notesExplorer = read("src/components/NotesExplorer.astro");
 const seriesMap = read("src/components/learning/LearningSeriesMap.astro");
 const projectList = read("src/components/ProjectList.astro");
 const home = read("src/components/HomePage.astro");
+const taxonomy = read("src/data/note-tag-taxonomy.ts");
 
 describe("Learning Notes and project-grid information architecture", () => {
-  it("keeps the existing tag cloud first, knowledge folders second, and all notes last", () => {
+  it("keeps the tag map first, knowledge folders second, and all notes last", () => {
     expect(notesIndex).toContain('<LearningSeriesMap slot="knowledge-map" />');
-    expect(notesExplorer).toContain('class="tag-cloud-panel"');
+    expect(notesExplorer).toContain("tag-cloud-panel--floating");
     expect(notesExplorer).toContain('<slot name="knowledge-map" />');
     expect(notesExplorer).toContain('class="notes-results-heading"');
 
-    const tags = notesExplorer.indexOf('class="tag-cloud-panel"');
+    const tags = notesExplorer.indexOf("tag-cloud-panel--floating");
     const folders = notesExplorer.indexOf('<slot name="knowledge-map" />');
     const results = notesExplorer.indexOf('class="notes-results-heading"');
     expect(tags).toBeGreaterThan(-1);
@@ -24,10 +25,24 @@ describe("Learning Notes and project-grid information architecture", () => {
     expect(notesExplorer).toContain('latest: "全部笔记"');
   });
 
-  it("preserves tag-selection emphasis and weighted tag sizing", () => {
+  it("uses a compact canonical tag taxonomy instead of every raw frontmatter tag", () => {
+    expect(taxonomy).toContain("canonicalNoteTags");
+    expect(taxonomy).toContain('id: "regression"');
+    expect(taxonomy).toContain('id: "optimisation"');
+    expect(taxonomy).toContain('id: "supply-chain"');
+    expect(taxonomy).toContain("return tags.slice(0, 2)");
+    expect(notesExplorer).toContain("getCanonicalNoteTags(entry)");
+    expect(notesExplorer).not.toContain(".flatMap((entry) => entry.data.tags)");
+  });
+
+  it("preserves selected-tag emphasis while adding hover and focus scope previews", () => {
     expect(notesExplorer).toContain("--tag-weight:");
-    expect(notesExplorer).toContain('data-note-tag={tag.toLocaleLowerCase()}');
-    expect(notesExplorer).toContain('aria-pressed="false"');
+    expect(notesExplorer).toContain("--tag-tilt:");
+    expect(notesExplorer).toContain("tag-cloud__tooltip");
+    expect(notesExplorer).toContain(":hover .tag-cloud__tooltip");
+    expect(notesExplorer).toContain(":focus-visible .tag-cloud__tooltip");
+    expect(notesExplorer).toContain("[aria-pressed=\"true\"]");
+    expect(notesExplorer).toContain('data-note-tag={tag.label.toLocaleLowerCase()}');
     expect(notesExplorer).toContain('button.setAttribute("aria-pressed"');
   });
 

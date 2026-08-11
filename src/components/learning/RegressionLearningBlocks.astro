@@ -1,0 +1,64 @@
+---
+import LogisticRegressionLab from "./LogisticRegressionLab.astro";
+import ModelSelectionLab from "./ModelSelectionLab.astro";
+import MulticollinearityLab from "./MulticollinearityLab.astro";
+import PolynomialRegressionLab from "./PolynomialRegressionLab.astro";
+import RegressionDiagnosticsLab from "./RegressionDiagnosticsLab.astro";
+import RegressionLab from "./RegressionLab.astro";
+
+interface Props {
+  slug: string;
+}
+
+const { slug } = Astro.props;
+---
+
+{
+  slug === "regression-foundations" && (
+    <div class="learning-note__inline-block" data-learning-block="regression-line-lab">
+      <RegressionLab />
+    </div>
+  )
+}
+{
+  slug === "regression-diagnostics" && (
+    <div class="learning-note__inline-block" data-learning-block="regression-diagnostics-lab">
+      <RegressionDiagnosticsLab />
+    </div>
+  )
+}
+{
+  slug === "nonlinear-regression-interactions" && (
+    <div class="learning-note__inline-block" data-learning-block="polynomial-regression-lab">
+      <PolynomialRegressionLab />
+    </div>
+  )
+}
+{
+  slug === "multiple-regression-multicollinearity" && (
+    <div class="learning-note__inline-block" data-learning-block="multicollinearity-lab">
+      <MulticollinearityLab />
+    </div>
+  )
+}
+{
+  slug === "influential-observations" && (
+    <div class="learning-note__inline-block" data-learning-block="influence-diagnostics-lab">
+      <RegressionDiagnosticsLab />
+    </div>
+  )
+}
+{
+  slug === "regression-feature-selection" && (
+    <div class="learning-note__inline-block" data-learning-block="model-selection-lab">
+      <ModelSelectionLab />
+    </div>
+  )
+}
+{
+  slug === "logistic-regression" && (
+    <div class="learning-note__inline-block" data-learning-block="logistic-regression-lab">
+      <LogisticRegressionLab />
+    </div>
+  )
+}

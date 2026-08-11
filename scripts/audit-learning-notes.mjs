@@ -4,6 +4,19 @@ import process from "node:process";
 
 const handbooks = [
   { source: "descriptive-statistics.zh.md", route: "descriptive-statistics" },
+  { source: "regression-foundations.zh.md", route: "regression-foundations" },
+  { source: "regression-diagnostics.zh.md", route: "regression-diagnostics" },
+  {
+    source: "nonlinear-regression-interactions.zh.md",
+    route: "nonlinear-regression-interactions",
+  },
+  {
+    source: "multiple-regression-multicollinearity.zh.md",
+    route: "multiple-regression-multicollinearity",
+  },
+  { source: "influential-observations.zh.md", route: "influential-observations" },
+  { source: "regression-feature-selection.zh.md", route: "regression-feature-selection" },
+  { source: "logistic-regression.zh.md", route: "logistic-regression" },
   { source: "sql-relational-data.zh.md", route: "sql-relational-data" },
   { source: "sql-primary-key.zh.md", route: "sql-primary-key" },
   { source: "sql-foreign-key.zh.md", route: "sql-foreign-key" },

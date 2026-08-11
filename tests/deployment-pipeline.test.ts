@@ -120,6 +120,33 @@ describe("production deployment contracts", () => {
     expect(capture).toContain("expected = 26");
   });
 
+  it("verifies canonical tags and REG01–07 with ten dedicated browser proofs", async () => {
+    const workflow = await source(".github/workflows/deploy.yml");
+    const verifier = await source("scripts/verify-regression-production.mjs");
+    const capture = await source("scripts/capture-pr-regression-visuals.py");
+
+    expect(workflow).toContain("Capture regression and floating-tag visual proofs");
+    expect(workflow).toContain("python3 scripts/capture-pr-regression-visuals.py");
+    expect(workflow).toContain("node scripts/verify-regression-production.mjs");
+    expect(workflow).toContain("regression-proofs");
+    expect(verifier).toContain('path: "zh/notes/series/regression/"');
+    expect(verifier).toContain('path: "zh/notes/regression-foundations/"');
+    expect(verifier).toContain('path: "zh/notes/logistic-regression/"');
+    expect(verifier).toContain('data-note-tag="回归建模"');
+    expect(verifier).toContain("canonical.length > 10");
+    expect(verifier).toContain("data-regression-lab");
+    expect(verifier).toContain("data-regression-diagnostics");
+    expect(verifier).toContain("data-polynomial-regression");
+    expect(verifier).toContain("data-multicollinearity");
+    expect(verifier).toContain("data-model-selection");
+    expect(verifier).toContain("data-logistic-lab");
+    expect(capture).toContain('browser.screenshot(f"reg-tag-map-{suffix}.png")');
+    expect(capture).toContain('browser.screenshot(f"reg-series-{suffix}.png")');
+    expect(capture).toContain("reg01-outlier-desktop.png");
+    expect(capture).toContain("reg07-logistic-threshold-mobile.png");
+    expect(capture).toContain("expected = 10");
+  });
+
   it("publishes a machine-readable commit status after live verification", async () => {
     const workflow = await source(".github/workflows/deploy.yml");
 

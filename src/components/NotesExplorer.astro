@@ -2,6 +2,10 @@
 import type { CollectionEntry } from "astro:content";
 import { portfolioConfig } from "../config/portfolio";
 import type { Locale } from "../config/site";
+import {
+  canonicalNoteTags,
+  getCanonicalNoteTags,
+} from "../data/note-tag-taxonomy";
 import { getTotalPages } from "../utils/pagination";
 import NoteList from "./NoteList.astro";
 import Pagination from "./Pagination.astro";
@@ -24,35 +28,41 @@ const {
 } = Astro.props;
 const totalPages = getTotalPages(entries.length, pageSize);
 const tagCounts = new Map<string, number>();
-entries
-  .flatMap((entry) => entry.data.tags)
-  .forEach((tag) => {
+entries.forEach((entry) => {
+  getCanonicalNoteTags(entry).forEach((tag) => {
     tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1);
   });
+});
 const maxCount = Math.max(1, ...tagCounts.values());
-const tags = [...tagCounts.entries()].sort(([left], [right]) =>
-  left.localeCompare(right, locale === "zh" ? "zh-CN" : "en"),
-);
+const tags = canonicalNoteTags
+  .map((definition) => ({
+    label: definition.label[locale],
+    description: definition.description[locale],
+    count: tagCounts.get(definition.label[locale]) ?? 0,
+  }))
+  .filter((tag) => tag.count > 0);
 const copy =
   locale === "en"
     ? {
         title: "Browse by tag",
         description:
-          "Choose a topic from the knowledge map. The URL updates so this view can be shared.",
+          "A compact topic map groups overlapping article tags into a smaller set of reusable themes.",
         all: "All notes",
         result: "notes shown",
         empty: "No notes match this tag.",
         latest: "Learning Notes",
         external: "External Notebook / Cloud Notes",
+        hover: "Hover or focus a tag for its scope; select it to filter the notes below.",
       }
     : {
         title: "按标签浏览",
-        description: "从知识地图中选择主题。网址会同步更新，便于分享当前视图。",
+        description: "把文章里的细粒度标签归并为少量核心主题，减少重复和重合。",
         all: "全部笔记",
         result: "篇笔记",
         empty: "没有符合该标签的笔记。",
         latest: "全部笔记",
         external: "外部笔记本 / 云笔记",
+        hover: "悬浮或聚焦标签可查看范围；点击后筛选下方笔记。",
       };
 const notebook = portfolioConfig.externalNotebook;
 ---
@@ -68,24 +78,35 @@ const notebook = portfolioConfig.externalNotebook;
   data-page-separator={locale === "en" ? "of" : "页，共"}
   data-page-suffix={locale === "en" ? "" : "页"}
 >
-  <section class="tag-cloud-panel" aria-labelledby="tag-cloud-title">
-    <div>
-      <p class="status">{locale === "en" ? "Knowledge map" : "知识地图"}</p>
-      <h2 id="tag-cloud-title">{copy.title}</h2>
-      <p>{copy.description}</p>
+  <section class="tag-cloud-panel tag-cloud-panel--floating" aria-labelledby="tag-cloud-title">
+    <div class="tag-cloud-panel__copy">
+      <div>
+        <p class="status">{locale === "en" ? "Knowledge map" : "知识地图"}</p>
+        <h2 id="tag-cloud-title">{copy.title}</h2>
+        <p>{copy.description}</p>
+      </div>
+      <p class="tag-cloud-panel__hint">{copy.hover}</p>
     </div>
     <div class="tag-cloud" role="group" aria-label={copy.title}>
-      <button type="button" data-note-tag="" aria-pressed="true">{copy.all}</button>
+      <button class="tag-cloud__item tag-cloud__item--all" type="button" data-note-tag="" aria-pressed="true">
+        <span>{copy.all}</span>
+        <small>{entries.length}</small>
+      </button>
       {
-        tags.map(([tag, count]) => (
+        tags.map((tag, index) => (
           <button
+            class="tag-cloud__item"
             type="button"
-            data-note-tag={tag.toLocaleLowerCase()}
+            data-note-tag={tag.label.toLocaleLowerCase()}
             aria-pressed="false"
-            style={`--tag-weight: ${0.82 + (count / maxCount) * 0.6}rem`}
+            aria-describedby={`tag-scope-${index}`}
+            style={`--tag-weight: ${0.88 + (tag.count / maxCount) * 0.34}rem; --tag-tilt: ${[-1.2, 0.8, -0.4, 1.1, -0.7][index % 5]}deg; --tag-rise: ${(index % 3) * 2}px`}
           >
-            {tag}
-            <span aria-label={`${count} ${copy.result}`}>{count}</span>
+            <span>{tag.label}</span>
+            <small aria-label={`${tag.count} ${copy.result}`}>{tag.count}</small>
+            <span class="tag-cloud__tooltip" id={`tag-scope-${index}`} role="tooltip">
+              {tag.description}
+            </span>
           </button>
         ))
       }
@@ -127,6 +148,177 @@ const notebook = portfolioConfig.externalNotebook;
     )
   }
 </section>
+
+<style>
+  .tag-cloud-panel--floating {
+    position: relative;
+    overflow: visible;
+    padding: clamp(1.15rem, 2.8vw, 2rem);
+    border: 1px solid var(--colour-border);
+    border-radius: 1.35rem;
+    background: color-mix(in srgb, var(--colour-surface) 88%, transparent);
+    box-shadow: 0 1.25rem 3rem color-mix(in srgb, var(--colour-text) 8%, transparent);
+    backdrop-filter: blur(18px);
+  }
+
+  .tag-cloud-panel__copy {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: var(--space-5);
+  }
+
+  .tag-cloud-panel__copy h2 {
+    margin-bottom: var(--space-2);
+  }
+
+  .tag-cloud-panel__copy p {
+    max-width: 48rem;
+  }
+
+  .tag-cloud-panel__hint {
+    flex: 0 1 22rem;
+    margin: 0;
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-xs);
+    text-align: right;
+  }
+
+  .tag-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(0.55rem, 1.2vw, 0.9rem);
+    margin-top: var(--space-6);
+    padding: clamp(0.5rem, 1vw, 0.9rem) 0;
+    overflow: visible;
+  }
+
+  .tag-cloud__item {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 2.55rem;
+    padding: 0.68rem 0.92rem;
+    border: 1px solid var(--colour-border);
+    border-radius: 999px;
+    background: var(--colour-surface);
+    color: var(--colour-text);
+    font: inherit;
+    font-size: var(--tag-weight, 1rem);
+    font-weight: var(--font-weight-medium);
+    line-height: 1;
+    cursor: pointer;
+    transform: translateY(var(--tag-rise, 0)) rotate(var(--tag-tilt, 0deg));
+    transition:
+      transform 160ms ease,
+      border-color 160ms ease,
+      box-shadow 160ms ease,
+      background 160ms ease;
+  }
+
+  .tag-cloud__item small {
+    min-width: 1.45rem;
+    padding: 0.2rem 0.35rem;
+    border-radius: 999px;
+    background: var(--colour-surface-muted);
+    color: var(--colour-text-muted);
+    font-size: 0.67em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .tag-cloud__item:hover,
+  .tag-cloud__item:focus-visible {
+    z-index: 5;
+    border-color: var(--colour-primary);
+    box-shadow: 0 0.75rem 1.8rem color-mix(in srgb, var(--colour-text) 12%, transparent);
+    transform: translateY(-0.34rem) rotate(0deg) scale(1.035);
+  }
+
+  .tag-cloud__item[aria-pressed="true"] {
+    z-index: 4;
+    border-color: var(--colour-primary);
+    background: color-mix(in srgb, var(--colour-primary) 10%, var(--colour-surface));
+    box-shadow: 0 0.65rem 1.6rem color-mix(in srgb, var(--colour-primary) 13%, transparent);
+    transform: translateY(-0.24rem) rotate(0deg);
+  }
+
+  .tag-cloud__tooltip {
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 0.65rem);
+    width: max-content;
+    max-width: min(19rem, 76vw);
+    padding: 0.62rem 0.75rem;
+    border: 1px solid var(--colour-border);
+    border-radius: 0.75rem;
+    background: var(--colour-surface);
+    box-shadow: 0 0.8rem 2rem color-mix(in srgb, var(--colour-text) 13%, transparent);
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-regular);
+    line-height: 1.55;
+    text-align: left;
+    pointer-events: none;
+    opacity: 0;
+    transform: translate(-50%, 0.35rem);
+    transition:
+      opacity 150ms ease,
+      transform 150ms ease;
+  }
+
+  .tag-cloud__item:hover .tag-cloud__tooltip,
+  .tag-cloud__item:focus-visible .tag-cloud__tooltip {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+
+  .tag-cloud__item--all {
+    --tag-tilt: 0deg;
+    --tag-rise: 0px;
+    font-size: 0.92rem;
+  }
+
+  @media (max-width: 48rem) {
+    .tag-cloud-panel--floating {
+      padding: 1rem;
+      border-radius: 1rem;
+    }
+
+    .tag-cloud-panel__copy {
+      display: block;
+    }
+
+    .tag-cloud-panel__hint {
+      margin-top: var(--space-3);
+      text-align: left;
+    }
+
+    .tag-cloud {
+      justify-content: flex-start;
+      gap: 0.5rem;
+    }
+
+    .tag-cloud__item {
+      --tag-tilt: 0deg !important;
+      --tag-rise: 0px !important;
+      font-size: 0.88rem;
+    }
+
+    .tag-cloud__tooltip {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tag-cloud__item,
+    .tag-cloud__tooltip {
+      transition: none;
+    }
+  }
+</style>
 
 <script>
   let activeNotesCleanup: (() => void) | undefined;
@@ -180,9 +372,7 @@ const notebook = portfolioConfig.externalNotebook;
             if (tag) params.set("tag", tag);
             link.setAttribute("href", params.size ? `${path}?${params}` : path);
           });
-        const status = pagination.querySelector<HTMLElement>(
-          "[data-pagination-status]",
-        );
+        const status = pagination.querySelector<HTMLElement>("[data-pagination-status]");
         if (status) {
           status.textContent =
             explorer!.dataset.pageLabel === "Page"

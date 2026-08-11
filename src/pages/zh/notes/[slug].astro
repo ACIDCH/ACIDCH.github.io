@@ -3,6 +3,7 @@ import { getCollection, type CollectionEntry } from "astro:content";
 import { findTranslation } from "../../../i18n/content";
 import DecisionModelNoteLayout from "../../../layouts/DecisionModelNoteLayout.astro";
 import NoteLayout from "../../../layouts/NoteLayout.astro";
+import RegressionNoteLayout from "../../../layouts/RegressionNoteLayout.astro";
 import "../../../styles/sql-pagination.css";
 import { getLocalizedPath } from "../../../utils/paths";
 
@@ -27,11 +28,14 @@ const alternatePath = translation
   ? getLocalizedPath(`/notes/${translation.data.slug}/`, "en")
   : getLocalizedPath("/", "en");
 const isDecisionModel = entry.data.seriesSlug === "decision-models";
+const isRegression = entry.data.seriesSlug === "regression";
 ---
 
 {
   isDecisionModel ? (
     <DecisionModelNoteLayout entry={entry} alternatePath={alternatePath} />
+  ) : isRegression ? (
+    <RegressionNoteLayout entry={entry} alternatePath={alternatePath} />
   ) : (
     <NoteLayout entry={entry} alternatePath={alternatePath} />
   )

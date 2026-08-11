@@ -1,0 +1,123 @@
+---
+import { getCollection, render, type CollectionEntry } from "astro:content";
+import ContextBack from "../components/ContextBack.astro";
+import NoteList from "../components/NoteList.astro";
+import ProjectList from "../components/ProjectList.astro";
+import LearningNoteHero from "../components/learning/LearningNoteHero.astro";
+import LearningNoteToc from "../components/learning/LearningNoteToc.astro";
+import RegressionLearningBlocks from "../components/learning/RegressionLearningBlocks.astro";
+import "../styles/learning-note-editorial.css";
+import { getCanonicalUrl } from "../utils/urls";
+import BaseLayout from "./BaseLayout.astro";
+
+interface Props {
+  entry: CollectionEntry<"notes">;
+  alternatePath?: string;
+}
+
+const { entry, alternatePath } = Astro.props;
+const { Content, headings } = await render(entry);
+const toc = headings
+  .filter((heading) => heading.depth === 2 && heading.slug !== "写在前面")
+  .map((heading) => ({ id: heading.slug, label: heading.text }));
+const notes = await getCollection("notes");
+const projects = await getCollection("projects");
+const relatedNotes = notes.filter(
+  (note) =>
+    note.data.locale === entry.data.locale &&
+    !note.data.draft &&
+    entry.data.relatedNotes.includes(note.data.translationKey),
+);
+const relatedProjects = projects.filter(
+  (project) =>
+    project.data.locale === entry.data.locale &&
+    entry.data.relatedProjects.includes(project.data.translationKey),
+);
+const structuredData = {
+  "@type": "Article",
+  "@id": `${getCanonicalUrl(Astro.url.pathname)}#article`,
+  headline: entry.data.title,
+  description: entry.data.summary,
+  url: getCanonicalUrl(Astro.url.pathname),
+  inLanguage: entry.data.locale === "en" ? "en" : "zh-CN",
+  keywords: entry.data.tags,
+  isAccessibleForFree: true,
+  datePublished: entry.data.publishedAt?.toISOString(),
+  dateModified: entry.data.updatedAt?.toISOString(),
+};
+---
+
+<BaseLayout
+  title={entry.data.title}
+  description={entry.data.summary}
+  locale={entry.data.locale}
+  alternatePath={alternatePath}
+  noindex={entry.data.draft || entry.data.isPlaceholder}
+  pageType="article"
+  structuredData={structuredData}
+  fullWidth={true}
+>
+  <article class="learning-note regression-note">
+    <ContextBack
+      locale={entry.data.locale}
+      fallbackPath="/notes/"
+      label={{ en: "Back to Learning Notes", zh: "返回学习笔记" }}
+    />
+    <LearningNoteHero title={entry.data.title} />
+    <div class="learning-note__grid">
+      <LearningNoteToc items={toc} />
+      <div class="learning-note__body">
+        <Content />
+        <RegressionLearningBlocks slug={entry.data.slug} />
+      </div>
+    </div>
+
+    {
+      relatedNotes.length > 0 && (
+        <section class="related-notes" aria-labelledby="regression-related-notes-title">
+          <h2 id="regression-related-notes-title">
+            {entry.data.locale === "en" ? "Related Notes" : "相关笔记"}
+          </h2>
+          <NoteList entries={relatedNotes} locale={entry.data.locale} />
+        </section>
+      )
+    }
+    {
+      relatedProjects.length > 0 && (
+        <section class="related-notes" aria-labelledby="regression-related-projects-title">
+          <h2 id="regression-related-projects-title">
+            {entry.data.locale === "en" ? "Related Projects" : "相关项目"}
+          </h2>
+          <ProjectList entries={relatedProjects} locale={entry.data.locale} />
+        </section>
+      )
+    }
+    <ContextBack
+      locale={entry.data.locale}
+      fallbackPath="/notes/"
+      label={{ en: "Back to Learning Notes", zh: "返回学习笔记" }}
+    />
+  </article>
+</BaseLayout>
+
+<script>
+  function placeRegressionBlocks() {
+    const blocks = Array.from(
+      document.querySelectorAll<HTMLElement>(".regression-note [data-learning-block]"),
+    );
+    const slots = Array.from(
+      document.querySelectorAll<HTMLElement>(".regression-note [data-learning-slot]"),
+    );
+    blocks.forEach((block) => {
+      const name = block.dataset.learningBlock;
+      const slot = slots.find((candidate) => candidate.dataset.learningSlot === name);
+      if (name && slot) {
+        slot.replaceWith(block);
+        block.dataset.learningPlaced = "true";
+      }
+    });
+  }
+
+  document.addEventListener("astro:page-load", placeRegressionBlocks);
+  placeRegressionBlocks();
+</script>

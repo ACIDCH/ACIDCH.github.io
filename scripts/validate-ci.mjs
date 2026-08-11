@@ -93,7 +93,7 @@ async function validateFirstPersonCopy() {
   }
 
   console.log(
-    "UI-aware first-person validation passed; the approved navigation and statistical labels are exempt.",
+    "UI-aware first-person validation passed; only approved navigation and statistical labels are exempt.",
   );
 }
 

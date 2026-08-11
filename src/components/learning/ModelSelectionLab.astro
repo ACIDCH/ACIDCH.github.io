@@ -1,0 +1,53 @@
+<section class="model-selection-lab" data-model-selection aria-labelledby="model-selection-title">
+  <div class="model-selection-lab__intro">
+    <p class="learning-note-kicker">互动比较 · Model selection</p>
+    <h3 id="model-selection-title">“最佳模型”取决于优化的是解释、简洁还是样本外误差</h3>
+    <p>切换评价标准，比较四个候选回归规格。Adjusted R²、BIC 与 cross-validation MSE 的偏好可能不同，因此变量选择必须先明确目标。</p>
+  </div>
+  <div class="model-selection-lab__controls" role="group" aria-label="模型选择标准">
+    <button type="button" data-selection-metric="adjr2" aria-pressed="true">Adjusted R²</button>
+    <button type="button" data-selection-metric="bic" aria-pressed="false">BIC</button>
+    <button type="button" data-selection-metric="cv" aria-pressed="false">CV MSE</button>
+  </div>
+  <div class="model-selection-lab__summary" aria-live="polite">
+    <span>当前优选</span><strong data-selection-best>Model C</strong><p data-selection-reason>解释度提升仍大于复杂度惩罚。</p>
+  </div>
+  <div class="model-selection-lab__table-wrap">
+    <table>
+      <thead><tr><th>Model</th><th>Predictors</th><th>Adj. R²</th><th>BIC</th><th>CV MSE</th></tr></thead>
+      <tbody data-selection-body></tbody>
+    </table>
+  </div>
+</section>
+
+<style>
+  .model-selection-lab{margin:var(--space-10) 0;padding:var(--space-6) 0;border-block:1px solid var(--colour-border-strong);}
+  .model-selection-lab__intro{max-width:58rem}.model-selection-lab h3{margin:var(--space-2) 0 var(--space-3);font-size:clamp(1.35rem,1.6vw,1.85rem)}
+  .model-selection-lab__intro p:last-child,.model-selection-lab__summary p{color:var(--colour-text-muted)}
+  .model-selection-lab__controls{display:flex;flex-wrap:wrap;gap:var(--space-2);margin:var(--space-5) 0}.model-selection-lab__controls button{padding:.55rem .8rem;border:1px solid var(--colour-border);border-radius:999px;background:var(--colour-surface);color:var(--colour-text);cursor:pointer}.model-selection-lab__controls button[aria-pressed="true"]{border-color:var(--colour-primary);background:color-mix(in srgb,var(--colour-primary) 10%,var(--colour-surface))}
+  .model-selection-lab__summary{display:grid;grid-template-columns:auto auto 1fr;gap:var(--space-3);align-items:baseline;margin-bottom:var(--space-4)}.model-selection-lab__summary span{color:var(--colour-text-muted);font-size:var(--font-size-xs)}.model-selection-lab__summary strong{font-size:1.2rem}.model-selection-lab__summary p{margin:0}
+  .model-selection-lab__table-wrap{overflow-x:auto}.model-selection-lab table{width:100%;border-collapse:collapse}.model-selection-lab th,.model-selection-lab td{padding:.8rem .65rem;border-bottom:1px solid var(--colour-border);text-align:left;white-space:nowrap}.model-selection-lab tr[data-best="true"]{background:color-mix(in srgb,var(--colour-primary) 7%,transparent)}
+  @media(max-width:48rem){.model-selection-lab__summary{grid-template-columns:1fr}.model-selection-lab th,.model-selection-lab td{font-size:.86rem}}
+</style>
+
+<script>
+  let selectionCleanup:(()=>void)|undefined;
+  function initSelectionLab(){
+    selectionCleanup?.();const root=document.querySelector<HTMLElement>("[data-model-selection]");if(!root)return;
+    const body=root.querySelector<HTMLTableSectionElement>("[data-selection-body]");const best=root.querySelector<HTMLElement>("[data-selection-best]");const reason=root.querySelector<HTMLElement>("[data-selection-reason]");const buttons=Array.from(root.querySelectorAll<HTMLButtonElement>("[data-selection-metric]"));if(!body||!best||!reason||buttons.length===0)return;
+    const controller=new AbortController();
+    const models=[
+      {name:"Model A",predictors:"Distance",adjr2:.61,bic:412,cv:18.4},
+      {name:"Model B",predictors:"+ Order size",adjr2:.73,bic:381,cv:15.7},
+      {name:"Model C",predictors:"+ Priority",adjr2:.79,bic:366,cv:14.8},
+      {name:"Model D",predictors:"+ 4 extra terms",adjr2:.795,bic:389,cv:16.1},
+    ];
+    const reasons={adjr2:"解释度提升仍大于复杂度惩罚。",bic:"在拟合与参数数量之间取得更强的简洁性平衡。",cv:"样本外平均平方误差最低。"};
+    const render=(metric:"adjr2"|"bic"|"cv")=>{
+      const ordered=[...models].sort((a,b)=>metric==="adjr2"?b.adjr2-a.adjr2:a[metric]-b[metric]);const winner=ordered[0];best.textContent=winner.name;reason.textContent=reasons[metric];buttons.forEach(button=>button.setAttribute("aria-pressed",String(button.dataset.selectionMetric===metric)));
+      body.replaceChildren();models.forEach(model=>{const tr=document.createElement("tr");tr.dataset.best=String(model.name===winner.name);[model.name,model.predictors,model.adjr2.toFixed(3),String(model.bic),model.cv.toFixed(1)].forEach(value=>{const td=document.createElement("td");td.textContent=value;tr.append(td)});body.append(tr)});
+    };
+    buttons.forEach(button=>button.addEventListener("click",()=>render((button.dataset.selectionMetric??"adjr2") as "adjr2"|"bic"|"cv"),{signal:controller.signal}));render("adjr2");selectionCleanup=()=>controller.abort();
+  }
+  document.addEventListener("astro:before-swap",()=>selectionCleanup?.());document.addEventListener("astro:page-load",initSelectionLab);initSelectionLab();
+</script>
