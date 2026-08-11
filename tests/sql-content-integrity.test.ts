@@ -157,7 +157,9 @@ describe("SQL Learning Notes integrity contract", () => {
     expect(primary).toContain("SQLite 的 INTEGER PRIMARY KEY 有什么特殊之处");
     expect(foreign).toContain("PRAGMA foreign_keys = ON");
     expect(foreign).toContain("ADD CONSTRAINT fk_orders_customer");
-    expect(foreign).toContain("SQLite 的 `ALTER TABLE` 支持范围比 MySQL/PostgreSQL 受限");
+    expect(foreign).toContain("SQLite 的 `ALTER TABLE`");
+    expect(foreign).toContain("MySQL、PostgreSQL");
+    expect(foreign).toContain("复杂约束修改");
     expect(where).toContain("标准 SQL 常用");
     expect(where).toContain("`LIKE` 的大小写行为、字符排序与 collation 规则会随数据库与配置变化");
     expect(orderBy).toContain("不同数据库对默认 NULL 排序位置并不完全一致");
@@ -169,12 +171,12 @@ describe("SQL Learning Notes integrity contract", () => {
 
   it("keeps SELECT semantics explicit and appropriate for the local sql.js environment", () => {
     const select = read("src/content/notes/sql-select.zh.md");
-    expect(select).toContain("3 rows × 5 columns");
-    expect(select).toContain("4 rows × 4 columns");
-    expect(select).toContain("SELECT 100 + 200;");
+    expect(select).toContain("3 行、5 列");
+    expect(select).toContain("SELECT 2 + 3 AS result;");
     expect(select).toContain("SELECT 1 AS execution_ok;");
     expect(select).toContain("没有 `ORDER BY` 时");
-    expect(select).toContain("并不存在浏览器到远程数据库服务器的网络连接");
+    expect(select).toContain("result set");
+    expect(select).toContain("查询并没有创建一张永久新表");
   });
 
   it("keeps WHERE examples numerically aligned with the canonical orders", () => {
