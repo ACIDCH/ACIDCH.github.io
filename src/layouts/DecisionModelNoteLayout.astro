@@ -6,40 +6,26 @@ import ProjectList from "../components/ProjectList.astro";
 import DecisionModelLearningBlocks from "../components/learning/DecisionModelLearningBlocks.astro";
 import LearningNoteHero from "../components/learning/LearningNoteHero.astro";
 import LearningNoteToc from "../components/learning/LearningNoteToc.astro";
+import { getEditorialNoteCopy } from "../data/note-editorial-copy";
 import "../styles/decision-models.css";
 import "../styles/learning-note-editorial.css";
 import { getCanonicalUrl } from "../utils/urls";
 import BaseLayout from "./BaseLayout.astro";
 
-interface Props {
-  entry: CollectionEntry<"notes">;
-  alternatePath?: string;
-}
-
+interface Props { entry: CollectionEntry<"notes">; alternatePath?: string; }
 const { entry, alternatePath } = Astro.props;
 const { Content, headings } = await render(entry);
-const toc = headings
-  .filter((heading) => heading.depth === 2 && heading.slug !== "写在前面")
-  .map((heading) => ({ id: heading.slug, label: heading.text }));
-
+const editorial = getEditorialNoteCopy({ slug: entry.data.slug, locale: entry.data.locale, title: entry.data.title, summary: entry.data.summary });
+const toc = headings.filter((heading) => heading.depth === 2 && heading.slug !== "写在前面").map((heading) => ({ id: heading.slug, label: heading.text }));
 const notes = await getCollection("notes");
 const projects = await getCollection("projects");
-const relatedNotes = notes.filter(
-  (note) =>
-    note.data.locale === entry.data.locale &&
-    !note.data.draft &&
-    entry.data.relatedNotes.includes(note.data.translationKey),
-);
-const relatedProjects = projects.filter(
-  (project) =>
-    project.data.locale === entry.data.locale &&
-    entry.data.relatedProjects.includes(project.data.translationKey),
-);
+const relatedNotes = notes.filter((note) => note.data.locale === entry.data.locale && !note.data.draft && entry.data.relatedNotes.includes(note.data.translationKey));
+const relatedProjects = projects.filter((project) => project.data.locale === entry.data.locale && entry.data.relatedProjects.includes(project.data.translationKey));
 const structuredData = {
   "@type": "Article",
   "@id": `${getCanonicalUrl(Astro.url.pathname)}#article`,
-  headline: entry.data.title,
-  description: entry.data.summary,
+  headline: editorial.title,
+  description: editorial.summary,
   url: getCanonicalUrl(Astro.url.pathname),
   inLanguage: entry.data.locale === "en" ? "en" : "zh-CN",
   keywords: entry.data.tags,
@@ -49,78 +35,30 @@ const structuredData = {
 };
 ---
 
-<BaseLayout
-  title={entry.data.title}
-  description={entry.data.summary}
-  locale={entry.data.locale}
-  alternatePath={alternatePath}
-  noindex={entry.data.draft || entry.data.isPlaceholder}
-  pageType="article"
-  structuredData={structuredData}
-  fullWidth={true}
->
+<BaseLayout title={editorial.title} description={editorial.summary} locale={entry.data.locale} alternatePath={alternatePath} noindex={entry.data.draft || entry.data.isPlaceholder} pageType="article" structuredData={structuredData} fullWidth={true}>
   <article class="learning-note decision-model-note">
-    <ContextBack
-      locale={entry.data.locale}
-      fallbackPath="/notes/"
-      label={{ en: "Back to Learning Notes", zh: "返回学习笔记" }}
-    />
-    <LearningNoteHero title={entry.data.title} />
+    <ContextBack locale={entry.data.locale} fallbackPath="/notes/" label={{ en: "Back to Learning Notes", zh: "返回学习笔记" }} />
+    <LearningNoteHero title={editorial.title} summary={editorial.summary} />
     <div class="learning-note__grid">
       <LearningNoteToc items={toc} />
-      <div class="learning-note__body">
-        <Content />
-        <DecisionModelLearningBlocks slug={entry.data.slug} />
-      </div>
+      <div class="learning-note__body"><Content /><DecisionModelLearningBlocks slug={entry.data.slug} /></div>
     </div>
-
-    {
-      relatedNotes.length > 0 && (
-        <section class="related-notes" aria-labelledby="decision-related-notes-title">
-          <h2 id="decision-related-notes-title">
-            {entry.data.locale === "en" ? "Related Notes" : "相关笔记"}
-          </h2>
-          <NoteList entries={relatedNotes} locale={entry.data.locale} />
-        </section>
-      )
-    }
-    {
-      relatedProjects.length > 0 && (
-        <section class="related-notes" aria-labelledby="decision-related-projects-title">
-          <h2 id="decision-related-projects-title">
-            {entry.data.locale === "en" ? "Related Projects" : "相关项目"}
-          </h2>
-          <ProjectList entries={relatedProjects} locale={entry.data.locale} />
-        </section>
-      )
-    }
-    <ContextBack
-      locale={entry.data.locale}
-      fallbackPath="/notes/"
-      label={{ en: "Back to Learning Notes", zh: "返回学习笔记" }}
-    />
+    {relatedNotes.length > 0 && <section class="related-notes" aria-labelledby="decision-related-notes-title"><h2 id="decision-related-notes-title">{entry.data.locale === "en" ? "Related Notes" : "相关笔记"}</h2><NoteList entries={relatedNotes} locale={entry.data.locale} /></section>}
+    {relatedProjects.length > 0 && <section class="related-notes" aria-labelledby="decision-related-projects-title"><h2 id="decision-related-projects-title">{entry.data.locale === "en" ? "Related Projects" : "相关项目"}</h2><ProjectList entries={relatedProjects} locale={entry.data.locale} /></section>}
+    <ContextBack locale={entry.data.locale} fallbackPath="/notes/" label={{ en: "Back to Learning Notes", zh: "返回学习笔记" }} />
   </article>
 </BaseLayout>
 
 <script>
   function placeDecisionModelBlocks() {
-    const blocks = Array.from(
-      document.querySelectorAll<HTMLElement>(".decision-model-note [data-learning-block]"),
-    );
-    const slots = Array.from(
-      document.querySelectorAll<HTMLElement>(".decision-model-note [data-learning-slot]"),
-    );
-
+    const blocks = Array.from(document.querySelectorAll<HTMLElement>(".decision-model-note [data-learning-block]"));
+    const slots = Array.from(document.querySelectorAll<HTMLElement>(".decision-model-note [data-learning-slot]"));
     blocks.forEach((block) => {
       const name = block.dataset.learningBlock;
       const slot = slots.find((candidate) => candidate.dataset.learningSlot === name);
-      if (name && slot) {
-        slot.replaceWith(block);
-        block.dataset.learningPlaced = "true";
-      }
+      if (name && slot) { slot.replaceWith(block); block.dataset.learningPlaced = "true"; }
     });
   }
-
   document.addEventListener("astro:page-load", placeDecisionModelBlocks);
   placeDecisionModelBlocks();
 </script>
