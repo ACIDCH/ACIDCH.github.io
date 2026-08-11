@@ -27,7 +27,7 @@
   <div class="sampling-lab__metrics" aria-live="polite">
     <dl><dt>样本比例</dt><dd>0.420</dd></dl>
     <dl><dt>Standard error</dt><dd data-sampling-se>0.049</dd></dl>
-    <dl><dt>Margin of error</dt><dd data-sampling-me>0.096</dd></dl>
+    <dl><dt>Margin of error</dt><dd data-sampling-margin>0.096</dd></dl>
     <dl><dt>区间宽度</dt><dd data-sampling-width>0.192</dd></dl>
   </div>
 
@@ -171,12 +171,12 @@
       const nOutput = root.querySelector<HTMLOutputElement>("[data-sampling-n-output]");
       const confidence = root.querySelector<HTMLSelectElement>("[data-sampling-confidence]");
       const seOutput = root.querySelector<HTMLElement>("[data-sampling-se]");
-      const meOutput = root.querySelector<HTMLElement>("[data-sampling-me]");
+      const marginOutput = root.querySelector<HTMLElement>("[data-sampling-margin]");
       const widthOutput = root.querySelector<HTMLElement>("[data-sampling-width]");
       const reset = root.querySelector<HTMLButtonElement>("[data-sampling-reset]");
       const svg = root.querySelector<SVGSVGElement>("[data-sampling-svg]");
       const message = root.querySelector<HTMLElement>("[data-sampling-message]");
-      if (!nInput || !nOutput || !confidence || !seOutput || !meOutput || !widthOutput || !reset || !svg || !message) return;
+      if (!nInput || !nOutput || !confidence || !seOutput || !marginOutput || !widthOutput || !reset || !svg || !message) return;
 
       const controller = new AbortController();
       controllers.push(controller);
@@ -199,7 +199,7 @@
 
         nOutput.value = String(n);
         seOutput.textContent = se.toFixed(3);
-        meOutput.textContent = margin.toFixed(3);
+        marginOutput.textContent = margin.toFixed(3);
         widthOutput.textContent = (upper - lower).toFixed(3);
 
         svg.replaceChildren();
