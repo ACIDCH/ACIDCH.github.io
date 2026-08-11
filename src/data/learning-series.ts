@@ -10,7 +10,7 @@ export const learningSeries: LearningSeries[] = [
   {
     slug: "r-statistics",
     title: "R 与统计",
-    description: "先把数据看明白，再进入概率、推断和统计建模。R 用来计算，判断仍然回到数据和问题本身。",
+    description: "先把数据看明白，再进入概率、推断和统计建模。R 负责计算，判断仍然要回到数据和问题本身。",
     tools: ["R", "Base R"],
     modules: [
       {
@@ -44,7 +44,7 @@ export const learningSeries: LearningSeries[] = [
   {
     slug: "regression",
     title: "回归与统计建模",
-    description: "从一条回归线开始，逐步处理残差、非线性、多变量、影响点和分类问题。每一步都先问模型能解释什么，再看数字。",
+    description: "从一条回归线开始，逐步处理残差、非线性、多变量、影响点和分类问题。先看模型在回答什么，再看系数和指标。",
     tools: ["R", "Base R", "glmnet", "统计建模"],
     modules: [
       {
@@ -59,8 +59,8 @@ export const learningSeries: LearningSeries[] = [
       },
       {
         code: "REG 03",
-        title: "非线性回归与交互项",
-        summary: "直线不够时，用多项式、类别变量和交互项表达真实结构。",
+        title: "非线性回归",
+        summary: "直线不够时，先看残差，再用二次项、类别变量或交互项补上必要结构。",
       },
       {
         code: "REG 04",
@@ -98,7 +98,7 @@ export const learningSeries: LearningSeries[] = [
       {
         code: "SQL 02",
         title: "主键",
-        summary: "给每条记录一个稳定、唯一而且不会随普通业务变化的身份。",
+        summary: "用稳定且唯一的值标识一条记录，避免普通业务字段变化时连带影响关联关系。",
       },
       {
         code: "SQL 03",
@@ -108,7 +108,7 @@ export const learningSeries: LearningSeries[] = [
       {
         code: "SQL 04",
         title: "表关系",
-        summary: "分清一对多、多对多和一对一，以及它们会怎样改变 JOIN 粒度。",
+        summary: "用客户、订单和产品说明一对多、多对多和一对一，并观察 JOIN 后粒度怎样变化。",
       },
       {
         code: "SQL 05",
@@ -224,7 +224,7 @@ export const learningSeries: LearningSeries[] = [
   {
     slug: "decision-models",
     title: "供应链与决策模型",
-    description: "从一个小型优化问题开始，再逐步加入约束、整数选择、模型规模、运输和库存。重点始终是把业务规则写清楚，并让结果能够复算。",
+    description: "从一个小型优化问题开始，再逐步加入约束、整数选择、模型规模、运输和库存。重点是把业务规则写清楚，并让结果能够复算。",
     tools: ["Excel Solver", "Python", "PuLP", "优化"],
     modules: [
       {
@@ -269,8 +269,8 @@ export const learningSeries: LearningSeries[] = [
       },
       {
         code: "DM 09",
-        title: "供应链规划与运输分配",
-        summary: "分清网络、合同和实际流量，再把容量和需求平衡写进模型。",
+        title: "供应链运输规划",
+        summary: "分清长期网络、中期合同和短期执行，再把容量、承诺量和流量平衡写进模型。",
       },
       {
         code: "DM 10",
