@@ -52,8 +52,8 @@ describe("SQL Learning Notes integrity contract", () => {
 
     sqlOrders.forEach((order) => expect(customerIds.has(order.customer_id)).toBe(true));
     sqlOrderItems.forEach((item) => {
-      expect(orderIds.has(item.order_id)).toBe(true));
-      expect(productIds.has(item.product_id)).toBe(true));
+      expect(orderIds.has(item.order_id)).toBe(true);
+      expect(productIds.has(item.product_id)).toBe(true);
     });
     sqlCustomerProfiles.forEach((profile) => {
       expect(customerIds.has(profile.customer_id)).toBe(true);
