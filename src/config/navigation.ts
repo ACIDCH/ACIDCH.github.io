@@ -9,5 +9,6 @@ export const navigationItems: NavigationItem[] = [
   { path: "/", label: { en: "Home", zh: "首页" } },
   { path: "/projects/", label: { en: "Projects", zh: "项目" } },
   { path: "/notes/", label: { en: "Learning Notes", zh: "学习笔记" } },
+  { path: "/productivity/", label: { en: "Productivity", zh: "生产力工具" } },
   { path: "/about/", label: { en: "About", zh: "关于我" } },
 ];
