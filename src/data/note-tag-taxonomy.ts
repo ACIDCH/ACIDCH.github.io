@@ -141,6 +141,10 @@ export function getCanonicalNoteTagIds(entry: CollectionEntry<"notes">): string[
     pushUnique(tags, "data-understanding");
     pushUnique(tags, "statistical-inference");
   }
+  if (seriesSlug === "data-science-r") {
+    pushUnique(tags, "statistical-inference");
+    pushUnique(tags, "machine-learning");
+  }
   if (seriesSlug === "regression") {
     pushUnique(tags, "regression");
     if (diagnosticRegressionSlugs.has(slug)) pushUnique(tags, "model-diagnostics");
