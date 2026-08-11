@@ -107,10 +107,13 @@ describe("Regression and statistics Learning Notes", () => {
     expect(noteList).toContain('data-tags={canonicalTags.join("|")');
   });
 
-  it("allows the R I() function without exempting natural-language first person", () => {
-    expect(buildValidator).toContain('"I("');
-    expect(buildValidator).toContain("/\\b(?:I|Me|me|My|my|Mine|mine|We|we|Our|our|Ours|ours)\\b/");
-    expect(notes[2]).toContain("I(x^2)");
+  it("keeps natural-language first-person validation strict", () => {
+    expect(buildValidator).not.toContain('"I("');
+    expect(buildValidator).toContain(
+      "/\\b(?:I|Me|me|My|my|Mine|mine|We|we|Our|our|Ours|ours)\\b/",
+    );
+    expect(notes[2]).toContain("poly(x, 2, raw = TRUE)");
+    expect(notes[2]).not.toContain("I(x^2)");
   });
 
   it("keeps public regression notes free of private, course-facing and first-person labels", () => {
