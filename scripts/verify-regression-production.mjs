@@ -47,6 +47,7 @@ const checks = [
       "REG 01",
       "REG 07",
       "简单线性回归",
+      "非线性回归",
       "逻辑回归",
       "已发布 · 点击进入完整笔记",
     ],
@@ -61,7 +62,7 @@ const checks = [
   },
   {
     path: "zh/notes/nonlinear-regression-interactions/",
-    markers: ["非线性回归与交互项", "data-polynomial-regression"],
+    markers: ["非线性回归", "data-polynomial-regression"],
   },
   {
     path: "zh/notes/multiple-regression-multicollinearity/",
@@ -88,6 +89,9 @@ const forbiddenMarkers = [
   "LIU XINTAO",
   "刘鑫涛",
   ">草稿提纲<",
+  "非线性回归与交互项",
+  "多项式、类别变量和条件效应",
+  "一套更自然的建模顺序",
 ];
 
 function deploymentUrl(pathname) {
