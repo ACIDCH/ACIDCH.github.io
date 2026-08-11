@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from "astro:content";
 import type { Locale } from "../config/site";
+import { getEditorialNoteCopy } from "../data/note-editorial-copy";
 import { getCanonicalNoteTags } from "../data/note-tag-taxonomy";
 import { getLocalizedPath } from "../utils/paths";
 
@@ -10,10 +11,7 @@ interface Props {
 }
 
 const { entries, locale } = Astro.props;
-const handbookTitles: Record<string, string> = {
-  "descriptive-statistics": "统计学与 R",
-  "sql-relational-data": "SQL 与关系数据",
-};
+const compactHandbooks = new Set(["descriptive-statistics", "sql-relational-data"]);
 ---
 
 {
@@ -22,12 +20,13 @@ const handbookTitles: Record<string, string> = {
   ) : (
     <ul class="content-list">
       {entries.map((entry) => {
-        const displayTitle =
-          entry.data.locale === "zh"
-            ? (handbookTitles[entry.data.slug] ?? entry.data.title)
-            : entry.data.title;
-        const isCompactHandbook =
-          entry.data.locale === "zh" && Boolean(handbookTitles[entry.data.slug]);
+        const editorial = getEditorialNoteCopy({
+          slug: entry.data.slug,
+          locale: entry.data.locale,
+          title: entry.data.title,
+          summary: entry.data.summary,
+        });
+        const isCompactHandbook = entry.data.locale === "zh" && compactHandbooks.has(entry.data.slug);
         const displaySeries =
           entry.data.locale === "zh" && entry.data.seriesSlug === "decision-models"
             ? "供应链与优化"
@@ -38,7 +37,7 @@ const handbookTitles: Record<string, string> = {
           <li
             data-reveal
             data-note-card
-            data-search={`${entry.data.title} ${displayTitle} ${entry.data.summary} ${entry.data.tags.join(" ")} ${entry.data.topics.join(" ")} ${entry.data.tools.join(" ")} ${canonicalTags.join(" ")} ${displaySeries ?? ""}`.toLocaleLowerCase()}
+            data-search={`${entry.data.title} ${editorial.title} ${entry.data.summary} ${editorial.summary} ${entry.data.tags.join(" ")} ${entry.data.topics.join(" ")} ${entry.data.tools.join(" ")} ${canonicalTags.join(" ")} ${displaySeries ?? ""}`.toLocaleLowerCase()}
             data-tags={canonicalTags.join("|").toLocaleLowerCase()}
             data-topics={entry.data.topics.join("|").toLocaleLowerCase()}
             data-tools={entry.data.tools.join("|").toLocaleLowerCase()}
@@ -46,47 +45,21 @@ const handbookTitles: Record<string, string> = {
           >
             <article class:list={["note-card", isCompactHandbook && "note-card--handbook"]}>
               {isCompactHandbook ? (
-                <h2>
-                  <a href={getLocalizedPath(`/notes/${entry.data.slug}/`, locale)}>
-                    {displayTitle}
-                  </a>
-                </h2>
+                <h2><a href={getLocalizedPath(`/notes/${entry.data.slug}/`, locale)}>{editorial.title}</a></h2>
               ) : (
                 <>
-                  <p class="status">
-                    {entry.data.draft
-                      ? locale === "en"
-                        ? "Draft"
-                        : "草稿"
-                      : locale === "en"
-                        ? "Published"
-                        : "已发布"}
-                  </p>
-                  <h2>
-                    <a href={getLocalizedPath(`/notes/${entry.data.slug}/`, locale)}>
-                      {displayTitle}
-                    </a>
-                  </h2>
-                  <p>{entry.data.summary}</p>
+                  <p class="status">{entry.data.draft ? (locale === "en" ? "Draft" : "草稿") : locale === "en" ? "Published" : "已发布"}</p>
+                  <h2><a href={getLocalizedPath(`/notes/${entry.data.slug}/`, locale)}>{editorial.title}</a></h2>
+                  <p>{editorial.summary}</p>
                   {(displaySeries || canonicalTags.length > 0) && (
                     <div class="note-card__metadata">
                       {displaySeries && <span class="tag">{displaySeries}</span>}
                       {canonicalTags.map((tag) => (
-                        <a
-                          class="tag"
-                          href={getLocalizedPath(
-                            `/notes/?tag=${encodeURIComponent(tag)}`,
-                            locale,
-                          )}
-                        >
-                          {tag}
-                        </a>
+                        <a class="tag" href={getLocalizedPath(`/notes/?tag=${encodeURIComponent(tag)}`, locale)}>{tag}</a>
                       ))}
                     </div>
                   )}
-                  {entry.data.isPlaceholder && (
-                    <span class="tag">{locale === "en" ? "Placeholder" : "占位内容"}</span>
-                  )}
+                  {entry.data.isPlaceholder && <span class="tag">{locale === "en" ? "Placeholder" : "占位内容"}</span>}
                 </>
               )}
             </article>
