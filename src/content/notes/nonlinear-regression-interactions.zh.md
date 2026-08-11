@@ -108,10 +108,10 @@ x^*=-\frac{\beta_1}{2\beta_2}
 
 当解释变量是地区、客户层级、渠道或产品类型时，回归需要把类别映射为指示变量。
 
-假设 `channel` 有 Portal 和 Assisted 两类，并把 Portal 作为 reference：
+假设 `channel` 有 Portal 和 Assisted 两类，并把 Portal 作为 reference。定义 \(D_{Assisted}=1\) 表示 Assisted，\(D_{Assisted}=0\) 表示 Portal：
 
 \[
-Y=\beta_0+\beta_1I(Assisted)+\varepsilon
+Y=\beta_0+\beta_1D_{Assisted}+\varepsilon
 \]
 
 此时：
