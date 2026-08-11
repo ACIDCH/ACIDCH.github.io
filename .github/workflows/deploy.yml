@@ -95,8 +95,14 @@ jobs:
         continue-on-error: true
         run: npx vitest run tests/learning-series.test.ts
 
-      - name: Run tests and public-content security scan
-        run: npm run test
+      - name: Diagnostic · complete Vitest suite
+        run: npx vitest run
+
+      - name: Diagnostic · sensitive-content scan
+        run: npm run check:sensitive
+
+      - name: Diagnostic · legacy churn asset scan
+        run: npm run check:legacy-churn-assets
 
       - name: Audit production dependencies
         run: npm audit --audit-level=high
