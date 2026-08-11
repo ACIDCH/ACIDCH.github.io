@@ -22,35 +22,23 @@ const notes = (await getCollection("notes"))
 const copy = {
   en: {
     discipline: "Business Analytics · Supply Chain",
-    statement: "Data, models and decisions in context.",
-    intro: "Analytical questions become clear, practical decision support.",
     projectsAction: "Explore Projects",
     notesAction: "View Learning Notes",
     aboutAction: "About",
     featured: "Featured Projects",
-    featuredBody:
-      "Selected work in progress, clearly labelled by status and evidence level.",
     notes: "Latest Learning Notes",
     themes: "Core Themes",
-    themesBody: "The recurring areas that shape this portfolio.",
     cta: "Build decisions on clearer evidence.",
-    ctaBody:
-      "Explore the work, follow the learning process, or review the working approach.",
   },
   zh: {
     discipline: "商业分析 · 供应链",
-    statement: "让数据、模型与决策回到真实语境。",
-    intro: "分析问题转化为清晰、实用的决策支持。",
     projectsAction: "浏览项目",
     notesAction: "查看学习笔记",
     aboutAction: "关于我",
     featured: "精选项目",
-    featuredBody: "展示当前重点工作，并明确标注状态与证据程度。",
     notes: "最新学习笔记",
     themes: "核心方向",
-    themesBody: "贯穿本作品集的主要能力与关注领域。",
     cta: "用更清晰的证据支持决策。",
-    ctaBody: "浏览项目、了解学习过程，或进一步查看工作方式。",
   },
 }[locale];
 ---
@@ -60,8 +48,6 @@ const copy = {
   <h1 id="home-title">
     {locale === "en" ? "Business Analytics Portfolio" : "商业分析作品集"}
   </h1>
-  <p class="home-hero__statement">{copy.statement}</p>
-  <p>{copy.intro}</p>
   <div class="cluster">
     <a class="button" href={getLocalizedPath("/projects/", locale)}>
       {copy.projectsAction}
@@ -82,7 +68,6 @@ const copy = {
         <p class="status">01</p>
         <h2 id="projects-title">{copy.featured}</h2>
       </div>
-      <p>{copy.featuredBody}</p>
     </div>
     <ProjectList entries={projects} locale={locale} />
   </section>
@@ -103,7 +88,6 @@ const copy = {
         <p class="status">03</p>
         <h2 id="themes-title">{copy.themes}</h2>
       </div>
-      <p>{copy.themesBody}</p>
     </div>
     <ul class="theme-keywords">
       {skillGroups.map((group) => <li>{group.title[locale]}</li>)}
@@ -114,7 +98,6 @@ const copy = {
     <div>
       <p class="status">04</p>
       <h2 id="cta-title">{copy.cta}</h2>
-      <p>{copy.ctaBody}</p>
     </div>
     <a class="button" href={getLocalizedPath("/about/", locale)}>
       {copy.aboutAction}
