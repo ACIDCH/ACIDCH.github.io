@@ -34,7 +34,7 @@ describe("Regression and statistics Learning Notes", () => {
       "REG 06",
       "REG 07",
     ]);
-    expect(series?.modules.at(-1)?.title).toBe("Logistic Regression");
+    expect(series?.modules.at(-1)?.title).toBe("逻辑回归");
   });
 
   it("keeps all seven regression notes published and in sequence", () => {
