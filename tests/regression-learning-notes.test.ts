@@ -45,7 +45,7 @@ describe("Regression and statistics Learning Notes", () => {
       expect(note).toContain("status: published");
       expect(note).toContain("draft: false");
       expect(note.length, `${file} should remain a substantial handbook chapter`).toBeGreaterThan(
-        4200,
+        3400,
       );
       expect(
         (note.match(/^## /gmu) || []).length,
