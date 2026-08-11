@@ -18,6 +18,7 @@ const layout = read("src/layouts/RegressionNoteLayout.astro");
 const blocks = read("src/components/learning/RegressionLearningBlocks.astro");
 const taxonomy = read("src/data/note-tag-taxonomy.ts");
 const noteList = read("src/components/NoteList.astro");
+const buildValidator = read("scripts/validate-ci.mjs");
 
 describe("Regression and statistics Learning Notes", () => {
   it("publishes a seven-module regression roadmap", () => {
@@ -104,6 +105,12 @@ describe("Regression and statistics Learning Notes", () => {
     expect(taxonomy).toContain("return tags.slice(0, 2)");
     expect(noteList).toContain("getCanonicalNoteTags(entry)");
     expect(noteList).toContain('data-tags={canonicalTags.join("|")');
+  });
+
+  it("allows the R I() function without exempting natural-language first person", () => {
+    expect(buildValidator).toContain('"I("');
+    expect(buildValidator).toContain("/\\b(?:I|Me|me|My|my|Mine|mine|We|we|Our|our|Ours|ours)\\b/");
+    expect(notes[2]).toContain("I(x^2)");
   });
 
   it("keeps public regression notes free of private, course-facing and first-person labels", () => {
