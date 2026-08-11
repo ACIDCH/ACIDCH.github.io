@@ -71,38 +71,8 @@ jobs:
       - name: Lint JavaScript and TypeScript
         run: npm run lint
 
-      - name: Diagnostic · editorial voice
-        continue-on-error: true
-        run: npx vitest run tests/learning-notes-editorial-voice.test.ts
-
-      - name: Diagnostic · SQL content integrity
-        continue-on-error: true
-        run: npx vitest run tests/sql-content-integrity.test.ts
-
-      - name: Diagnostic · SQL learning notes
-        continue-on-error: true
-        run: npx vitest run tests/sql-learning-note.test.ts
-
-      - name: Diagnostic · regression notes
-        continue-on-error: true
-        run: npx vitest run tests/regression-learning-notes.test.ts
-
-      - name: Diagnostic · decision-model notes
-        continue-on-error: true
-        run: npx vitest run tests/decision-models-learning-notes.test.ts
-
-      - name: Diagnostic · learning series
-        continue-on-error: true
-        run: npx vitest run tests/learning-series.test.ts
-
-      - name: Diagnostic · complete Vitest suite
-        run: npx vitest run
-
-      - name: Diagnostic · sensitive-content scan
-        run: npm run check:sensitive
-
-      - name: Diagnostic · legacy churn asset scan
-        run: npm run check:legacy-churn-assets
+      - name: Run tests and public-content security scan
+        run: npm run test
 
       - name: Audit production dependencies
         run: npm audit --audit-level=high
