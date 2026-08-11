@@ -153,28 +153,32 @@ describe("SQL Learning Notes integrity contract", () => {
     const where = read("src/content/notes/sql-where.zh.md");
     const orderBy = read("src/content/notes/sql-order-by.zh.md");
 
-    expect(primary).toContain("AUTO_INCREMENT` 是 MySQL 方言");
+    expect(primary).toContain("在 MySQL 中常见");
+    expect(primary).toContain("AUTO_INCREMENT PRIMARY KEY");
+    expect(primary).toContain("PostgreSQL 更常见 identity column");
     expect(primary).toContain("SQLite 的 INTEGER PRIMARY KEY 有什么特殊之处");
+    expect(primary).toContain("不是同一种实现");
     expect(foreign).toContain("PRAGMA foreign_keys = ON");
     expect(foreign).toContain("ADD CONSTRAINT fk_orders_customer");
-    expect(foreign).toContain("SQLite 的 `ALTER TABLE` 支持范围比 MySQL/PostgreSQL 受限");
-    expect(where).toContain("标准 SQL 常用");
-    expect(where).toContain("`LIKE` 的大小写行为、字符排序与 collation 规则会随数据库与配置变化");
-    expect(orderBy).toContain("不同数据库对默认 NULL 排序位置并不完全一致");
-    expect(orderBy).toContain("SQLite / MySQL");
-    expect(orderBy).toContain("PostgreSQL");
+    expect(foreign).toContain("SQLite 的 `ALTER TABLE` 能力和 MySQL、PostgreSQL 并不完全一样");
+    expect(where).toContain("文本筛选常用 `LIKE`");
+    expect(where).toContain("不同数据库对大小写敏感、排序规则和 pattern matching 的细节可能不同");
+    expect(orderBy).toContain("不同数据库的默认位置可能不同");
+    expect(orderBy).toContain("PostgreSQL 支持");
     expect(orderBy).toContain("NULLS FIRST");
     expect(orderBy).toContain("NULLS LAST");
+    expect(orderBy).toContain("collation");
   });
 
   it("keeps SELECT semantics explicit and appropriate for the local sql.js environment", () => {
     const select = read("src/content/notes/sql-select.zh.md");
-    expect(select).toContain("3 rows × 5 columns");
-    expect(select).toContain("4 rows × 4 columns");
-    expect(select).toContain("SELECT 100 + 200;");
+    expect(select).toContain("3 行、5 列");
+    expect(select).toContain("SELECT 本身不负责筛选");
+    expect(select).toContain("SELECT 2 + 3 AS result;");
     expect(select).toContain("SELECT 1 AS execution_ok;");
     expect(select).toContain("没有 `ORDER BY` 时");
-    expect(select).toContain("并不存在浏览器到远程数据库服务器的网络连接");
+    expect(select).toContain("sql.js");
+    expect(select).toContain("浏览器本地");
   });
 
   it("keeps WHERE examples numerically aligned with the canonical orders", () => {
