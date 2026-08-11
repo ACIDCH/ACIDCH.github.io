@@ -1,0 +1,277 @@
+<section class="sampling-lab" data-sampling-precision-lab aria-labelledby="sampling-lab-title">
+  <div class="sampling-lab__intro">
+    <p class="learning-note-kicker">互动图表 · 抽样精度</p>
+    <h3 id="sampling-lab-title">样本变多以后，区间究竟会缩多少？</h3>
+    <p>
+      固定样本比例为 42%，改变样本量和置信水平。这里使用常见的大样本比例正态近似，重点观察
+      standard error 与 margin of error 的变化，而不是把这个示例当成所有比例区间的唯一算法。
+    </p>
+  </div>
+
+  <div class="sampling-lab__controls">
+    <label>
+      <span>样本量 n：<output data-sampling-n-output>100</output></span>
+      <input data-sampling-n type="range" min="25" max="1600" step="25" value="100" />
+    </label>
+    <label>
+      <span>置信水平</span>
+      <select data-sampling-confidence>
+        <option value="1.645">90%</option>
+        <option value="1.96" selected>95%</option>
+        <option value="2.576">99%</option>
+      </select>
+    </label>
+    <button class="button button--secondary" type="button" data-sampling-reset>恢复默认</button>
+  </div>
+
+  <div class="sampling-lab__metrics" aria-live="polite">
+    <dl><dt>样本比例</dt><dd>0.420</dd></dl>
+    <dl><dt>Standard error</dt><dd data-sampling-se>0.049</dd></dl>
+    <dl><dt>Margin of error</dt><dd data-sampling-margin>0.096</dd></dl>
+    <dl><dt>区间宽度</dt><dd data-sampling-width>0.192</dd></dl>
+  </div>
+
+  <figure class="sampling-lab__figure">
+    <svg viewBox="0 0 760 180" role="img" aria-label="样本比例置信区间随样本量和置信水平变化" data-sampling-svg></svg>
+    <figcaption data-sampling-message>
+      样本量从 100 增加到 400 时，standard error 大约减半；这就是 1/√n 关系在图上的表现。
+    </figcaption>
+  </figure>
+</section>
+
+<style>
+  .sampling-lab {
+    margin: var(--space-12) 0;
+    padding: var(--space-7) 0 var(--space-8);
+    border-top: 1px solid var(--colour-border-strong);
+    border-bottom: 1px solid var(--colour-border-strong);
+  }
+
+  .sampling-lab__intro {
+    max-width: 58rem;
+  }
+
+  .sampling-lab__intro h3 {
+    margin: var(--space-2) 0 var(--space-3);
+    font-size: clamp(1.35rem, 1.5vw, 1.8rem);
+    line-height: 1.35;
+  }
+
+  .sampling-lab__intro p:last-child,
+  .sampling-lab__figure figcaption {
+    color: var(--colour-text-muted);
+  }
+
+  .sampling-lab__controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(8rem, 0.55fr) auto;
+    gap: var(--space-5);
+    align-items: end;
+    margin: var(--space-7) 0;
+  }
+
+  .sampling-lab__controls label {
+    display: grid;
+    gap: var(--space-2);
+    min-width: 0;
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .sampling-lab__controls input,
+  .sampling-lab__controls select {
+    width: 100%;
+  }
+
+  .sampling-lab__controls select {
+    min-height: 2.65rem;
+    padding: 0 var(--space-3);
+    border: 1px solid var(--colour-border-strong);
+    border-radius: var(--radius-sm);
+    background: var(--colour-surface);
+    color: var(--colour-text);
+  }
+
+  .sampling-lab__metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-5);
+    margin-bottom: var(--space-7);
+  }
+
+  .sampling-lab__metrics dl {
+    margin: 0;
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--colour-border);
+  }
+
+  .sampling-lab__metrics dt {
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-xs);
+  }
+
+  .sampling-lab__metrics dd {
+    margin: var(--space-1) 0 0;
+    font-size: clamp(1.25rem, 2vw, 1.75rem);
+    font-weight: var(--font-weight-semibold);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .sampling-lab__figure {
+    margin: 0;
+  }
+
+  .sampling-lab__figure svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    color: var(--colour-text-muted);
+  }
+
+  .sampling-lab__figure figcaption {
+    max-width: 58rem;
+    margin-top: var(--space-3);
+    font-size: var(--font-size-sm);
+    line-height: 1.75;
+  }
+
+  @media (max-width: 48rem) {
+    .sampling-lab__controls {
+      grid-template-columns: 1fr;
+      align-items: stretch;
+    }
+
+    .sampling-lab__controls .button {
+      width: fit-content;
+    }
+
+    .sampling-lab__metrics {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+</style>
+
+<script>
+  let samplingCleanup: (() => void) | undefined;
+
+  function initSamplingPrecisionLab() {
+    samplingCleanup?.();
+    const roots = Array.from(
+      document.querySelectorAll<HTMLElement>("[data-sampling-precision-lab]"),
+    );
+    if (roots.length === 0) return;
+
+    const controllers: AbortController[] = [];
+    const ns = "http://www.w3.org/2000/svg";
+    const pHat = 0.42;
+
+    roots.forEach((root) => {
+      const nInput = root.querySelector<HTMLInputElement>("[data-sampling-n]");
+      const nOutput = root.querySelector<HTMLOutputElement>("[data-sampling-n-output]");
+      const confidence = root.querySelector<HTMLSelectElement>("[data-sampling-confidence]");
+      const seOutput = root.querySelector<HTMLElement>("[data-sampling-se]");
+      const marginOutput = root.querySelector<HTMLElement>("[data-sampling-margin]");
+      const widthOutput = root.querySelector<HTMLElement>("[data-sampling-width]");
+      const reset = root.querySelector<HTMLButtonElement>("[data-sampling-reset]");
+      const svg = root.querySelector<SVGSVGElement>("[data-sampling-svg]");
+      const message = root.querySelector<HTMLElement>("[data-sampling-message]");
+      if (!nInput || !nOutput || !confidence || !seOutput || !marginOutput || !widthOutput || !reset || !svg || !message) return;
+
+      const controller = new AbortController();
+      controllers.push(controller);
+
+      const make = (tag: string, attrs: Record<string, string | number>) => {
+        const node = document.createElementNS(ns, tag);
+        Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, String(value)));
+        svg.append(node);
+        return node;
+      };
+
+      const draw = () => {
+        const n = Number(nInput.value);
+        const z = Number(confidence.value);
+        const level = confidence.selectedOptions[0]?.textContent ?? "95%";
+        const se = Math.sqrt((pHat * (1 - pHat)) / n);
+        const margin = z * se;
+        const lower = Math.max(0, pHat - margin);
+        const upper = Math.min(1, pHat + margin);
+
+        nOutput.value = String(n);
+        seOutput.textContent = se.toFixed(3);
+        marginOutput.textContent = margin.toFixed(3);
+        widthOutput.textContent = (upper - lower).toFixed(3);
+
+        svg.replaceChildren();
+        const left = 70;
+        const right = 720;
+        const centerY = 82;
+        const xScale = (value: number) => left + value * (right - left);
+
+        [0, 0.25, 0.5, 0.75, 1].forEach((tick) => {
+          make("line", {
+            x1: xScale(tick), y1: 40, x2: xScale(tick), y2: 116,
+            stroke: "var(--colour-border)", "stroke-width": 1,
+          });
+          const label = make("text", {
+            x: xScale(tick), y: 132, fill: "currentColor", "font-size": 11, "text-anchor": "middle",
+          });
+          label.textContent = tick.toFixed(2);
+        });
+
+        make("line", {
+          x1: xScale(lower), y1: centerY, x2: xScale(upper), y2: centerY,
+          stroke: "var(--colour-primary)", "stroke-width": 6, "stroke-linecap": "round",
+        });
+        make("line", {
+          x1: xScale(lower), y1: centerY - 13, x2: xScale(lower), y2: centerY + 13,
+          stroke: "var(--colour-primary)", "stroke-width": 2,
+        });
+        make("line", {
+          x1: xScale(upper), y1: centerY - 13, x2: xScale(upper), y2: centerY + 13,
+          stroke: "var(--colour-primary)", "stroke-width": 2,
+        });
+        make("circle", {
+          cx: xScale(pHat), cy: centerY, r: 7,
+          fill: "var(--colour-text)",
+        });
+
+        const estimate = make("text", {
+          x: xScale(pHat), y: 58, fill: "currentColor", "font-size": 12, "text-anchor": "middle",
+        });
+        estimate.textContent = "p̂ = 0.42";
+
+        const interval = make("text", {
+          x: (xScale(lower) + xScale(upper)) / 2, y: 24, fill: "currentColor", "font-size": 12, "text-anchor": "middle",
+        });
+        interval.textContent = `${level} interval: ${lower.toFixed(3)}–${upper.toFixed(3)}`;
+
+        if (n >= 400 && z <= 1.96) {
+          message.textContent = "样本量较大时 standard error 明显缩小；在相同置信水平下，区间随之收窄。";
+        } else if (z > 2) {
+          message.textContent = "99% 置信水平需要更大的临界值，因此即使样本量不变，区间也会比 95% 更宽。";
+        } else {
+          message.textContent = "把 n 扩大四倍，standard error 大约减半；提高置信水平则会把区间重新拉宽。";
+        }
+      };
+
+      const resetLab = () => {
+        nInput.value = "100";
+        confidence.value = "1.96";
+        draw();
+        nInput.focus();
+      };
+
+      nInput.addEventListener("input", draw, { signal: controller.signal });
+      confidence.addEventListener("change", draw, { signal: controller.signal });
+      reset.addEventListener("click", resetLab, { signal: controller.signal });
+      draw();
+    });
+
+    samplingCleanup = () => controllers.forEach((controller) => controller.abort());
+  }
+
+  document.addEventListener("astro:before-swap", () => samplingCleanup?.());
+  document.addEventListener("astro:page-load", initSamplingPrecisionLab);
+  initSamplingPrecisionLab();
+</script>

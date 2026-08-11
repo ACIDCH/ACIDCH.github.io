@@ -81,8 +81,9 @@ describe("SQL 08 ORDER BY Learning Note", () => {
   it("makes SQL handbook TOCs derive from rendered headings instead of copied IDs", () => {
     expect(layout).toContain("const { Content, headings } = await render(entry)");
     expect(layout).toContain('entry.data.seriesSlug === "sql"');
-    expect(layout).toContain("const sqlGeneratedToc = headings");
+    expect(layout).toContain("const generatedToc = headings");
     expect(layout).toContain("heading.depth === 2");
+    expect(layout).toContain("const learningToc = isStatisticsHandbook ? statisticsToc : generatedToc");
     expect(layout).toContain("<OrderByLab />");
     expect(layout).not.toContain("const sqlOrderByToc");
   });

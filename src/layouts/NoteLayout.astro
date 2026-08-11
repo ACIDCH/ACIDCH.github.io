@@ -16,6 +16,7 @@ import ProjectionColumnsLab from "../components/learning/ProjectionColumnsLab.as
 import RegressionLab from "../components/learning/RegressionLab.astro";
 import RelationalModelExplorer from "../components/learning/RelationalModelExplorer.astro";
 import RelationshipCardinalityLab from "../components/learning/RelationshipCardinalityLab.astro";
+import SamplingPrecisionLab from "../components/learning/SamplingPrecisionLab.astro";
 import SqlDatasetExplorer from "../components/learning/SqlDatasetExplorer.astro";
 import SqlPlayground from "../components/learning/SqlPlayground.astro";
 import WhereFilterLab from "../components/learning/WhereFilterLab.astro";
@@ -30,7 +31,10 @@ interface Props {
 
 const { entry, alternatePath } = Astro.props;
 const { Content, headings } = await render(entry);
+const isStatisticsEditorial = entry.data.seriesSlug === "r-statistics";
 const isStatisticsHandbook = entry.data.slug === "descriptive-statistics";
+const isSamplingEstimation = entry.data.slug === "stat-sampling-estimation";
+const isIntervalEstimation = entry.data.slug === "stat-interval-estimation";
 const isSqlEditorial = entry.data.seriesSlug === "sql";
 const isSqlOverview = entry.data.slug === "sql-relational-data";
 const isSqlPrimaryKey = entry.data.slug === "sql-primary-key";
@@ -41,7 +45,7 @@ const isSqlWhere = entry.data.slug === "sql-where";
 const isSqlProjection = entry.data.slug === "sql-projection";
 const isSqlOrderBy = entry.data.slug === "sql-order-by";
 const isSqlPagination = entry.data.slug === "sql-pagination";
-const isHandbook = isStatisticsHandbook || isSqlEditorial;
+const isHandbook = isStatisticsEditorial || isSqlEditorial;
 
 const statisticsToc = [
   {
@@ -118,15 +122,15 @@ const statisticsToc = [
   { id: "一条完整的统计学习路径", label: "完整学习路径" },
 ];
 
-const sqlGeneratedToc = headings
+const generatedToc = headings
   .filter((heading) => heading.depth === 2 && heading.slug !== "写在前面")
   .map((heading) => ({ id: heading.slug, label: heading.text }));
-const learningToc = isSqlEditorial ? sqlGeneratedToc : statisticsToc;
+const learningToc = isStatisticsHandbook ? statisticsToc : generatedToc;
 const handbookTitle = isSqlOverview
   ? "SQL 与关系数据"
-  : isSqlEditorial
-    ? entry.data.title
-    : "统计学与 R";
+  : isStatisticsHandbook
+    ? "统计学与 R"
+    : entry.data.title;
 
 const notes = await getCollection("notes");
 const projects = await getCollection("projects");
@@ -214,6 +218,16 @@ const noteStructuredData = {
                       <RegressionLab />
                     </div>
                   </>
+                )
+              }
+              {
+                (isSamplingEstimation || isIntervalEstimation) && (
+                  <div
+                    class="learning-note__inline-block"
+                    data-learning-block="sampling-precision-lab"
+                  >
+                    <SamplingPrecisionLab />
+                  </div>
                 )
               }
               {
