@@ -2,8 +2,8 @@
 translationKey: logistic-regression
 locale: zh
 slug: logistic-regression
-title: Logistic Regression：从 Log-Odds 到概率、阈值与分类决策
-summary: 系统理解二元结果为何不适合普通线性回归，推导 logit、odds 与 probability 的关系，解释 odds ratio、预测概率、置信区间和分类阈值，并把模型输出连接到业务成本与分类错误。
+title: 逻辑回归
+summary: 当结果只有“是或否”时，普通线性回归就不太合适。这里从概率和 odds 开始，讲清 Logistic Regression 的系数、odds ratio、预测概率和分类阈值。
 tags:
   - LogisticRegression
   - OddsRatio
@@ -31,260 +31,257 @@ relatedNotes:
   - descriptive-statistics
 ---
 
-## 为什么二元结果不能直接照搬 OLS
+## 结果只有 0 和 1 时，问题已经变了
 
-当结果变量只有 0/1，例如是否流失、是否延迟、是否违约、是否故障，普通线性回归会遇到明显问题：预测值可能小于 0 或大于 1，而且误差方差天然依赖于预测概率。
+有些业务结果不是连续数值，而是两种状态：客户是否流失、订单是否延迟、设备是否故障、申请是否违约。
 
-对于 Bernoulli 结果：
+这时 Y 只有 0 和 1：
 
 \[
-Y\in\{0,1\},\qquad P(Y=1\mid X)=p(X)
+Y\in\{0,1\}
 \]
 
-Logistic Regression 不直接把 Y 的均值写成一条无限延伸的直线，而是把概率通过 logit link 映射到整个实数轴：
+真正需要估计的不是一个可以无限增减的连续均值，而是事件发生的概率：
+
+\[
+P(Y=1\mid X)=p(X)
+\]
+
+如果直接套普通线性回归，预测值可能小于 0 或大于 1，而且误差方差会随着概率改变。这样的模型可以做粗略探索，却不是二元结果最自然的表达方式。
+
+Logistic Regression 的做法是把概率先转换到一个可以落在整个实数轴上的尺度上。
+
+## 从 probability 到 odds
+
+假设某位客户流失的概率是 0.8，那么不流失的概率就是 0.2。
+
+Odds 定义为：
+
+\[
+odds=\frac{p}{1-p}
+\]
+
+所以：
+
+```text
+p = 0.80
+odds = 0.80 / 0.20 = 4
+```
+
+意思是“事件发生”和“不发生”的相对机会是 4:1。
+
+概率 0.5 对应 odds=1；概率小于 0.5 时 odds<1；概率大于 0.5 时 odds>1。
+
+Odds 和 probability 可以互相转换：
+
+\[
+p=\frac{odds}{1+odds}
+\]
+
+这个转换是理解逻辑回归系数的第一步。
+
+## Log-odds 把 0 到 1 的概率拉到整条数轴
+
+概率被限制在 0 到 1，odds 被限制在 0 到正无穷。再对 odds 取对数，就得到 log-odds：
+
+\[
+\log\left(\frac{p}{1-p}\right)
+\]
+
+它可以取任意实数。
+
+逻辑回归把这个量写成解释变量的线性组合：
 
 \[
 \log\left(\frac{p}{1-p}\right)=\beta_0+\beta_1X_1+\cdots+\beta_pX_p
 \]
 
-左侧称为 log-odds。
+这就是 logit link。
 
-## Probability、Odds 与 Log-Odds
-
-概率：
-
-\[
-p=P(Y=1)
-\]
-
-odds：
-
-\[
-Odds=\frac{p}{1-p}
-\]
-
-例如 p=0.8，则 odds=4，表示事件发生与不发生的相对机会为 4:1。
-
-log-odds：
-
-\[
-\log(Odds)=\log\left(\frac{p}{1-p}\right)
-\]
-
-logistic model 在线性预测器尺度上是线性的，但转换回概率后形成 S 型曲线：
-
-\[
-p=\frac{\exp(\eta)}{1+\exp(\eta)},\qquad \eta=X\beta
-\]
-
-因此，X 增加一个单位不会让概率在所有位置都增加固定数值。靠近 p=0.5 的区域，概率变化往往更敏感；接近 0 或 1 时同样的 log-odds 变化产生较小概率变化。
+右边仍然是一条线性预测器，但经过反向转换以后，最终概率会形成一条 S 形曲线，并且始终留在 0 和 1 之间。
 
 <div data-learning-slot="logistic-regression-lab"></div>
 
-## Logistic 系数直接作用在 Log-Odds 上
+## 系数不能直接解释成“概率增加多少”
 
-单变量模型：
+在线性回归里，斜率经常能直接说成 Y 平均增加多少。逻辑回归不是这样。
 
-\[
-\log\left(\frac{p}{1-p}\right)=\beta_0+\beta_1X
-\]
-
-X 每增加 1，log-odds 增加 \(\beta_1\)。指数化系数：
+\(\beta_j\) 表示 Xj 每增加 1 个单位，**log-odds** 改变 \(\beta_j\)。这个尺度对业务读者通常不够直观，所以更常把系数指数化：
 
 \[
-\exp(\beta_1)
+OR=e^{\beta_j}
 \]
 
 得到 odds ratio。
 
-若 \(\exp(\beta_1)=1.25\)，可以解释为：在其他变量保持不变时，X 每增加 1，事件 odds 乘以 1.25，也就是增加 25%。
-
-这不是“概率增加 25%”。odds ratio 与 probability change 是不同尺度。
-
-## Odds Ratio 的解释必须带上单位
-
-如果 X 是温度、金额、年龄、距离等连续变量，一个单位可能太小或太大。可以把变量缩放成更有意义的单位，例如每 10 km：
+如果某个系数是：
 
 \[
-X_{10}=Distance/10
+\beta_j=0.693
 \]
 
-此时 OR 表示每增加 10 km 的 odds 变化，更容易沟通。
-
-对于类别变量，OR 通常相对于 reference group。例如 premium 客户的 OR=0.65，表示在其他变量相同条件下，其事件 odds 是基准客户的 0.65 倍。
-
-## 截距通常不需要强行解释
-
-\(\beta_0\) 表示所有连续变量为 0、类别变量处于 reference 时的 log-odds。如果这些零值没有业务意义，截距只用于定位概率曲线。
-
-通过中心化连续变量，可以让截距对应更合理的基准场景，例如平均距离、平均订单规模下的事件概率。
-
-## 最大似然代替最小二乘
-
-Logistic Regression 通常通过 maximum likelihood estimation 估计参数。每条记录对似然的贡献来自模型给真实结果赋予的概率。
-
-对 Bernoulli 数据：
+那么：
 
 \[
-L(\beta)=\prod_i p_i^{y_i}(1-p_i)^{1-y_i}
+e^{0.693}\approx2
 \]
 
-实际计算使用 log-likelihood。模型会寻找使观察到的 0/1 结果整体最可能出现的参数。
+可以说，在模型中的其他变量保持不变时，Xj 增加 1 个单位，对应的 odds 大约变成原来的 2 倍。
 
-因此，Logistic 的 deviance 与线性回归 SSE 不是同一种度量。
+注意，这不是“概率翻倍”。Odds 和 probability 不是同一个尺度。
 
-## Deviance 与 Likelihood Ratio Test
+## 同一个 odds ratio，在不同基准概率下影响不同
 
-Null deviance 对应只有截距的模型；residual deviance 对应加入解释变量后的模型。
+假设 odds 翻倍。
 
-比较 nested logistic models 时，deviance difference 可以形成 likelihood ratio test：
+如果原来的概率只有 0.10：
 
-\[
-2(\ell_{full}-\ell_{reduced})
-\]
-
-在适当条件下近似服从卡方分布，用来判断新增变量组是否显著改善模型。
-
-## Wald Test 与置信区间
-
-`summary(glm(...))` 中常见 z test 使用：
-
-\[
-z=\frac{\hat\beta_j}{SE(\hat\beta_j)}
-\]
-
-对于 odds ratio，置信区间可以在 log-odds 尺度构造后指数化：
-
-\[
-\exp(\hat\beta_j\pm z_{\alpha/2}SE)
-\]
-
-如果 OR 区间跨过 1，说明在该置信水平下没有足够证据排除“odds 不变”。
-
-## 预测概率比单独系数更接近业务决策
-
-对某个具体客户或订单，最直接输出是：
-
-\[
-\hat p=P(Y=1\mid X)
-\]
-
-例如流失概率 0.73、延迟概率 0.42。概率可以直接进入资源分配、排序、预警或成本模型。
-
-但一个概率值本身还不是分类决策。要把概率转成类别，需要阈值。
-
-## 分类阈值不是固定 0.5
-
-常见默认规则：
-
-\[
-\hat y=1\quad\text{if}\quad \hat p\ge 0.5
-\]
-
-0.5 只是一个方便默认值，不是统计定律。
-
-如果漏掉一次高风险事件代价很高，可以降低阈值，提高 recall，但通常会增加 false positives。如果人工复核资源昂贵，则可能提高阈值。
-
-阈值应该由业务损失、容量和风险偏好决定。
-
-## Confusion Matrix
-
-在给定阈值后：
-
-| | 实际 1 | 实际 0 |
-| --- | --- | --- |
-| 预测 1 | TP | FP |
-| 预测 0 | FN | TN |
-
-常见指标：
-
-\[
-Recall=\frac{TP}{TP+FN}
-\]
-
-\[
-Precision=\frac{TP}{TP+FP}
-\]
-
-\[
-Specificity=\frac{TN}{TN+FP}
-\]
-
-不同指标对应不同错误成本，因此不存在脱离业务目标的“最佳阈值”。
-
-## 概率校准与排序能力要区分
-
-一个模型可以很会排序高风险与低风险样本，却把 0.8 风险实际预测成 0.6；也可以概率校准很好，但区分能力一般。
-
-对于需要用概率做成本期望、库存准备或风险定价的场景，calibration 尤其重要。只报告 accuracy 或 AUC 不足以说明概率质量。
-
-## Link Function 不只有 Logit
-
-二元 GLM 还可以使用 probit、complementary log-log 等 link。它们在中间概率区域往往相近，但尾部行为不同。
-
-Logit 的优势是 odds ratio 解释直接，因此商业分析中非常常见。选择其他 link 应有数据生成过程或建模目的支持，而不是为了微小拟合改善随意替换。
-
-## R 中建立 Logistic Regression
-
-```r
-model <- glm(
-  late_delivery ~ distance_km + order_size + priority,
-  data = delivery,
-  family = binomial(link = "logit")
-)
-
-summary(model)
-exp(coef(model))
-exp(confint(model))
-
-new_orders <- data.frame(
-  distance_km = c(20, 70),
-  order_size = c(3, 8),
-  priority = c("standard", "priority")
-)
-
-predict(model, newdata = new_orders, type = "response")
+```text
+odds = 0.10 / 0.90 = 0.111
+翻倍后 odds = 0.222
+新概率 ≈ 0.182
 ```
 
-要注意类别变量的 reference level、训练数据因子 levels 和新数据编码一致。
+概率从 10% 上升到约 18.2%。
 
-## Separation 会让系数失控
+如果原来的概率是 0.50：
 
-如果某个变量或组合能完美区分 0 与 1，就可能出现 complete separation。此时最大似然估计会把某些系数推向非常大的绝对值，标准误也异常。
+```text
+odds = 1
+翻倍后 odds = 2
+新概率 = 2 / 3 ≈ 0.667
+```
 
-例如样本中所有“critical”订单都发生延迟，而其他订单都不延迟。普通 logistic 输出可能表现为巨大系数而不是简单报错。
+概率从 50% 上升到约 66.7%。
 
-解决方向包括增加数据、重新定义稀有类别、使用 penalized logistic 或适合 separation 的估计方法。
+所以 odds ratio 很适合描述乘法变化，但如果最终要做业务决策，通常还应该把结果转换回概率。
 
-## 类别不平衡不能只看 Accuracy
+## 预测概率是怎么得到的
 
-若只有 3% 样本为正类，全部预测 0 就有 97% accuracy，却完全没有业务价值。
+先计算线性预测器：
 
-此时更需要关注 recall、precision、PR curve、cost-sensitive threshold 和概率校准。训练阶段也要避免把 re-sampling 后的人工类别比例直接当成真实概率基准。
+\[
+\eta=\beta_0+\beta_1X_1+\cdots+\beta_pX_p
+\]
 
-## Logistic Regression 与解释边界
+再通过 logistic 函数转回概率：
 
-即使加入多个控制变量，odds ratio 仍然是条件关联，不自动形成因果结论。若变量本身由事件之后才产生，还可能发生 target leakage。
+\[
+p=\frac{1}{1+e^{-\eta}}
+\]
 
-例如使用“取消后产生的工单状态”预测取消，模型性能再高也无法提前决策。
+R 中可以直接得到概率：
 
-## 一条完整建模流程
+```r
+model <- glm(churn ~ tenure + monthly_charge,
+             data = customer_df,
+             family = binomial())
 
-二元回归应形成：业务事件定义 → 时间窗口与观察单位 → 探索类别比例 → 特征时间可用性 → logistic 估计 → 系数/OR 与预测概率解释 → calibration 与 discrimination → 阈值成本 → 样本外验证 → 监控概率漂移。
+prob <- predict(model, type = "response")
+```
 
-## 常见错误
+`type = "response"` 返回的是概率，而不是 log-odds。
 
-- 把 Logistic 系数直接解释成概率变化。
-- 把 odds ratio 误写成 probability ratio。
-- 默认 0.5 是最优阈值。
-- 类别极不平衡时只报 accuracy。
-- 用训练集选择阈值并同时报告最终性能。
-- 忽略 separation 和巨大标准误。
-- 新数据 factor level 与训练集不一致。
-- 把事件之后的信息放进预测特征造成 leakage。
+如果要看模型系数：
 
-## 系列收束
+```r
+coef(model)
+```
 
-从简单线性回归到 Logistic Regression，这条路径的核心并不是记忆更多 R 函数，而是不断明确五件事：**估计对象是什么、模型条件是什么、诊断信号说明什么、复杂度为何增加、输出如何连接业务决策。**
+如果要看 odds ratio：
 
-当这五个问题能够稳定回答，回归模型才从代码练习变成可复查的分析工具。
+```r
+exp(coef(model))
+```
+
+## 概率和分类标签是两件事
+
+逻辑回归原生输出的是概率。要把概率变成 0/1 分类，还需要人为选择阈值。
+
+最常见的是 0.5：
+
+```r
+pred_class <- ifelse(prob >= 0.5, 1, 0)
+```
+
+但 0.5 并没有天然的业务优先级。
+
+假设识别流失客户时，漏掉一个真正会流失的客户代价很高，那么阈值可能需要降低，让模型更愿意判为正类。反过来，如果每一次干预都很昂贵，阈值可能需要提高。
+
+因此，阈值不是模型“算出来的最终答案”，而是模型概率和业务成本之间的连接点。
+
+## 阈值变化会改变错误类型
+
+二分类结果可以整理成 confusion matrix：
+
+```text
+                Actual 1   Actual 0
+Predicted 1        TP         FP
+Predicted 0        FN         TN
+```
+
+降低阈值通常会：
+
+- 找到更多正类，TP 增加；
+- 同时也会误报更多，FP 增加；
+- FN 通常下降。
+
+提高阈值往往相反。
+
+这就是 sensitivity / recall 和 specificity 之间常见的权衡。
+
+单纯追求 accuracy 很容易忽略业务成本。如果正类本来就很少，全部预测为 0 也可能得到很高 accuracy，却完全失去识别能力。
+
+## 系数显著不代表分类效果一定好
+
+逻辑回归仍然可以对系数做统计推断，查看标准误、z 统计量、p 值和置信区间。
+
+但“某个变量显著”与“模型分类很好”是两件不同的事。
+
+系数推断关注变量和 log-odds 的关系是否有证据；预测评估更关心概率排序、校准和阈值后的分类结果。
+
+因此，分类模型通常还需要查看：
+
+- ROC / AUC；
+- precision 与 recall；
+- confusion matrix；
+- calibration；
+- 不同阈值下的业务成本。
+
+这些指标回答的问题不同，不应该只挑一个最好看的数字。
+
+## 概率校准和排序能力也要分开
+
+一个模型可能很擅长把高风险客户排在前面，却把概率整体估得太高或太低。
+
+例如真实流失率大约 20%，模型却经常给出 50% 到 70% 的概率。它的排序能力可能不错，但概率本身不够可信。
+
+如果概率要进入预算、容量规划或风险定价，calibration 就非常重要。
+
+分类模型最终是只需要“谁更危险”的排序，还是需要“有多大概率”的数值，会影响评估方式。
+
+## 类别不平衡时不要只看默认结果
+
+如果正类比例很低，比如故障率只有 2%，模型训练和评估都需要更谨慎。
+
+这时：
+
+- accuracy 很容易虚高；
+- 默认 0.5 阈值可能几乎不预测正类；
+- precision 和 recall 更值得单独看；
+- PR curve 有时比 ROC 更能反映少数类表现；
+- 阈值需要结合实际干预能力设置。
+
+类别不平衡不是简单地“把少数类复制几遍”就结束。先确定业务目标和评价指标，再决定是否需要重采样或权重调整。
+
+## 一套更实用的逻辑回归阅读顺序
+
+1. 先确认 Y 真的是二元结果，并明确 1 代表什么；
+2. 看系数方向，再用 odds ratio 解释相对变化；
+3. 把关键案例转换成预测概率，避免只停在 log-odds；
+4. 检查置信区间，确认系数估计是否稳定；
+5. 用 AUC、precision、recall 和 calibration 评估概率模型；
+6. 根据 FP、FN 的实际代价选择分类阈值；
+7. 最后检查模型在新数据上的表现。
+
+逻辑回归最有价值的地方，不是把 0 和 1 分开，而是把解释变量和事件发生概率之间的关系写成一个可以解释、可以评估，也可以真正用于决策的模型。
