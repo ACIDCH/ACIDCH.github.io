@@ -42,7 +42,8 @@ const checks = [
     markers: [
       "生产力工具",
       "Unix",
-      "Git &amp; GitHub",
+      'id="git"',
+      "GitHub",
       "RStudio",
       "R Markdown",
       "Quarto",
@@ -56,7 +57,8 @@ const checks = [
     markers: [
       "Productivity",
       "Unix",
-      "Git &amp; GitHub",
+      'id="git"',
+      "GitHub",
       "RStudio",
       "Reproducible reports",
       "CC BY-NC-SA 4.0",
