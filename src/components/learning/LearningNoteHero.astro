@@ -1,15 +1,23 @@
 ---
+import { getEditorialNoteCopy } from "../../data/note-editorial-copy";
+
 interface Props {
   title: string;
   summary?: string;
 }
 
-const { title, summary } = Astro.props;
+const { title, summary = "" } = Astro.props;
+const segments = Astro.url.pathname.split("/").filter(Boolean);
+const notesIndex = segments.indexOf("notes");
+const slug = notesIndex >= 0 ? (segments[notesIndex + 1] ?? "") : "";
+const locale = Astro.url.pathname.startsWith("/zh/") ? "zh" : "en";
+const editorial = getEditorialNoteCopy({ slug, locale, title, summary });
+const displaySummary = editorial.summary || summary;
 ---
 
 <header class="learning-note-titlebar" data-learning-note-hero>
-  <h1>{title}</h1>
-  {summary && <p class="learning-note-titlebar__lead">{summary}</p>}
+  <h1>{editorial.title}</h1>
+  {displaySummary && <p class="learning-note-titlebar__lead">{displaySummary}</p>}
 </header>
 
 <style>
@@ -38,12 +46,7 @@ const { title, summary } = Astro.props;
   }
 
   @media (max-width: 48rem) {
-    .learning-note-titlebar {
-      margin-bottom: var(--space-7);
-    }
-
-    .learning-note-titlebar h1 {
-      font-size: clamp(2rem, 10vw, 2.8rem);
-    }
+    .learning-note-titlebar { margin-bottom: var(--space-7); }
+    .learning-note-titlebar h1 { font-size: clamp(2rem, 10vw, 2.8rem); }
   }
 </style>
