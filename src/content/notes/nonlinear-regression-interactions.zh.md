@@ -83,14 +83,14 @@ Y=\beta_0+\beta_1X+\beta_2X^2+\varepsilon
 5. 边界行为是否合理；
 6. 模型是否仍可稳定沟通。
 
-R 中可以显式写幂次：
+R 中可以直接使用原始幂次基：
 
 ```r
-model_quad <- lm(y ~ x + I(x^2), data = dat)
-model_cubic <- lm(y ~ x + I(x^2) + I(x^3), data = dat)
+model_quad <- lm(y ~ poly(x, 2, raw = TRUE), data = dat)
+model_cubic <- lm(y ~ poly(x, 3, raw = TRUE), data = dat)
 ```
 
-也可以使用 `poly()`。如果目的是直接解释原始幂次系数，需要注意 `poly()` 默认使用正交多项式基，而不是简单的原始 \(x,x^2,x^3\) 系数。
+`raw = TRUE` 让模型直接使用原始多项式幂次，便于与 \(x,x^2,x^3\) 的数学写法对应。若省略该参数，`poly()` 默认使用正交多项式基，预测曲线可以相同，但系数不再等于原始幂次项的直接系数，因此解释方式也不同。
 
 ## 转折点与边际效应比单个系数更有解释力
 
