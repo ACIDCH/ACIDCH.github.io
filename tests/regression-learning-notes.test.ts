@@ -38,12 +38,18 @@ describe("Regression and statistics Learning Notes", () => {
 
   it("keeps all seven regression notes published and in sequence", () => {
     notes.forEach((note, index) => {
+      const file = noteFiles[index];
       expect(note).toContain("seriesSlug: regression");
       expect(note).toContain(`order: ${index + 1}`);
       expect(note).toContain("status: published");
       expect(note).toContain("draft: false");
-      expect(note.length).toBeGreaterThan(4200);
-      expect((note.match(/^## /gmu) || []).length).toBeGreaterThanOrEqual(8);
+      expect(note.length, `${file} should remain a substantial handbook chapter`).toBeGreaterThan(
+        4200,
+      );
+      expect(
+        (note.match(/^## /gmu) || []).length,
+        `${file} should retain a navigable editorial hierarchy`,
+      ).toBeGreaterThanOrEqual(8);
     });
   });
 
