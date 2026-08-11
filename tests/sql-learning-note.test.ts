@@ -208,9 +208,9 @@ describe("SQL and relational data Learning Notes", () => {
   it("renders SQL 01 through SQL 09 through one editorial layout with generated TOCs", () => {
     expect(layout).toContain('const isSqlEditorial = entry.data.seriesSlug === "sql"');
     expect(layout).toContain("const { Content, headings } = await render(entry)");
-    expect(layout).toContain("const sqlGeneratedToc = headings");
+    expect(layout).toContain("const generatedToc = headings");
     expect(layout).toContain("heading.depth === 2");
-    expect(layout).toContain("const learningToc = isSqlEditorial ? sqlGeneratedToc : statisticsToc");
+    expect(layout).toContain("const learningToc = isStatisticsHandbook ? statisticsToc : generatedToc");
     [
       "sql-relational-data",
       "sql-primary-key",
