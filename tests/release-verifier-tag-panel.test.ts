@@ -12,8 +12,8 @@ describe("Learning Notes production verifier compatibility", () => {
 
     expect(explorer).toContain("tag-cloud-panel tag-cloud-panel--floating");
     expect(verifier).toContain('"tag-cloud-panel--floating"');
-    expect(verifier).not.toContain("'class=\"tag-cloud-panel\"'");
-    expect(verifier).toContain('class=\"learning-series-map\"');
-    expect(verifier).toContain('class=\"notes-results-heading\"');
+    expect(verifier).not.toContain(`'class="tag-cloud-panel"'`);
+    expect(verifier).toContain('class="learning-series-map"');
+    expect(verifier).toContain('class="notes-results-heading"');
   });
 });
