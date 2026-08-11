@@ -56,11 +56,16 @@ const pageChecks = [
       "主键",
       "外键",
       "表关系",
-      "SELECT",
-      "WHERE",
-      "Projection",
+      "SELECT 查询",
+      "WHERE 筛选",
+      "列选择与表达式",
     ],
-    forbiddenMarkers: [">简介<"],
+    forbiddenMarkers: [
+      ">简介<",
+      "表关系：一对多、多对多与一对一",
+      "非线性回归与交互项",
+      "供应链规划与运输分配",
+    ],
   },
   {
     path: "zh/notes/sql-relational-data/",
@@ -85,7 +90,7 @@ const pageChecks = [
   {
     path: "zh/notes/sql-primary-key/",
     markers: [
-      "主键：如何为每一条业务记录建立稳定身份",
+      "主键",
       "Primary Key",
       "联合主键",
       "UUID",
@@ -95,6 +100,8 @@ const pageChecks = [
       'data-sql-focus="keys"',
     ],
     forbiddenMarkers: [
+      "主键：如何为每一条业务记录建立稳定身份",
+      "记录身份证",
       "data-foreign-key-lab",
       "data-relationship-cardinality-lab",
       "data-where-filter-lab",
@@ -105,7 +112,7 @@ const pageChecks = [
   {
     path: "zh/notes/sql-foreign-key/",
     markers: [
-      "外键：如何让两张业务表保持可靠的引用关系",
+      "外键",
       "Foreign Key",
       "引用完整性",
       "PRAGMA foreign_keys",
@@ -116,6 +123,7 @@ const pageChecks = [
       'data-sql-focus="keys"',
     ],
     forbiddenMarkers: [
+      "外键：如何让两张业务表保持可靠的引用关系",
       "data-primary-key-lab",
       "data-relationship-cardinality-lab",
       "data-where-filter-lab",
@@ -126,7 +134,7 @@ const pageChecks = [
   {
     path: "zh/notes/sql-relationships/",
     markers: [
-      "表关系：一对多、多对多与一对一应该怎样建模",
+      "表关系",
       "One-to-Many",
       "Many-to-Many",
       "One-to-One",
@@ -135,6 +143,8 @@ const pageChecks = [
       "data-relationship-cardinality-lab",
     ],
     forbiddenMarkers: [
+      "表关系：一对多、多对多与一对一",
+      "表关系：一对多、多对多与一对一应该怎样建模",
       "50008",
       "data-primary-key-lab",
       "data-foreign-key-lab",
@@ -147,7 +157,7 @@ const pageChecks = [
   {
     path: "zh/notes/sql-select/",
     markers: [
-      "SELECT：从关系表中读取第一份结果集",
+      "SELECT 查询",
       "SELECT *",
       "Result Set",
       "SELECT 1",
@@ -157,6 +167,7 @@ const pageChecks = [
       'data-sql-focus="select"',
     ],
     forbiddenMarkers: [
+      "SELECT：从关系表中读取第一份结果集",
       "data-primary-key-lab",
       "data-foreign-key-lab",
       "data-relationship-cardinality-lab",
@@ -168,7 +179,7 @@ const pageChecks = [
   {
     path: "zh/notes/sql-where/",
     markers: [
-      "WHERE：把业务条件翻译成可验证的记录筛选",
+      "WHERE 筛选",
       "BETWEEN",
       "IS NULL",
       "三值逻辑",
@@ -178,6 +189,7 @@ const pageChecks = [
       'data-sql-focus="where"',
     ],
     forbiddenMarkers: [
+      "WHERE：把业务条件翻译成可验证的记录筛选",
       "50008",
       "data-primary-key-lab",
       "data-foreign-key-lab",
@@ -189,7 +201,7 @@ const pageChecks = [
   {
     path: "zh/notes/sql-projection/",
     markers: [
-      "Projection：只返回分析真正需要的列",
+      "列选择与表达式",
       "3 rows × 3 columns",
       "customer_key",
       "scenario_value",
@@ -199,6 +211,7 @@ const pageChecks = [
       'data-sql-focus="projection"',
     ],
     forbiddenMarkers: [
+      "Projection：只返回分析真正需要的列",
       "50008",
       "data-primary-key-lab",
       "data-foreign-key-lab",
