@@ -3,6 +3,11 @@ import { describe, expect, it } from "vitest";
 
 const expectedTitles: Record<string, string> = {
   "descriptive-statistics.zh.md": "统计学与 R",
+  "stat-data-types-scales.zh.md": "数据类型与尺度",
+  "stat-sampling-estimation.zh.md": "抽样与估计",
+  "stat-interval-estimation.zh.md": "区间估计",
+  "stat-hypothesis-testing.zh.md": "假设检验",
+  "stat-categorical-data-analysis.zh.md": "分类数据分析",
   "r-data-analysis-prediction.zh.md": "使用 R 进行数据分析和预测算法",
   "sql-relational-data.zh.md": "SQL 与关系数据",
   "sql-primary-key.zh.md": "主键",
@@ -42,8 +47,8 @@ function frontmatterValue(source: string, key: string) {
 }
 
 describe("Learning Notes editorial voice", () => {
-  it("keeps all 28 published Chinese handbook titles readable", () => {
-    expect(Object.keys(expectedTitles)).toHaveLength(28);
+  it("keeps all 33 published Chinese handbook titles readable", () => {
+    expect(Object.keys(expectedTitles)).toHaveLength(33);
 
     for (const [file, expectedTitle] of Object.entries(expectedTitles)) {
       const source = readNote(file);
@@ -103,6 +108,11 @@ describe("Learning Notes editorial voice", () => {
 
   it("keeps the public series map aligned with the article titles", () => {
     const series = readFileSync("src/data/learning-series.ts", "utf8");
+    expect(series).toContain('title: "数据类型与尺度"');
+    expect(series).toContain('title: "抽样与估计"');
+    expect(series).toContain('title: "区间估计"');
+    expect(series).toContain('title: "假设检验"');
+    expect(series).toContain('title: "分类数据分析"');
     expect(series).toContain('title: "表关系"');
     expect(series).toContain('title: "非线性回归"');
     expect(series).toContain('title: "供应链运输规划"');
