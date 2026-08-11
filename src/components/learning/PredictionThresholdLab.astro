@@ -1,0 +1,302 @@
+<section class="threshold-lab" data-prediction-threshold-lab aria-labelledby="threshold-lab-title">
+  <div class="threshold-lab__intro">
+    <p class="learning-note-kicker">互动图表 · 分类评估</p>
+    <h3 id="threshold-lab-title">阈值改变以后，模型的错误会怎样移动？</h3>
+    <p>
+      下面使用一组固定的客户流失概率。移动分类阈值后，模型本身的概率排序没有变化，但 TP、FP、FN、TN 以及 Sensitivity、Specificity、Precision 和 F1 会一起变化。
+    </p>
+  </div>
+
+  <label class="threshold-lab__control">
+    <span>分类阈值：<output data-threshold-output>0.50</output></span>
+    <input data-threshold-slider type="range" min="20" max="80" step="5" value="50" />
+  </label>
+
+  <div class="threshold-lab__matrix" aria-label="混淆矩阵" data-threshold-matrix>
+    <div class="threshold-lab__matrix-head"></div>
+    <div class="threshold-lab__matrix-head">实际流失</div>
+    <div class="threshold-lab__matrix-head">实际留存</div>
+    <div class="threshold-lab__matrix-label">预测流失</div>
+    <div><span>TP</span><strong data-threshold-tp>0</strong></div>
+    <div><span>FP</span><strong data-threshold-fp>0</strong></div>
+    <div class="threshold-lab__matrix-label">预测留存</div>
+    <div><span>FN</span><strong data-threshold-fn>0</strong></div>
+    <div><span>TN</span><strong data-threshold-tn>0</strong></div>
+  </div>
+
+  <div class="threshold-lab__metrics" aria-live="polite">
+    <dl><dt>Sensitivity</dt><dd data-threshold-sensitivity>0.00</dd></dl>
+    <dl><dt>Specificity</dt><dd data-threshold-specificity>0.00</dd></dl>
+    <dl><dt>Precision</dt><dd data-threshold-precision>0.00</dd></dl>
+    <dl><dt>F1</dt><dd data-threshold-f1>0.00</dd></dl>
+  </div>
+
+  <figure class="threshold-lab__plot">
+    <svg viewBox="0 0 760 250" role="img" aria-label="客户流失概率与分类阈值" data-threshold-svg></svg>
+    <figcaption data-threshold-message>
+      阈值较低时通常能找回更多实际流失客户，但误报也会增加。
+    </figcaption>
+  </figure>
+</section>
+
+<style>
+  .threshold-lab {
+    margin: var(--space-12) 0;
+    padding: var(--space-7) 0 var(--space-8);
+    border-top: 1px solid var(--colour-border-strong);
+    border-bottom: 1px solid var(--colour-border-strong);
+  }
+
+  .threshold-lab__intro {
+    max-width: 58rem;
+  }
+
+  .threshold-lab__intro h3 {
+    margin: var(--space-2) 0 var(--space-3);
+    font-size: clamp(1.35rem, 1.5vw, 1.8rem);
+    line-height: 1.35;
+  }
+
+  .threshold-lab__intro p:last-child,
+  .threshold-lab__plot figcaption {
+    color: var(--colour-text-muted);
+  }
+
+  .threshold-lab__control {
+    display: grid;
+    gap: var(--space-2);
+    max-width: 44rem;
+    margin: var(--space-6) 0;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .threshold-lab__control input {
+    width: 100%;
+  }
+
+  .threshold-lab__matrix {
+    display: grid;
+    grid-template-columns: minmax(7rem, 0.8fr) repeat(2, minmax(7rem, 1fr));
+    gap: 1px;
+    max-width: 42rem;
+    overflow: hidden;
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-md);
+    background: var(--colour-border);
+  }
+
+  .threshold-lab__matrix > div {
+    min-width: 0;
+    padding: var(--space-3);
+    background: var(--colour-surface);
+  }
+
+  .threshold-lab__matrix-head,
+  .threshold-lab__matrix-label {
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .threshold-lab__matrix > div:not(.threshold-lab__matrix-head):not(.threshold-lab__matrix-label) {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+
+  .threshold-lab__matrix span {
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-xs);
+  }
+
+  .threshold-lab__matrix strong {
+    font-size: 1.4rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .threshold-lab__metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-5);
+    margin: var(--space-7) 0;
+  }
+
+  .threshold-lab__metrics dl {
+    margin: 0;
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--colour-border);
+  }
+
+  .threshold-lab__metrics dt {
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-xs);
+  }
+
+  .threshold-lab__metrics dd {
+    margin: var(--space-1) 0 0;
+    font-size: clamp(1.25rem, 2vw, 1.8rem);
+    font-weight: var(--font-weight-semibold);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .threshold-lab__plot {
+    margin: 0;
+  }
+
+  .threshold-lab__plot svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    color: var(--colour-text-muted);
+  }
+
+  .threshold-lab__plot figcaption {
+    max-width: 58rem;
+    margin-top: var(--space-3);
+    font-size: var(--font-size-sm);
+    line-height: 1.75;
+  }
+
+  @media (max-width: 48rem) {
+    .threshold-lab__metrics {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .threshold-lab__matrix {
+      grid-template-columns: minmax(5.5rem, 0.8fr) repeat(2, minmax(5.5rem, 1fr));
+    }
+  }
+</style>
+
+<script>
+  let thresholdCleanup: (() => void) | undefined;
+
+  function initPredictionThresholdLab() {
+    thresholdCleanup?.();
+    const root = document.querySelector<HTMLElement>("[data-prediction-threshold-lab]");
+    if (!root) return;
+
+    const slider = root.querySelector<HTMLInputElement>("[data-threshold-slider]");
+    const thresholdOutput = root.querySelector<HTMLOutputElement>("[data-threshold-output]");
+    const tpOutput = root.querySelector<HTMLElement>("[data-threshold-tp]");
+    const fpOutput = root.querySelector<HTMLElement>("[data-threshold-fp]");
+    const fnOutput = root.querySelector<HTMLElement>("[data-threshold-fn]");
+    const tnOutput = root.querySelector<HTMLElement>("[data-threshold-tn]");
+    const sensitivityOutput = root.querySelector<HTMLElement>("[data-threshold-sensitivity]");
+    const specificityOutput = root.querySelector<HTMLElement>("[data-threshold-specificity]");
+    const precisionOutput = root.querySelector<HTMLElement>("[data-threshold-precision]");
+    const f1Output = root.querySelector<HTMLElement>("[data-threshold-f1]");
+    const message = root.querySelector<HTMLElement>("[data-threshold-message]");
+    const svg = root.querySelector<SVGSVGElement>("[data-threshold-svg]");
+    if (!slider || !thresholdOutput || !tpOutput || !fpOutput || !fnOutput || !tnOutput || !sensitivityOutput || !specificityOutput || !precisionOutput || !f1Output || !message || !svg) return;
+
+    const controller = new AbortController();
+    const ns = "http://www.w3.org/2000/svg";
+    const observations = [
+      { p: 0.92, actual: 1 }, { p: 0.84, actual: 1 }, { p: 0.79, actual: 0 },
+      { p: 0.73, actual: 1 }, { p: 0.68, actual: 1 }, { p: 0.61, actual: 0 },
+      { p: 0.57, actual: 1 }, { p: 0.49, actual: 0 }, { p: 0.44, actual: 1 },
+      { p: 0.38, actual: 0 }, { p: 0.31, actual: 0 }, { p: 0.26, actual: 1 },
+      { p: 0.21, actual: 0 }, { p: 0.16, actual: 0 }, { p: 0.11, actual: 0 },
+      { p: 0.07, actual: 0 },
+    ];
+
+    const make = (tag: string, attrs: Record<string, string | number>) => {
+      const node = document.createElementNS(ns, tag);
+      Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, String(value)));
+      svg.append(node);
+      return node;
+    };
+
+    const ratio = (num: number, den: number) => (den === 0 ? 0 : num / den);
+
+    const draw = () => {
+      const threshold = Number(slider.value) / 100;
+      let tp = 0;
+      let fp = 0;
+      let fn = 0;
+      let tn = 0;
+
+      observations.forEach(({ p, actual }) => {
+        const predicted = p >= threshold ? 1 : 0;
+        if (predicted === 1 && actual === 1) tp += 1;
+        if (predicted === 1 && actual === 0) fp += 1;
+        if (predicted === 0 && actual === 1) fn += 1;
+        if (predicted === 0 && actual === 0) tn += 1;
+      });
+
+      const sensitivity = ratio(tp, tp + fn);
+      const specificity = ratio(tn, tn + fp);
+      const precision = ratio(tp, tp + fp);
+      const f1 = ratio(2 * precision * sensitivity, precision + sensitivity);
+
+      thresholdOutput.value = threshold.toFixed(2);
+      tpOutput.textContent = String(tp);
+      fpOutput.textContent = String(fp);
+      fnOutput.textContent = String(fn);
+      tnOutput.textContent = String(tn);
+      sensitivityOutput.textContent = sensitivity.toFixed(2);
+      specificityOutput.textContent = specificity.toFixed(2);
+      precisionOutput.textContent = precision.toFixed(2);
+      f1Output.textContent = f1.toFixed(2);
+
+      if (threshold < 0.4) {
+        message.textContent = "阈值较低：Sensitivity 较高，但更多留存客户会被误报为流失。";
+      } else if (threshold > 0.6) {
+        message.textContent = "阈值较高：误报减少，但部分实际流失客户会落到 FN。";
+      } else {
+        message.textContent = "中间阈值在召回流失客户和控制误报之间取得折中；是否合适仍取决于业务成本。";
+      }
+
+      svg.replaceChildren();
+      const left = 62;
+      const right = 720;
+      const top = 38;
+      const rowGap = 54;
+      const xScale = (value: number) => left + value * (right - left);
+
+      [0, 0.25, 0.5, 0.75, 1].forEach((tick) => {
+        make("line", {
+          x1: xScale(tick), y1: top - 16, x2: xScale(tick), y2: top + rowGap * 2 + 18,
+          stroke: "var(--colour-border)", "stroke-width": 1,
+        });
+        const label = make("text", {
+          x: xScale(tick), y: top - 22, fill: "currentColor", "font-size": 11, "text-anchor": "middle",
+        });
+        label.textContent = tick.toFixed(2);
+      });
+
+      const thresholdX = xScale(threshold);
+      make("line", {
+        x1: thresholdX, y1: top - 12, x2: thresholdX, y2: top + rowGap * 2 + 14,
+        stroke: "var(--colour-primary)", "stroke-width": 2.5,
+      });
+
+      observations.forEach(({ p, actual }, index) => {
+        const y = top + (actual === 1 ? 0 : rowGap) + (index % 3) * 5;
+        make("circle", {
+          cx: xScale(p), cy: y, r: 6,
+          fill: actual === 1 ? "var(--colour-primary)" : "var(--colour-text-muted)",
+          opacity: 0.82,
+        });
+      });
+
+      const positive = make("text", { x: 8, y: top + 4, fill: "currentColor", "font-size": 12 });
+      positive.textContent = "实际流失";
+      const negative = make("text", { x: 8, y: top + rowGap + 4, fill: "currentColor", "font-size": 12 });
+      negative.textContent = "实际留存";
+      const axis = make("text", { x: 390, y: top + rowGap * 2 + 38, fill: "currentColor", "font-size": 12, "text-anchor": "middle" });
+      axis.textContent = "预测流失概率";
+    };
+
+    slider.addEventListener("input", draw, { signal: controller.signal });
+    draw();
+    thresholdCleanup = () => controller.abort();
+  }
+
+  document.addEventListener("astro:before-swap", () => thresholdCleanup?.());
+  document.addEventListener("astro:page-load", initPredictionThresholdLab);
+  initPredictionThresholdLab();
+</script>
