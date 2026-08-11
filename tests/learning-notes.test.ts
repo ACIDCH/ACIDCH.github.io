@@ -59,7 +59,7 @@ describe("R and Statistics Learning Note handbook", () => {
       "hclust(",
       "prcomp(",
     ].forEach((term) => expect(note).toContain(term));
-    expect(note).toContain("服务响应");
+    expect(note).toContain("服务团队平均响应时间");
     expect(note).toContain("客户");
     expect(note).toContain("订单");
   });
