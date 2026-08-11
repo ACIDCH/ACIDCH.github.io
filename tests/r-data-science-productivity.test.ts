@@ -45,6 +45,14 @@ describe("R data science handbook and productivity section", () => {
     expect(note).toContain("\\log\\left(\\frac{p(x)}{1-p(x)}\\right)");
   });
 
+  it("makes binary event coding explicit in base R and caret examples", () => {
+    expect(note).toContain('churn_flag = if_else(churned == "Churn", 1, 0)');
+    expect(note).toContain("predict(logit_fit, type = \"response\")");
+    expect(note).toContain('factor(churned, levels = c("Churn", "Stay"))');
+    expect(note).toContain("第一个 level 会被当作 failure");
+    expect(note).toContain("twoClassSummary");
+  });
+
   it("covers model assessment and supervised and unsupervised learning", () => {
     [
       "Sensitivity",
