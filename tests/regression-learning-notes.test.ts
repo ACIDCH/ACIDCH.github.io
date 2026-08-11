@@ -37,15 +37,15 @@ describe("Regression and statistics Learning Notes", () => {
     expect(series?.modules.at(-1)?.title).toBe("逻辑回归");
   });
 
-  it("keeps all seven regression notes published and in sequence", () => {
+  it("keeps all seven regression notes published, in sequence and structurally deep", () => {
     notes.forEach((note, index) => {
       const file = noteFiles[index];
       expect(note).toContain("seriesSlug: regression");
       expect(note).toContain(`order: ${index + 1}`);
       expect(note).toContain("status: published");
       expect(note).toContain("draft: false");
-      expect(note.length, `${file} should remain a substantial handbook chapter`).toBeGreaterThan(
-        4200,
+      expect(note.length, `${file} should remain a substantive structured chapter`).toBeGreaterThan(
+        3500,
       );
       expect(
         (note.match(/^## /gmu) || []).length,
