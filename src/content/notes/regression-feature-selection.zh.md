@@ -149,17 +149,17 @@ PCR 和 PLS 都会牺牲原始变量的直接系数解释。若项目需要清�
 ## R 中的一套选择框架
 
 ```r
-full_model <- lm(balance ~ ., data = credit_data)
+full_model <- lm(outcome ~ ., data = customer_data)
 
 # regularisation
-x <- model.matrix(balance ~ ., data = credit_data)[, -1]
-y <- credit_data$balance
+x <- model.matrix(outcome ~ ., data = customer_data)[, -1]
+y <- customer_data$outcome
 
 cv_lasso <- glmnet::cv.glmnet(x, y, alpha = 1)
 cv_ridge <- glmnet::cv.glmnet(x, y, alpha = 0)
 ```
 
-若进行 subset selection 或 CV，应固定随机种子并保存 fold assignment，以保证结果可复查。
+若进行 subset selection 或 CV，应固定随机种子并保存 fold 划分记录，以保证结果可复查。
 
 ## 解释模型与预测模型的选择逻辑
 
@@ -193,7 +193,7 @@ cv_ridge <- glmnet::cv.glmnet(x, y, alpha = 0)
 - 用同一份 validation 数据反复调到满意，再把结果当无偏评估。
 - 把 Lasso 选中的变量解释为因果重要因素。
 - PCA/PCR 后仍按原始变量系数方式解释。
-- 不保存随机 seed 和 fold，导致结果无法复现。
+- 不保存随机 seed 和 fold 划分记录，导致结果无法复现。
 
 ## 下一步
 
