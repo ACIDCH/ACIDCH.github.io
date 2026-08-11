@@ -44,6 +44,7 @@ const checks = [
       "DM 10",
       "已发布 · 点击进入完整笔记",
       "PuLP 建模",
+      "供应链运输规划",
       "多期生产与库存优化",
     ],
   },
@@ -81,7 +82,7 @@ const checks = [
   },
   {
     path: "zh/notes/transportation-models/",
-    markers: ["供应链规划与运输分配", "data-horizon-lab", "data-flow-lab", "Carrier allocation"],
+    markers: ["供应链运输规划", "data-horizon-lab", "data-flow-lab", "Carrier allocation"],
   },
   {
     path: "zh/notes/multi-period-production-inventory/",
@@ -98,6 +99,9 @@ const forbiddenMarkers = [
   "LIU XINTAO",
   "刘鑫涛",
   ">草稿提纲<",
+  "从战略网络到战术承运量",
+  "供应链规划与运输分配",
+  "一套实用的供应链规划顺序",
 ];
 
 function deploymentUrl(pathname) {

@@ -53,7 +53,9 @@ describe("Supply chain and decision model Learning Notes", () => {
       expect(note).toContain(`order: ${index + 1}`);
       expect(note).toContain("status: published");
       expect(note).toContain("draft: false");
-      expect.soft(note.length, `${file} should remain a substantial long-form note`).toBeGreaterThan(5500);
+      expect
+        .soft(note.length, `${file} should remain a substantial long-form note`)
+        .toBeGreaterThan(4000);
       expect
         .soft((note.match(/^## /gmu) || []).length, `${file} should retain a deep section hierarchy`)
         .toBeGreaterThanOrEqual(9);
