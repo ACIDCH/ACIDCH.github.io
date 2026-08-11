@@ -67,6 +67,20 @@ def handbook_proofs(browser: object, mobile: bool) -> None:
     assert_no_overflow(browser, f"R data science handbook ({suffix})")
     browser.screenshot(f"r-data-science-threshold-{suffix}.png")
 
+    browser.require("[data-data-science-advanced]")
+    browser.require("#bayesian-hierarchical")
+    browser.require("#loss-bias-variance")
+    browser.require("#resampling-selection")
+    browser.require("#calibration-decision-cost")
+    placed = browser.execute(
+        "return document.querySelector('[data-data-science-advanced]')?.dataset.learningPlaced === 'true';"
+    )
+    if placed is not True:
+        raise RuntimeError("Advanced data-science sections were not placed before references.")
+    browser.scroll_to("#loss-bias-variance")
+    assert_no_overflow(browser, f"Advanced data science handbook ({suffix})")
+    browser.screenshot(f"r-data-science-advanced-{suffix}.png")
+
 
 def productivity_proofs(browser: object, mobile: bool) -> None:
     suffix = "mobile" if mobile else "desktop"
@@ -121,7 +135,7 @@ def main() -> None:
         server.shutdown()
         server.server_close()
 
-    expected = 4
+    expected = 6
     actual = len(list(OUTPUT.glob("*.png")))
     if actual != expected:
         raise RuntimeError(
