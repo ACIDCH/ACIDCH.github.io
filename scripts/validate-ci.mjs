@@ -4,7 +4,7 @@ import path from "node:path";
 import process from "node:process";
 
 const outputRoot = path.join(process.cwd(), "dist");
-const allowedFirstPersonUiPhrases = ["关于我", "II 型错误", "I 型错误"];
+const allowedFirstPersonUiPhrases = ["关于我", "II 型错误", "I 型错误", "I("];
 const forbiddenFirstPersonTerms = [
   /\b(?:I|Me|me|My|my|Mine|mine|We|we|Our|our|Ours|ours)\b/,
   /我|我们|本人|作者|笔者/,
@@ -93,7 +93,7 @@ async function validateFirstPersonCopy() {
   }
 
   console.log(
-    "UI-aware first-person validation passed; the approved navigation and statistical labels are exempt.",
+    "UI-aware first-person validation passed; approved navigation, statistical labels and R I() syntax are exempt.",
   );
 }
 
