@@ -102,6 +102,10 @@ jobs:
         if: github.event_name == 'pull_request'
         run: python3 scripts/capture-pr-regression-visuals.py
 
+      - name: Capture R data-science and productivity visual proofs
+        if: github.event_name == 'pull_request'
+        run: python3 scripts/capture-pr-data-science-visuals.py
+
       - name: Upload pull-request static artifact
         if: github.event_name == 'pull_request'
         uses: actions/upload-artifact@v7
@@ -112,6 +116,7 @@ jobs:
             visual-proofs
             decision-proofs
             regression-proofs
+            data-science-proofs
           if-no-files-found: error
           retention-days: 3
 
@@ -195,6 +200,7 @@ jobs:
           node scripts/verify-sql09-production.mjs "${{ needs.deploy.outputs.page_url }}" "${{ needs.quality.outputs.deploy_sha }}"
           node scripts/verify-decision-models-production.mjs "${{ needs.deploy.outputs.page_url }}" "${{ needs.quality.outputs.deploy_sha }}"
           node scripts/verify-regression-production.mjs "${{ needs.deploy.outputs.page_url }}" "${{ needs.quality.outputs.deploy_sha }}"
+          node scripts/verify-data-science-production.mjs "${{ needs.deploy.outputs.page_url }}" "${{ needs.quality.outputs.deploy_sha }}"
 
       - name: Publish auditable production verification receipt
         if: always()
