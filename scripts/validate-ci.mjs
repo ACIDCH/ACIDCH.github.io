@@ -5,9 +5,12 @@ import process from "node:process";
 
 const outputRoot = path.join(process.cwd(), "dist");
 const allowedFirstPersonUiPhrases = ["关于我", "II 型错误", "I 型错误"];
-const forbiddenFirstPersonTerms = [
-  /\b(?:I|Me|me|My|my|Mine|mine|We|we|Our|our|Ours|ours)\b/,
-  /我|我们|本人|作者|笔者/,
+const firstPersonDiagnostics = [
+  {
+    label: "English first person",
+    pattern: /\b(?:I|Me|me|My|my|Mine|mine|We|we|Our|our|Ours|ours)\b/,
+  },
+  { label: "Chinese first person", pattern: /我|我们|本人|作者|笔者/ },
 ];
 const restrictedTermDiagnostics = [
   { label: "AI", pattern: /(?<![A-Za-z])AI(?![A-Za-z])/ },
@@ -128,8 +131,13 @@ async function validateFirstPersonCopy() {
     if (isStaticRedirect) continue;
 
     const copyForCheck = stripAllowedUiPhrases(html);
-    if (forbiddenFirstPersonTerms.some((pattern) => pattern.test(copyForCheck))) {
-      failures.push(`${routeForFile(file)}: contains first-person public wording`);
+    for (const check of firstPersonDiagnostics) {
+      const match = check.pattern.exec(copyForCheck);
+      if (!match) continue;
+      failures.push(
+        `${routeForFile(file)}: ${check.label} "${match[0]}" → ${compactContext(copyForCheck, match.index, match[0].length)}`,
+      );
+      break;
     }
   }
 
@@ -137,7 +145,7 @@ async function validateFirstPersonCopy() {
     console.error(
       `UI-aware first-person validation failed (${failures.length} issue(s)).`,
     );
-    for (const failure of failures) console.error(`- ${failure}`);
+    for (const failure of failures.slice(0, 20)) console.error(`- ${failure}`);
     process.exit(1);
   }
 
