@@ -1,6 +1,7 @@
 ---
 import { getCollection, type CollectionEntry } from "astro:content";
 import { findTranslation } from "../../../i18n/content";
+import DataScienceNoteLayout from "../../../layouts/DataScienceNoteLayout.astro";
 import DecisionModelNoteLayout from "../../../layouts/DecisionModelNoteLayout.astro";
 import NoteLayout from "../../../layouts/NoteLayout.astro";
 import RegressionNoteLayout from "../../../layouts/RegressionNoteLayout.astro";
@@ -27,12 +28,15 @@ const translation = findTranslation(entries, entry.data.translationKey, "en");
 const alternatePath = translation
   ? getLocalizedPath(`/notes/${translation.data.slug}/`, "en")
   : getLocalizedPath("/", "en");
+const isDataScienceR = entry.data.seriesSlug === "data-science-r";
 const isDecisionModel = entry.data.seriesSlug === "decision-models";
 const isRegression = entry.data.seriesSlug === "regression";
 ---
 
 {
-  isDecisionModel ? (
+  isDataScienceR ? (
+    <DataScienceNoteLayout entry={entry} alternatePath={alternatePath} />
+  ) : isDecisionModel ? (
     <DecisionModelNoteLayout entry={entry} alternatePath={alternatePath} />
   ) : isRegression ? (
     <RegressionNoteLayout entry={entry} alternatePath={alternatePath} />

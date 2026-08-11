@@ -1,0 +1,492 @@
+---
+import type { Locale } from "../config/site";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const zh = locale === "zh";
+
+const principles = zh
+  ? [
+      ["目录结构固定", "把数据、代码、输出和说明文件放在稳定位置。路径可预测以后，脚本更容易重跑，也更容易交接。"],
+      ["重复操作自动化", "凡是需要反复执行的步骤，都尽量写进脚本、函数或命令，而不是依赖一串临时鼠标操作。"],
+      ["每次修改可追踪", "代码、文档和配置进入版本控制。出现错误时能够看见改了什么，也能够回到此前可用的版本。"],
+      ["结果可以重新生成", "图表、表格和报告尽量由源数据与代码直接生成，减少手工复制带来的版本错位。"],
+    ]
+  : [
+      ["Stable project structure", "Keep data, code, outputs and documentation in predictable locations so analyses can be rerun and handed over cleanly."],
+      ["Automate repeated work", "Move recurring steps into scripts, functions or commands instead of depending on an undocumented sequence of mouse actions."],
+      ["Track every change", "Place code, documents and configuration under version control so differences are visible and usable versions can be recovered."],
+      ["Regenerate results", "Produce figures, tables and reports from source data and code whenever possible, reducing version drift from manual copying."],
+    ];
+
+const gitWorkflow = [
+  ["git status", zh ? "先确认哪些文件发生变化。" : "Inspect which files changed."],
+  ["git diff", zh ? "提交前检查具体改动。" : "Review the actual changes before committing."],
+  ["git add <file>", zh ? "只暂存这次真正属于同一修改的文件。" : "Stage only files that belong to the same change."],
+  ["git commit -m \"...\"", zh ? "用简短信息保存一个有意义的版本节点。" : "Save a meaningful version checkpoint with a concise message."],
+  ["git push", zh ? "把本地提交同步到远端仓库。" : "Synchronize local commits with the remote repository."],
+];
+---
+
+<section class="productivity-page">
+  <header class="productivity-hero">
+    <p class="productivity-kicker">{zh ? "Workflow · Reproducibility · Version Control" : "Workflow · Reproducibility · Version Control"}</p>
+    <h1>{zh ? "生产力工具" : "Productivity"}</h1>
+    <p class="productivity-lead">
+      {zh
+        ? "数据分析不只发生在模型函数里。文件如何组织、命令如何重复执行、代码怎样留痕、报告能不能从源数据重新生成，都会直接影响分析的可靠性。这个栏目集中整理 Unix 命令行、Git 与 GitHub、RStudio 项目以及可重复报告的工作方法。"
+        : "Reliable analysis depends on more than model functions. File organization, repeatable commands, version history and reproducible reports determine whether analytical work can be checked, rerun and maintained. This section collects practical workflows for the Unix shell, Git and GitHub, RStudio projects and reproducible reporting."}
+    </p>
+  </header>
+
+  <nav class="productivity-jump" aria-label={zh ? "生产力工具目录" : "Productivity contents"}>
+    <a href="#principles">{zh ? "工作原则" : "Principles"}</a>
+    <a href="#projects">{zh ? "项目结构" : "Project structure"}</a>
+    <a href="#unix">Unix</a>
+    <a href="#git">Git & GitHub</a>
+    <a href="#reports">{zh ? "可重复报告" : "Reproducible reports"}</a>
+    <a href="#checklist">{zh ? "检查清单" : "Checklist"}</a>
+  </nav>
+
+  <section id="principles" class="productivity-section">
+    <p class="productivity-section__eyebrow">01</p>
+    <h2>{zh ? "先把分析过程变得可重复" : "Make the analytical process repeatable first"}</h2>
+    <p>
+      {zh
+        ? "很多低效率并不是计算速度造成的，而是工作过程没有形成稳定约定：文件散落在下载目录，脚本依赖手工点击，输出文件靠日期猜版本，几周以后已经无法确认某张图由哪份数据生成。生产力工具首先解决的就是这些摩擦。"
+        : "A large share of analytical friction comes from unstable workflow conventions rather than computation speed: scattered files, undocumented manual steps, ambiguous output versions and figures that can no longer be traced back to data and code. Productivity tooling addresses these problems first."}
+    </p>
+    <div class="productivity-principles">
+      {principles.map(([title, text]) => (
+        <article>
+          <h3>{title}</h3>
+          <p>{text}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section id="projects" class="productivity-section">
+    <p class="productivity-section__eyebrow">02</p>
+    <h2>{zh ? "用项目目录给分析建立边界" : "Use a project directory as the boundary of an analysis"}</h2>
+    <p>
+      {zh
+        ? "一个分析项目应该尽量能够独立移动和重跑。代码不要依赖某台电脑上的绝对路径，也不要把原始数据、临时文件和最终输出混在同一目录。RStudio Project 提供了一个很实用的项目边界：打开项目后，工作目录和项目配置都有明确位置。"
+        : "An analytical project should be movable and rerunnable. Code should not depend on machine-specific absolute paths, and raw data should not be mixed with temporary files and final outputs. An RStudio Project provides a practical project boundary with a stable working directory and project configuration."}
+    </p>
+
+    <div class="productivity-tree" role="group" aria-label={zh ? "推荐项目目录结构" : "Recommended project structure"}>
+      <pre><code>{`customer-churn/
+├── README.md
+├── customer-churn.Rproj
+├── data/
+│   ├── raw/
+│   └── processed/
+├── R/
+│   ├── clean_data.R
+│   ├── features.R
+│   └── model.R
+├── reports/
+│   └── analysis.qmd
+├── figures/
+└── output/`}</code></pre>
+    </div>
+
+    <p>
+      {zh
+        ? "`data/raw/` 保留未经修改的输入，`data/processed/` 保存可重新生成的中间数据；`R/` 存放分析函数或步骤；`reports/` 保存报告源文件；图和结果进入单独目录。具体名称可以变化，但“什么文件应该出现在哪里”要保持稳定。"
+        : "Keep untouched inputs under `data/raw/`, reproducible intermediate data under `data/processed/`, analytical functions or steps under `R/`, report sources under `reports/`, and generated figures or outputs in dedicated folders. Names can vary, but file roles should remain predictable."}
+    </p>
+
+    <aside class="productivity-callout">
+      <strong>{zh ? "路径原则" : "Path rule"}</strong>
+      <p>{zh ? "脚本优先使用相对项目根目录的路径。项目移动到另一台电脑后，目录关系仍然成立。" : "Prefer paths relative to the project root so directory relationships survive when the project moves to another machine."}</p>
+    </aside>
+  </section>
+
+  <section id="unix" class="productivity-section">
+    <p class="productivity-section__eyebrow">03</p>
+    <h2>{zh ? "Unix 命令行：把文件操作写成明确指令" : "Unix shell: turn file operations into explicit commands"}</h2>
+    <p>
+      {zh
+        ? "命令行的价值不在于替代所有图形界面，而在于让一连串文件操作可以准确记录、重复执行和组合。很多服务器、云环境和自动化流程本身也只提供 shell 接口，因此熟悉少量高频命令就能显著降低环境切换成本。"
+        : "The command line does not need to replace every graphical tool. Its main advantage is that file operations become explicit, repeatable and composable. Servers, cloud environments and automation pipelines also commonly expose shell interfaces, making a small set of shell commands broadly useful."}
+    </p>
+
+    <div class="productivity-command-grid">
+      <article><code>pwd</code><p>{zh ? "显示当前所在目录。" : "Print the current working directory."}</p></article>
+      <article><code>ls -la</code><p>{zh ? "查看目录内容，包括隐藏文件。" : "List directory contents, including hidden files."}</p></article>
+      <article><code>cd path/</code><p>{zh ? "切换目录。" : "Change directory."}</p></article>
+      <article><code>mkdir -p data/raw</code><p>{zh ? "创建目录结构。" : "Create a directory structure."}</p></article>
+      <article><code>cp source target</code><p>{zh ? "复制文件。" : "Copy a file."}</p></article>
+      <article><code>mv old new</code><p>{zh ? "移动文件或重命名。" : "Move or rename a file."}</p></article>
+      <article><code>grep -R "pattern" .</code><p>{zh ? "递归搜索文本。" : "Search text recursively."}</p></article>
+      <article><code>find . -name "*.csv"</code><p>{zh ? "按规则查找文件。" : "Find files by a pattern."}</p></article>
+    </div>
+
+    <p>
+      {zh
+        ? "`rm` 等删除命令没有回收站保护，批量操作前应先用 `ls`、`find` 或通配符预览目标。命令行提升的是可重复性，不应该以牺牲安全检查为代价。"
+        : "Deletion commands such as `rm` do not provide a recycle-bin safety net. Preview targets with `ls`, `find` or matching patterns before bulk operations. Repeatability should not replace basic safety checks."}
+    </p>
+  </section>
+
+  <section id="git" class="productivity-section">
+    <p class="productivity-section__eyebrow">04</p>
+    <h2>{zh ? "Git 与 GitHub：把分析过程变成版本历史" : "Git and GitHub: turn analytical work into version history"}</h2>
+    <p>
+      {zh
+        ? "Git 记录的是文件随时间发生的变化。它让分析代码从“final_v3_revised_last.R”这类文件名版本管理，变成可比较、可恢复的提交历史。GitHub 则在远端保存仓库，并提供协作、代码审查、Issue、Pull Request 与自动化工作流。"
+        : "Git records how files change over time, replacing filename-based versioning such as `final_v3_revised_last.R` with comparable and recoverable commits. GitHub hosts repositories remotely and adds collaboration, review, issues, pull requests and automation workflows."}
+    </p>
+
+    <div class="productivity-git-flow">
+      {gitWorkflow.map(([command, description], index) => (
+        <article>
+          <span>{String(index + 1).padStart(2, "0")}</span>
+          <code>{command}</code>
+          <p>{description}</p>
+        </article>
+      ))}
+    </div>
+
+    <h3>{zh ? "一次提交只表达一个清楚的变化" : "Keep each commit focused on one clear change"}</h3>
+    <p>
+      {zh
+        ? "提交粒度太大时，很难判断某个 bug 是由哪一部分变化引入；太碎时，历史又会失去阅读价值。比较实用的标准是：一次提交能够用一句简短的话准确概括，例如“修正缺失值处理”或“加入交叉验证评估”。"
+        : "A very large commit makes regressions hard to locate, while excessively tiny commits make history noisy. A practical standard is that one concise sentence should describe the change accurately, such as “fix missing-value handling” or “add cross-validation evaluation”."}
+    </p>
+
+    <h3>.gitignore</h3>
+    <p>
+      {zh
+        ? "缓存、临时文件、凭证和不应公开的大型原始数据通常不进入版本库。`.gitignore` 应在项目早期配置，而不是等敏感文件已经提交后再删除。"
+        : "Caches, temporary files, credentials and non-public large raw datasets generally do not belong in version history. Configure `.gitignore` early rather than attempting cleanup after sensitive files have already been committed."}
+    </p>
+    <pre><code>{`.Rhistory
+.RData
+.Rproj.user/
+.env
+output/cache/
+*.tmp`}</code></pre>
+  </section>
+
+  <section id="reports" class="productivity-section">
+    <p class="productivity-section__eyebrow">05</p>
+    <h2>{zh ? "可重复报告：文字、代码和结果来自同一个源文件" : "Reproducible reports: keep prose, code and results in one source"}</h2>
+    <p>
+      {zh
+        ? "分析最常见的版本错位之一，是代码已经更新，Word 或幻灯片中的图表仍停留在旧结果。R Markdown、knitr 和 Quarto 的核心价值是把说明文字、代码块、表格与图形放在同一份源文件中，再由渲染过程生成最终 HTML、PDF 或其他输出。"
+        : "A common source of version drift appears when code changes while figures copied into reports remain stale. R Markdown, knitr and Quarto keep prose, code, tables and figures in the same source document, then render the final HTML, PDF or other output from that source."}
+    </p>
+
+    <pre><code>{`---
+title: "Customer churn analysis"
+format: html
+---
+
+## Validation
+
+\`\`\`{r}
+summary(customer_data)
+\`\`\`
+
+## Model
+
+\`\`\`{r}
+fit <- glm(churned ~ tenure + spend,
+           data = customer_data,
+           family = binomial())
+summary(fit)
+\`\`\``}</code></pre>
+
+    <p>
+      {zh
+        ? "当源数据或代码改变后，重新 render 就能更新相应结果。真正可重复的报告还需要固定依赖、随机种子和数据版本，并避免在代码块之间依赖不可见的手工状态。"
+        : "When source data or code changes, rendering updates the corresponding results. A reproducible report also needs controlled dependencies, random seeds and data versions, and should avoid hidden manual state between code chunks."}
+    </p>
+
+    <div class="productivity-flow" aria-label={zh ? "可重复分析流程" : "Reproducible analysis workflow"}>
+      <span>{zh ? "原始数据" : "Raw data"}</span>
+      <b>→</b>
+      <span>{zh ? "清洗脚本" : "Cleaning code"}</span>
+      <b>→</b>
+      <span>{zh ? "模型与图表" : "Models & figures"}</span>
+      <b>→</b>
+      <span>{zh ? "自动渲染报告" : "Rendered report"}</span>
+    </div>
+  </section>
+
+  <section id="checklist" class="productivity-section productivity-section--checklist">
+    <p class="productivity-section__eyebrow">06</p>
+    <h2>{zh ? "项目交付前的生产力检查清单" : "Productivity checklist before handoff"}</h2>
+    <ul>
+      <li>{zh ? "从项目根目录可以直接找到 README、数据、代码和报告。" : "README, data, code and reports are discoverable from the project root."}</li>
+      <li>{zh ? "脚本不依赖个人电脑上的绝对路径。" : "Scripts do not depend on machine-specific absolute paths."}</li>
+      <li>{zh ? "原始数据没有被清洗脚本覆盖。" : "Raw data is not overwritten by cleaning code."}</li>
+      <li>{zh ? "重复步骤可以通过脚本或命令重新执行。" : "Repeated steps can be rerun through scripts or commands."}</li>
+      <li>{zh ? "Git 工作区清楚，提交信息能够说明变化。" : "Git status is understood and commit messages explain the changes."}</li>
+      <li>{zh ? "凭证、密钥和不应公开的数据不在版本库中。" : "Credentials, secrets and non-public data are absent from version history."}</li>
+      <li>{zh ? "报告中的数字和图表能够从当前代码重新生成。" : "Numbers and figures in the report can be regenerated from current code."}</li>
+      <li>{zh ? "随机分析固定种子，并记录关键软件与包版本。" : "Randomized analyses set seeds and record important software or package versions."}</li>
+    </ul>
+  </section>
+
+  <footer class="productivity-source">
+    <h2>{zh ? "参考与许可" : "Reference and licence"}</h2>
+    <p>
+      {zh
+        ? "本页的章节范围参考 Rafael A. Irizarry《Introduction to Data Science》中的 Productivity Tools 部分，包括 Unix、Git/GitHub 与可重复项目。内容按本站工作流重新组织和改写。参考资料采用 CC BY-NC-SA 4.0 许可。"
+        : "The section scope is adapted from the Productivity Tools material in Rafael A. Irizarry’s Introduction to Data Science, including Unix, Git/GitHub and reproducible projects. The material here is reorganized and rewritten for this site. The reference material is licensed under CC BY-NC-SA 4.0."}
+    </p>
+    <p><a href="https://rafalab.dfci.harvard.edu/dsbook/">rafalab.dfci.harvard.edu/dsbook/</a></p>
+  </footer>
+</section>
+
+<style>
+  .productivity-page {
+    width: min(100% - 2 * var(--space-6), 78rem);
+    margin: 0 auto;
+    padding: var(--space-10) 0 var(--space-20);
+  }
+
+  .productivity-hero {
+    max-width: 64rem;
+    padding: var(--space-10) 0 var(--space-12);
+    border-bottom: 1px solid var(--colour-border-strong);
+  }
+
+  .productivity-kicker,
+  .productivity-section__eyebrow {
+    margin: 0 0 var(--space-3);
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .productivity-hero h1 {
+    max-width: 14ch;
+    margin: 0;
+    font-size: clamp(2.8rem, 7vw, 5.5rem);
+    line-height: 0.98;
+    letter-spacing: -0.04em;
+  }
+
+  .productivity-lead {
+    max-width: 58rem;
+    margin: var(--space-6) 0 0;
+    color: var(--colour-text-muted);
+    font-size: clamp(1.05rem, 1.6vw, 1.3rem);
+    line-height: 1.85;
+  }
+
+  .productivity-jump {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-5);
+    padding: var(--space-5) 0;
+    border-bottom: 1px solid var(--colour-border);
+  }
+
+  .productivity-jump a {
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-sm);
+    text-decoration: none;
+  }
+
+  .productivity-jump a:hover {
+    color: var(--colour-text);
+  }
+
+  .productivity-section,
+  .productivity-source {
+    max-width: 66rem;
+    padding-top: var(--space-16);
+  }
+
+  .productivity-section h2,
+  .productivity-source h2 {
+    max-width: 28ch;
+    margin: 0 0 var(--space-5);
+    font-size: clamp(1.8rem, 3.4vw, 2.8rem);
+    line-height: 1.16;
+    letter-spacing: -0.025em;
+  }
+
+  .productivity-section h3 {
+    margin: var(--space-10) 0 var(--space-3);
+    font-size: 1.25rem;
+  }
+
+  .productivity-section > p,
+  .productivity-source p,
+  .productivity-section li {
+    max-width: 58rem;
+    line-height: 1.9;
+  }
+
+  .productivity-principles {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-6);
+    margin-top: var(--space-8);
+  }
+
+  .productivity-principles article {
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--colour-border-strong);
+  }
+
+  .productivity-principles h3 {
+    margin: 0 0 var(--space-2);
+  }
+
+  .productivity-principles p,
+  .productivity-command-grid p,
+  .productivity-git-flow p {
+    margin: 0;
+    color: var(--colour-text-muted);
+    line-height: 1.75;
+  }
+
+  .productivity-tree,
+  .productivity-section > pre {
+    margin: var(--space-7) 0;
+    overflow-x: auto;
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-md);
+    background: var(--colour-surface-subtle);
+  }
+
+  .productivity-tree pre,
+  .productivity-section > pre {
+    margin: 0;
+    padding: var(--space-5);
+  }
+
+  .productivity-tree code,
+  .productivity-section > pre code {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-sm);
+    line-height: 1.7;
+  }
+
+  .productivity-callout {
+    margin: var(--space-7) 0;
+    padding: var(--space-5);
+    border-left: 3px solid var(--colour-primary);
+    background: var(--colour-surface-subtle);
+  }
+
+  .productivity-callout p {
+    margin: var(--space-2) 0 0;
+    line-height: 1.75;
+  }
+
+  .productivity-command-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1px;
+    margin: var(--space-7) 0;
+    overflow: hidden;
+    border: 1px solid var(--colour-border);
+    border-radius: var(--radius-md);
+    background: var(--colour-border);
+  }
+
+  .productivity-command-grid article {
+    padding: var(--space-4);
+    background: var(--colour-surface);
+  }
+
+  .productivity-command-grid code,
+  .productivity-git-flow code {
+    display: inline-block;
+    margin-bottom: var(--space-2);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .productivity-git-flow {
+    display: grid;
+    gap: 0;
+    margin: var(--space-7) 0;
+    border-top: 1px solid var(--colour-border-strong);
+  }
+
+  .productivity-git-flow article {
+    display: grid;
+    grid-template-columns: 3rem minmax(10rem, 0.8fr) minmax(0, 1.5fr);
+    gap: var(--space-4);
+    align-items: baseline;
+    padding: var(--space-4) 0;
+    border-bottom: 1px solid var(--colour-border);
+  }
+
+  .productivity-git-flow article > span {
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-xs);
+  }
+
+  .productivity-flow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    margin: var(--space-8) 0;
+  }
+
+  .productivity-flow span {
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--colour-border);
+    border-radius: 999px;
+    font-size: var(--font-size-sm);
+  }
+
+  .productivity-flow b {
+    color: var(--colour-text-muted);
+    font-weight: var(--font-weight-normal);
+  }
+
+  .productivity-section--checklist ul {
+    display: grid;
+    gap: var(--space-3);
+    padding-left: 1.25rem;
+  }
+
+  .productivity-source {
+    margin-top: var(--space-16);
+    padding-top: var(--space-10);
+    border-top: 1px solid var(--colour-border-strong);
+  }
+
+  .productivity-source a {
+    overflow-wrap: anywhere;
+  }
+
+  @media (max-width: 48rem) {
+    .productivity-page {
+      width: min(100% - 2 * var(--space-4), 78rem);
+      padding-top: var(--space-4);
+    }
+
+    .productivity-principles,
+    .productivity-command-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .productivity-git-flow article {
+      grid-template-columns: 2.4rem 1fr;
+    }
+
+    .productivity-git-flow p {
+      grid-column: 2;
+    }
+  }
+</style>
