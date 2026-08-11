@@ -1,0 +1,41 @@
+<section class="logistic-regression-lab" data-logistic-lab aria-labelledby="logistic-lab-title">
+  <div class="logistic-regression-lab__intro">
+    <p class="learning-note-kicker">互动图表 · Logistic Regression</p>
+    <h3 id="logistic-lab-title">概率模型与分类阈值是两件不同的事</h3>
+    <p>滑动业务风险分数查看预测概率，再调整分类阈值观察同一组概率如何产生不同的 TP、FP、FN 与 TN。</p>
+  </div>
+  <div class="logistic-regression-lab__controls">
+    <label><span>风险分数：<output data-logit-score>60</output></span><input data-logit-score-slider type="range" min="20" max="90" step="1" value="60" /></label>
+    <label><span>分类阈值：<output data-logit-threshold>0.50</output></span><input data-logit-threshold-slider type="range" min="20" max="80" step="5" value="50" /></label>
+  </div>
+  <div class="logistic-regression-lab__metrics" aria-live="polite">
+    <dl><dt>Predicted probability</dt><dd data-logit-probability>0.50</dd></dl>
+    <dl><dt>Predicted class</dt><dd data-logit-class>High risk</dd></dl>
+    <dl><dt>Odds</dt><dd data-logit-odds>1.00</dd></dl>
+  </div>
+  <figure><svg viewBox="0 0 760 390" role="img" aria-label="逻辑回归概率曲线" data-logit-svg></svg><figcaption>曲线输出的是条件概率。阈值只是把概率转成业务行动；改变阈值不会重新估计模型系数。</figcaption></figure>
+  <div class="logistic-regression-lab__confusion" aria-live="polite">
+    <span>TP <strong data-logit-tp>0</strong></span><span>FP <strong data-logit-fp>0</strong></span><span>FN <strong data-logit-fn>0</strong></span><span>TN <strong data-logit-tn>0</strong></span>
+  </div>
+</section>
+
+<style>
+  .logistic-regression-lab{margin:var(--space-10) 0;padding:var(--space-6) 0;border-block:1px solid var(--colour-border-strong)}.logistic-regression-lab__intro{max-width:58rem}.logistic-regression-lab h3{margin:var(--space-2) 0 var(--space-3);font-size:clamp(1.35rem,1.6vw,1.85rem)}.logistic-regression-lab__intro p:last-child,.logistic-regression-lab figcaption{color:var(--colour-text-muted)}
+  .logistic-regression-lab__controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-5);margin:var(--space-5) 0}.logistic-regression-lab__controls label{display:grid;gap:var(--space-2);font-weight:var(--font-weight-medium)}.logistic-regression-lab__controls input{width:100%}.logistic-regression-lab__metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-4);margin-bottom:var(--space-4)}.logistic-regression-lab__metrics dl{margin:0;padding:var(--space-3) 0;border-bottom:1px solid var(--colour-border)}.logistic-regression-lab__metrics dt{font-size:var(--font-size-xs);color:var(--colour-text-muted)}.logistic-regression-lab__metrics dd{margin:var(--space-1) 0 0;font-weight:var(--font-weight-semibold);font-variant-numeric:tabular-nums}.logistic-regression-lab svg{display:block;width:100%;height:auto}.logistic-regression-lab figcaption{margin-top:var(--space-3);font-size:var(--font-size-sm);line-height:1.7}.logistic-regression-lab__confusion{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--space-3);margin-top:var(--space-5)}.logistic-regression-lab__confusion span{padding:var(--space-3);border:1px solid var(--colour-border);border-radius:.8rem;text-align:center}.logistic-regression-lab__confusion strong{display:block;margin-top:.2rem;font-size:1.25rem}
+  @media(max-width:48rem){.logistic-regression-lab__controls,.logistic-regression-lab__metrics{grid-template-columns:1fr}.logistic-regression-lab__confusion{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+
+<script>
+  let logitCleanup:(()=>void)|undefined;
+  function initLogitLab(){
+    logitCleanup?.();const root=document.querySelector<HTMLElement>("[data-logistic-lab]");if(!root)return;
+    const scoreSlider=root.querySelector<HTMLInputElement>("[data-logit-score-slider]");const thresholdSlider=root.querySelector<HTMLInputElement>("[data-logit-threshold-slider]");const scoreOut=root.querySelector<HTMLOutputElement>("[data-logit-score]");const thresholdOut=root.querySelector<HTMLOutputElement>("[data-logit-threshold]");const probabilityOut=root.querySelector<HTMLElement>("[data-logit-probability]");const classOut=root.querySelector<HTMLElement>("[data-logit-class]");const oddsOut=root.querySelector<HTMLElement>("[data-logit-odds]");const svg=root.querySelector<SVGSVGElement>("[data-logit-svg]");const tp=root.querySelector<HTMLElement>("[data-logit-tp]");const fp=root.querySelector<HTMLElement>("[data-logit-fp]");const fn=root.querySelector<HTMLElement>("[data-logit-fn]");const tn=root.querySelector<HTMLElement>("[data-logit-tn]");if(!scoreSlider||!thresholdSlider||!scoreOut||!thresholdOut||!probabilityOut||!classOut||!oddsOut||!svg||!tp||!fp||!fn||!tn)return;
+    const controller=new AbortController();const ns="http://www.w3.org/2000/svg";const sigmoid=(score:number)=>1/(1+Math.exp(-(-6+0.1*score)));const sampleScores=[28,34,39,44,47,50,54,58,62,66,70,74,79,83];const actual=[0,0,0,0,1,0,0,1,1,1,0,1,1,1];
+    const make=(tag:string,attrs:Record<string,string|number>)=>{const node=document.createElementNS(ns,tag);Object.entries(attrs).forEach(([k,v])=>node.setAttribute(k,String(v)));svg.append(node);return node;};
+    const render=()=>{const score=Number(scoreSlider.value);const threshold=Number(thresholdSlider.value)/100;const p=sigmoid(score);scoreOut.value=String(score);thresholdOut.value=threshold.toFixed(2);probabilityOut.textContent=p.toFixed(3);classOut.textContent=p>=threshold?"High risk":"Low risk";oddsOut.textContent=(p/(1-p)).toFixed(2);
+      let counts={tp:0,fp:0,fn:0,tn:0};sampleScores.forEach((value,index)=>{const predicted=sigmoid(value)>=threshold?1:0;if(predicted&&actual[index])counts.tp++;else if(predicted&&!actual[index])counts.fp++;else if(!predicted&&actual[index])counts.fn++;else counts.tn++;});tp.textContent=String(counts.tp);fp.textContent=String(counts.fp);fn.textContent=String(counts.fn);tn.textContent=String(counts.tn);
+      svg.replaceChildren();const left=58,right=720,top=30,bottom=330;const sx=(x:number)=>left+((x-20)/70)*(right-left);const sy=(y:number)=>bottom-y*(bottom-top);make("line",{x1:left,y1:bottom,x2:right,y2:bottom,stroke:"var(--colour-border-strong)"});make("line",{x1:left,y1:top,x2:left,y2:bottom,stroke:"var(--colour-border-strong)"});make("line",{x1:left,y1:sy(threshold),x2:right,y2:sy(threshold),stroke:"var(--colour-border-strong)","stroke-dasharray":"5 5"});let path="";for(let x=20;x<=90;x+=.5){path+=`${path?" L":"M"} ${sx(x).toFixed(2)} ${sy(sigmoid(x)).toFixed(2)}`;}make("path",{d:path,fill:"none",stroke:"var(--colour-primary)","stroke-width":3});make("circle",{cx:sx(score),cy:sy(p),r:7,fill:"var(--colour-primary)"});const xl=make("text",{x:390,y:375,fill:"currentColor","font-size":12,"text-anchor":"middle"});xl.textContent="Risk score";};
+    [scoreSlider,thresholdSlider].forEach(input=>input.addEventListener("input",render,{signal:controller.signal}));render();logitCleanup=()=>controller.abort();
+  }
+  document.addEventListener("astro:before-swap",()=>logitCleanup?.());document.addEventListener("astro:page-load",initLogitLab);initLogitLab();
+</script>
