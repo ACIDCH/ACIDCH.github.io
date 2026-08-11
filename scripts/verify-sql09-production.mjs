@@ -19,13 +19,13 @@ if (!expectedSha) {
 const checks = [
   {
     path: "zh/notes/",
-    markers: ["SQL 与关系数据", "Pagination"],
+    markers: ["SQL 与关系数据", "分页查询"],
     forbiddenMarkers: [">简介<"],
   },
   {
     path: "zh/notes/sql-pagination/",
     markers: [
-      "Pagination：把有序结果切成可重复的页面窗口",
+      "分页查询",
       "LIMIT 定义页面最多返回多少行",
       "OFFSET 定义先跳过多少行",
       "Keyset pagination",
