@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from "astro:content";
 import type { Locale } from "../config/site";
+import { getCanonicalNoteTags } from "../data/note-tag-taxonomy";
 import { getLocalizedPath } from "../utils/paths";
 
 interface Props {
@@ -31,13 +32,14 @@ const handbookTitles: Record<string, string> = {
           entry.data.locale === "zh" && entry.data.seriesSlug === "decision-models"
             ? "供应链与优化"
             : entry.data.series;
+        const canonicalTags = getCanonicalNoteTags(entry);
 
         return (
           <li
             data-reveal
             data-note-card
-            data-search={`${entry.data.title} ${displayTitle} ${entry.data.summary} ${entry.data.tags.join(" ")} ${entry.data.topics.join(" ")} ${entry.data.tools.join(" ")} ${displaySeries ?? ""}`.toLocaleLowerCase()}
-            data-tags={entry.data.tags.join("|").toLocaleLowerCase()}
+            data-search={`${entry.data.title} ${displayTitle} ${entry.data.summary} ${entry.data.tags.join(" ")} ${entry.data.topics.join(" ")} ${entry.data.tools.join(" ")} ${canonicalTags.join(" ")} ${displaySeries ?? ""}`.toLocaleLowerCase()}
+            data-tags={canonicalTags.join("|").toLocaleLowerCase()}
             data-topics={entry.data.topics.join("|").toLocaleLowerCase()}
             data-tools={entry.data.tools.join("|").toLocaleLowerCase()}
             data-series={(displaySeries ?? "").toLocaleLowerCase()}
@@ -66,13 +68,10 @@ const handbookTitles: Record<string, string> = {
                     </a>
                   </h2>
                   <p>{entry.data.summary}</p>
-                  {(displaySeries ||
-                    entry.data.tags.length ||
-                    entry.data.topics.length ||
-                    entry.data.tools.length) && (
+                  {(displaySeries || canonicalTags.length > 0) && (
                     <div class="note-card__metadata">
                       {displaySeries && <span class="tag">{displaySeries}</span>}
-                      {entry.data.tags.map((tag) => (
+                      {canonicalTags.map((tag) => (
                         <a
                           class="tag"
                           href={getLocalizedPath(
