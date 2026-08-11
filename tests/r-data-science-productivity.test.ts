@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 const note = readFileSync("src/content/notes/r-data-analysis-prediction.zh.md", "utf8");
 const layout = readFileSync("src/layouts/DataScienceNoteLayout.astro", "utf8");
 const lab = readFileSync("src/components/learning/PredictionThresholdLab.astro", "utf8");
+const advanced = readFileSync("src/components/learning/DataScienceAdvancedSections.astro", "utf8");
 const noteRoute = readFileSync("src/pages/zh/notes/[slug].astro", "utf8");
 const productivity = readFileSync("src/components/ProductivityPage.astro", "utf8");
 const productivityZh = readFileSync("src/pages/zh/productivity/index.astro", "utf8");
@@ -43,6 +44,29 @@ describe("R data science handbook and productivity section", () => {
     expect(note).toContain("SE(\\bar X)=\\frac{s}{\\sqrt n}");
     expect(note).toContain("R^2=1-\\frac{SSE}{SST}");
     expect(note).toContain("\\log\\left(\\frac{p(x)}{1-p(x)}\\right)");
+  });
+
+  it("adds advanced inference and model-assessment concepts without replacing the main handbook", () => {
+    [
+      "posterior ∝ likelihood × prior",
+      "partial pooling",
+      "处理效应",
+      "MSE",
+      "MAE",
+      "Log loss",
+      "偏差",
+      "方差",
+      "nested cross-validation",
+      "discrimination",
+      "calibration",
+      "Brier score",
+    ].forEach((marker) => expect(advanced).toContain(marker));
+    expect(layout).toContain("DataScienceAdvancedSections");
+    expect(layout).toContain('id: "bayesian-hierarchical"');
+    expect(layout).toContain('id: "loss-bias-variance"');
+    expect(layout).toContain('id: "calibration-decision-cost"');
+    expect(layout).toContain('h2[id="参考与许可"]');
+    expect(layout).toContain('advanced.dataset.learningPlaced = "true"');
   });
 
   it("makes binary event coding explicit in base R and caret examples", () => {
@@ -129,5 +153,6 @@ describe("R data science handbook and productivity section", () => {
     expect(productivity).toContain("rafalab.dfci.harvard.edu/dsbook/");
     expect(productivity).toContain("CC BY-NC-SA 4.0");
     expect(note).not.toMatch(/我|我们|本人|作者|笔者/u);
+    expect(advanced).not.toMatch(/我|我们|本人|作者|笔者/u);
   });
 });
