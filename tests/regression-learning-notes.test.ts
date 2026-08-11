@@ -12,6 +12,15 @@ const noteFiles = [
   "regression-feature-selection.zh.md",
   "logistic-regression.zh.md",
 ];
+const expectedSlots = [
+  "regression-line-lab",
+  "regression-diagnostics-lab",
+  "polynomial-regression-lab",
+  "multicollinearity-lab",
+  "influence-diagnostics-lab",
+  "model-selection-lab",
+  "logistic-regression-lab",
+];
 const notes = noteFiles.map((file) => read(`src/content/notes/${file}`));
 const route = read("src/pages/zh/notes/[slug].astro");
 const layout = read("src/layouts/RegressionNoteLayout.astro");
@@ -80,7 +89,7 @@ describe("Regression and statistics Learning Notes", () => {
     expect(layout).toContain("RegressionLearningBlocks");
   });
 
-  it("provides an interactive learning block for every regression module", () => {
+  it("provides a placed interactive learning block for every regression module", () => {
     [
       "RegressionLab",
       "RegressionDiagnosticsLab",
@@ -89,15 +98,13 @@ describe("Regression and statistics Learning Notes", () => {
       "ModelSelectionLab",
       "LogisticRegressionLab",
     ].forEach((component) => expect(blocks).toContain(component));
-    [
-      "regression-line-lab",
-      "regression-diagnostics-lab",
-      "polynomial-regression-lab",
-      "multicollinearity-lab",
-      "influence-diagnostics-lab",
-      "model-selection-lab",
-      "logistic-regression-lab",
-    ].forEach((slot) => expect(blocks).toContain(slot));
+    expectedSlots.forEach((slot, index) => {
+      expect(blocks).toContain(slot);
+      expect(
+        notes[index],
+        `${noteFiles[index]} should expose a placement slot for ${slot}`,
+      ).toContain(`data-learning-slot="${slot}"`);
+    });
   });
 
   it("caps the Learning Notes index at a small canonical taxonomy", () => {
