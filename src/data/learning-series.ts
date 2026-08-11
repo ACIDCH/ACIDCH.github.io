@@ -45,29 +45,44 @@ export const learningSeries: LearningSeries[] = [
   {
     slug: "regression",
     title: "回归与统计建模",
-    description: "围绕解释、预测、诊断与沟通组织回归分析，明确模型条件与结论边界。",
-    tools: ["R", "统计建模"],
+    description:
+      "从简单线性回归、残差诊断与函数形式进入多元回归、影响点、变量选择和 Logistic Regression，把解释、预测、诊断与模型边界放在同一条证据链里。",
+    tools: ["R", "Base R", "glmnet", "统计建模"],
     modules: [
       {
         code: "REG 01",
-        title: "线性回归问题定义",
-        summary: "明确结果变量、解释变量与观察单位。",
+        title: "简单线性回归",
+        summary: "从散点图、最小二乘和系数解释进入置信区间与预测区间。",
       },
       {
         code: "REG 02",
-        title: "系数与预测",
-        summary: "区分条件关联、边际变化与预测值。",
+        title: "回归诊断",
+        summary: "用残差、Scale–Location 与 QQ 图检查函数形式、方差和分布。",
       },
-      { code: "REG 03", title: "模型诊断", summary: "检查残差、杠杆点与函数形式。" },
+      {
+        code: "REG 03",
+        title: "非线性与交互",
+        summary: "用多项式、类别变量和交互项表达曲率与条件效应。",
+      },
       {
         code: "REG 04",
-        title: "分类结果建模",
-        summary: "理解概率、阈值与分类错误的关系。",
+        title: "多元回归与共线性",
+        summary: "理解条件系数、整体 F 检验、相关结构和 VIF。",
       },
       {
         code: "REG 05",
-        title: "变量选择",
-        summary: "在解释性、稳定性与可用信息之间做取舍。",
+        title: "异常点与影响点",
+        summary: "区分 outlier、leverage 与 influence，并使用 Cook’s distance 和 DFBETA。",
+      },
+      {
+        code: "REG 06",
+        title: "特征选择与正则化",
+        summary: "比较 adjusted R²、BIC、CV、Ridge、Lasso、PCR 与 PLS。",
+      },
+      {
+        code: "REG 07",
+        title: "Logistic Regression",
+        summary: "从 log-odds、odds ratio 进入预测概率、阈值与分类成本。",
       },
     ],
   },
