@@ -1,28 +1,50 @@
 ---
 import { sqlLearningSeedSql, sqlOrders } from "../../data/sql-learning";
+import type { Locale } from "../../config/site";
+import { sqlUi } from "../../i18n/sql-ui";
+interface Props {
+  locale?: Locale;
+}
+const { locale = "zh" } = Astro.props;
+const copy = sqlUi[locale].order;
 
-const payload = JSON.stringify({ orders: sqlOrders, seedSql: sqlLearningSeedSql }).replace(
-  /</g,
-  "\\u003c",
-);
+const payload = JSON.stringify({
+  orders: sqlOrders,
+  seedSql: sqlLearningSeedSql,
+}).replace(/</g, "\\u003c");
 ---
 
-<section class="order-lab" data-order-by-lab aria-labelledby="order-lab-title">
+<section
+  class="order-lab"
+  data-order-by-lab
+  data-copy={JSON.stringify(copy)}
+  aria-labelledby="order-lab-title"
+>
   <div class="order-lab__intro">
-    <p class="learning-note-kicker">互动图表 · Ordering Contract</p>
-    <h3 id="order-lab-title">同一批订单，排序键怎样改变结果行顺序？</h3>
-    <p>
-      所有模式都读取 SQL 系列的 canonical orders。上半部分逐行解释排序结果；下半部分由浏览器内 SQLite 实际执行同一类 ORDER BY 查询。
-    </p>
+    <p class="learning-note-kicker">{copy.kicker}</p>
+    <h3 id="order-lab-title">{copy.title}</h3>
+    <p>{copy.intro}</p>
   </div>
 
-  <div class="order-lab__controls" role="group" aria-label="选择 ORDER BY 示例">
-    <button type="button" data-order-rule="observed" aria-pressed="false">未声明顺序</button>
-    <button type="button" data-order-rule="asc" aria-pressed="false">金额 ASC</button>
-    <button type="button" data-order-rule="desc" aria-pressed="true">金额 DESC</button>
-    <button type="button" data-order-rule="multi" aria-pressed="false">多列排序</button>
-    <button type="button" data-order-rule="stable" aria-pressed="false">稳定 tie-breaker</button>
-    <button type="button" data-order-rule="where" aria-pressed="false">WHERE + ORDER BY</button>
+  <div class="order-lab__controls" role="group" aria-label={copy.controlsLabel}>
+    <button type="button" data-order-rule="observed" aria-pressed="false"
+      >{copy.buttons.observed}</button
+    >
+    <button type="button" data-order-rule="asc" aria-pressed="false"
+      >{copy.buttons.asc}</button
+    >
+    <button type="button" data-order-rule="desc" aria-pressed="true"
+      >{copy.buttons.desc}</button
+    >
+    <button type="button" data-order-rule="multi" aria-pressed="false"
+      >{copy.buttons.multi}</button
+    >
+    <button type="button" data-order-rule="stable" aria-pressed="false"
+      >{copy.buttons.stable}</button
+    >
+    <button type="button" data-order-rule="where" aria-pressed="false"
+      >WHERE + ORDER BY</button
+    >
   </div>
 
   <div class="order-lab__statement">
@@ -51,42 +73,48 @@ const payload = JSON.stringify({ orders: sqlOrders, seedSql: sqlLearningSeedSql 
     </table>
   </div>
 
-  <div class="order-lab__cards" data-order-cards aria-label="ORDER BY mobile records"></div>
+  <div class="order-lab__cards" data-order-cards aria-label="ORDER BY mobile records">
+  </div>
 
   <p class="order-lab__reading" data-order-reading aria-live="polite">
-    当前金额值恰好都不同，因此本批数据可以得到唯一顺序；查询本身仍没有为未来可能出现的金额并列值提供 tie-breaker。
+    {copy.initialReading}
   </p>
 
   <div class="order-lab__runner" aria-labelledby="order-runner-title">
     <div class="order-lab__runner-intro">
-      <p class="learning-note-kicker">浏览器实验 · SQLite</p>
-      <h4 id="order-runner-title">实际执行 ORDER BY，而不是只观察前端重排</h4>
+      <p class="learning-note-kicker">{copy.runnerKicker}</p>
+      <h4 id="order-runner-title">{copy.runnerTitle}</h4>
     </div>
 
     <div class="order-lab__runner-toolbar">
       <label for="order-sql-preset">
-        <span>当前排序实验</span>
+        <span>{copy.presetLabel}</span>
         <select id="order-sql-preset" data-order-sql-preset>
-          <option value="value-desc">金额 DESC</option>
-          <option value="value-asc">金额 ASC</option>
-          <option value="multi">客户 ASC + 日期 DESC</option>
-          <option value="stable">加入唯一 tie-breaker</option>
+          <option value="value-desc">{copy.presetLabels.desc}</option>
+          <option value="value-asc">{copy.presetLabels.asc}</option>
+          <option value="multi">{copy.presetLabels.multi}</option>
+          <option value="stable">{copy.presetLabels.stable}</option>
           <option value="where">WHERE + ORDER BY</option>
-          <option value="alias">按表达式别名排序</option>
+          <option value="alias">{copy.presetLabels.alias}</option>
         </select>
       </label>
-      <button type="button" class="button" data-order-sql-run>运行 SQL</button>
+      <button type="button" class="button" data-order-sql-run>{copy.run}</button>
     </div>
 
     <label class="order-lab__editor" for="order-sql-code">
       <span>SQL</span>
-      <textarea id="order-sql-code" data-order-sql-code rows="8" spellcheck="false"></textarea>
+      <textarea id="order-sql-code" data-order-sql-code rows="8" spellcheck="false"
+      ></textarea>
     </label>
 
-    <div class="order-lab__status" data-order-sql-status aria-live="polite">运行环境尚未加载。</div>
-    <div class="order-lab__summary" data-order-sql-summary aria-live="polite">尚未运行查询。</div>
+    <div class="order-lab__status" data-order-sql-status aria-live="polite">
+      {copy.loading}
+    </div>
+    <div class="order-lab__summary" data-order-sql-summary aria-live="polite">
+      {copy.notRun}
+    </div>
     <div class="order-lab__output" data-order-sql-output aria-live="polite">
-      <p>运行查询后，SQLite 结果会显示在这里。</p>
+      <p>{copy.outputHint}</p>
     </div>
   </div>
 
@@ -388,7 +416,9 @@ const payload = JSON.stringify({ orders: sqlOrders, seedSql: sqlLearningSeedSql 
     close: () => void;
   };
   type SqlModule = { Database: new () => SqlDatabase };
-  type InitSqlJs = (config: { locateFile: (filename: string) => string }) => Promise<SqlModule>;
+  type InitSqlJs = (config: {
+    locateFile: (filename: string) => string;
+  }) => Promise<SqlModule>;
 
   let orderLabCleanup: (() => void) | undefined;
   const cdnBase = "https://cdn.jsdelivr.net/npm/sql.js@1.14.1/dist/";
@@ -399,7 +429,9 @@ const payload = JSON.stringify({ orders: sqlOrders, seedSql: sqlLearningSeedSql 
     if (typeof existing === "function") return Promise.resolve(existing as InitSqlJs);
 
     return new Promise((resolve, reject) => {
-      const prior = document.querySelector<HTMLScriptElement>('script[data-sqljs-loader="true"]');
+      const prior = document.querySelector<HTMLScriptElement>(
+        'script[data-sqljs-loader="true"]',
+      );
       if (prior) {
         prior.addEventListener(
           "load",
@@ -410,9 +442,13 @@ const payload = JSON.stringify({ orders: sqlOrders, seedSql: sqlLearningSeedSql 
           },
           { once: true },
         );
-        prior.addEventListener("error", () => reject(new Error("SQLite loader failed.")), {
-          once: true,
-        });
+        prior.addEventListener(
+          "error",
+          () => reject(new Error("SQLite loader failed.")),
+          {
+            once: true,
+          },
+        );
         return;
       }
 
@@ -429,9 +465,13 @@ const payload = JSON.stringify({ orders: sqlOrders, seedSql: sqlLearningSeedSql 
         },
         { once: true },
       );
-      script.addEventListener("error", () => reject(new Error("SQLite loader failed.")), {
-        once: true,
-      });
+      script.addEventListener(
+        "error",
+        () => reject(new Error("SQLite loader failed.")),
+        {
+          once: true,
+        },
+      );
       document.head.append(script);
     });
   }
@@ -458,7 +498,9 @@ const payload = JSON.stringify({ orders: sqlOrders, seedSql: sqlLearningSeedSql 
     const body = root.querySelector<HTMLTableSectionElement>("[data-order-body]");
     const cards = root.querySelector<HTMLElement>("[data-order-cards]");
     const reading = root.querySelector<HTMLElement>("[data-order-reading]");
-    const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>("[data-order-rule]"));
+    const buttons = Array.from(
+      root.querySelectorAll<HTMLButtonElement>("[data-order-rule]"),
+    );
     const preset = root.querySelector<HTMLSelectElement>("[data-order-sql-preset]");
     const code = root.querySelector<HTMLTextAreaElement>("[data-order-sql-code]");
     const runButton = root.querySelector<HTMLButtonElement>("[data-order-sql-run]");
@@ -497,53 +539,62 @@ const payload = JSON.stringify({ orders: sqlOrders, seedSql: sqlLearningSeedSql 
     const summaryOutput = summary;
     const sqlOutput = output;
     const source = JSON.parse(sourceNode.textContent || "{}") as Source;
+    const copy = JSON.parse(root.dataset.copy ?? "{}") as {
+      rules: Record<Rule, string>;
+      noResults: string;
+      running: string;
+      success: string;
+      failure: string;
+    };
     const controller = new AbortController();
     let db: SqlDatabase | undefined;
 
     const rules: Record<
       Rule,
-      { statement: string; keys: string; contract: string; reading: string; rows: Order[] }
+      {
+        statement: string;
+        keys: string;
+        contract: string;
+        reading: string;
+        rows: Order[];
+      }
     > = {
       observed: {
         statement: "not declared",
         keys: "0",
         contract: "not guaranteed",
-        reading:
-          "这里仅展示当前 seed 的观察顺序。没有 ORDER BY 时，这个排列不能成为查询契约。",
+        reading: copy.rules.observed,
         rows: [...source.orders],
       },
       asc: {
         statement: "BY order_value ASC",
         keys: "1",
         contract: "ties unresolved",
-        reading:
-          "金额从小到大。当前金额恰好都不同；如果未来出现相同金额，单一排序键没有声明并列记录内部顺序。",
+        reading: copy.rules.asc,
         rows: [...source.orders].sort((a, b) => a.order_value - b.order_value),
       },
       desc: {
         statement: "BY order_value DESC",
         keys: "1",
         contract: "ties unresolved",
-        reading:
-          "金额从大到小。当前金额值恰好都不同，因此本批数据可以得到唯一顺序；查询本身仍没有为未来可能出现的金额并列值提供 tie-breaker。",
+        reading: copy.rules.desc,
         rows: [...source.orders].sort((a, b) => b.order_value - a.order_value),
       },
       multi: {
         statement: "BY customer_id ASC, order_date DESC",
         keys: "2",
         contract: "secondary key",
-        reading:
-          "先按 customer_id 升序；客户 1001 出现并列后，再按 order_date 降序，因此 50002 排在 50001 前。",
+        reading: copy.rules.multi,
         rows: [...source.orders].sort(
-          (a, b) => a.customer_id - b.customer_id || b.order_date.localeCompare(a.order_date),
+          (a, b) =>
+            a.customer_id - b.customer_id || b.order_date.localeCompare(a.order_date),
         ),
       },
       stable: {
         statement: "BY customer_id ASC, order_date DESC, order_id ASC",
         keys: "3",
         contract: "unique tie-breaker",
-        reading:
-          "最后加入唯一 order_id。即使前两个排序键都相同，查询仍然具备可以明确推导的最终顺序。",
+        reading: copy.rules.stable,
         rows: [...source.orders].sort(
           (a, b) =>
             a.customer_id - b.customer_id ||
@@ -555,8 +606,7 @@ const payload = JSON.stringify({ orders: sqlOrders, seedSql: sqlLearningSeedSql 
         statement: "BY order_value DESC, order_id ASC · after WHERE order_value >= 400",
         keys: "2",
         contract: "filtered + ordered",
-        reading:
-          "WHERE 先保留金额至少 400 的三张订单，再按金额降序；order_id 作为最终 tie-breaker。",
+        reading: copy.rules.where,
         rows: source.orders
           .filter((row) => row.order_value >= 400)
           .sort((a, b) => b.order_value - a.order_value || a.order_id - b.order_id),
@@ -574,7 +624,13 @@ const payload = JSON.stringify({ orders: sqlOrders, seedSql: sqlLearningSeedSql 
       tableBody.replaceChildren();
       cardOutput.replaceChildren();
       view.rows.forEach((row, index) => {
-        const values = [index + 1, row.order_id, row.customer_id, row.order_date, row.order_value];
+        const values = [
+          index + 1,
+          row.order_id,
+          row.customer_id,
+          row.order_date,
+          row.order_value,
+        ];
         const tr = document.createElement("tr");
         values.forEach((value) => {
           const td = document.createElement("td");
@@ -622,7 +678,7 @@ const payload = JSON.stringify({ orders: sqlOrders, seedSql: sqlLearningSeedSql 
       if (results.length === 0) {
         summaryOutput.textContent = "0 result sets · statement completed";
         const paragraph = document.createElement("p");
-        paragraph.textContent = "SQL 执行成功，没有返回结果集。";
+        paragraph.textContent = copy.noResults;
         sqlOutput.append(paragraph);
         return;
       }
@@ -664,17 +720,17 @@ const payload = JSON.stringify({ orders: sqlOrders, seedSql: sqlLearningSeedSql 
     async function runSql() {
       runControl.disabled = true;
       try {
-        setStatus("正在执行 SQLite…", "running");
+        setStatus(copy.running, "running");
         if (!db) await resetDatabase();
         const results = db?.exec(codeEditor.value) ?? [];
         renderSqlResults(results);
-        setStatus("SQL 执行完成。", "success");
+        setStatus(copy.success, "success");
       } catch (error) {
         const paragraph = document.createElement("p");
         paragraph.textContent = error instanceof Error ? error.message : String(error);
         sqlOutput.replaceChildren(paragraph);
         summaryOutput.textContent = "query failed";
-        setStatus("SQL 执行失败。查看下方错误信息。", "error");
+        setStatus(copy.failure, "error");
       } finally {
         runControl.disabled = false;
       }
@@ -695,7 +751,9 @@ const payload = JSON.stringify({ orders: sqlOrders, seedSql: sqlLearningSeedSql 
       },
       { signal: controller.signal },
     );
-    runControl.addEventListener("click", () => void runSql(), { signal: controller.signal });
+    runControl.addEventListener("click", () => void runSql(), {
+      signal: controller.signal,
+    });
     codeEditor.addEventListener(
       "keydown",
       (event) => {

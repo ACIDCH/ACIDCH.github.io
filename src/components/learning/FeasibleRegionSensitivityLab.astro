@@ -1,42 +1,95 @@
 ---
 import { optimisationUniverse } from "../../data/supply-chain-optimisation";
+import type { Locale } from "../../config/site";
+import { decisionUi } from "../../i18n/decision-ui";
+
+interface Props {
+  locale?: Locale;
+}
+const { locale = "zh" } = Astro.props;
+const copy = decisionUi[locale].feasible;
 ---
 
-<section class="dm-lab" data-feasible-lab aria-labelledby="feasible-title">
+<section
+  class="dm-lab"
+  data-feasible-lab
+  data-copy={JSON.stringify(copy)}
+  aria-labelledby="feasible-title"
+>
   <div class="dm-lab__intro">
-    <p class="learning-note-kicker">互动实验 · Feasible Region + Sensitivity</p>
-    <h3 id="feasible-title">资源边界移动时，可行域、最优组合与约束松弛怎样变化？</h3>
-    <p>模型最大化两种产品的总贡献。材料与人工容量可以调整，页面会重新枚举角点并识别最优可行解。</p>
+    <p class="learning-note-kicker">{copy.kicker}</p>
+    <h3 id="feasible-title">{copy.title}</h3>
+    <p>{copy.intro}</p>
   </div>
 
   <div class="dm-lab__controls">
-    <label for="material-capacity">Material capacity
-      <input id="material-capacity" data-material-capacity type="range" min="180" max="300" step="10" value={optimisationUniverse.resources.materialCapacity} />
+    <label for="material-capacity"
+      >Material capacity
+      <input
+        id="material-capacity"
+        data-material-capacity
+        type="range"
+        min="180"
+        max="300"
+        step="10"
+        value={optimisationUniverse.resources.materialCapacity}
+      />
     </label>
-    <label for="labour-capacity">Labour capacity
-      <input id="labour-capacity" data-labour-capacity type="range" min="190" max="310" step="10" value={optimisationUniverse.resources.labourCapacity} />
+    <label for="labour-capacity"
+      >Labour capacity
+      <input
+        id="labour-capacity"
+        data-labour-capacity
+        type="range"
+        min="190"
+        max="310"
+        step="10"
+        value={optimisationUniverse.resources.labourCapacity}
+      />
     </label>
   </div>
 
-  <div class="dm-lab__equation">max Z = 42·Core + 58·Premium
-s.t. 3·Core + 4·Premium ≤ Material
-     2·Core + 5·Premium ≤ Labour
-     Core, Premium ≥ 0</div>
+  <div class="dm-lab__equation">
+    max Z = 42·Core + 58·Premium s.t. 3·Core + 4·Premium ≤ Material 2·Core + 5·Premium ≤
+    Labour Core, Premium ≥ 0
+  </div>
 
   <div class="dm-lab__metrics" aria-live="polite">
-    <div class="dm-lab__metric"><span>Core</span><strong data-opt-core>28.57</strong></div>
-    <div class="dm-lab__metric"><span>Premium</span><strong data-opt-premium>38.57</strong></div>
-    <div class="dm-lab__metric"><span>Objective</span><strong data-opt-objective>3437.14</strong></div>
-    <div class="dm-lab__metric"><span>Binding constraints</span><strong data-binding-count>2</strong></div>
+    <div class="dm-lab__metric">
+      <span>Core</span><strong data-opt-core>28.57</strong>
+    </div>
+    <div class="dm-lab__metric">
+      <span>Premium</span><strong data-opt-premium>38.57</strong>
+    </div>
+    <div class="dm-lab__metric">
+      <span>Objective</span><strong data-opt-objective>3437.14</strong>
+    </div>
+    <div class="dm-lab__metric">
+      <span>Binding constraints</span><strong data-binding-count>2</strong>
+    </div>
   </div>
 
-  <svg class="dm-lab__svg" data-feasible-svg viewBox="0 0 620 390" role="img" aria-label="Feasible region for two-product constrained optimisation">
-    <line x1="55" y1="330" x2="585" y2="330" stroke="currentColor" opacity="0.35" />
-    <line x1="55" y1="35" x2="55" y2="330" stroke="currentColor" opacity="0.35" />
-    <polygon data-feasible-polygon fill="currentColor" opacity="0.09" stroke="currentColor" stroke-width="2" />
-    <line data-material-line stroke="currentColor" stroke-dasharray="8 6" opacity="0.55" />
-    <line data-labour-line stroke="currentColor" stroke-dasharray="3 5" opacity="0.65" />
-    <circle data-opt-point r="7" fill="currentColor" />
+  <svg
+    class="dm-lab__svg"
+    data-feasible-svg
+    viewBox="0 0 620 390"
+    role="img"
+    aria-label="Feasible region for two-product constrained optimisation"
+  >
+    <line x1="55" y1="330" x2="585" y2="330" stroke="currentColor" opacity="0.35"
+    ></line>
+    <line x1="55" y1="35" x2="55" y2="330" stroke="currentColor" opacity="0.35"></line>
+    <polygon
+      data-feasible-polygon
+      fill="currentColor"
+      opacity="0.09"
+      stroke="currentColor"
+      stroke-width="2"></polygon>
+    <line data-material-line stroke="currentColor" stroke-dasharray="8 6" opacity="0.55"
+    ></line>
+    <line data-labour-line stroke="currentColor" stroke-dasharray="3 5" opacity="0.65"
+    ></line>
+    <circle data-opt-point r="7" fill="currentColor"></circle>
     <text x="500" y="365" fill="currentColor" opacity="0.75">Core</text>
     <text x="10" y="55" fill="currentColor" opacity="0.75">Premium</text>
   </svg>
@@ -44,17 +97,25 @@ s.t. 3·Core + 4·Premium ≤ Material
   <div class="dm-lab__grid">
     <article class="dm-lab__panel">
       <h4>Material constraint</h4>
-      <p><strong data-material-used>240</strong> used / <span data-material-total>240</span></p>
+      <p>
+        <strong data-material-used>240</strong> used / <span data-material-total
+          >240</span>
+      </p>
       <p class="dm-lab__muted">Slack: <span data-material-slack>0</span></p>
     </article>
     <article class="dm-lab__panel">
       <h4>Labour constraint</h4>
-      <p><strong data-labour-used>250</strong> used / <span data-labour-total>250</span></p>
+      <p>
+        <strong data-labour-used>250</strong> used / <span data-labour-total>250</span>
+      </p>
       <p class="dm-lab__muted">Slack: <span data-labour-slack>0</span></p>
     </article>
   </div>
 
-  <div class="dm-lab__callout"><strong>Managerial reading</strong><span data-feasible-reading>两个资源约束都在最优点处绑定，额外资源可能具有边际价值。</span></div>
+  <div class="dm-lab__callout">
+    <strong>{copy.managerialReading}</strong><span data-feasible-reading
+      >{copy.initialReading}</span>
+  </div>
 </section>
 
 <script>
@@ -64,13 +125,26 @@ s.t. 3·Core + 4·Premium ≤ Material
     feasibleCleanup?.();
     const root = document.querySelector<HTMLElement>("[data-feasible-lab]");
     if (!root) return;
-    const materialInput = root.querySelector<HTMLInputElement>("[data-material-capacity]")!;
+    const copy = JSON.parse(root.dataset.copy ?? "{}") as Record<string, string>;
+    const format = (template: string, values: Record<string, string>) =>
+      template.replace(/\{(\w+)\}/g, (_, key: string) => values[key] ?? "");
+    const materialInput = root.querySelector<HTMLInputElement>(
+      "[data-material-capacity]",
+    )!;
     const labourInput = root.querySelector<HTMLInputElement>("[data-labour-capacity]")!;
     const polygon = root.querySelector<SVGPolygonElement>("[data-feasible-polygon]")!;
     const materialLine = root.querySelector<SVGLineElement>("[data-material-line]")!;
     const labourLine = root.querySelector<SVGLineElement>("[data-labour-line]")!;
     const point = root.querySelector<SVGCircleElement>("[data-opt-point]")!;
-    if (!materialInput || !labourInput || !polygon || !materialLine || !labourLine || !point) return;
+    if (
+      !materialInput ||
+      !labourInput ||
+      !polygon ||
+      !materialLine ||
+      !labourLine ||
+      !point
+    )
+      return;
     const controller = new AbortController();
     const field = (selector: string) => root.querySelector<HTMLElement>(selector);
     const sx = (x: number) => 55 + (x / 100) * 530;
@@ -91,9 +165,12 @@ s.t. 3·Core + 4·Premium ≤ Material
         intersection.y >= 0 &&
         3 * intersection.x + 4 * intersection.y <= material + 1e-8 &&
         2 * intersection.x + 5 * intersection.y <= labour + 1e-8
-      ) candidates.push(intersection);
+      )
+        candidates.push(intersection);
       const feasible = candidates.filter(
-        (candidate) => 3 * candidate.x + 4 * candidate.y <= material + 1e-8 && 2 * candidate.x + 5 * candidate.y <= labour + 1e-8,
+        (candidate) =>
+          3 * candidate.x + 4 * candidate.y <= material + 1e-8 &&
+          2 * candidate.x + 5 * candidate.y <= labour + 1e-8,
       );
       return feasible
         .map((candidate) => ({ ...candidate, z: 42 * candidate.x + 58 * candidate.y }))
@@ -123,11 +200,26 @@ s.t. 3·Core + 4·Premium ≤ Material
 
       const xAxis = Math.min(material / 3, labour / 2);
       const yAxis = Math.min(material / 4, labour / 5);
-      const intersection = { x: (5 * material - 4 * labour) / 7, y: (3 * labour - 2 * material) / 7 };
-      const vertices = [{ x: 0, y: 0 }, { x: xAxis, y: 0 }];
-      if (intersection.x >= 0 && intersection.y >= 0 && intersection.x <= xAxis + 1e-8 && intersection.y <= yAxis + 1e-8) vertices.push(intersection);
+      const intersection = {
+        x: (5 * material - 4 * labour) / 7,
+        y: (3 * labour - 2 * material) / 7,
+      };
+      const vertices = [
+        { x: 0, y: 0 },
+        { x: xAxis, y: 0 },
+      ];
+      if (
+        intersection.x >= 0 &&
+        intersection.y >= 0 &&
+        intersection.x <= xAxis + 1e-8 &&
+        intersection.y <= yAxis + 1e-8
+      )
+        vertices.push(intersection);
       vertices.push({ x: 0, y: yAxis });
-      polygon.setAttribute("points", vertices.map((v) => `${sx(v.x)},${sy(v.y)}`).join(" "));
+      polygon.setAttribute(
+        "points",
+        vertices.map((v) => `${sx(v.x)},${sy(v.y)}`).join(" "),
+      );
 
       const matX = Math.min(100, material / 3);
       const matY = Math.min(70, material / 4);
@@ -146,9 +238,15 @@ s.t. 3·Core + 4·Premium ≤ Material
 
       const reading = field("[data-feasible-reading]");
       if (reading) {
-        if (binding === 2) reading.textContent = "两个资源约束都在最优点处绑定：材料与人工都被完全利用，增加任一资源都值得进一步检查边际价值。";
-        else if (materialSlack < 0.01) reading.textContent = `材料约束绑定，但人工仍有 ${labourSlack.toFixed(1)} 的 slack；短期内增加闲置资源不会自动改善目标值。`;
-        else reading.textContent = `人工约束绑定，但材料仍有 ${materialSlack.toFixed(1)} 的 slack；瓶颈已经转移到人工资源。`;
+        if (binding === 2) reading.textContent = copy.bothBinding;
+        else if (materialSlack < 0.01)
+          reading.textContent = format(copy.materialBinding, {
+            slack: labourSlack.toFixed(1),
+          });
+        else
+          reading.textContent = format(copy.labourBinding, {
+            slack: materialSlack.toFixed(1),
+          });
       }
     }
 

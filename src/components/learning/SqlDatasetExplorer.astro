@@ -8,18 +8,27 @@ import {
   sqlOrderTotal,
   sqlProducts,
 } from "../../data/sql-learning";
+import type { Locale } from "../../config/site";
+import { sqlUi } from "../../i18n/sql-ui";
+interface Props {
+  locale?: Locale;
+}
+const { locale = "zh" } = Astro.props;
+const copy = sqlUi[locale].dataset;
 ---
 
-<section class="sql-dataset-explorer" data-sql-dataset-explorer aria-labelledby="sql-dataset-explorer-title">
+<section
+  class="sql-dataset-explorer"
+  data-sql-dataset-explorer
+  aria-labelledby="sql-dataset-explorer-title"
+>
   <div class="sql-dataset-explorer__intro">
-    <p class="learning-note-kicker">互动数据集 · Single Source of Truth</p>
-    <h3 id="sql-dataset-explorer-title">整个 SQL 系列都沿用这一组业务数据</h3>
-    <p>
-      后续主键、外键、关系、查询与连接示例都以这组记录为准。切换表可以同时检查记录粒度、主外键字段和当前样例数量。金额字段只作为 demo numeric value，不额外假设货币单位。
-    </p>
+    <p class="learning-note-kicker">{copy.kicker}</p>
+    <h3 id="sql-dataset-explorer-title">{copy.title}</h3>
+    <p>{copy.intro}</p>
   </div>
 
-  <div class="sql-dataset-explorer__metrics" aria-label="数据集摘要">
+  <div class="sql-dataset-explorer__metrics" aria-label={copy.summaryLabel}>
     <div><span>customers</span><strong>{sqlDatasetCounts.customers}</strong></div>
     <div><span>orders</span><strong>{sqlDatasetCounts.orders}</strong></div>
     <div><span>products</span><strong>{sqlDatasetCounts.products}</strong></div>
@@ -27,87 +36,178 @@ import {
     <div><span>order_value total</span><strong>{sqlOrderTotal.toFixed(2)}</strong></div>
   </div>
 
-  <div class="sql-dataset-explorer__controls" role="group" aria-label="选择数据表">
-    <button type="button" data-dataset-choice="customers" aria-pressed="true">customers</button>
-    <button type="button" data-dataset-choice="orders" aria-pressed="false">orders</button>
-    <button type="button" data-dataset-choice="products" aria-pressed="false">products</button>
-    <button type="button" data-dataset-choice="order-items" aria-pressed="false">order_items</button>
-    <button type="button" data-dataset-choice="profiles" aria-pressed="false">customer_profiles</button>
+  <div
+    class="sql-dataset-explorer__controls"
+    role="group"
+    aria-label={copy.controlsLabel}
+  >
+    <button type="button" data-dataset-choice="customers" aria-pressed="true"
+      >customers</button
+    >
+    <button type="button" data-dataset-choice="orders" aria-pressed="false"
+      >orders</button
+    >
+    <button type="button" data-dataset-choice="products" aria-pressed="false"
+      >products</button
+    >
+    <button type="button" data-dataset-choice="order-items" aria-pressed="false"
+      >order_items</button
+    >
+    <button type="button" data-dataset-choice="profiles" aria-pressed="false"
+      >customer_profiles</button
+    >
   </div>
 
   <div class="sql-dataset-explorer__panels" aria-live="polite">
     <section data-dataset-panel="customers">
-      <p class="sql-dataset-explorer__grain"><strong>粒度：</strong>One row = one customer · <code>customer_id</code> 是主键</p>
+      <p class="sql-dataset-explorer__grain">
+        <strong>{copy.grainLabel}</strong>{copy.grains.customers}
+      </p>
       <div class="sql-dataset-explorer__table-wrap">
         <table>
-          <thead><tr><th>customer_id</th><th>customer_name</th><th>email</th><th>phone</th><th>segment</th></tr></thead>
+          <thead
+            ><tr
+              ><th>customer_id</th><th>customer_name</th><th>email</th><th>phone</th><th
+                >segment</th
+              ></tr
+            ></thead
+          >
           <tbody>
-            {sqlCustomers.map((row) => (
-              <tr><td>{row.customer_id}</td><td>{row.customer_name}</td><td>{row.email}</td><td>{row.phone}</td><td>{row.segment}</td></tr>
-            ))}
+            {
+              sqlCustomers.map((row) => (
+                <tr>
+                  <>
+                    <td>{row.customer_id}</td>
+                    <td>{row.customer_name}</td>
+                    <td>{row.email}</td>
+                    <td>{row.phone}</td>
+                    <td>{row.segment}</td>
+                  </>
+                </tr>
+              ))
+            }
           </tbody>
         </table>
       </div>
     </section>
 
     <section data-dataset-panel="orders" hidden>
-      <p class="sql-dataset-explorer__grain"><strong>粒度：</strong>One row = one order · <code>customer_id</code> 引用 customers</p>
+      <p class="sql-dataset-explorer__grain">
+        <strong>{copy.grainLabel}</strong>{copy.grains.orders}
+      </p>
       <div class="sql-dataset-explorer__table-wrap">
         <table>
-          <thead><tr><th>order_id</th><th>customer_id</th><th>order_date</th><th>order_value</th></tr></thead>
+          <thead
+            ><tr
+              ><th>order_id</th><th>customer_id</th><th>order_date</th><th
+                >order_value</th
+              ></tr
+            ></thead
+          >
           <tbody>
-            {sqlOrders.map((row) => (
-              <tr><td>{row.order_id}</td><td>{row.customer_id}</td><td>{row.order_date}</td><td>{row.order_value.toFixed(2)}</td></tr>
-            ))}
+            {
+              sqlOrders.map((row) => (
+                <tr>
+                  <>
+                    <td>{row.order_id}</td>
+                    <td>{row.customer_id}</td>
+                    <td>{row.order_date}</td>
+                    <td>{row.order_value.toFixed(2)}</td>
+                  </>
+                </tr>
+              ))
+            }
           </tbody>
         </table>
       </div>
     </section>
 
     <section data-dataset-panel="products" hidden>
-      <p class="sql-dataset-explorer__grain"><strong>粒度：</strong>One row = one product · <code>product_id</code> 是主键</p>
+      <p class="sql-dataset-explorer__grain">
+        <strong>{copy.grainLabel}</strong>{copy.grains.products}
+      </p>
       <div class="sql-dataset-explorer__table-wrap">
         <table>
-          <thead><tr><th>product_id</th><th>product_name</th><th>category</th></tr></thead>
+          <thead
+            ><tr><th>product_id</th><th>product_name</th><th>category</th></tr></thead
+          >
           <tbody>
-            {sqlProducts.map((row) => (
-              <tr><td>{row.product_id}</td><td>{row.product_name}</td><td>{row.category}</td></tr>
-            ))}
+            {
+              sqlProducts.map((row) => (
+                <tr>
+                  <>
+                    <td>{row.product_id}</td>
+                    <td>{row.product_name}</td>
+                    <td>{row.category}</td>
+                  </>
+                </tr>
+              ))
+            }
           </tbody>
         </table>
       </div>
     </section>
 
     <section data-dataset-panel="order-items" hidden>
-      <p class="sql-dataset-explorer__grain"><strong>粒度：</strong>One row = one product line within one order · 联合主键 <code>(order_id, product_id)</code></p>
+      <p class="sql-dataset-explorer__grain">
+        <strong>{copy.grainLabel}</strong>{copy.grains.orderItems}
+      </p>
       <div class="sql-dataset-explorer__table-wrap">
         <table>
-          <thead><tr><th>order_id</th><th>product_id</th><th>quantity</th><th>unit_price</th><th>line_value</th></tr></thead>
+          <thead
+            ><tr
+              ><th>order_id</th><th>product_id</th><th>quantity</th><th>unit_price</th
+              ><th>line_value</th></tr
+            ></thead
+          >
           <tbody>
-            {sqlOrderItems.map((row) => (
-              <tr><td>{row.order_id}</td><td>{row.product_id}</td><td>{row.quantity}</td><td>{row.unit_price.toFixed(2)}</td><td>{(row.quantity * row.unit_price).toFixed(2)}</td></tr>
-            ))}
+            {
+              sqlOrderItems.map((row) => (
+                <tr>
+                  <>
+                    <td>{row.order_id}</td>
+                    <td>{row.product_id}</td>
+                    <td>{row.quantity}</td>
+                    <td>{row.unit_price.toFixed(2)}</td>
+                    <td>{(row.quantity * row.unit_price).toFixed(2)}</td>
+                  </>
+                </tr>
+              ))
+            }
           </tbody>
         </table>
       </div>
     </section>
 
     <section data-dataset-panel="profiles" hidden>
-      <p class="sql-dataset-explorer__grain"><strong>粒度：</strong>One row = one optional customer profile · <code>customer_id</code> 同时是 PK 与 FK</p>
+      <p class="sql-dataset-explorer__grain">
+        <strong>{copy.grainLabel}</strong>{copy.grains.profiles}
+      </p>
       <div class="sql-dataset-explorer__table-wrap">
         <table>
-          <thead><tr><th>customer_id</th><th>timezone</th><th>preferred_channel</th></tr></thead>
+          <thead
+            ><tr><th>customer_id</th><th>timezone</th><th>preferred_channel</th></tr
+            ></thead
+          >
           <tbody>
-            {sqlCustomerProfiles.map((row) => (
-              <tr><td>{row.customer_id}</td><td>{row.timezone}</td><td>{row.preferred_channel}</td></tr>
-            ))}
+            {
+              sqlCustomerProfiles.map((row) => (
+                <tr>
+                  <>
+                    <td>{row.customer_id}</td>
+                    <td>{row.timezone}</td>
+                    <td>{row.preferred_channel}</td>
+                  </>
+                </tr>
+              ))
+            }
           </tbody>
         </table>
       </div>
     </section>
   </div>
 
-  <div class="sql-dataset-explorer__relation" aria-label="关系摘要">
+  <div class="sql-dataset-explorer__relation" aria-label={copy.relationLabel}>
     <code>customers 1 → N orders 1 → N order_items N ← 1 products</code>
     <code>customers 1 ↔ 1 customer_profiles</code>
   </div>
@@ -241,15 +341,22 @@ import {
     const root = document.querySelector<HTMLElement>("[data-sql-dataset-explorer]");
     if (!root) return;
 
-    const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>("[data-dataset-choice]"));
-    const panels = Array.from(root.querySelectorAll<HTMLElement>("[data-dataset-panel]"));
+    const buttons = Array.from(
+      root.querySelectorAll<HTMLButtonElement>("[data-dataset-choice]"),
+    );
+    const panels = Array.from(
+      root.querySelectorAll<HTMLElement>("[data-dataset-panel]"),
+    );
     if (buttons.length === 0 || panels.length === 0) return;
 
     const controller = new AbortController();
 
     function selectTable(selected: string) {
       buttons.forEach((button) => {
-        button.setAttribute("aria-pressed", String(button.dataset.datasetChoice === selected));
+        button.setAttribute(
+          "aria-pressed",
+          String(button.dataset.datasetChoice === selected),
+        );
       });
       panels.forEach((panel) => {
         panel.hidden = panel.dataset.datasetPanel !== selected;

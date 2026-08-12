@@ -174,7 +174,7 @@ def common_topic_proofs(browser: object, mobile: bool) -> None:
     browser.assert_toc_targets()
     browser.scroll_to("[data-horizon-lab]")
     horizon = "Operational" if mobile else "Tactical"
-    horizon_text = "short-term" if mobile else "capacity"
+    horizon_text = "短期" if mobile else "容量"
     browser.click(f'[data-horizon-choice="{horizon}"]')
     browser.wait_for_text("[data-horizon-decision]", horizon_text)
     browser.screenshot(f"dm09-horizon-{horizon.lower()}-{suffix}.png")

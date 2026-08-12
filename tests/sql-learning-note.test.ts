@@ -235,15 +235,15 @@ describe("SQL and relational data Learning Notes", () => {
 
   it("uses topic-specific interactive explanations instead of one generic widget", () => {
     [
-      "<RelationalModelExplorer />",
-      "<SqlDatasetExplorer />",
-      "<PrimaryKeyLab />",
-      "<ForeignKeyLab />",
-      "<RelationshipCardinalityLab />",
-      "<WhereFilterLab />",
-      "<ProjectionColumnsLab />",
-      "<OrderByLab />",
-      "<PaginationLab />",
+      "<RelationalModelExplorer locale={entry.data.locale} />",
+      "<SqlDatasetExplorer locale={entry.data.locale} />",
+      "<PrimaryKeyLab locale={entry.data.locale} />",
+      "<ForeignKeyLab locale={entry.data.locale} />",
+      "<RelationshipCardinalityLab locale={entry.data.locale} />",
+      "<WhereFilterLab locale={entry.data.locale} />",
+      "<ProjectionColumnsLab locale={entry.data.locale} />",
+      "<OrderByLab locale={entry.data.locale} />",
+      "<PaginationLab locale={entry.data.locale} />",
     ].forEach((marker) => expect(layout).toContain(marker));
     expect(relationalModelExplorer).toContain('data-model-choice="relational"');
     expect(datasetExplorer).toContain('data-dataset-choice="order-items"');

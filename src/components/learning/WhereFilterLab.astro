@@ -1,24 +1,42 @@
 ---
 import { sqlCustomers, sqlOrders } from "../../data/sql-learning";
+import type { Locale } from "../../config/site";
+import { sqlUi } from "../../i18n/sql-ui";
+interface Props {
+  locale?: Locale;
+}
+const { locale = "zh" } = Astro.props;
+const copy = sqlUi[locale].where;
 
-const payload = JSON.stringify({ customers: sqlCustomers, orders: sqlOrders }).replace(/</g, "\\u003c");
+const payload = JSON.stringify({ customers: sqlCustomers, orders: sqlOrders }).replace(
+  /</g,
+  "\\u003c",
+);
 ---
 
-<section class="where-filter-lab" data-where-filter-lab aria-labelledby="where-filter-title">
+<section
+  class="where-filter-lab"
+  data-where-filter-lab
+  data-copy={JSON.stringify(copy)}
+  aria-labelledby="where-filter-title"
+>
   <div class="where-filter-lab__intro">
-    <p class="learning-note-kicker">互动图表 · Predicate Logic</p>
-    <h3 id="where-filter-title">同一张表，条件一变，哪些记录会留下？</h3>
-    <p>
-      下面不是模拟数据库结果，而是把 canonical dataset 的每一行按当前条件标记为 keep / remove。随后可在 SQLite 实验中运行同一条 SQL，核对行数与具体记录。
-    </p>
+    <p class="learning-note-kicker">{copy.kicker}</p>
+    <h3 id="where-filter-title">{copy.title}</h3>
+    <p>{copy.intro}</p>
   </div>
 
-  <div class="where-filter-lab__controls" role="group" aria-label="选择 WHERE 条件">
-    <button type="button" data-where-rule="gte" aria-pressed="true">金额 ≥ 500</button>
+  <div class="where-filter-lab__controls" role="group" aria-label={copy.controlsLabel}>
+    <button type="button" data-where-rule="gte" aria-pressed="true"
+      >{copy.buttons.gte}</button
+    >
     <button type="button" data-where-rule="and" aria-pressed="false">AND</button>
     <button type="button" data-where-rule="or" aria-pressed="false">OR</button>
-    <button type="button" data-where-rule="grouped" aria-pressed="false">括号优先级</button>
-    <button type="button" data-where-rule="between" aria-pressed="false">BETWEEN</button>
+    <button type="button" data-where-rule="grouped" aria-pressed="false"
+      >{copy.buttons.grouped}</button
+    >
+    <button type="button" data-where-rule="between" aria-pressed="false">BETWEEN</button
+    >
     <button type="button" data-where-rule="in" aria-pressed="false">IN</button>
     <button type="button" data-where-rule="like" aria-pressed="false">LIKE</button>
     <button type="button" data-where-rule="null" aria-pressed="false">IS NULL</button>
@@ -30,19 +48,20 @@ const payload = JSON.stringify({ customers: sqlCustomers, orders: sqlOrders }).r
   </div>
 
   <div class="where-filter-lab__metrics" aria-live="polite">
-    <div><span>Input rows</span><strong data-where-input>4</strong></div>
-    <div><span>Kept</span><strong data-where-kept>2</strong></div>
-    <div><span>Removed</span><strong data-where-removed>2</strong></div>
+    <div><span>{copy.inputRows}</span><strong data-where-input>4</strong></div>
+    <div><span>{copy.kept}</span><strong data-where-kept>2</strong></div>
+    <div><span>{copy.removed}</span><strong data-where-removed>2</strong></div>
   </div>
 
-  <div class="where-filter-lab__table-wrap" aria-label="桌面 WHERE 逐行判断表">
+  <div class="where-filter-lab__table-wrap" aria-label={copy.desktopLabel}>
     <table>
       <thead data-where-head></thead>
       <tbody data-where-body></tbody>
     </table>
   </div>
 
-  <div class="where-filter-lab__cards" data-where-cards aria-label="移动端 WHERE 逐行判断"></div>
+  <div class="where-filter-lab__cards" data-where-cards aria-label={copy.mobileLabel}>
+  </div>
 
   <p class="where-filter-lab__reading" data-where-reading aria-live="polite"></p>
   <script is:inline type="application/json" data-where-source set:html={payload} />
@@ -305,6 +324,9 @@ const payload = JSON.stringify({ customers: sqlCustomers, orders: sqlOrders }).r
     const removedOutput = removed;
     const readingOutput = reading;
     const data = JSON.parse(source.textContent || "{}") as Data;
+    const copy = JSON.parse(root.dataset.copy ?? "{}") as {
+      readings: Record<Rule, string>;
+    };
     const controller = new AbortController();
 
     const configs: Record<
@@ -319,27 +341,27 @@ const payload = JSON.stringify({ customers: sqlCustomers, orders: sqlOrders }).r
       gte: {
         table: "orders",
         expression: "order_value >= 500",
-        reading: "50003 与 50004 被保留；结果仍是一行一张订单，只是行数从 4 缩小到 2。",
+        reading: copy.readings.gte,
         test: (row) => "order_value" in row && row.order_value >= 500,
       },
       and: {
         table: "orders",
         expression: "order_value >= 400 AND customer_id <> 1002",
-        reading: "AND 要求两个条件同时为真，因此保留 50001 与 50004。",
+        reading: copy.readings.and,
         test: (row) =>
           "order_value" in row && row.order_value >= 400 && row.customer_id !== 1002,
       },
       or: {
         table: "orders",
         expression: "customer_id = 1001 OR order_value >= 700",
-        reading: "OR 允许任意一侧成立，因此 50001、50002 与 50003 都进入结果集。",
+        reading: copy.readings.or,
         test: (row) =>
           "order_value" in row && (row.customer_id === 1001 || row.order_value >= 700),
       },
       grouped: {
         table: "orders",
         expression: "(customer_id = 1001 OR order_value >= 500) AND customer_id = 1003",
-        reading: "括号先形成候选集合，再应用 customer_id = 1003，最终只保留 50004。",
+        reading: copy.readings.grouped,
         test: (row) =>
           "order_value" in row &&
           (row.customer_id === 1001 || row.order_value >= 500) &&
@@ -348,28 +370,27 @@ const payload = JSON.stringify({ customers: sqlCustomers, orders: sqlOrders }).r
       between: {
         table: "orders",
         expression: "order_value BETWEEN 400 AND 600",
-        reading: "BETWEEN 包含上下边界；当前数据保留 420 与 510 两张订单。",
+        reading: copy.readings.between,
         test: (row) =>
           "order_value" in row && row.order_value >= 400 && row.order_value <= 600,
       },
       in: {
         table: "customers",
         expression: "segment IN ('Retail', 'Enterprise')",
-        reading: "IN 用一个字段匹配多个离散候选值，当前保留 North Retail 与 Alpine Labs。",
+        reading: copy.readings.in,
         test: (row) =>
           "segment" in row && ["Retail", "Enterprise"].includes(row.segment),
       },
       like: {
         table: "customers",
         expression: "customer_name LIKE 'Coast%'",
-        reading: "百分号表示零个或多个字符，因此当前只有 Coast Foods 符合此前缀模式。",
-        test: (row) =>
-          "customer_name" in row && row.customer_name.startsWith("Coast"),
+        reading: copy.readings.like,
+        test: (row) => "customer_name" in row && row.customer_name.startsWith("Coast"),
       },
       null: {
         table: "customers",
         expression: "phone IS NULL",
-        reading: "当前 canonical customers 没有缺失 phone，因此 0 rows 是正确而有效的结果。",
+        reading: copy.readings.null,
         test: (row) => "phone" in row && row.phone == null,
       },
     };
@@ -378,7 +399,11 @@ const payload = JSON.stringify({ customers: sqlCustomers, orders: sqlOrders }).r
       return (row as unknown as Record<string, unknown>)[column];
     }
 
-    function renderDesktop(rows: Array<Order | Customer>, columns: string[], config: (typeof configs)[Rule]) {
+    function renderDesktop(
+      rows: Array<Order | Customer>,
+      columns: string[],
+      config: (typeof configs)[Rule],
+    ) {
       tableHead.replaceChildren();
       const headRow = document.createElement("tr");
       [...columns, "decision"].forEach((column) => {
@@ -406,7 +431,11 @@ const payload = JSON.stringify({ customers: sqlCustomers, orders: sqlOrders }).r
       });
     }
 
-    function renderMobile(rows: Array<Order | Customer>, columns: string[], config: (typeof configs)[Rule]) {
+    function renderMobile(
+      rows: Array<Order | Customer>,
+      columns: string[],
+      config: (typeof configs)[Rule],
+    ) {
       cardList.replaceChildren();
       rows.forEach((row) => {
         const keep = config.test(row);

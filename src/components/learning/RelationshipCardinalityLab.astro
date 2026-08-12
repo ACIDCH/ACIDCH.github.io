@@ -6,16 +6,31 @@ import {
   sqlOrders,
   sqlProducts,
 } from "../../data/sql-learning";
+import type { Locale } from "../../config/site";
+import { sqlUi } from "../../i18n/sql-ui";
+interface Props {
+  locale?: Locale;
+}
+const { locale = "zh" } = Astro.props;
+const copy = sqlUi[locale].cardinality;
+const format = (template: string, values: Record<string, string>) =>
+  template.replace(/\{(\w+)\}/g, (_, key: string) => values[key] ?? "");
 
 const customer = sqlCustomers.find((row) => row.customer_id === 1001)!;
-const customerOrders = sqlOrders.filter((row) => row.customer_id === customer.customer_id);
+const customerOrders = sqlOrders.filter(
+  (row) => row.customer_id === customer.customer_id,
+);
 const focusOrder = sqlOrders.find((row) => row.order_id === 50001)!;
-const focusOrderItems = sqlOrderItems.filter((row) => row.order_id === focusOrder.order_id);
+const focusOrderItems = sqlOrderItems.filter(
+  (row) => row.order_id === focusOrder.order_id,
+);
 const focusProduct = sqlProducts.find((row) => row.product_id === 301)!;
 const focusProductOrders = sqlOrderItems
   .filter((row) => row.product_id === focusProduct.product_id)
   .map((item) => item.order_id);
-const profile = sqlCustomerProfiles.find((row) => row.customer_id === customer.customer_id)!;
+const profile = sqlCustomerProfiles.find(
+  (row) => row.customer_id === customer.customer_id,
+)!;
 ---
 
 <section
@@ -24,26 +39,24 @@ const profile = sqlCustomerProfiles.find((row) => row.customer_id === customer.c
   aria-labelledby="relationship-cardinality-title"
 >
   <div class="relationship-cardinality-lab__intro">
-    <p class="learning-note-kicker">互动图表 · Relationship Cardinality</p>
-    <h3 id="relationship-cardinality-title">同样是“有关联”，为什么表结构和 JOIN 行数会不同？</h3>
-    <p>
-      在一对多、多对多和一对一之间切换。所有 ID 都来自统一 SQL 数据集，并同时显示关系结构与连接后的自然粒度。
-    </p>
+    <p class="learning-note-kicker">{copy.kicker}</p>
+    <h3 id="relationship-cardinality-title">{copy.title}</h3>
+    <p>{copy.intro}</p>
   </div>
 
   <div
     class="relationship-cardinality-lab__controls"
     role="group"
-    aria-label="选择关系类型"
+    aria-label={copy.controlsLabel}
   >
     <button type="button" data-relation-choice="one-to-many" aria-pressed="true">
-      一对多 1:N
+      {copy.modes.oneToMany}
     </button>
     <button type="button" data-relation-choice="many-to-many" aria-pressed="false">
-      多对多 N:M
+      {copy.modes.manyToMany}
     </button>
     <button type="button" data-relation-choice="one-to-one" aria-pressed="false">
-      一对一 1:1
+      {copy.modes.oneToOne}
     </button>
   </div>
 
@@ -61,48 +74,75 @@ const profile = sqlCustomerProfiles.find((row) => row.customer_id === customer.c
         </div>
         <div class="relationship-cardinality-lab__table">
           <span>orders · N</span>
-          {customerOrders.map((order) => (
-            <strong>{order.order_id} → {order.customer_id}</strong>
-          ))}
+          {
+            customerOrders.map((order) => (
+              <strong>
+                {order.order_id} → {order.customer_id}
+              </strong>
+            ))
+          }
         </div>
       </div>
       <div class="relationship-cardinality-lab__metric">
-        <span>如果只连接这个客户</span>
+        <span>{copy.oneMetric}</span>
         <strong>{customerOrders.length} JOIN rows</strong>
       </div>
       <p class="relationship-cardinality-lab__reading">
-        一个客户可以拥有多张订单，而每张订单只引用一个客户。外键放在“多”的一方：<code>orders.customer_id</code>。客户 {customer.customer_id} 在当前数据集中确实只有 {customerOrders.length} 张订单，不再使用不存在的示例 ID。
+        {
+          format(copy.oneReading, {
+            customer: String(customer.customer_id),
+            count: String(customerOrders.length),
+          })
+        }
       </p>
     </section>
 
     <section data-relation-panel="many-to-many" hidden>
-      <div class="relationship-cardinality-lab__schema relationship-cardinality-lab__schema--three">
+      <div
+        class="relationship-cardinality-lab__schema relationship-cardinality-lab__schema--three"
+      >
         <div class="relationship-cardinality-lab__table">
           <span>orders</span>
           <strong>{focusOrder.order_id}</strong>
-          <small>{focusOrderItems.length} product lines</small>
+          <small>{focusOrderItems.length} {copy.productLines}</small>
         </div>
         <div class="relationship-cardinality-lab__bridge">
           <span>order_items · bridge</span>
-          {focusOrderItems.map((item) => (
-            <strong>{item.order_id} · {item.product_id}</strong>
-          ))}
+          {
+            focusOrderItems.map((item) => (
+              <strong>
+                {item.order_id} · {item.product_id}
+              </strong>
+            ))
+          }
           <small>PK (order_id, product_id)</small>
         </div>
         <div class="relationship-cardinality-lab__table">
           <span>products</span>
-          {focusOrderItems.map((item) => {
-            const product = sqlProducts.find((row) => row.product_id === item.product_id)!;
-            return <strong>{product.product_id} · {product.product_name}</strong>;
-          })}
+          {
+            focusOrderItems.map((item) => {
+              const product = sqlProducts.find(
+                (row) => row.product_id === item.product_id,
+              )!;
+              return (
+                <strong>
+                  {product.product_id} · {product.product_name}
+                </strong>
+              );
+            })
+          }
         </div>
       </div>
       <div class="relationship-cardinality-lab__metric">
-        <span>交叉检查 product {focusProduct.product_id}</span>
-        <strong>{focusProductOrders.length} orders · {focusProductOrders.join(" / ")}</strong>
+        <span
+          >{format(copy.crossCheck, { product: String(focusProduct.product_id) })}</span
+        >
+        <strong
+          >{focusProductOrders.length} orders · {focusProductOrders.join(" / ")}</strong
+        >
       </div>
       <p class="relationship-cardinality-lab__reading">
-        一张订单可以包含多个产品，一个产品也可以出现在多张订单中。中间表把 N:M 拆成两个 1:N，并让一行稳定表示“某产品在某订单中的一次关系”。
+        {copy.manyReading}
       </p>
     </section>
 
@@ -124,11 +164,11 @@ const profile = sqlCustomerProfiles.find((row) => row.customer_id === customer.c
         </div>
       </div>
       <div class="relationship-cardinality-lab__metric">
-        <span>当前 profile 匹配</span>
+        <span>{copy.profileMetric}</span>
         <strong>1 customer ↔ 1 profile</strong>
       </div>
       <p class="relationship-cardinality-lab__reading">
-        每个客户最多对应一条扩展资料。这里直接让 <code>customer_profiles.customer_id</code> 同时承担主键和外键，因此同一客户 ID 在 profile 表中不能重复。
+        {copy.oneToOneReading}
       </p>
     </section>
   </div>
@@ -296,7 +336,9 @@ const profile = sqlCustomerProfiles.find((row) => row.customer_id === customer.c
 
   function initRelationshipCardinalityLab() {
     relationshipCardinalityCleanup?.();
-    const root = document.querySelector<HTMLElement>("[data-relationship-cardinality-lab]");
+    const root = document.querySelector<HTMLElement>(
+      "[data-relationship-cardinality-lab]",
+    );
     if (!root) return;
 
     const buttons = Array.from(
@@ -333,9 +375,8 @@ const profile = sqlCustomerProfiles.find((row) => row.customer_id === customer.c
     relationshipCardinalityCleanup = () => controller.abort();
   }
 
-  document.addEventListener(
-    "astro:before-swap",
-    () => relationshipCardinalityCleanup?.(),
+  document.addEventListener("astro:before-swap", () =>
+    relationshipCardinalityCleanup?.(),
   );
   document.addEventListener("astro:page-load", initRelationshipCardinalityLab);
   initRelationshipCardinalityLab();

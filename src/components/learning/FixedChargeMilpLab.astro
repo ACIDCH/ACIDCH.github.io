@@ -1,39 +1,79 @@
 ---
 import { optimisationUniverse } from "../../data/supply-chain-optimisation";
+import type { Locale } from "../../config/site";
+import { decisionUi } from "../../i18n/decision-ui";
+interface Props {
+  locale?: Locale;
+}
+const { locale = "zh" } = Astro.props;
+const copy = decisionUi[locale].milp;
 const hubs = optimisationUniverse.candidateHubs;
 const payload = JSON.stringify(hubs).replace(/</g, "\\u003c");
 ---
 
-<section class="dm-lab" data-milp-lab aria-labelledby="milp-title">
+<section
+  class="dm-lab"
+  data-milp-lab
+  data-copy={JSON.stringify(copy)}
+  aria-labelledby="milp-title"
+>
   <div class="dm-lab__intro">
-    <p class="learning-note-kicker">互动实验 · Binary Decision + Fixed Charge</p>
-    <h3 id="milp-title">开启决策为什么需要二进制变量与 linking constraint？</h3>
-    <p>切换候选枢纽的开启状态，观察固定成本、可用容量与“未开启不能发货”的逻辑怎样同时变化。</p>
+    <p class="learning-note-kicker">{copy.kicker}</p>
+    <h3 id="milp-title">{copy.title}</h3>
+    <p>{copy.intro}</p>
   </div>
 
   <div class="dm-lab__cards">
-    {hubs.map((hub, index) => (
-      <article data-hub-card={hub.id} data-active={index === 0 ? "true" : "false"}>
-        <h4>{hub.name}</h4>
-        <dl>
-          <dt>Capacity</dt><dd>{hub.capacity}</dd>
-          <dt>Fixed cost</dt><dd>{hub.fixedCost}</dd>
-          <dt>Binary y</dt><dd data-hub-y={hub.id}>{index === 0 ? "1" : "0"}</dd>
-        </dl>
-        <button type="button" data-hub-toggle={hub.id} aria-pressed={index === 0 ? "true" : "false"}>{index === 0 ? "关闭" : "开启"}</button>
-      </article>
-    ))}
+    {
+      hubs.map((hub, index) => (
+        <article data-hub-card={hub.id} data-active={index === 0 ? "true" : "false"}>
+          <h4>{hub.name}</h4>
+          <dl>
+            <>
+              <dt>Capacity</dt>
+              <dd>{hub.capacity}</dd>
+            </>
+            <>
+              <dt>Fixed cost</dt>
+              <dd>{hub.fixedCost}</dd>
+            </>
+            <>
+              <dt>Binary y</dt>
+              <dd data-hub-y={hub.id}>{index === 0 ? "1" : "0"}</dd>
+            </>
+          </dl>
+          <button
+            type="button"
+            data-hub-toggle={hub.id}
+            aria-pressed={index === 0 ? "true" : "false"}
+          >
+            {index === 0 ? copy.close : copy.open}
+          </button>
+        </article>
+      ))
+    }
   </div>
 
   <div class="dm-lab__metrics" aria-live="polite">
-    <div class="dm-lab__metric"><span>Open hubs</span><strong data-open-count>1</strong></div>
-    <div class="dm-lab__metric"><span>Available capacity</span><strong data-open-capacity>{hubs[0].capacity}</strong></div>
-    <div class="dm-lab__metric"><span>Fixed cost</span><strong data-fixed-cost>{hubs[0].fixedCost}</strong></div>
+    <div class="dm-lab__metric">
+      <span>Open hubs</span><strong data-open-count>1</strong>
+    </div>
+    <div class="dm-lab__metric">
+      <span>Available capacity</span><strong data-open-capacity
+        >{hubs[0].capacity}</strong>
+    </div>
+    <div class="dm-lab__metric">
+      <span>Fixed cost</span><strong data-fixed-cost>{hubs[0].fixedCost}</strong>
+    </div>
     <div class="dm-lab__metric"><span>Network demand</span><strong>860</strong></div>
   </div>
 
-  <div class="dm-lab__equation" data-linking-equation>Σ flow[central, region] ≤ 620 × y[central]</div>
-  <div class="dm-lab__callout"><strong>Logic</strong><span data-milp-reading>Central Hub 开启时 y = 1，因此最多允许 620 单位流量；若 y = 0，右侧自动变成 0。</span></div>
+  <div class="dm-lab__equation" data-linking-equation>
+    Σ flow[central, region] ≤ 620 × y[central]
+  </div>
+  <div class="dm-lab__callout">
+    <strong>{copy.logic}</strong><span data-milp-reading>{copy.initialReading}</span>
+  </div>
   <script is:inline type="application/json" data-hub-source set:html={payload} />
 </section>
 
@@ -45,6 +85,9 @@ const payload = JSON.stringify(hubs).replace(/</g, "\\u003c");
     const root = document.querySelector<HTMLElement>("[data-milp-lab]")!;
     const source = root?.querySelector<HTMLScriptElement>("[data-hub-source]");
     if (!root || !source) return;
+    const copy = JSON.parse(root.dataset.copy ?? "{}") as Record<string, string>;
+    const format = (template: string, values: Record<string, string>) =>
+      template.replace(/\{(\w+)\}/g, (_, key: string) => values[key] ?? "");
     const hubs = JSON.parse(source.textContent || "[]") as Hub[];
     const state = new Map(hubs.map((hub, index) => [hub.id, index === 0]));
     const controller = new AbortController();
@@ -57,38 +100,53 @@ const payload = JSON.stringify(hubs).replace(/</g, "\\u003c");
     function render() {
       const open = hubs.filter((hub) => state.get(hub.id));
       if (openCount) openCount.textContent = String(open.length);
-      if (capacity) capacity.textContent = String(open.reduce((sum, hub) => sum + hub.capacity, 0));
-      if (fixedCost) fixedCost.textContent = String(open.reduce((sum, hub) => sum + hub.fixedCost, 0));
+      if (capacity)
+        capacity.textContent = String(open.reduce((sum, hub) => sum + hub.capacity, 0));
+      if (fixedCost)
+        fixedCost.textContent = String(
+          open.reduce((sum, hub) => sum + hub.fixedCost, 0),
+        );
       hubs.forEach((hub) => {
         const isOpen = Boolean(state.get(hub.id));
-        root.querySelector<HTMLElement>(`[data-hub-card="${hub.id}"]`)?.setAttribute("data-active", String(isOpen));
-        root.querySelector<HTMLElement>(`[data-hub-y="${hub.id}"]`)!.textContent = isOpen ? "1" : "0";
-        const button = root.querySelector<HTMLButtonElement>(`[data-hub-toggle="${hub.id}"]`);
+        root
+          .querySelector<HTMLElement>(`[data-hub-card="${hub.id}"]`)
+          ?.setAttribute("data-active", String(isOpen));
+        root.querySelector<HTMLElement>(`[data-hub-y="${hub.id}"]`)!.textContent =
+          isOpen ? "1" : "0";
+        const button = root.querySelector<HTMLButtonElement>(
+          `[data-hub-toggle="${hub.id}"]`,
+        );
         if (button) {
           button.setAttribute("aria-pressed", String(isOpen));
-          button.textContent = isOpen ? "关闭" : "开启";
+          button.textContent = isOpen ? copy.close : copy.open;
         }
       });
       const focus = hubs[0];
       const y = state.get(focus.id) ? 1 : 0;
-      if (equation) equation.textContent = `Σ flow[${focus.id}, region] ≤ ${focus.capacity} × ${y} = ${focus.capacity * y}`;
+      if (equation)
+        equation.textContent = `Σ flow[${focus.id}, region] ≤ ${focus.capacity} × ${y} = ${focus.capacity * y}`;
       if (reading) {
         const total = open.reduce((sum, hub) => sum + hub.capacity, 0);
-        reading.textContent = open.length === 0
-          ? "所有 y 都为 0，因此所有候选枢纽的可发送流量上限也变成 0：网络无法满足任何正需求。"
-          : total < 860
-            ? `当前固定成本较低，但只有 ${total} 容量，小于 860 的总需求；模型还需要额外枢纽、外部供应或缺货变量。`
-            : `当前总容量 ${total} 足以覆盖 860 的需求；是否值得同时开启多个枢纽，还要比较运输节省与新增固定成本。`;
+        reading.textContent =
+          open.length === 0
+            ? copy.noneOpen
+            : total < 860
+              ? format(copy.insufficient, { total: String(total) })
+              : format(copy.sufficient, { total: String(total) });
       }
     }
 
     root.querySelectorAll<HTMLButtonElement>("[data-hub-toggle]").forEach((button) => {
-      button.addEventListener("click", () => {
-        const id = button.dataset.hubToggle;
-        if (!id) return;
-        state.set(id, !state.get(id));
-        render();
-      }, { signal: controller.signal });
+      button.addEventListener(
+        "click",
+        () => {
+          const id = button.dataset.hubToggle;
+          if (!id) return;
+          state.set(id, !state.get(id));
+          render();
+        },
+        { signal: controller.signal },
+      );
     });
     render();
     milpCleanup = () => controller.abort();

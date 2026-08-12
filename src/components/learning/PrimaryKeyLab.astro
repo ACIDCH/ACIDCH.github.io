@@ -1,26 +1,38 @@
 ---
 import { sqlCustomers } from "../../data/sql-learning";
+import type { Locale } from "../../config/site";
+import { sqlUi } from "../../i18n/sql-ui";
+interface Props {
+  locale?: Locale;
+}
+const { locale = "zh" } = Astro.props;
+const copy = sqlUi[locale].primaryKey;
 
 const serializedRows = JSON.stringify(sqlCustomers).replace(/</g, "\\u003c");
 ---
 
-<section class="primary-key-lab" data-primary-key-lab aria-labelledby="primary-key-lab-title">
+<section
+  class="primary-key-lab"
+  data-primary-key-lab
+  data-copy={JSON.stringify(copy)}
+  aria-labelledby="primary-key-lab-title"
+>
   <div class="primary-key-lab__intro">
-    <p class="learning-note-kicker">互动图表 · 主键设计</p>
-    <h3 id="primary-key-lab-title">如果客户换了邮箱，哪一个字段还能稳定代表同一条记录？</h3>
-    <p>
-      候选字段和初始记录直接来自 SQL 系列统一数据集。切换候选主键，再模拟 Coast Foods 的业务联系方式变化，观察“当前唯一”和“长期稳定”为什么不是同一件事。
-    </p>
+    <p class="learning-note-kicker">{copy.kicker}</p>
+    <h3 id="primary-key-lab-title">{copy.title}</h3>
+    <p>{copy.intro}</p>
   </div>
 
-  <div class="primary-key-lab__controls" role="group" aria-label="选择候选主键">
-    <button type="button" data-key-choice="customer_id" aria-pressed="true">customer_id</button>
+  <div class="primary-key-lab__controls" role="group" aria-label={copy.controlsLabel}>
+    <button type="button" data-key-choice="customer_id" aria-pressed="true"
+      >customer_id</button
+    >
     <button type="button" data-key-choice="email" aria-pressed="false">email</button>
     <button type="button" data-key-choice="phone" aria-pressed="false">phone</button>
   </div>
 
   <div class="primary-key-lab__stage">
-    <div class="primary-key-lab__table-wrap" aria-label="桌面客户记录表">
+    <div class="primary-key-lab__table-wrap" aria-label={copy.desktopLabel}>
       <table>
         <thead>
           <tr>
@@ -34,20 +46,19 @@ const serializedRows = JSON.stringify(sqlCustomers).replace(/</g, "\\u003c");
       </table>
     </div>
 
-    <div class="primary-key-lab__cards" data-key-cards aria-label="移动端客户记录"></div>
+    <div class="primary-key-lab__cards" data-key-cards aria-label={copy.mobileLabel}>
+    </div>
 
     <aside class="primary-key-lab__reading" aria-live="polite">
-      <span>当前候选</span>
+      <span>{copy.currentCandidate}</span>
       <strong data-key-current>customer_id</strong>
-      <p data-key-reading>
-        与业务含义分离，值稳定且唯一，适合作为记录的持久标识。
-      </p>
+      <p data-key-reading>{copy.messages.customer_id}</p>
       <div class="primary-key-lab__checks" data-key-checks></div>
       <button type="button" class="button button--secondary" data-key-change>
-        模拟业务字段变化
+        {copy.simulate}
       </button>
       <button type="button" class="button button--ghost" data-key-reset>
-        重置
+        {copy.reset}
       </button>
     </aside>
   </div>
@@ -300,6 +311,11 @@ const serializedRows = JSON.stringify(sqlCustomers).replace(/</g, "\\u003c");
       return;
 
     const labRoot = root;
+    const copy = JSON.parse(root.dataset.copy ?? "{}") as {
+      messages: Record<KeyChoice, string>;
+      simulate: string;
+      changed: string;
+    };
     const tableBody = body;
     const cardList = cards;
     const currentOutput = current;
@@ -312,11 +328,6 @@ const serializedRows = JSON.stringify(sqlCustomers).replace(/</g, "\\u003c");
     let selected: KeyChoice = "customer_id";
     let changed = false;
 
-    const messages: Record<KeyChoice, string> = {
-      customer_id: "与业务含义分离，值稳定且唯一，适合作为记录的持久标识。",
-      email: "当前可以唯一，但邮箱属于业务字段。客户更换邮箱时，记录身份不应该跟着改变。",
-      phone: "手机号可能被更换、回收或重新分配。它适合保存业务联系信息，不适合作为稳定身份。",
-    };
     const fields: VisibleField[] = ["customer_id", "customer_name", "email", "phone"];
 
     function rows() {
@@ -332,9 +343,7 @@ const serializedRows = JSON.stringify(sqlCustomers).replace(/</g, "\\u003c");
 
     function isChangedField(row: CustomerRow, field: VisibleField) {
       return (
-        changed &&
-        row.customer_id === 1002 &&
-        (field === "email" || field === "phone")
+        changed && row.customer_id === 1002 && (field === "email" || field === "phone")
       );
     }
 
@@ -401,12 +410,15 @@ const serializedRows = JSON.stringify(sqlCustomers).replace(/</g, "\\u003c");
         cell.dataset.activeKey = String(cell.dataset.field === selected);
       });
       choiceButtons.forEach((button) => {
-        button.setAttribute("aria-pressed", String(button.dataset.keyChoice === selected));
+        button.setAttribute(
+          "aria-pressed",
+          String(button.dataset.keyChoice === selected),
+        );
       });
       currentOutput.textContent = selected;
-      readingOutput.textContent = messages[selected];
+      readingOutput.textContent = copy.messages[selected];
       renderChecks(currentRows);
-      changeControl.textContent = changed ? "业务字段已经变化" : "模拟业务字段变化";
+      changeControl.textContent = changed ? copy.changed : copy.simulate;
       changeControl.disabled = changed;
     }
 

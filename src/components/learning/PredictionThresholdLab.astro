@@ -1,25 +1,42 @@
-<section class="threshold-lab" data-prediction-threshold-lab aria-labelledby="threshold-lab-title">
+---
+import type { Locale } from "../../config/site";
+import { dataScienceUi } from "../../i18n/data-science-ui";
+interface Props {
+  locale?: Locale;
+}
+const { locale = "zh" } = Astro.props;
+const copy = dataScienceUi[locale].threshold;
+---
+
+<section
+  class="threshold-lab"
+  data-prediction-threshold-lab
+  data-copy={JSON.stringify(copy)}
+  aria-labelledby="threshold-lab-title"
+>
   <div class="threshold-lab__intro">
-    <p class="learning-note-kicker">互动图表 · 分类评估</p>
-    <h3 id="threshold-lab-title">阈值改变以后，模型的错误会怎样移动？</h3>
-    <p>
-      下面使用一组固定的客户流失概率。移动分类阈值后，模型本身的概率排序没有变化，但 TP、FP、FN、TN 以及 Sensitivity、Specificity、Precision 和 F1 会一起变化。
-    </p>
+    <p class="learning-note-kicker">{copy.kicker}</p><h3 id="threshold-lab-title">
+      {copy.title}
+    </h3><p>{copy.intro}</p>
   </div>
 
   <label class="threshold-lab__control">
-    <span>分类阈值：<output data-threshold-output>0.50</output></span>
+    <span>{copy.threshold}<output data-threshold-output>0.50</output></span>
     <input data-threshold-slider type="range" min="20" max="80" step="5" value="50" />
   </label>
 
-  <div class="threshold-lab__matrix" aria-label="混淆矩阵" data-threshold-matrix>
+  <div
+    class="threshold-lab__matrix"
+    aria-label={copy.matrixLabel}
+    data-threshold-matrix
+  >
     <div class="threshold-lab__matrix-head"></div>
-    <div class="threshold-lab__matrix-head">实际流失</div>
-    <div class="threshold-lab__matrix-head">实际留存</div>
-    <div class="threshold-lab__matrix-label">预测流失</div>
+    <div class="threshold-lab__matrix-head">{copy.actualPositive}</div>
+    <div class="threshold-lab__matrix-head">{copy.actualNegative}</div>
+    <div class="threshold-lab__matrix-label">{copy.predictedPositive}</div>
     <div><span>TP</span><strong data-threshold-tp>0</strong></div>
     <div><span>FP</span><strong data-threshold-fp>0</strong></div>
-    <div class="threshold-lab__matrix-label">预测留存</div>
+    <div class="threshold-lab__matrix-label">{copy.predictedNegative}</div>
     <div><span>FN</span><strong data-threshold-fn>0</strong></div>
     <div><span>TN</span><strong data-threshold-tn>0</strong></div>
   </div>
@@ -32,9 +49,13 @@
   </div>
 
   <figure class="threshold-lab__plot">
-    <svg viewBox="0 0 760 250" role="img" aria-label="客户流失概率与分类阈值" data-threshold-svg></svg>
+    <svg
+      viewBox="0 0 760 250"
+      role="img"
+      aria-label={copy.chartLabel}
+      data-threshold-svg></svg>
     <figcaption data-threshold-message>
-      阈值较低时通常能找回更多实际流失客户，但误报也会增加。
+      {copy.initialMessage}
     </figcaption>
   </figure>
 </section>
@@ -99,7 +120,8 @@
     font-weight: var(--font-weight-semibold);
   }
 
-  .threshold-lab__matrix > div:not(.threshold-lab__matrix-head):not(.threshold-lab__matrix-label) {
+  .threshold-lab__matrix
+    > div:not(.threshold-lab__matrix-head):not(.threshold-lab__matrix-label) {
     display: flex;
     align-items: baseline;
     justify-content: space-between;
@@ -177,35 +199,70 @@
     thresholdCleanup?.();
     const root = document.querySelector<HTMLElement>("[data-prediction-threshold-lab]");
     if (!root) return;
+    const copy = JSON.parse(root.dataset.copy ?? "{}") as Record<string, string>;
 
     const slider = root.querySelector<HTMLInputElement>("[data-threshold-slider]");
-    const thresholdOutput = root.querySelector<HTMLOutputElement>("[data-threshold-output]");
+    const thresholdOutput = root.querySelector<HTMLOutputElement>(
+      "[data-threshold-output]",
+    );
     const tpOutput = root.querySelector<HTMLElement>("[data-threshold-tp]");
     const fpOutput = root.querySelector<HTMLElement>("[data-threshold-fp]");
     const fnOutput = root.querySelector<HTMLElement>("[data-threshold-fn]");
     const tnOutput = root.querySelector<HTMLElement>("[data-threshold-tn]");
-    const sensitivityOutput = root.querySelector<HTMLElement>("[data-threshold-sensitivity]");
-    const specificityOutput = root.querySelector<HTMLElement>("[data-threshold-specificity]");
-    const precisionOutput = root.querySelector<HTMLElement>("[data-threshold-precision]");
+    const sensitivityOutput = root.querySelector<HTMLElement>(
+      "[data-threshold-sensitivity]",
+    );
+    const specificityOutput = root.querySelector<HTMLElement>(
+      "[data-threshold-specificity]",
+    );
+    const precisionOutput = root.querySelector<HTMLElement>(
+      "[data-threshold-precision]",
+    );
     const f1Output = root.querySelector<HTMLElement>("[data-threshold-f1]");
     const message = root.querySelector<HTMLElement>("[data-threshold-message]");
     const svg = root.querySelector<SVGSVGElement>("[data-threshold-svg]");
-    if (!slider || !thresholdOutput || !tpOutput || !fpOutput || !fnOutput || !tnOutput || !sensitivityOutput || !specificityOutput || !precisionOutput || !f1Output || !message || !svg) return;
+    if (
+      !slider ||
+      !thresholdOutput ||
+      !tpOutput ||
+      !fpOutput ||
+      !fnOutput ||
+      !tnOutput ||
+      !sensitivityOutput ||
+      !specificityOutput ||
+      !precisionOutput ||
+      !f1Output ||
+      !message ||
+      !svg
+    )
+      return;
 
     const controller = new AbortController();
     const ns = "http://www.w3.org/2000/svg";
     const observations = [
-      { p: 0.92, actual: 1 }, { p: 0.84, actual: 1 }, { p: 0.79, actual: 0 },
-      { p: 0.73, actual: 1 }, { p: 0.68, actual: 1 }, { p: 0.61, actual: 0 },
-      { p: 0.57, actual: 1 }, { p: 0.49, actual: 0 }, { p: 0.44, actual: 1 },
-      { p: 0.38, actual: 0 }, { p: 0.31, actual: 0 }, { p: 0.26, actual: 1 },
-      { p: 0.21, actual: 0 }, { p: 0.16, actual: 0 }, { p: 0.11, actual: 0 },
+      { p: 0.92, actual: 1 },
+      { p: 0.84, actual: 1 },
+      { p: 0.79, actual: 0 },
+      { p: 0.73, actual: 1 },
+      { p: 0.68, actual: 1 },
+      { p: 0.61, actual: 0 },
+      { p: 0.57, actual: 1 },
+      { p: 0.49, actual: 0 },
+      { p: 0.44, actual: 1 },
+      { p: 0.38, actual: 0 },
+      { p: 0.31, actual: 0 },
+      { p: 0.26, actual: 1 },
+      { p: 0.21, actual: 0 },
+      { p: 0.16, actual: 0 },
+      { p: 0.11, actual: 0 },
       { p: 0.07, actual: 0 },
     ];
 
     const make = (tag: string, attrs: Record<string, string | number>) => {
       const node = document.createElementNS(ns, tag);
-      Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, String(value)));
+      Object.entries(attrs).forEach(([key, value]) =>
+        node.setAttribute(key, String(value)),
+      );
       svg.append(node);
       return node;
     };
@@ -243,11 +300,11 @@
       f1Output.textContent = f1.toFixed(2);
 
       if (threshold < 0.4) {
-        message.textContent = "阈值较低：Sensitivity 较高，但更多留存客户会被误报为流失。";
+        message.textContent = copy.lowMessage;
       } else if (threshold > 0.6) {
-        message.textContent = "阈值较高：误报减少，但部分实际流失客户会落到 FN。";
+        message.textContent = copy.highMessage;
       } else {
-        message.textContent = "中间阈值在召回流失客户和控制误报之间取得折中；是否合适仍取决于业务成本。";
+        message.textContent = copy.midMessage;
       }
 
       svg.replaceChildren();
@@ -259,36 +316,66 @@
 
       [0, 0.25, 0.5, 0.75, 1].forEach((tick) => {
         make("line", {
-          x1: xScale(tick), y1: top - 16, x2: xScale(tick), y2: top + rowGap * 2 + 18,
-          stroke: "var(--colour-border)", "stroke-width": 1,
+          x1: xScale(tick),
+          y1: top - 16,
+          x2: xScale(tick),
+          y2: top + rowGap * 2 + 18,
+          stroke: "var(--colour-border)",
+          "stroke-width": 1,
         });
         const label = make("text", {
-          x: xScale(tick), y: top - 22, fill: "currentColor", "font-size": 11, "text-anchor": "middle",
+          x: xScale(tick),
+          y: top - 22,
+          fill: "currentColor",
+          "font-size": 11,
+          "text-anchor": "middle",
         });
         label.textContent = tick.toFixed(2);
       });
 
       const thresholdX = xScale(threshold);
       make("line", {
-        x1: thresholdX, y1: top - 12, x2: thresholdX, y2: top + rowGap * 2 + 14,
-        stroke: "var(--colour-primary)", "stroke-width": 2.5,
+        x1: thresholdX,
+        y1: top - 12,
+        x2: thresholdX,
+        y2: top + rowGap * 2 + 14,
+        stroke: "var(--colour-primary)",
+        "stroke-width": 2.5,
       });
 
       observations.forEach(({ p, actual }, index) => {
         const y = top + (actual === 1 ? 0 : rowGap) + (index % 3) * 5;
         make("circle", {
-          cx: xScale(p), cy: y, r: 6,
+          cx: xScale(p),
+          cy: y,
+          r: 6,
           fill: actual === 1 ? "var(--colour-primary)" : "var(--colour-text-muted)",
           opacity: 0.82,
         });
       });
 
-      const positive = make("text", { x: 8, y: top + 4, fill: "currentColor", "font-size": 12 });
-      positive.textContent = "实际流失";
-      const negative = make("text", { x: 8, y: top + rowGap + 4, fill: "currentColor", "font-size": 12 });
-      negative.textContent = "实际留存";
-      const axis = make("text", { x: 390, y: top + rowGap * 2 + 38, fill: "currentColor", "font-size": 12, "text-anchor": "middle" });
-      axis.textContent = "预测流失概率";
+      const positive = make("text", {
+        x: 8,
+        y: top + 4,
+        fill: "currentColor",
+        "font-size": 12,
+      });
+      positive.textContent = copy.actualPositive;
+      const negative = make("text", {
+        x: 8,
+        y: top + rowGap + 4,
+        fill: "currentColor",
+        "font-size": 12,
+      });
+      negative.textContent = copy.actualNegative;
+      const axis = make("text", {
+        x: 390,
+        y: top + rowGap * 2 + 38,
+        fill: "currentColor",
+        "font-size": 12,
+        "text-anchor": "middle",
+      });
+      axis.textContent = copy.probabilityAxis;
     };
 
     slider.addEventListener("input", draw, { signal: controller.signal });

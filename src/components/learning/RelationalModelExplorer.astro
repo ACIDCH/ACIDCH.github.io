@@ -1,35 +1,67 @@
-<section class="relational-model-explorer" data-relational-model-explorer aria-labelledby="relational-model-explorer-title">
+---
+import type { Locale } from "../../config/site";
+import { sqlUi } from "../../i18n/sql-ui";
+interface Props {
+  locale?: Locale;
+}
+const { locale = "zh" } = Astro.props;
+const copy = sqlUi[locale].relational;
+---
+
+<section
+  class="relational-model-explorer"
+  data-relational-model-explorer
+  aria-labelledby="relational-model-explorer-title"
+>
   <div class="relational-model-explorer__intro">
-    <p class="learning-note-kicker">互动图解 · 数据模型</p>
-    <h3 id="relational-model-explorer-title">同一批业务信息，可以怎样组织？</h3>
-    <p>
-      三种视图始终使用同一组 customers、orders、products、order_items 与 customer_profiles。切换模型，观察同一批实体的关系在不同结构中怎样被表达。
-    </p>
+    <p class="learning-note-kicker">{copy.kicker}</p>
+    <h3 id="relational-model-explorer-title">{copy.title}</h3>
+    <p>{copy.intro}</p>
   </div>
 
-  <div class="relational-model-explorer__controls" role="group" aria-label="选择数据模型">
-    <button type="button" data-model-choice="hierarchical" aria-pressed="false">层次模型</button>
-    <button type="button" data-model-choice="network" aria-pressed="false">网状模型</button>
-    <button type="button" data-model-choice="relational" aria-pressed="true">关系模型</button>
+  <div
+    class="relational-model-explorer__controls"
+    role="group"
+    aria-label={copy.controlsLabel}
+  >
+    <button type="button" data-model-choice="hierarchical" aria-pressed="false"
+      >{copy.modes.hierarchical}</button
+    >
+    <button type="button" data-model-choice="network" aria-pressed="false"
+      >{copy.modes.network}</button
+    >
+    <button type="button" data-model-choice="relational" aria-pressed="true"
+      >{copy.modes.relational}</button
+    >
   </div>
 
   <div class="relational-model-explorer__panels" aria-live="polite">
     <section data-model-panel="hierarchical" hidden>
-      <div class="relational-model-explorer__diagram relational-model-explorer__tree" aria-label="层次模型树状示意">
-        <div class="relational-model-explorer__tree-line relational-model-explorer__tree-line--root">Business data</div>
+      <div
+        class="relational-model-explorer__diagram relational-model-explorer__tree"
+        aria-label={copy.diagramLabels.hierarchical}
+      >
+        <div
+          class="relational-model-explorer__tree-line relational-model-explorer__tree-line--root"
+        >
+          Business data
+        </div>
         <div class="relational-model-explorer__tree-line">├─ Customers</div>
-        <div class="relational-model-explorer__tree-line">│  ├─ Orders</div>
-        <div class="relational-model-explorer__tree-line">│  │  └─ Order Items</div>
-        <div class="relational-model-explorer__tree-line">│  └─ Customer Profiles</div>
+        <div class="relational-model-explorer__tree-line">│ ├─ Orders</div>
+        <div class="relational-model-explorer__tree-line">│ │ └─ Order Items</div>
+        <div class="relational-model-explorer__tree-line">│ └─ Customer Profiles</div>
         <div class="relational-model-explorer__tree-line">└─ Products</div>
       </div>
       <p class="relational-model-explorer__reading">
-        树形层级很容易表达 Customers → Orders，但 order_items 同时还需要关联 Products。严格树结构难以自然表达“一个节点同时连接另一条分支”，这正是层次模型面对多重关系时的限制。
+        {copy.hierarchicalReading}
       </p>
     </section>
 
     <section data-model-panel="network" hidden>
-      <div class="relational-model-explorer__diagram relational-model-explorer__network" aria-label="网状模型多连接示意">
+      <div
+        class="relational-model-explorer__diagram relational-model-explorer__network"
+        aria-label={copy.diagramLabels.network}
+      >
         <div class="relational-model-explorer__network-main">
           <div class="relational-model-explorer__node">Customers</div>
           <span>↔</span>
@@ -45,20 +77,25 @@
         </div>
       </div>
       <p class="relational-model-explorer__reading">
-        网状模型允许节点沿多条路径连接，因此能更直接表达 Orders、Products 与 Order Items 的交叉关系；代价是应用需要理解并沿具体连接结构访问数据。
+        {copy.networkReading}
       </p>
     </section>
 
     <section data-model-panel="relational">
-      <div class="relational-model-explorer__diagram relational-model-explorer__relations" aria-label="关系模型多表示意">
+      <div
+        class="relational-model-explorer__diagram relational-model-explorer__relations"
+        aria-label={copy.diagramLabels.relational}
+      >
         <div class="relational-model-explorer__schema-group">
-          <p>关系 1 · 客户拥有订单</p>
+          <p>{copy.relationOne}</p>
           <div class="relational-model-explorer__schema-row">
             <div class="relational-model-explorer__table">
               <strong>customers</strong>
               <span>customer_id · PK</span>
             </div>
-            <div class="relational-model-explorer__relation" data-mobile-label="1 ↓ N">1 → N</div>
+            <div class="relational-model-explorer__relation" data-mobile-label="1 ↓ N">
+              1 → N
+            </div>
             <div class="relational-model-explorer__table">
               <strong>orders</strong>
               <span>order_id · PK</span>
@@ -68,19 +105,25 @@
         </div>
 
         <div class="relational-model-explorer__schema-group">
-          <p>关系 2 · 订单通过明细连接产品</p>
-          <div class="relational-model-explorer__schema-row relational-model-explorer__schema-row--wide">
+          <p>{copy.relationTwo}</p>
+          <div
+            class="relational-model-explorer__schema-row relational-model-explorer__schema-row--wide"
+          >
             <div class="relational-model-explorer__table">
               <strong>orders</strong>
               <span>order_id · PK</span>
             </div>
-            <div class="relational-model-explorer__relation" data-mobile-label="1 ↓ N">1 → N</div>
+            <div class="relational-model-explorer__relation" data-mobile-label="1 ↓ N">
+              1 → N
+            </div>
             <div class="relational-model-explorer__table">
               <strong>order_items</strong>
               <span>order_id · FK</span>
               <span>product_id · FK</span>
             </div>
-            <div class="relational-model-explorer__relation" data-mobile-label="N ↓ 1">N ← 1</div>
+            <div class="relational-model-explorer__relation" data-mobile-label="N ↓ 1">
+              N ← 1
+            </div>
             <div class="relational-model-explorer__table">
               <strong>products</strong>
               <span>product_id · PK</span>
@@ -89,13 +132,15 @@
         </div>
 
         <div class="relational-model-explorer__schema-group">
-          <p>关系 3 · 客户拥有一条扩展资料</p>
+          <p>{copy.relationThree}</p>
           <div class="relational-model-explorer__schema-row">
             <div class="relational-model-explorer__table">
               <strong>customers</strong>
               <span>customer_id · PK</span>
             </div>
-            <div class="relational-model-explorer__relation" data-mobile-label="1 ↓ 1">1 ↔ 1</div>
+            <div class="relational-model-explorer__relation" data-mobile-label="1 ↓ 1">
+              1 ↔ 1
+            </div>
             <div class="relational-model-explorer__table">
               <strong>customer_profiles</strong>
               <span>customer_id · PK + FK</span>
@@ -104,7 +149,7 @@
         </div>
       </div>
       <p class="relational-model-explorer__reading">
-        关系模型把同一批实体拆成结构一致的二维表，再通过 PK、FK、联合主键与唯一性规则表达连接。这里分成三段关系视图，是为了让同一个表在不同关联中的角色都清楚可见；它们仍属于同一套 schema。
+        {copy.relationalReading}
       </p>
     </section>
   </div>
@@ -291,7 +336,8 @@
       font-size: 0;
     }
 
-    .relational-model-explorer__schema-row > .relational-model-explorer__relation::after {
+    .relational-model-explorer__schema-row
+      > .relational-model-explorer__relation::after {
       content: attr(data-mobile-label);
       font-size: var(--font-size-sm);
     }
@@ -308,10 +354,14 @@
 
   function initRelationalModelExplorer() {
     relationalModelCleanup?.();
-    const root = document.querySelector<HTMLElement>("[data-relational-model-explorer]");
+    const root = document.querySelector<HTMLElement>(
+      "[data-relational-model-explorer]",
+    );
     if (!root) return;
 
-    const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>("[data-model-choice]"));
+    const buttons = Array.from(
+      root.querySelectorAll<HTMLButtonElement>("[data-model-choice]"),
+    );
     const panels = Array.from(root.querySelectorAll<HTMLElement>("[data-model-panel]"));
     if (buttons.length === 0 || panels.length === 0) return;
 
@@ -319,7 +369,10 @@
 
     function selectModel(selected: string) {
       buttons.forEach((button) => {
-        button.setAttribute("aria-pressed", String(button.dataset.modelChoice === selected));
+        button.setAttribute(
+          "aria-pressed",
+          String(button.dataset.modelChoice === selected),
+        );
       });
       panels.forEach((panel) => {
         panel.hidden = panel.dataset.modelPanel !== selected;

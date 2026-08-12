@@ -187,7 +187,7 @@ const noteStructuredData = {
         <>
           <LearningNoteHero title={handbookTitle} />
           <div class="learning-note__grid">
-            <LearningNoteToc items={learningToc} />
+            <LearningNoteToc items={learningToc} locale={entry.data.locale} />
             <div class="learning-note__body">
               <Content />
               {isStatisticsHandbook && (
@@ -235,13 +235,13 @@ const noteStructuredData = {
                     class="learning-note__inline-block"
                     data-learning-block="relational-model-explorer"
                   >
-                    <RelationalModelExplorer />
+                    <RelationalModelExplorer locale={entry.data.locale} />
                   </div>
                   <div
                     class="learning-note__inline-block"
                     data-learning-block="sql-dataset-explorer"
                   >
-                    <SqlDatasetExplorer />
+                    <SqlDatasetExplorer locale={entry.data.locale} />
                   </div>
                 </>
               )}
@@ -251,13 +251,13 @@ const noteStructuredData = {
                     class="learning-note__inline-block"
                     data-learning-block="primary-key-lab"
                   >
-                    <PrimaryKeyLab />
+                    <PrimaryKeyLab locale={entry.data.locale} />
                   </div>
                   <div
                     class="learning-note__inline-block"
                     data-learning-block="sql-playground"
                   >
-                    <SqlPlayground />
+                    <SqlPlayground locale={entry.data.locale} />
                   </div>
                 </>
               )}
@@ -267,13 +267,13 @@ const noteStructuredData = {
                     class="learning-note__inline-block"
                     data-learning-block="foreign-key-lab"
                   >
-                    <ForeignKeyLab />
+                    <ForeignKeyLab locale={entry.data.locale} />
                   </div>
                   <div
                     class="learning-note__inline-block"
                     data-learning-block="sql-playground"
                   >
-                    <SqlPlayground />
+                    <SqlPlayground locale={entry.data.locale} />
                   </div>
                 </>
               )}
@@ -282,7 +282,7 @@ const noteStructuredData = {
                   class="learning-note__inline-block"
                   data-learning-block="relationship-cardinality-lab"
                 >
-                  <RelationshipCardinalityLab />
+                  <RelationshipCardinalityLab locale={entry.data.locale} />
                 </div>
               )}
               {isSqlSelect && (
@@ -290,7 +290,7 @@ const noteStructuredData = {
                   class="learning-note__inline-block"
                   data-learning-block="sql-playground"
                 >
-                  <SqlPlayground defaultPreset="customers" />
+                  <SqlPlayground defaultPreset="customers" locale={entry.data.locale} />
                 </div>
               )}
               {isSqlWhere && (
@@ -299,13 +299,17 @@ const noteStructuredData = {
                     class="learning-note__inline-block"
                     data-learning-block="where-filter-lab"
                   >
-                    <WhereFilterLab />
+                    <WhereFilterLab locale={entry.data.locale} />
                   </div>
                   <div
                     class="learning-note__inline-block"
                     data-learning-block="sql-playground"
                   >
-                    <SqlPlayground defaultPreset="where-gte" focus="where" />
+                    <SqlPlayground
+                      defaultPreset="where-gte"
+                      focus="where"
+                      locale={entry.data.locale}
+                    />
                   </div>
                 </>
               )}
@@ -315,7 +319,7 @@ const noteStructuredData = {
                     class="learning-note__inline-block"
                     data-learning-block="projection-columns-lab"
                   >
-                    <ProjectionColumnsLab />
+                    <ProjectionColumnsLab locale={entry.data.locale} />
                   </div>
                   <div
                     class="learning-note__inline-block"
@@ -324,6 +328,7 @@ const noteStructuredData = {
                     <SqlPlayground
                       defaultPreset="projection-columns"
                       focus="projection"
+                      locale={entry.data.locale}
                     />
                   </div>
                 </>
@@ -333,7 +338,7 @@ const noteStructuredData = {
                   class="learning-note__inline-block"
                   data-learning-block="order-by-lab"
                 >
-                  <OrderByLab />
+                  <OrderByLab locale={entry.data.locale} />
                 </div>
               )}
               {isSqlPagination && (
@@ -341,7 +346,7 @@ const noteStructuredData = {
                   class="learning-note__inline-block"
                   data-learning-block="pagination-lab"
                 >
-                  <PaginationLab />
+                  <PaginationLab locale={entry.data.locale} />
                 </div>
               )}
             </div>
