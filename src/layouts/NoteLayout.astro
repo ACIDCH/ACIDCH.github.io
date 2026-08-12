@@ -123,9 +123,15 @@ const statisticsToc = [
 ];
 
 const generatedToc = headings
-  .filter((heading) => heading.depth === 2 && heading.slug !== "写在前面")
+  .filter(
+    (heading) =>
+      heading.depth === 2 &&
+      heading.slug !== "写在前面" &&
+      heading.slug !== "before-you-begin",
+  )
   .map((heading) => ({ id: heading.slug, label: heading.text }));
-const learningToc = isStatisticsHandbook ? statisticsToc : generatedToc;
+const learningToc =
+  isStatisticsHandbook && entry.data.locale === "zh" ? statisticsToc : generatedToc;
 const handbookTitle = entry.data.title;
 
 const notes = await getCollection("notes");
@@ -398,7 +404,9 @@ const noteStructuredData = {
 
 <script>
   function removeHandbookPreface() {
-    const heading = document.getElementById("写在前面");
+    const heading =
+      document.getElementById("写在前面") ??
+      document.getElementById("before-you-begin");
     if (!heading) return;
     let node = heading.nextElementSibling;
     while (node && node.tagName !== "H2") {

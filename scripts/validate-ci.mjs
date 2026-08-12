@@ -4,7 +4,14 @@ import path from "node:path";
 import process from "node:process";
 
 const outputRoot = path.join(process.cwd(), "dist");
-const allowedFirstPersonUiPhrases = ["关于我", "II 型错误", "I 型错误", "I/O"];
+const allowedFirstPersonUiPhrases = [
+  "关于我",
+  "II 型错误",
+  "I 型错误",
+  "Type I and Type II errors",
+  "Type I error",
+  "I/O",
+];
 const firstPersonDiagnostics = [
   {
     label: "English first person",

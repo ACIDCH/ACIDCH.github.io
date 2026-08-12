@@ -89,7 +89,7 @@ describe("SQL 08 ORDER BY Learning Note", () => {
     expect(layout).toContain("const generatedToc = headings");
     expect(layout).toContain("heading.depth === 2");
     expect(layout).toContain(
-      "const learningToc = isStatisticsHandbook ? statisticsToc : generatedToc",
+      'isStatisticsHandbook && entry.data.locale === "zh" ? statisticsToc : generatedToc',
     );
     expect(layout).toContain("<OrderByLab locale={entry.data.locale} />");
     expect(layout).not.toContain("const sqlOrderByToc");
