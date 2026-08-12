@@ -21,9 +21,11 @@ const rendererByTranslationKey = {
   "customer-churn-machine-learning": RMachineLearningProject,
 } as const;
 const Renderer =
-  rendererByTranslationKey[
-    entry.data.translationKey as keyof typeof rendererByTranslationKey
-  ] ?? ProjectLayout;
+  entry.data.locale === "zh"
+    ? (rendererByTranslationKey[
+        entry.data.translationKey as keyof typeof rendererByTranslationKey
+      ] ?? ProjectLayout)
+    : ProjectLayout;
 ---
 
 <Renderer entry={entry} alternatePath={alternatePath} />

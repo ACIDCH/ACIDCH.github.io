@@ -3,12 +3,11 @@
   "sourceLocale": "zh",
   "targetLocale": "en",
   "mode": "warning",
-  "generatedAt": "2026-08-12T14:27:07.307Z",
+  "generatedAt": "2026-08-12T14:45:54.848Z",
   "counts": {
     "DRAFT_ONLY": 1,
-    "MISSING": 5,
     "PLACEHOLDER": 3,
-    "SYNCED": 33
+    "SYNCED": 38
   },
   "entries": [
     {
@@ -437,11 +436,11 @@
         "file": "487eb40804ee98f995cadda0477e6be8f56d31233407765f489a9916576cd075"
       },
       "targetHashes": {
-        "content": "9053a96b51174e413ae89c4407da9f684dd3225c8524ba8809d8a8308554cbf5",
+        "content": "d9e5ad9a3961b914c5e179ba6ff5bb5b4559dbf0cacb2329e418a7f09fb38b24",
         "structure": "c537eb181e816b388a58a55996446e32b8c75e113a63d1694cae0dfb538e2279",
         "metadata": "4b33cc8c4e9561b548d981aefdf1e3848a13872259cad5541919318fbfaf2a8f",
         "protected": "797118b615c05a46874267b40e3d4288c2388764d46a7e0e534d70468bd0b5bb",
-        "file": "c6c8334202498e464a2d99983d232a3a920f1535bb118d77463bfee137a6e59c"
+        "file": "349edb2828ad4da0d8d0a844bc5e432bbe4c18683b5231c0b99b326adb3c89ae"
       },
       "integrityIssues": []
     },
@@ -1069,75 +1068,93 @@
       "key": "projects:customer-churn-machine-learning",
       "collection": "projects",
       "translationKey": "customer-churn-machine-learning",
-      "status": "MISSING",
+      "status": "SYNCED",
       "change": null,
       "sourcePath": "src/content/projects/customer-churn-machine-learning.zh.md",
-      "targetPath": null,
+      "targetPath": "src/content/projects/customer-churn-machine-learning.en.md",
       "sourceHashes": {
-        "content": "88b2246b4b16dc08aca71bb952543b803ef7384bd1fb73e5d0e8399a0c671e69",
-        "structure": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "content": "de39a2a4f3502ce62488358716d0eeaefdd04656fc84ec5ea143c390a1e0080e",
+        "structure": "2ea4ff87ad00f67339b6afd5d2ea8ef7f0df2444407d423512c83c63746905a1",
         "metadata": "3e24980a1a81b9e1914541216fc6f560057b34e0fae22f3e4f8362e1554bc28f",
-        "protected": "1eb3094ba7172f11708aaa8a870777b4a689504b7bccb61169af4b4962b928fd",
-        "file": "02f627493f9991657bf26cf13fe9d98c3c9acfbea7f7c28a9b221d923caa2693"
+        "protected": "77109eaf3839fdf6c2760c55d1ee4ba2c53c961d46ee09897e033ff406f90d80",
+        "file": "49a21c1acdeaab90edd247e17b9380fdab47921fe9d174d3b44e849a5098d880"
       },
       "currentSourceHashes": {
-        "content": "88b2246b4b16dc08aca71bb952543b803ef7384bd1fb73e5d0e8399a0c671e69",
-        "structure": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "content": "de39a2a4f3502ce62488358716d0eeaefdd04656fc84ec5ea143c390a1e0080e",
+        "structure": "2ea4ff87ad00f67339b6afd5d2ea8ef7f0df2444407d423512c83c63746905a1",
         "metadata": "3e24980a1a81b9e1914541216fc6f560057b34e0fae22f3e4f8362e1554bc28f",
-        "protected": "1eb3094ba7172f11708aaa8a870777b4a689504b7bccb61169af4b4962b928fd",
-        "file": "02f627493f9991657bf26cf13fe9d98c3c9acfbea7f7c28a9b221d923caa2693"
+        "protected": "77109eaf3839fdf6c2760c55d1ee4ba2c53c961d46ee09897e033ff406f90d80",
+        "file": "49a21c1acdeaab90edd247e17b9380fdab47921fe9d174d3b44e849a5098d880"
       },
-      "targetHashes": null,
+      "targetHashes": {
+        "content": "241eab387080a866bd9abeed1e94a3b0f32db822198d59a228e26df97bfea33f",
+        "structure": "2ea4ff87ad00f67339b6afd5d2ea8ef7f0df2444407d423512c83c63746905a1",
+        "metadata": "080d0f4e1acbb015dd935a58ef3e39a1963bc7fefd685e49667e94cf43b529e7",
+        "protected": "77109eaf3839fdf6c2760c55d1ee4ba2c53c961d46ee09897e033ff406f90d80",
+        "file": "3367e4092b771f226c10309b9cd3f9faa029c52caa6af52f12507668f46dec2b"
+      },
       "integrityIssues": []
     },
     {
       "key": "projects:european-property-market-dashboard",
       "collection": "projects",
       "translationKey": "european-property-market-dashboard",
-      "status": "MISSING",
+      "status": "SYNCED",
       "change": null,
       "sourcePath": "src/content/projects/european-property-market-dashboard.zh.md",
-      "targetPath": null,
+      "targetPath": "src/content/projects/european-property-market-dashboard.en.md",
       "sourceHashes": {
-        "content": "fd59af4056fef60e3bced8c2b5b50e3dd1060e6950a334599be9ab268fb0e3be",
-        "structure": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "content": "987112bd235fc00ab2be06dc3b2af2e32e9efafa7b67786b9ce838df6ccbdd98",
+        "structure": "b15140a8a73b1aeb33f6749e0dcb91461329a2cec10723d51dd47ffde9180ce6",
         "metadata": "cd1ebdfe4ed6ece7fdbede10d882c48aff5b80dd2acd2e1cd642865b876020d6",
-        "protected": "3724877e63457556d3c49735081829347c03bc89c26e2d6def5716ea9a93b523",
-        "file": "08ab8a395420fad7393d15c5afb3b8e322b12880fee0bf2bee877b3b63b033ad"
+        "protected": "df56621ae229a61971b9e9d777c6407baceda2b73ac91de277fefc9507f625c3",
+        "file": "c89138bf884bf1e008b8a6cf10909ddb30b62e1d4c7197e78cf95533fdded2ba"
       },
       "currentSourceHashes": {
-        "content": "fd59af4056fef60e3bced8c2b5b50e3dd1060e6950a334599be9ab268fb0e3be",
-        "structure": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "content": "987112bd235fc00ab2be06dc3b2af2e32e9efafa7b67786b9ce838df6ccbdd98",
+        "structure": "b15140a8a73b1aeb33f6749e0dcb91461329a2cec10723d51dd47ffde9180ce6",
         "metadata": "cd1ebdfe4ed6ece7fdbede10d882c48aff5b80dd2acd2e1cd642865b876020d6",
-        "protected": "3724877e63457556d3c49735081829347c03bc89c26e2d6def5716ea9a93b523",
-        "file": "08ab8a395420fad7393d15c5afb3b8e322b12880fee0bf2bee877b3b63b033ad"
+        "protected": "df56621ae229a61971b9e9d777c6407baceda2b73ac91de277fefc9507f625c3",
+        "file": "c89138bf884bf1e008b8a6cf10909ddb30b62e1d4c7197e78cf95533fdded2ba"
       },
-      "targetHashes": null,
+      "targetHashes": {
+        "content": "2511e8ae4afeb59997921842e262d4a6a2813449e92193bba36edfd5162622a5",
+        "structure": "b15140a8a73b1aeb33f6749e0dcb91461329a2cec10723d51dd47ffde9180ce6",
+        "metadata": "594aa447b2bf54a1faebfa6ca744c8e89c737249ea951f1da5c82c4f996172e1",
+        "protected": "38ad682fde82d5e02f8c6b42fdd927a47b9428c2ef9719baa1162b10693945f5",
+        "file": "99db8fd5378eea96a57ed6e90b60fe66d684a53e48e27523bc3b285f70907d84"
+      },
       "integrityIssues": []
     },
     {
       "key": "projects:grammy-spotify-analysis",
       "collection": "projects",
       "translationKey": "grammy-spotify-analysis",
-      "status": "MISSING",
+      "status": "SYNCED",
       "change": null,
       "sourcePath": "src/content/projects/grammy-spotify-analysis.zh.md",
-      "targetPath": null,
+      "targetPath": "src/content/projects/grammy-spotify-analysis.en.md",
       "sourceHashes": {
-        "content": "2aeb4d403ef661ec7c32c7daab9d28c0b2682c34bbdce333b4d36a7607c6b93b",
-        "structure": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "content": "555c14358cdb5467f828ffda46a9fb7d904794502328f0c121d98d392cf28942",
+        "structure": "b15140a8a73b1aeb33f6749e0dcb91461329a2cec10723d51dd47ffde9180ce6",
         "metadata": "d5dd44b0e4575ab8d5edfaecbb463fa134c404f42db72170528df31f704cd31a",
-        "protected": "272ab511d7e44488336b3bcbc72de748b31fd2c20ff07314f19c9671f56c9256",
-        "file": "6d3047915f12810ae2315799449b238dafb9eee41f2dcfb190d0f37396543c30"
+        "protected": "af47d0042ecb144540c401aeea71d6af40c25da3803bf11c039c96e1bbb62de2",
+        "file": "8fbd0c4a17b6a39bd4d50e9736be9c4dfcccf49708b2274fc5020fed976abd3d"
       },
       "currentSourceHashes": {
-        "content": "2aeb4d403ef661ec7c32c7daab9d28c0b2682c34bbdce333b4d36a7607c6b93b",
-        "structure": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "content": "555c14358cdb5467f828ffda46a9fb7d904794502328f0c121d98d392cf28942",
+        "structure": "b15140a8a73b1aeb33f6749e0dcb91461329a2cec10723d51dd47ffde9180ce6",
         "metadata": "d5dd44b0e4575ab8d5edfaecbb463fa134c404f42db72170528df31f704cd31a",
-        "protected": "272ab511d7e44488336b3bcbc72de748b31fd2c20ff07314f19c9671f56c9256",
-        "file": "6d3047915f12810ae2315799449b238dafb9eee41f2dcfb190d0f37396543c30"
+        "protected": "af47d0042ecb144540c401aeea71d6af40c25da3803bf11c039c96e1bbb62de2",
+        "file": "8fbd0c4a17b6a39bd4d50e9736be9c4dfcccf49708b2274fc5020fed976abd3d"
       },
-      "targetHashes": null,
+      "targetHashes": {
+        "content": "88c58a1ceba24000ddde9bd1fa57444a1d578b1b461b0e6ece7196d9f459ff18",
+        "structure": "b15140a8a73b1aeb33f6749e0dcb91461329a2cec10723d51dd47ffde9180ce6",
+        "metadata": "241e0668e0a2fcdecae3500596a3d8f918bcab2241da997d61dd89bc76f5b9df",
+        "protected": "4a7d257277005ced0ffa1ffc1dcaf7a7de61e56d1a16717d08cc598a2ff666fa",
+        "file": "51b66edc79422844cd9bf37f7fdcd807ebbaf5fe9745a2ecb6b861503e6d7893"
+      },
       "integrityIssues": []
     },
     {
@@ -1175,25 +1192,31 @@
       "key": "projects:retirement-monte-carlo",
       "collection": "projects",
       "translationKey": "retirement-monte-carlo",
-      "status": "MISSING",
+      "status": "SYNCED",
       "change": null,
       "sourcePath": "src/content/projects/retirement-monte-carlo.zh.md",
-      "targetPath": null,
+      "targetPath": "src/content/projects/retirement-monte-carlo.en.md",
       "sourceHashes": {
-        "content": "38429f260a67ce12d68a950b2ac15901b66621fa9fa0238e4b2875f60bd279c7",
-        "structure": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "content": "30351aa5e753a32ed73ff0cc8509ea96aa515aa607aae13fff8a8389b13b2311",
+        "structure": "b15140a8a73b1aeb33f6749e0dcb91461329a2cec10723d51dd47ffde9180ce6",
         "metadata": "9b86892432c79180958de5ffa8fa5f87c3962438a7ecfa0537dc7fa0e37eb0ed",
-        "protected": "7af6faaf4fdd4976587ace7fd8a8a3b0dfb5e52547837cc61a32fb6ce66f8832",
-        "file": "20c1c9cc86b7d978c2e8c7a7d99c0e163d98dcc6b3fdc852f53a04877be027fa"
+        "protected": "3bcef4468fbadbbfdf2e51a6b575ef72e586264eb549ade718ffab3763256656",
+        "file": "a39b7ce91a8c71566122e459eafaa31f7e953f5b9afabd841c7a788682de2ea9"
       },
       "currentSourceHashes": {
-        "content": "38429f260a67ce12d68a950b2ac15901b66621fa9fa0238e4b2875f60bd279c7",
-        "structure": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "content": "30351aa5e753a32ed73ff0cc8509ea96aa515aa607aae13fff8a8389b13b2311",
+        "structure": "b15140a8a73b1aeb33f6749e0dcb91461329a2cec10723d51dd47ffde9180ce6",
         "metadata": "9b86892432c79180958de5ffa8fa5f87c3962438a7ecfa0537dc7fa0e37eb0ed",
-        "protected": "7af6faaf4fdd4976587ace7fd8a8a3b0dfb5e52547837cc61a32fb6ce66f8832",
-        "file": "20c1c9cc86b7d978c2e8c7a7d99c0e163d98dcc6b3fdc852f53a04877be027fa"
+        "protected": "3bcef4468fbadbbfdf2e51a6b575ef72e586264eb549ade718ffab3763256656",
+        "file": "a39b7ce91a8c71566122e459eafaa31f7e953f5b9afabd841c7a788682de2ea9"
       },
-      "targetHashes": null,
+      "targetHashes": {
+        "content": "3a0c090e523e9b03985578cce11f1250d62af19dcc9a9ba5be4fd188d4399e86",
+        "structure": "b15140a8a73b1aeb33f6749e0dcb91461329a2cec10723d51dd47ffde9180ce6",
+        "metadata": "1306a8eda59aa43d005382f968e2c1b88b44fd6ba6f0b58633b4d68c82bc0c42",
+        "protected": "2cdb5140e470aa5ad92afe129d51d780fbe7076d4b28f9f68c44af7ac1745c97",
+        "file": "99602ca09ae7490290436f6333190d6505214d7ca37686ac0d4dcdda9e59ce04"
+      },
       "integrityIssues": []
     },
     {
@@ -1231,25 +1254,31 @@
       "key": "projects:sales-profitability-warehouse",
       "collection": "projects",
       "translationKey": "sales-profitability-warehouse",
-      "status": "MISSING",
+      "status": "SYNCED",
       "change": null,
       "sourcePath": "src/content/projects/sales-profitability-warehouse.zh.md",
-      "targetPath": null,
+      "targetPath": "src/content/projects/sales-profitability-warehouse.en.md",
       "sourceHashes": {
-        "content": "75a14f3dcfa17693b3fb1c3a4bdd0a875e578f66eceef129d412b3189c3dc7fd",
-        "structure": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "content": "a80d3bf325d37127cc779596c7eb57ed16118af46f0a786ee8ffe6759bb7a47a",
+        "structure": "b15140a8a73b1aeb33f6749e0dcb91461329a2cec10723d51dd47ffde9180ce6",
         "metadata": "e0eabeac43606f34b2784f1dc32450a01da6df3511deec59e0c4d40e8948fb84",
-        "protected": "272ab511d7e44488336b3bcbc72de748b31fd2c20ff07314f19c9671f56c9256",
-        "file": "9448991ac273a7cebf4a1d011d127a5a4467b715802210e710ff7da5a24d040f"
+        "protected": "23b3e0bb266c6a493d68d3df6ad4787675719ac83bd9945d8891c3bafd44ea7d",
+        "file": "0d69ccf49b6aa31ea7c6c792e5c57342b12116c9db8598fa2607e3484fd6b329"
       },
       "currentSourceHashes": {
-        "content": "75a14f3dcfa17693b3fb1c3a4bdd0a875e578f66eceef129d412b3189c3dc7fd",
-        "structure": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "content": "a80d3bf325d37127cc779596c7eb57ed16118af46f0a786ee8ffe6759bb7a47a",
+        "structure": "b15140a8a73b1aeb33f6749e0dcb91461329a2cec10723d51dd47ffde9180ce6",
         "metadata": "e0eabeac43606f34b2784f1dc32450a01da6df3511deec59e0c4d40e8948fb84",
-        "protected": "272ab511d7e44488336b3bcbc72de748b31fd2c20ff07314f19c9671f56c9256",
-        "file": "9448991ac273a7cebf4a1d011d127a5a4467b715802210e710ff7da5a24d040f"
+        "protected": "23b3e0bb266c6a493d68d3df6ad4787675719ac83bd9945d8891c3bafd44ea7d",
+        "file": "0d69ccf49b6aa31ea7c6c792e5c57342b12116c9db8598fa2607e3484fd6b329"
       },
-      "targetHashes": null,
+      "targetHashes": {
+        "content": "40d0bde8d32ab2ffdac35314b4da57bb76d7990bfc195909e79bb69133d1267d",
+        "structure": "b15140a8a73b1aeb33f6749e0dcb91461329a2cec10723d51dd47ffde9180ce6",
+        "metadata": "9cca310b11aa3f12eaff98d83e9c4712df9848bf4b1782518a9bc6e806de9ee5",
+        "protected": "23b3e0bb266c6a493d68d3df6ad4787675719ac83bd9945d8891c3bafd44ea7d",
+        "file": "fd8fe2d44bf1ce3c4292ab5d1fc8157d845f21eb78c68cc857f17e71ae6016f6"
+      },
       "integrityIssues": []
     },
     {
