@@ -10,7 +10,8 @@ export const learningSeries: LearningSeries[] = [
   {
     slug: "r-statistics",
     title: "R 与统计",
-    description: "先把数据看明白，再进入概率、推断和统计建模。R 负责计算，判断仍然要回到数据和问题本身。",
+    description:
+      "先把数据看明白，再进入概率、推断和统计建模。R 负责计算，判断仍然要回到数据和问题本身。",
     tools: ["R", "Base R"],
     modules: [
       {
@@ -28,7 +29,11 @@ export const learningSeries: LearningSeries[] = [
         title: "抽样与估计",
         summary: "用样本估计总体，同时保留对抽样误差和代表性的判断。",
       },
-      { code: "STAT 04", title: "区间估计", summary: "一个点估计不够，还要知道这个估计有多精确。" },
+      {
+        code: "STAT 04",
+        title: "区间估计",
+        summary: "一个点估计不够，还要知道这个估计有多精确。",
+      },
       {
         code: "STAT 05",
         title: "假设检验",
@@ -44,7 +49,8 @@ export const learningSeries: LearningSeries[] = [
   {
     slug: "regression",
     title: "回归与统计建模",
-    description: "从一条回归线开始，逐步处理残差、非线性、多变量、影响点和分类问题。先看模型在回答什么，再看系数和指标。",
+    description:
+      "从一条回归线开始，逐步处理残差、非线性、多变量、影响点和分类问题。先看模型在回答什么，再看系数和指标。",
     tools: ["R", "Base R", "glmnet", "统计建模"],
     modules: [
       {
@@ -87,7 +93,8 @@ export const learningSeries: LearningSeries[] = [
   {
     slug: "sql",
     title: "SQL 与关系数据",
-    description: "先把表和关系设计清楚，再进入查询、聚合、连接、索引和事务。所有例子沿用同一套业务数据，方便前后核对。",
+    description:
+      "先把表和关系设计清楚，再进入查询、聚合、连接、索引和事务。所有例子沿用同一套业务数据，方便前后核对。",
     tools: ["SQL", "SQLite", "关系数据库"],
     modules: [
       {
@@ -98,7 +105,8 @@ export const learningSeries: LearningSeries[] = [
       {
         code: "SQL 02",
         title: "主键",
-        summary: "用稳定且唯一的值标识一条记录，避免普通业务字段变化时连带影响关联关系。",
+        summary:
+          "用稳定且唯一的值标识一条记录，避免普通业务字段变化时连带影响关联关系。",
       },
       {
         code: "SQL 03",
@@ -108,7 +116,8 @@ export const learningSeries: LearningSeries[] = [
       {
         code: "SQL 04",
         title: "表关系",
-        summary: "用客户、订单和产品说明一对多、多对多和一对一，并观察 JOIN 后粒度怎样变化。",
+        summary:
+          "用客户、订单和产品说明一对多、多对多和一对一，并观察 JOIN 后粒度怎样变化。",
       },
       {
         code: "SQL 05",
@@ -224,7 +233,8 @@ export const learningSeries: LearningSeries[] = [
   {
     slug: "decision-models",
     title: "供应链与决策模型",
-    description: "从一个小型优化问题开始，再逐步加入约束、整数选择、模型规模、运输和库存。重点是把业务规则写清楚，并让结果能够复算。",
+    description:
+      "从一个小型优化问题开始，再逐步加入约束、整数选择、模型规模、运输和库存。重点是把业务规则写清楚，并让结果能够复算。",
     tools: ["Excel Solver", "Python", "PuLP", "优化"],
     modules: [
       {
@@ -270,7 +280,8 @@ export const learningSeries: LearningSeries[] = [
       {
         code: "DM 09",
         title: "供应链运输规划",
-        summary: "分清长期网络、中期合同和短期执行，再把容量、承诺量和流量平衡写进模型。",
+        summary:
+          "分清长期网络、中期合同和短期执行，再把容量、承诺量和流量平衡写进模型。",
       },
       {
         code: "DM 10",

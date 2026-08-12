@@ -154,11 +154,11 @@ products.product_id   = 301 / 305
 
 客户表：
 
-| customer_id | customer_name | email | segment |
-|---:|---|---|---|
-| 1001 | North Retail | north@example.com | Retail |
-| 1002 | Coast Foods | coast@example.com | Wholesale |
-| 1003 | Alpine Labs | alpine@example.com | Enterprise |
+| customer_id | customer_name | email              | segment    |
+| ----------: | ------------- | ------------------ | ---------- |
+|        1001 | North Retail  | north@example.com  | Retail     |
+|        1002 | Coast Foods   | coast@example.com  | Wholesale  |
+|        1003 | Alpine Labs   | alpine@example.com | Enterprise |
 
 这里：
 
@@ -167,11 +167,11 @@ products.product_id   = 301 / 305
 订单表：
 
 | order_id | customer_id | order_date | order_value |
-|---:|---:|---|---:|
-| 50001 | 1001 | 2026-07-03 | 420.00 |
-| 50002 | 1001 | 2026-07-05 | 185.00 |
-| 50003 | 1002 | 2026-07-06 | 760.00 |
-| 50004 | 1003 | 2026-07-09 | 510.00 |
+| -------: | ----------: | ---------- | ----------: |
+|    50001 |        1001 | 2026-07-03 |      420.00 |
+|    50002 |        1001 | 2026-07-05 |      185.00 |
+|    50003 |        1002 | 2026-07-06 |      760.00 |
+|    50004 |        1003 | 2026-07-09 |      510.00 |
 
 这里：
 
@@ -201,15 +201,15 @@ segment
 
 字段不只是有名字，还要说明它能保存什么类型的值。
 
-| 类型家族 | 常见声明 | 适合表达 |
-|---|---|---|
-| 整数 | `INT`, `INTEGER`, `BIGINT` | ID、数量、计数 |
-| 精确小数 | `DECIMAL(p,s)`, `NUMERIC(p,s)` | 金额、精确比例 |
-| 浮点数 | `REAL`, `FLOAT`, `DOUBLE` | 允许近似的连续数值 |
-| 文本 | `VARCHAR(n)`, `TEXT` | 名称、描述、标签 |
-| 布尔 | `BOOLEAN` | true / false 状态 |
-| 日期时间 | `DATE`, `DATETIME`, `TIMESTAMP` | 日期与时间 |
-| 半结构化数据 | `JSON` | JSON 文档 |
+| 类型家族     | 常见声明                        | 适合表达           |
+| ------------ | ------------------------------- | ------------------ |
+| 整数         | `INT`, `INTEGER`, `BIGINT`      | ID、数量、计数     |
+| 精确小数     | `DECIMAL(p,s)`, `NUMERIC(p,s)`  | 金额、精确比例     |
+| 浮点数       | `REAL`, `FLOAT`, `DOUBLE`       | 允许近似的连续数值 |
+| 文本         | `VARCHAR(n)`, `TEXT`            | 名称、描述、标签   |
+| 布尔         | `BOOLEAN`                       | true / false 状态  |
+| 日期时间     | `DATE`, `DATETIME`, `TIMESTAMP` | 日期与时间         |
+| 半结构化数据 | `JSON`                          | JSON 文档          |
 
 不同数据库的类型语义并不完全相同。MySQL、PostgreSQL 和 SQLite 对数字、日期和自增主键都有自己的实现细节。
 
@@ -287,9 +287,9 @@ Data 是当前真正存进去的值：
 如果订单表直接保存客户名称：
 
 | order_id | customer_name | order_value |
-|---:|---|---:|
-| 50001 | North Retail | 420.00 |
-| 50002 | North Retail | 185.00 |
+| -------: | ------------- | ----------: |
+|    50001 | North Retail  |      420.00 |
+|    50002 | North Retail  |      185.00 |
 
 客户更名以后，两条历史订单都可能需要同步修改。
 

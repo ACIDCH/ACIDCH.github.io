@@ -220,11 +220,11 @@ One-at-a-time（OAT）分析一次只改变一个参数：
 
 为了让分析可复查，可以为每次情景记录：
 
-| 情景 | 改动参数 | 目标值 | Core | Premium | Binding constraints |
-|---|---|---:|---:|---:|---|
-| Base | 无 | 3437.14 | 28.57 | 38.57 | Material, Labour |
-| Material +10 | RHS +10 | … | … | … | … |
-| Premium value -10% | 58 → 52.2 | … | … | … | … |
+| 情景               | 改动参数  |  目标值 |  Core | Premium | Binding constraints |
+| ------------------ | --------- | ------: | ----: | ------: | ------------------- |
+| Base               | 无        | 3437.14 | 28.57 |   38.57 | Material, Labour    |
+| Material +10       | RHS +10   |       … |     … |       … | …                   |
+| Premium value -10% | 58 → 52.2 |       … |     … |       … | …                   |
 
 这样读者不需要从多份 Solver 输出里自己拼结论。
 

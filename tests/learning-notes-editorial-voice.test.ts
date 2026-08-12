@@ -55,9 +55,15 @@ describe("Learning Notes editorial voice", () => {
       const title = frontmatterValue(source, "title");
       expect(title, file).toBe(expectedTitle);
       if (file !== "r-data-analysis-prediction.zh.md") {
-        expect(Array.from(title).length, `${file} title should stay compact`).toBeLessThanOrEqual(14);
+        expect(
+          Array.from(title).length,
+          `${file} title should stay compact`,
+        ).toBeLessThanOrEqual(14);
       }
-      expect(title, `${file} should not append an explanatory title tail`).not.toContain("：");
+      expect(
+        title,
+        `${file} should not append an explanatory title tail`,
+      ).not.toContain("：");
       expect(title, file).not.toMatch(
         /应该怎样|完整学习手册|连接今天与未来|战术承运量|条件效应|稳定身份/u,
       );
@@ -68,7 +74,9 @@ describe("Learning Notes editorial voice", () => {
     for (const file of Object.keys(expectedTitles)) {
       const source = readNote(file);
       const summary = frontmatterValue(source, "summary");
-      expect(summary.length, `${file} should have a useful summary`).toBeGreaterThan(20);
+      expect(summary.length, `${file} should have a useful summary`).toBeGreaterThan(
+        20,
+      );
       expect(summary, file).not.toMatch(
         /系统(?:地)?理解|学习如何|重点区分|建立.{0,12}流程|完整基础|统一数据集中的|从.{0,24}出发，理解|记录身份证|稳定身份/u,
       );
@@ -102,7 +110,9 @@ describe("Learning Notes editorial voice", () => {
     for (const file of Object.keys(expectedTitles)) {
       const source = readNote(file);
       expect(source, file).not.toMatch(/我|我们|本人|作者|笔者/u);
-      staleFragments.forEach((fragment) => expect(source, `${file}: ${fragment}`).not.toContain(fragment));
+      staleFragments.forEach((fragment) =>
+        expect(source, `${file}: ${fragment}`).not.toContain(fragment),
+      );
     }
   });
 

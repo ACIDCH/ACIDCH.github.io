@@ -37,11 +37,11 @@ relatedNotes:
 
 当前客户表：
 
-| customer_id | customer_name | email | phone | segment |
-|---:|---|---|---|---|
-| 1001 | North Retail | north@example.com | 021-440-810 | Retail |
-| 1002 | Coast Foods | coast@example.com | 021-440-811 | Wholesale |
-| 1003 | Alpine Labs | alpine@example.com | 021-440-812 | Enterprise |
+| customer_id | customer_name | email              | phone       | segment    |
+| ----------: | ------------- | ------------------ | ----------- | ---------- |
+|        1001 | North Retail  | north@example.com  | 021-440-810 | Retail     |
+|        1002 | Coast Foods   | coast@example.com  | 021-440-811 | Wholesale  |
+|        1003 | Alpine Labs   | alpine@example.com | 021-440-812 | Enterprise |
 
 这里的 `customer_id` 就是主键，用来唯一标识客户记录。
 

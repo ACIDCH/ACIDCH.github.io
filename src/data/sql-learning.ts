@@ -90,7 +90,10 @@ export const sqlDatasetCounts = {
   customerProfiles: sqlCustomerProfiles.length,
 };
 
-export const sqlOrderTotal = sqlOrders.reduce((sum, order) => sum + order.order_value, 0);
+export const sqlOrderTotal = sqlOrders.reduce(
+  (sum, order) => sum + order.order_value,
+  0,
+);
 
 export const sqlLearningSeedSql = `
 PRAGMA foreign_keys = ON;

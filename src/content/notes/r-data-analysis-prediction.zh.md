@@ -535,10 +535,10 @@ MSE=\frac{1}{n}\sum_{i=1}^{n}(y_i-\hat y_i)^2
 
 分类问题则需要混淆矩阵。二分类可以写成：
 
-| | 实际 Positive | 实际 Negative |
-|---|---:|---:|
-| 预测 Positive | TP | FP |
-| 预测 Negative | FN | TN |
+|               | 实际 Positive | 实际 Negative |
+| ------------- | ------------: | ------------: |
+| 预测 Positive |            TP |            FP |
+| 预测 Negative |            FN |            TN |
 
 常用指标包括：
 
@@ -804,6 +804,6 @@ K 本身也不是算法自动决定的真理。可以参考 within-cluster sum o
 
 ## 参考与许可
 
-这篇笔记的知识结构参考 Rafael A. Irizarry 的 *Introduction to Data Science: Data Analysis and Prediction Algorithms with R* 及其新版两册在线内容，重点吸收其中关于 R、数据可视化、统计推断、线性模型、高维数据、模型评估、重采样、监督学习和聚类的教学顺序。
+这篇笔记的知识结构参考 Rafael A. Irizarry 的 _Introduction to Data Science: Data Analysis and Prediction Algorithms with R_ 及其新版两册在线内容，重点吸收其中关于 R、数据可视化、统计推断、线性模型、高维数据、模型评估、重采样、监督学习和聚类的教学顺序。
 
 参考站点：<https://rafalab.dfci.harvard.edu/dsbook/> ；新版统计与预测部分：<https://rafalab.dfci.harvard.edu/dsbook-part-2/> 。原资料采用 CC BY-NC-SA 4.0 许可。本页为重新组织和改写的学习笔记，案例、说明文字与互动内容均按本站知识体系重新制作；涉及原资料思想与结构的改编部分沿用相同许可要求。

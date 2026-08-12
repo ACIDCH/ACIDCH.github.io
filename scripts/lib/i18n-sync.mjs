@@ -243,11 +243,29 @@ export function structuralSignature(body) {
 export function translatableContent(body) {
   return scanMarkdown(body)
     .filter((block) => !["code", "math", "component"].includes(block.type))
-    .map((block) => block.value)
+    .map((block) => {
+      let value = block.value
+        .replace(/`+[^`\n]+?`+/gu, "<INLINE_CODE>")
+        .replace(/https?:\/\/[^\s)>"']+/gu, "<URL>")
+        .trim();
+      if (block.type === "structured-prose" && value.startsWith("|")) {
+        const cells = value
+          .replace(/^\|/u, "")
+          .replace(/\|$/u, "")
+          .split("|")
+          .map((cell) => {
+            const trimmed = cell.trim();
+            const delimiter = trimmed.match(/^(:?)-{3,}(:?)$/u);
+            if (delimiter) return `${delimiter[1]}---${delimiter[2]}`;
+            return trimmed.replace(/\s+/gu, " ");
+          });
+        value = `|${cells.join("|")}|`;
+      } else {
+        value = value.replace(/\s+/gu, " ");
+      }
+      return value;
+    })
     .join("\n")
-    .replace(/`+[^`\n]+?`+/gu, "<INLINE_CODE>")
-    .replace(/https?:\/\/[^\s)>"']+/gu, "<URL>")
-    .replace(/[ \t]+/gu, " ")
     .replace(/\n+/gu, "\n")
     .trim();
 }

@@ -153,10 +153,10 @@ p-value 是：**在原假设和检验模型成立的条件下，观察到当前�
 
 统计决策可能犯两类错误。
 
-| 真实状态 | 不拒绝 H0 | 拒绝 H0 |
-|---|---|---|
-| H0 真实 | 正确 | 第一类错误 |
-| H0 不真实 | 第二类错误 | 正确 |
+| 真实状态  | 不拒绝 H0  | 拒绝 H0    |
+| --------- | ---------- | ---------- |
+| H0 真实   | 正确       | 第一类错误 |
+| H0 不真实 | 第二类错误 | 正确       |
 
 **第一类错误**：实际上没有效果，却错误地宣布存在效果。其长期错误率由 \(\alpha\) 控制。
 
@@ -350,6 +350,6 @@ p.adjust(p_values, method = "BH")
 
 ## 参考资料
 
-知识结构参考 Rafael A. Irizarry 的 *Introduction to Data Science: Statistics and Prediction Algorithms Through Case Studies* 中 Hypothesis Testing、Power，以及 confidence interval 与 p-value 的联系。正文、业务案例、代码和解释均重新组织。
+知识结构参考 Rafael A. Irizarry 的 _Introduction to Data Science: Statistics and Prediction Algorithms Through Case Studies_ 中 Hypothesis Testing、Power，以及 confidence interval 与 p-value 的联系。正文、业务案例、代码和解释均重新组织。
 
 参考站点：<https://rafalab.dfci.harvard.edu/dsbook-part-2/> 。原资料采用 CC BY-NC-SA 4.0 许可。

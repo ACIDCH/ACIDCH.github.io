@@ -102,7 +102,10 @@ describe("SQL Learning Notes integrity contract", () => {
     expect(sql).toBeDefined();
     expect(sql?.modules).toHaveLength(20);
     expect(sql?.modules.map((module) => module.code)).toEqual(
-      Array.from({ length: 20 }, (_, index) => `SQL ${String(index + 1).padStart(2, "0")}`),
+      Array.from(
+        { length: 20 },
+        (_, index) => `SQL ${String(index + 1).padStart(2, "0")}`,
+      ),
     );
     expect(sql?.modules.map((module) => module.title)).toEqual([
       "关系数据库",
@@ -184,7 +187,9 @@ describe("SQL Learning Notes integrity contract", () => {
 
   it("keeps WHERE examples numerically aligned with the canonical orders", () => {
     expect(
-      sqlOrders.filter((order) => order.order_value >= 500).map((order) => order.order_id),
+      sqlOrders
+        .filter((order) => order.order_value >= 500)
+        .map((order) => order.order_id),
     ).toEqual([50003, 50004]);
     expect(
       sqlOrders
@@ -224,11 +229,13 @@ describe("SQL Learning Notes integrity contract", () => {
   });
 
   it("keeps Projection examples aligned with canonical rows and result shapes", () => {
-    const customerProjection = sqlCustomers.map(({ customer_id, customer_name, segment }) => ({
-      customer_id,
-      customer_name,
-      segment,
-    }));
+    const customerProjection = sqlCustomers.map(
+      ({ customer_id, customer_name, segment }) => ({
+        customer_id,
+        customer_name,
+        segment,
+      }),
+    );
     expect(customerProjection).toEqual([
       { customer_id: 1001, customer_name: "North Retail", segment: "Retail" },
       { customer_id: 1002, customer_name: "Coast Foods", segment: "Wholesale" },
@@ -244,25 +251,27 @@ describe("SQL Learning Notes integrity contract", () => {
       [50004, 1003, 510],
     ]);
 
-    expect(sqlOrders.map((order) => Number((order.order_value * 1.1).toFixed(2)))).toEqual([
-      462,
-      203.5,
-      836,
-      561,
-    ]);
+    expect(
+      sqlOrders.map((order) => Number((order.order_value * 1.1).toFixed(2))),
+    ).toEqual([462, 203.5, 836, 561]);
   });
 
   it("keeps ORDER BY examples aligned with canonical row order", () => {
     expect(
-      [...sqlOrders].sort((a, b) => a.order_value - b.order_value).map((row) => row.order_id),
+      [...sqlOrders]
+        .sort((a, b) => a.order_value - b.order_value)
+        .map((row) => row.order_id),
     ).toEqual([50002, 50001, 50004, 50003]);
     expect(
-      [...sqlOrders].sort((a, b) => b.order_value - a.order_value).map((row) => row.order_id),
+      [...sqlOrders]
+        .sort((a, b) => b.order_value - a.order_value)
+        .map((row) => row.order_id),
     ).toEqual([50003, 50004, 50001, 50002]);
     expect(
       [...sqlOrders]
         .sort(
-          (a, b) => a.customer_id - b.customer_id || b.order_date.localeCompare(a.order_date),
+          (a, b) =>
+            a.customer_id - b.customer_id || b.order_date.localeCompare(a.order_date),
         )
         .map((row) => row.order_id),
     ).toEqual([50002, 50001, 50003, 50004]);

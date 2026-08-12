@@ -136,6 +136,15 @@ describe("bilingual sync engine", () => {
     expect(classifyChange(baseline, cosmetic)).toBe("COSMETIC_CHANGE");
   });
 
+  it("keeps prose wrapping and Markdown table alignment out of content hashes", () => {
+    const compact = `A sentence that wraps onto the next line.\n\n| period | demand |\n|---|---:|\n| P1 | 180 |`;
+    const formatted = `A sentence that wraps\nonto the next line.\n\n| period | demand |\n| ------ | -----: |\n| P1     |    180 |\n`;
+    expect(translatableContent(compact)).toBe(translatableContent(formatted));
+    expect(contentHashes(file("zh", compact)).content).toBe(
+      contentHashes(file("zh", formatted)).content,
+    );
+  });
+
   it("keeps historical debt non-blocking in a versioned warning manifest", () => {
     const manifest = buildManifest([file("zh", sourceBody)]);
     expect(manifest.version).toBe(1);
