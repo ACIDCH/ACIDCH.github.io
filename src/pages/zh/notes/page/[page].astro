@@ -7,6 +7,7 @@ import {
   getGeneratedPageNumbers,
   getPaginationPath,
   getTotalPages,
+  NOTES_PAGE_SIZE,
 } from "../../../../utils/pagination";
 
 export async function getStaticPaths() {
@@ -17,7 +18,7 @@ export async function getStaticPaths() {
     )
     .sort((left, right) => left.data.title.localeCompare(right.data.title, "zh-CN"));
 
-  return getGeneratedPageNumbers(notes.length, 9).map((page) => ({
+  return getGeneratedPageNumbers(notes.length, NOTES_PAGE_SIZE).map((page) => ({
     params: { page: String(page) },
     props: { notes, currentPage: page },
   }));
@@ -29,7 +30,7 @@ interface Props {
 }
 
 const { notes, currentPage } = Astro.props;
-const totalPages = getTotalPages(notes.length, 9);
+const totalPages = getTotalPages(notes.length, NOTES_PAGE_SIZE);
 const canonicalPath = getPaginationPath("/zh/notes/", currentPage);
 ---
 
@@ -53,7 +54,7 @@ const canonicalPath = getPaginationPath("/zh/notes/", currentPage);
     entries={notes}
     locale="zh"
     currentPage={currentPage}
-    pageSize={9}
+    pageSize={NOTES_PAGE_SIZE}
     basePath="/zh/notes/"
   />
 </BaseLayout>
