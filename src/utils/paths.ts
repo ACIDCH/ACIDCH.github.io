@@ -52,3 +52,44 @@ export function getLocalizedPath(path: string, locale: Locale): string {
   const localizedPath = pathWithoutLocale === "/" ? "/zh/" : `/zh${pathWithoutLocale}`;
   return withBase(`${localizedPath}${suffix}`);
 }
+
+export function getLocaleSectionFallback(path: string, locale: Locale): string {
+  const { pathname } = splitPath(path);
+  const normalisedPath = normalisePath(pathname || "/");
+  const pathWithoutLocale = normalisedPath.replace(/^\/zh(?=\/)/, "") || "/";
+  const section = pathWithoutLocale.split("/").filter(Boolean)[0];
+  const sectionPath = ["notes", "projects", "productivity", "about"].includes(
+    section ?? "",
+  )
+    ? `/${section}/`
+    : "/";
+  return getLocalizedPath(sectionPath, locale);
+}
+
+interface LocalePathOptions {
+  locale: Locale;
+  currentPath: string;
+  canonicalPath: string;
+  alternatePath?: string | null;
+}
+
+export function resolveLocalePaths({
+  locale,
+  currentPath,
+  canonicalPath,
+  alternatePath,
+}: LocalePathOptions) {
+  const targetLocale: Locale = locale === "en" ? "zh" : "en";
+  const seoAlternatePath =
+    alternatePath === undefined
+      ? getLocalizedPath(currentPath, targetLocale)
+      : alternatePath;
+  return {
+    targetLocale,
+    seoAlternatePath,
+    languageSwitchPath:
+      seoAlternatePath ?? getLocaleSectionFallback(currentPath, targetLocale),
+    englishPath: locale === "en" ? canonicalPath : seoAlternatePath,
+    chinesePath: locale === "zh" ? canonicalPath : seoAlternatePath,
+  };
+}

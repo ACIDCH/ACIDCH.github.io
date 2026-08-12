@@ -1,12 +1,7 @@
 ---
 import { getCollection, type CollectionEntry } from "astro:content";
-import { findTranslation } from "../../../i18n/content";
-import ProjectLayout from "../../../layouts/ProjectLayout.astro";
-import RetirementMonteCarloProject from "../../../components/RetirementMonteCarloProject.astro";
-import PowerBIDashboardProject from "../../../components/PowerBIDashboardProject.astro";
-import PythonAnalysisProject from "../../../components/PythonAnalysisProject.astro";
-import SqlDatabaseProject from "../../../components/SqlDatabaseProject.astro";
-import RMachineLearningProject from "../../../components/RMachineLearningProject.astro";
+import ProjectRenderer from "../../../components/ProjectRenderer.astro";
+import { findTranslation, isPublicTranslation } from "../../../i18n/content";
 import { getLocalizedPath } from "../../../utils/paths";
 
 export async function getStaticPaths() {
@@ -23,23 +18,10 @@ interface Props {
 
 const { entry, entries } = Astro.props;
 const translation = findTranslation(entries, entry.data.translationKey, "en");
-const alternatePath = translation
-  ? getLocalizedPath(`/projects/${translation.data.slug}/`, "en")
-  : getLocalizedPath("/projects/", "en");
+const alternatePath =
+  translation && isPublicTranslation(translation)
+    ? getLocalizedPath(`/projects/${translation.data.slug}/`, "en")
+    : null;
 ---
 
-{
-  entry.data.translationKey === "retirement-monte-carlo" ? (
-    <RetirementMonteCarloProject entry={entry} alternatePath={alternatePath} />
-  ) : entry.data.translationKey === "european-property-market-dashboard" ? (
-    <PowerBIDashboardProject entry={entry} alternatePath={alternatePath} />
-  ) : entry.data.translationKey === "grammy-spotify-analysis" ? (
-    <PythonAnalysisProject entry={entry} alternatePath={alternatePath} />
-  ) : entry.data.translationKey === "sales-profitability-warehouse" ? (
-    <SqlDatabaseProject entry={entry} alternatePath={alternatePath} />
-  ) : entry.data.translationKey === "customer-churn-machine-learning" ? (
-    <RMachineLearningProject entry={entry} alternatePath={alternatePath} />
-  ) : (
-    <ProjectLayout entry={entry} alternatePath={alternatePath} />
-  )
-}
+<ProjectRenderer entry={entry} alternatePath={alternatePath} />

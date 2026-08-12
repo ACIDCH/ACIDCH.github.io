@@ -7,6 +7,7 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
 import {
   getGeneratedPageNumbers,
   getPaginationPath,
+  getTotalPages,
   paginate,
 } from "../../../utils/pagination";
 
@@ -33,11 +34,19 @@ interface Props {
 const { projects, currentPage } = Astro.props;
 const page = paginate(projects, currentPage, 6);
 const canonicalPath = getPaginationPath("/projects/", currentPage);
+const counterpartCount = (await getCollection("projects")).filter(
+  (entry) => entry.data.locale === "zh",
+).length;
+const alternatePath =
+  currentPage <= getTotalPages(counterpartCount, 6)
+    ? getPaginationPath("/zh/projects/", currentPage)
+    : null;
 ---
 
 <BaseLayout
   title={`Projects — Page ${currentPage}`}
   locale="en"
+  alternatePath={alternatePath}
   canonicalPath={canonicalPath}
   pagination={{
     previous: getPaginationPath("/projects/", currentPage - 1),

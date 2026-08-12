@@ -13,13 +13,13 @@ import "../styles/global.css";
 import "../styles/polish.css";
 import "../styles/churn-polish.css";
 import { getCanonicalUrl } from "../utils/urls";
-import { getLocalizedPath, withBase } from "../utils/paths";
+import { resolveLocalePaths, withBase } from "../utils/paths";
 
 interface Props {
   title: string;
   description?: string;
   locale: Locale;
-  alternatePath?: string;
+  alternatePath?: string | null;
   canonicalPath?: string;
   noindex?: boolean;
   pageType?: "website" | "article" | "profile";
@@ -47,11 +47,13 @@ const resolvedCanonicalPath = canonicalPath ?? Astro.url.pathname;
 const canonicalUrl = getCanonicalUrl(resolvedCanonicalPath);
 const fullTitle =
   title === siteConfig.siteTitle ? title : `${title} | ${siteConfig.siteTitle}`;
-const targetLocale: Locale = locale === "en" ? "zh" : "en";
-const resolvedAlternatePath =
-  alternatePath ?? getLocalizedPath(Astro.url.pathname, targetLocale);
-const englishPath = locale === "en" ? resolvedCanonicalPath : resolvedAlternatePath;
-const chinesePath = locale === "zh" ? resolvedCanonicalPath : resolvedAlternatePath;
+const { seoAlternatePath, languageSwitchPath, englishPath, chinesePath } =
+  resolveLocalePaths({
+    locale,
+    currentPath: Astro.url.pathname,
+    canonicalPath: resolvedCanonicalPath,
+    alternatePath,
+  });
 const socialImageUrl = getCanonicalUrl(siteConfig.seo.defaultImage);
 const ogLocale = locale === "en" ? "en_US" : "zh_CN";
 const alternateOgLocale = locale === "en" ? "zh_CN" : "en_US";
@@ -126,16 +128,30 @@ const serialisedJsonLd = JSON.stringify(jsonLd).replace(/</g, "\\u003c");
       content="Business analytics and supply chain analytics portfolio"
     />
     <meta property="og:locale" content={ogLocale} />
-    <meta property="og:locale:alternate" content={alternateOgLocale} />
+    {
+      seoAlternatePath && (
+        <meta property="og:locale:alternate" content={alternateOgLocale} />
+      )
+    }
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={fullTitle} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={socialImageUrl} />
     <link rel="icon" type="image/svg+xml" href={withBase("/brand/favicon.svg")} />
     <link rel="canonical" href={canonicalUrl} />
-    <link rel="alternate" hreflang="en" href={getCanonicalUrl(englishPath)} />
-    <link rel="alternate" hreflang="zh-CN" href={getCanonicalUrl(chinesePath)} />
-    <link rel="alternate" hreflang="x-default" href={getCanonicalUrl(englishPath)} />
+    {
+      englishPath && chinesePath && (
+        <>
+          <link rel="alternate" hreflang="en" href={getCanonicalUrl(englishPath)} />
+          <link rel="alternate" hreflang="zh-CN" href={getCanonicalUrl(chinesePath)} />
+          <link
+            rel="alternate"
+            hreflang="x-default"
+            href={getCanonicalUrl(englishPath)}
+          />
+        </>
+      )
+    }
     {
       pagination?.previous && (
         <link rel="prev" href={getCanonicalUrl(pagination.previous)} />
@@ -151,7 +167,7 @@ const serialisedJsonLd = JSON.stringify(jsonLd).replace(/</g, "\\u003c");
     <a class="skip-link" href="#main-content">
       {locale === "en" ? "Skip to content" : "跳到主要内容"}
     </a>
-    <Header locale={locale} alternatePath={alternatePath} />
+    <Header locale={locale} alternatePath={languageSwitchPath} />
     <GlobalSearch locale={locale} />
     <main
       id="main-content"

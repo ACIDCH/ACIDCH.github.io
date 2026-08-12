@@ -12,7 +12,7 @@ import BaseLayout from "./BaseLayout.astro";
 
 interface Props {
   entry: CollectionEntry<"notes">;
-  alternatePath?: string;
+  alternatePath?: string | null;
 }
 
 const { entry, alternatePath } = Astro.props;
@@ -84,7 +84,10 @@ const structuredData = {
     }
     {
       relatedProjects.length > 0 && (
-        <section class="related-notes" aria-labelledby="regression-related-projects-title">
+        <section
+          class="related-notes"
+          aria-labelledby="regression-related-projects-title"
+        >
           <h2 id="regression-related-projects-title">
             {entry.data.locale === "en" ? "Related Projects" : "相关项目"}
           </h2>

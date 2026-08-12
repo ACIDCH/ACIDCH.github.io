@@ -1,0 +1,131 @@
+---
+import { getCollection } from "astro:content";
+import type { Locale } from "../../config/site";
+import { getLocalizedLearningSeries } from "../../i18n/learning-series";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getLocalizedPath } from "../../utils/paths";
+import ContextBack from "../ContextBack.astro";
+import NoteList from "../NoteList.astro";
+
+interface Props {
+  locale: Locale;
+  seriesSlug: string;
+}
+
+const { locale, seriesSlug } = Astro.props;
+const series = getLocalizedLearningSeries(seriesSlug, locale);
+if (!series) return Astro.redirect(getLocalizedPath("/notes/", locale));
+const notes = (await getCollection("notes"))
+  .filter(
+    (entry) =>
+      entry.data.locale === locale &&
+      !entry.data.draft &&
+      !entry.data.isPlaceholder &&
+      entry.data.seriesSlug === series.slug,
+  )
+  .sort((left, right) => (left.data.order ?? 999) - (right.data.order ?? 999));
+const alternatePath = getLocalizedPath(
+  `/notes/series/${series.slug}/`,
+  locale === "en" ? "zh" : "en",
+);
+const copy =
+  locale === "en"
+    ? {
+        back: "Back to Learning Notes",
+        status: "Learning Notes folder",
+        summary: `${notes.length} published notes · ${series.modules.length} core modules`,
+        route: "Folder contents · Learning pathway",
+        published: "Published · Open the complete note",
+        pending: "Pending publication",
+        notes: "Notes in this folder",
+      }
+    : {
+        back: "返回学习笔记",
+        status: "学习笔记文件夹",
+        summary: `${notes.length} 篇已发布笔记 · ${series.modules.length} 个核心模块`,
+        route: "文件夹内容 · 学习路线",
+        published: "已发布 · 点击进入完整笔记",
+        pending: "待发布",
+        notes: "文件夹内笔记",
+      };
+---
+
+<BaseLayout
+  title={series.title}
+  description={series.description}
+  locale={locale}
+  alternatePath={alternatePath}
+>
+  <article class="learning-series-page" data-note-folder={series.slug}>
+    <ContextBack
+      locale={locale}
+      fallbackPath="/notes/"
+      label={{ en: copy.back, zh: copy.back }}
+    />
+    <header class="learning-series-page__hero">
+      <p class="status">{copy.status}</p>
+      <h1>{series.title}</h1>
+      <p>{series.description}</p>
+      <div>{series.tools.map((tool) => <span class="tag">{tool}</span>)}</div>
+      <p class="folder-summary">{copy.summary}</p>
+    </header>
+    <section aria-labelledby="series-modules-title">
+      <h2 id="series-modules-title">{copy.route}</h2>
+      <ol class="learning-series-page__modules folder-module-list">
+        {
+          series.modules.map((module, index) => {
+            const note = notes.find((entry) => entry.data.order === index + 1);
+            return (
+              <li data-folder-module={module.code}>
+                <p>{module.code}</p>
+                <h3>
+                  {note ? (
+                    <a href={getLocalizedPath(`/notes/${note.data.slug}/`, locale)}>
+                      {module.title}
+                    </a>
+                  ) : (
+                    module.title
+                  )}
+                </h3>
+                <span>{module.summary}</span>
+                <small>{note ? copy.published : copy.pending}</small>
+              </li>
+            );
+          })
+        }
+      </ol>
+    </section>
+    <section aria-labelledby="series-notes-title">
+      <h2 id="series-notes-title">{copy.notes}</h2>
+      <NoteList entries={notes} locale={locale} />
+    </section>
+    <ContextBack
+      locale={locale}
+      fallbackPath="/notes/"
+      label={{ en: copy.back, zh: copy.back }}
+    />
+  </article>
+</BaseLayout>
+
+<style>
+  .folder-summary {
+    margin-top: var(--space-4);
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-sm);
+  }
+
+  .folder-module-list li {
+    min-width: 0;
+  }
+
+  .folder-module-list h3 a {
+    text-decoration-thickness: 0.08em;
+    text-underline-offset: 0.18em;
+  }
+
+  .folder-module-list small {
+    display: block;
+    margin-top: var(--space-2);
+    color: var(--colour-text-muted);
+  }
+</style>

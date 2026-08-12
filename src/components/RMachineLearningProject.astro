@@ -31,7 +31,7 @@ import {
 
 interface Props {
   entry: CollectionEntry<"projects">;
-  alternatePath: string;
+  alternatePath: string | null;
 }
 
 const { entry, alternatePath } = Astro.props;

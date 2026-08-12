@@ -1,0 +1,25 @@
+---
+import type { CollectionEntry } from "astro:content";
+import DataScienceNoteLayout from "../layouts/DataScienceNoteLayout.astro";
+import DecisionModelNoteLayout from "../layouts/DecisionModelNoteLayout.astro";
+import NoteLayout from "../layouts/NoteLayout.astro";
+import RegressionNoteLayout from "../layouts/RegressionNoteLayout.astro";
+import "../styles/sql-pagination.css";
+
+interface Props {
+  entry: CollectionEntry<"notes">;
+  alternatePath: string | null;
+}
+
+const { entry, alternatePath } = Astro.props;
+const layoutBySeries = {
+  "data-science-r": DataScienceNoteLayout,
+  "decision-models": DecisionModelNoteLayout,
+  regression: RegressionNoteLayout,
+} as const;
+const Renderer = entry.data.seriesSlug
+  ? (layoutBySeries[entry.data.seriesSlug as keyof typeof layoutBySeries] ?? NoteLayout)
+  : NoteLayout;
+---
+
+<Renderer entry={entry} alternatePath={alternatePath} />

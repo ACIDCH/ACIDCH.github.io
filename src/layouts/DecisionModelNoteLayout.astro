@@ -13,7 +13,7 @@ import BaseLayout from "./BaseLayout.astro";
 
 interface Props {
   entry: CollectionEntry<"notes">;
-  alternatePath?: string;
+  alternatePath?: string | null;
 }
 
 const { entry, alternatePath } = Astro.props;
@@ -86,7 +86,10 @@ const structuredData = {
     }
     {
       relatedProjects.length > 0 && (
-        <section class="related-notes" aria-labelledby="decision-related-projects-title">
+        <section
+          class="related-notes"
+          aria-labelledby="decision-related-projects-title"
+        >
           <h2 id="decision-related-projects-title">
             {entry.data.locale === "en" ? "Related Projects" : "相关项目"}
           </h2>
@@ -105,10 +108,14 @@ const structuredData = {
 <script>
   function placeDecisionModelBlocks() {
     const blocks = Array.from(
-      document.querySelectorAll<HTMLElement>(".decision-model-note [data-learning-block]"),
+      document.querySelectorAll<HTMLElement>(
+        ".decision-model-note [data-learning-block]",
+      ),
     );
     const slots = Array.from(
-      document.querySelectorAll<HTMLElement>(".decision-model-note [data-learning-slot]"),
+      document.querySelectorAll<HTMLElement>(
+        ".decision-model-note [data-learning-slot]",
+      ),
     );
 
     blocks.forEach((block) => {

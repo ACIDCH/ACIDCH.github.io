@@ -1,11 +1,7 @@
 ---
 import { getCollection, type CollectionEntry } from "astro:content";
-import { findTranslation } from "../../../i18n/content";
-import DataScienceNoteLayout from "../../../layouts/DataScienceNoteLayout.astro";
-import DecisionModelNoteLayout from "../../../layouts/DecisionModelNoteLayout.astro";
-import NoteLayout from "../../../layouts/NoteLayout.astro";
-import RegressionNoteLayout from "../../../layouts/RegressionNoteLayout.astro";
-import "../../../styles/sql-pagination.css";
+import NoteRenderer from "../../../components/NoteRenderer.astro";
+import { findTranslation, isPublicTranslation } from "../../../i18n/content";
 import { getLocalizedPath } from "../../../utils/paths";
 
 export async function getStaticPaths() {
@@ -25,22 +21,10 @@ interface Props {
 
 const { entry, entries } = Astro.props;
 const translation = findTranslation(entries, entry.data.translationKey, "en");
-const alternatePath = translation
-  ? getLocalizedPath(`/notes/${translation.data.slug}/`, "en")
-  : getLocalizedPath("/", "en");
-const isDataScienceR = entry.data.seriesSlug === "data-science-r";
-const isDecisionModel = entry.data.seriesSlug === "decision-models";
-const isRegression = entry.data.seriesSlug === "regression";
+const alternatePath =
+  translation && isPublicTranslation(translation)
+    ? getLocalizedPath(`/notes/${translation.data.slug}/`, "en")
+    : null;
 ---
 
-{
-  isDataScienceR ? (
-    <DataScienceNoteLayout entry={entry} alternatePath={alternatePath} />
-  ) : isDecisionModel ? (
-    <DecisionModelNoteLayout entry={entry} alternatePath={alternatePath} />
-  ) : isRegression ? (
-    <RegressionNoteLayout entry={entry} alternatePath={alternatePath} />
-  ) : (
-    <NoteLayout entry={entry} alternatePath={alternatePath} />
-  )
-}
+<NoteRenderer entry={entry} alternatePath={alternatePath} />
