@@ -17,6 +17,7 @@ const files = [
 const notes = new Map(files.map(([code, path]) => [code, readFileSync(path, "utf8")]));
 const layout = readFileSync("src/layouts/NoteLayout.astro", "utf8");
 const lab = readFileSync("src/components/learning/SamplingPrecisionLab.astro", "utf8");
+const learningUi = readFileSync("src/i18n/learning-ui.ts", "utf8");
 const series = readFileSync("src/data/learning-series.ts", "utf8");
 const seriesPage = readFileSync(
   "src/components/learning/LearningSeriesPage.astro",
@@ -169,7 +170,7 @@ describe("completed R statistics learning series", () => {
       "1/√n",
       "AbortController",
       "astro:before-swap",
-    ].forEach((marker) => expect(lab).toContain(marker));
+    ].forEach((marker) => expect(`${lab}\n${learningUi}`).toContain(marker));
   });
 
   it("keeps public statistics notes original, attributed and free of private course identity", () => {

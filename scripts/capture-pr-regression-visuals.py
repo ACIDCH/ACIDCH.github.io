@@ -160,7 +160,7 @@ def desktop_topic_proofs(browser: object) -> None:
     set_value(browser, "[data-logit-score-slider]", "75")
     set_value(browser, "[data-logit-threshold-slider]", "65")
     browser.wait_for_text("[data-logit-threshold]", "0.65")
-    browser.wait_for_text("[data-logit-class]", "High risk")
+    browser.wait_for_text("[data-logit-class]", "高风险")
     browser.screenshot("reg07-logistic-threshold-desktop.png")
 
 
@@ -171,7 +171,7 @@ def mobile_topic_proof(browser: object) -> None:
     set_value(browser, "[data-logit-score-slider]", "52")
     set_value(browser, "[data-logit-threshold-slider]", "60")
     browser.wait_for_text("[data-logit-threshold]", "0.60")
-    browser.wait_for_text("[data-logit-class]", "Low risk")
+    browser.wait_for_text("[data-logit-class]", "低风险")
     overflow = browser.execute("return document.documentElement.scrollWidth > window.innerWidth + 2;")
     if overflow is True:
         raise RuntimeError("Regression mobile page has horizontal overflow.")
