@@ -10,6 +10,11 @@ const seriesPage = read("src/components/learning/LearningSeriesPage.astro");
 const noteList = read("src/components/NoteList.astro");
 const productionVerifier = read("scripts/verify-decision-models-production.mjs");
 
+it("verifies the localised Chinese optimum marker in production", () => {
+  expect(productionVerifier).toContain('"最优点 600"');
+  expect(productionVerifier).not.toContain('"optimum 600"');
+});
+
 describe("Supply chain optimisation Learning Notes folder", () => {
   it("makes the tag-first folder navigation explicit on the Chinese Learning Notes index", () => {
     expect(notesIndex).toContain("先用标签快速定位知识点，再按主题进入完整知识库");
