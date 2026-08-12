@@ -54,7 +54,7 @@ const checks = [
   },
   {
     path: "zh/notes/unconstrained-optimisation/",
-    markers: ["无约束优化", "data-unconstrained-lab", "optimum 600"],
+    markers: ["无约束优化", "data-unconstrained-lab", "最优点 600"],
   },
   {
     path: "zh/notes/constrained-optimisation/",
@@ -82,11 +82,21 @@ const checks = [
   },
   {
     path: "zh/notes/transportation-models/",
-    markers: ["供应链运输规划", "data-horizon-lab", "data-flow-lab", "Carrier allocation"],
+    markers: [
+      "供应链运输规划",
+      "data-horizon-lab",
+      "data-flow-lab",
+      "Carrier allocation",
+    ],
   },
   {
     path: "zh/notes/multi-period-production-inventory/",
-    markers: ["多期生产与库存优化", "data-flow-lab", 'data-default-mode="period"', "12324"],
+    markers: [
+      "多期生产与库存优化",
+      "data-flow-lab",
+      'data-default-mode="period"',
+      "12324",
+    ],
   },
 ];
 
@@ -135,7 +145,8 @@ async function verifyPage({ path, markers, orderedMarkers = [] }) {
     throw new Error(`${path} does not look like a complete site page`);
   }
   for (const marker of markers) {
-    if (!html.includes(marker)) throw new Error(`${path} is missing expected marker: ${marker}`);
+    if (!html.includes(marker))
+      throw new Error(`${path} is missing expected marker: ${marker}`);
   }
   if (orderedMarkers.length > 0) {
     let previousIndex = -1;
@@ -148,7 +159,8 @@ async function verifyPage({ path, markers, orderedMarkers = [] }) {
     }
   }
   for (const marker of forbiddenMarkers) {
-    if (html.includes(marker)) throw new Error(`${path} contains forbidden marker: ${marker}`);
+    if (html.includes(marker))
+      throw new Error(`${path} contains forbidden marker: ${marker}`);
   }
 }
 
@@ -173,5 +185,7 @@ for (let attempt = 1; attempt <= attempts; attempt += 1) {
   }
 }
 
-console.error(`Supply-chain optimisation production verification failed: ${lastError?.message || "unknown error"}`);
+console.error(
+  `Supply-chain optimisation production verification failed: ${lastError?.message || "unknown error"}`,
+);
 process.exit(1);
