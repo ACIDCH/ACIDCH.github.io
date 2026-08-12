@@ -297,55 +297,40 @@ for (const file of htmlFiles) {
   }
 }
 
-if (
-  await exists(
-    path.join(outputRoot, "projects", "retirement-monte-carlo", "index.html"),
-  )
-) {
-  failures.push("/projects/retirement-monte-carlo/: unexpected English detail page");
-}
-
-if (
-  await exists(
-    path.join(
-      outputRoot,
-      "projects",
-      "european-property-market-dashboard",
-      "index.html",
-    ),
-  )
-) {
-  failures.push(
-    "/projects/european-property-market-dashboard/: unexpected English detail page",
-  );
-}
-
-if (
-  await exists(
-    path.join(outputRoot, "projects", "sales-profitability-warehouse", "index.html"),
-  )
-) {
-  failures.push(
-    "/projects/sales-profitability-warehouse/: unexpected English detail page",
-  );
-}
-
-if (
-  await exists(
-    path.join(outputRoot, "projects", "grammy-spotify-analysis", "index.html"),
-  )
-) {
-  failures.push("/projects/grammy-spotify-analysis/: unexpected English detail page");
-}
-
-if (
-  await exists(
-    path.join(outputRoot, "projects", "customer-churn-machine-learning", "index.html"),
-  )
-) {
-  failures.push(
-    "/projects/customer-churn-machine-learning/: unexpected English detail page",
-  );
+for (const project of [
+  {
+    slug: "retirement-monte-carlo",
+    marker: "Retirement Savings Monte Carlo Model in Excel",
+  },
+  {
+    slug: "european-property-market-dashboard",
+    marker: "European Property Development Market Analysis in Power BI",
+  },
+  {
+    slug: "sales-profitability-warehouse",
+    marker: "Sales and Profitability Warehouse Analysis in SQL",
+  },
+  {
+    slug: "grammy-spotify-analysis",
+    marker: "Multi-source Grammy and Spotify Analysis",
+  },
+  {
+    slug: "customer-churn-machine-learning",
+    marker: "Customer Churn Prediction and Supervised Model Comparison",
+  },
+]) {
+  const file = path.join(outputRoot, "projects", project.slug, "index.html");
+  if (!(await exists(file))) {
+    failures.push(`/projects/${project.slug}/: missing English detail page`);
+    continue;
+  }
+  const html = await readFile(file, "utf8");
+  if (!html.includes(project.marker)) {
+    failures.push(`/projects/${project.slug}/: missing English project content`);
+  }
+  if (!html.includes(`/zh/projects/${project.slug}/`)) {
+    failures.push(`/projects/${project.slug}/: missing Chinese alternate`);
+  }
 }
 
 for (const deepDive of [

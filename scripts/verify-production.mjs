@@ -33,6 +33,47 @@ const churnCoursePatterns = [
 
 const pageChecks = [
   {
+    path: "projects/customer-churn-machine-learning/",
+    markers: [
+      "Customer Churn Prediction and Supervised Model Comparison",
+      "0.9053",
+      'hreflang="zh-CN"',
+    ],
+    forbiddenMarkers: ["客户流失预测与监督学习模型比较", ">简介<"],
+  },
+  {
+    path: "projects/european-property-market-dashboard/",
+    markers: [
+      "European Property Development Market Analysis in Power BI",
+      "124.4%",
+      'hreflang="zh-CN"',
+    ],
+    forbiddenMarkers: ["欧洲房地产开发市场 Power BI 分析", ">简介<"],
+  },
+  {
+    path: "projects/grammy-spotify-analysis/",
+    markers: ["Multi-source Grammy and Spotify Analysis", "1,687", 'hreflang="zh-CN"'],
+    forbiddenMarkers: ["Grammy 与 Spotify 多源数据分析", ">简介<"],
+  },
+  {
+    path: "projects/retirement-monte-carlo/",
+    markers: [
+      "Retirement Savings Monte Carlo Model in Excel",
+      "552,670.63",
+      'hreflang="zh-CN"',
+    ],
+    forbiddenMarkers: ["Excel 退休储蓄蒙特卡洛模拟", ">简介<"],
+  },
+  {
+    path: "projects/sales-profitability-warehouse/",
+    markers: [
+      "Sales and Profitability Warehouse Analysis in SQL",
+      "82.39%",
+      'hreflang="zh-CN"',
+    ],
+    forbiddenMarkers: ["销售与盈利数据仓库 SQL 分析", ">简介<"],
+  },
+  {
     path: "notes/series/sql/",
     markers: [
       "SQL and Relational Data",
