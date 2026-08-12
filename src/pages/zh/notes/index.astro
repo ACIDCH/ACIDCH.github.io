@@ -5,7 +5,11 @@ import LearningSeriesMap from "../../../components/learning/LearningSeriesMap.as
 import PageIntro from "../../../components/PageIntro.astro";
 import ProjectList from "../../../components/ProjectList.astro";
 import BaseLayout from "../../../layouts/BaseLayout.astro";
-import { getPaginationPath, getTotalPages } from "../../../utils/pagination";
+import {
+  getPaginationPath,
+  getTotalPages,
+  NOTES_PAGE_SIZE,
+} from "../../../utils/pagination";
 
 const includeDrafts = import.meta.env.DEV;
 const notes = (await getCollection("notes"))
@@ -15,7 +19,7 @@ const relatedProjectKeys = new Set(notes.flatMap((entry) => entry.data.relatedPr
 const relatedProjects = (await getCollection("projects")).filter(
   (entry) => entry.data.locale === "zh" && relatedProjectKeys.has(entry.data.translationKey),
 );
-const totalPages = getTotalPages(notes.length, 9);
+const totalPages = getTotalPages(notes.length, NOTES_PAGE_SIZE);
 ---
 
 <BaseLayout
@@ -33,7 +37,7 @@ const totalPages = getTotalPages(notes.length, 9);
     entries={notes}
     locale="zh"
     currentPage={1}
-    pageSize={9}
+    pageSize={NOTES_PAGE_SIZE}
     basePath="/zh/notes/"
   >
     <LearningSeriesMap slot="knowledge-map" />
