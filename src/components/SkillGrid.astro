@@ -1,12 +1,14 @@
 ---
 import { skillGroups } from "../config/skills";
 import type { Locale } from "../config/site";
+import { sharedUi } from "../i18n/shared-ui";
 
 interface Props {
   locale: Locale;
 }
 
 const { locale } = Astro.props;
+const copy = sharedUi[locale].skillGrid;
 ---
 
 <div class="capability-grid">
@@ -18,10 +20,7 @@ const { locale } = Astro.props;
         </span>
         <h3>{group.title[locale]}</h3>
         <p>{group.description[locale]}</p>
-        <ul
-          class="tag-list"
-          aria-label={locale === "en" ? "Related tools" : "相关工具"}
-        >
+        <ul class="tag-list" aria-label={copy.relatedTools}>
           {group.tools.map((tool) => (
             <li class="tag">{tool}</li>
           ))}

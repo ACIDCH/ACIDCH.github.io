@@ -65,8 +65,8 @@ describe("pagination markup", () => {
 
   it("provides current-page and non-link disabled states", () => {
     expect(pagination).toContain('aria-current={page === currentPage ? "page"');
-    expect(pagination).toContain('<span aria-disabled="true">{previous}</span>');
-    expect(pagination).toContain('<span aria-disabled="true">{next}</span>');
+    expect(pagination).toContain('<span aria-disabled="true">{copy.previous}</span>');
+    expect(pagination).toContain('<span aria-disabled="true">{copy.next}</span>');
   });
 
   it("filters notes before slicing and preserves tags on pagination links", () => {

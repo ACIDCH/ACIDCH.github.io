@@ -8,6 +8,7 @@ const seriesMap = read("src/components/learning/LearningSeriesMap.astro");
 const projectList = read("src/components/ProjectList.astro");
 const home = read("src/components/HomePage.astro");
 const taxonomy = read("src/data/note-tag-taxonomy.ts");
+const sharedUi = read("src/i18n/shared-ui.ts");
 
 describe("Learning Notes and project-grid information architecture", () => {
   it("keeps the tag map first, knowledge folders second, and all notes last", () => {
@@ -22,7 +23,8 @@ describe("Learning Notes and project-grid information architecture", () => {
     expect(tags).toBeGreaterThan(-1);
     expect(tags).toBeLessThan(folders);
     expect(folders).toBeLessThan(results);
-    expect(notesExplorer).toContain('latest: "全部笔记"');
+    expect(notesExplorer).toContain("sharedUi[locale].notesExplorer");
+    expect(sharedUi).toContain('latest: "全部笔记"');
   });
 
   it("uses a compact canonical tag taxonomy instead of every raw frontmatter tag", () => {
@@ -41,8 +43,8 @@ describe("Learning Notes and project-grid information architecture", () => {
     expect(notesExplorer).toContain("tag-cloud__tooltip");
     expect(notesExplorer).toContain(":hover .tag-cloud__tooltip");
     expect(notesExplorer).toContain(":focus-visible .tag-cloud__tooltip");
-    expect(notesExplorer).toContain("[aria-pressed=\"true\"]");
-    expect(notesExplorer).toContain('data-note-tag={tag.label.toLocaleLowerCase()}');
+    expect(notesExplorer).toContain('[aria-pressed="true"]');
+    expect(notesExplorer).toContain("data-note-tag={tag.label.toLocaleLowerCase()}");
     expect(notesExplorer).toContain('button.setAttribute("aria-pressed"');
   });
 

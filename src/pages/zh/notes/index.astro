@@ -15,9 +15,12 @@ const includeDrafts = import.meta.env.DEV;
 const notes = (await getCollection("notes"))
   .filter((entry) => entry.data.locale === "zh" && (includeDrafts || !entry.data.draft))
   .sort((left, right) => left.data.title.localeCompare(right.data.title, "zh-CN"));
-const relatedProjectKeys = new Set(notes.flatMap((entry) => entry.data.relatedProjects));
+const relatedProjectKeys = new Set(
+  notes.flatMap((entry) => entry.data.relatedProjects),
+);
 const relatedProjects = (await getCollection("projects")).filter(
-  (entry) => entry.data.locale === "zh" && relatedProjectKeys.has(entry.data.translationKey),
+  (entry) =>
+    entry.data.locale === "zh" && relatedProjectKeys.has(entry.data.translationKey),
 );
 const totalPages = getTotalPages(notes.length, NOTES_PAGE_SIZE);
 ---
@@ -30,6 +33,7 @@ const totalPages = getTotalPages(notes.length, NOTES_PAGE_SIZE);
   }}
 >
   <PageIntro
+    locale="zh"
     title="学习笔记"
     description="先用标签快速定位知识点，再按主题进入完整知识库；全部笔记保留在下方并支持分页浏览。"
   />

@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from "astro:content";
 import type { Locale } from "../config/site";
+import { sharedUi } from "../i18n/shared-ui";
 import { getLocalizedPath } from "../utils/paths";
 import ProjectCover from "./ProjectCover.astro";
 
@@ -10,16 +11,7 @@ interface Props {
 }
 
 const { entry, locale } = Astro.props;
-const statusLabels = {
-  planned: { en: "Planned", zh: "计划中" },
-  "in-development": { en: "In development", zh: "开发中" },
-  completed: { en: "Completed", zh: "已完成" },
-} as const;
-const topicLabels = {
-  inventory: { en: "Inventory", zh: "库存" },
-  transportation: { en: "Transportation", zh: "运输" },
-  analytics: { en: "Analytics", zh: "分析" },
-} as const;
+const copy = sharedUi[locale].projectCard;
 const coverTitles: Record<string, string> = {
   "european-property-market-dashboard": "Power BI",
   "grammy-spotify-analysis": "Python",
@@ -30,7 +22,7 @@ const coverTitles: Record<string, string> = {
 const coverTitle =
   coverTitles[entry.data.translationKey] ??
   entry.data.tools[0] ??
-  topicLabels[entry.data.topic].en;
+  sharedUi.en.projectCard.topics[entry.data.topic];
 const coverBadges = entry.data.tools
   .filter((tool) => tool.trim().toLowerCase() !== coverTitle.trim().toLowerCase())
   .slice(0, 3);
@@ -39,15 +31,9 @@ const coverBadges = entry.data.tools
 <article class="project-card" data-tilt>
   <ProjectCover entry={entry} compact showCode code={coverTitle} badges={coverBadges} />
   <div class="cluster cluster--compact project-card__meta">
-    <p class="status">{statusLabels[entry.data.status][locale]}</p>
-    <span class="tag">{topicLabels[entry.data.topic][locale]}</span>
-    {
-      entry.data.isPlaceholder && (
-        <span class="tag">
-          {locale === "en" ? "Demo / placeholder" : "演示 / 占位"}
-        </span>
-      )
-    }
+    <p class="status">{copy.statuses[entry.data.status]}</p>
+    <span class="tag">{copy.topics[entry.data.topic]}</span>
+    {entry.data.isPlaceholder && <span class="tag">{copy.placeholder}</span>}
   </div>
   <h2>
     <a href={getLocalizedPath(`/projects/${entry.data.slug}/`, locale)}>
@@ -55,18 +41,15 @@ const coverBadges = entry.data.tools
     </a>
   </h2>
   <p class="project-card__summary">{entry.data.summary}</p>
-  <ul
-    class="tag-list project-card__tools"
-    aria-label={locale === "en" ? "Tools" : "工具"}
-  >
+  <ul class="tag-list project-card__tools" aria-label={copy.tools}>
     {entry.data.tools.map((tool) => <li class="tag">{tool}</li>)}
   </ul>
   <a
     class="project-card__link"
     href={getLocalizedPath(`/projects/${entry.data.slug}/`, locale)}
-    aria-label={`${locale === "en" ? "View project" : "查看项目"}: ${entry.data.title}`}
+    aria-label={`${copy.viewProject}: ${entry.data.title}`}
   >
-    {locale === "en" ? "View case study" : "查看案例"}
+    {copy.viewCaseStudy}
     <span class="project-card__arrow" aria-hidden="true">→</span>
   </a>
 </article>

@@ -1,6 +1,7 @@
 ---
 import { portfolioConfig } from "../config/portfolio";
 import type { Locale } from "../config/site";
+import { sharedUi } from "../i18n/shared-ui";
 import { withBase } from "../utils/paths";
 import SocialIconButton from "./SocialIconButton.astro";
 import WechatQrDialog from "./WechatQrDialog.astro";
@@ -10,13 +11,14 @@ interface Props {
 }
 
 const { locale } = Astro.props;
+const copy = sharedUi[locale].social;
 const { contact } = portfolioConfig;
 const resumePath = contact.resume.paths[locale];
 const resumeAvailable =
   contact.resume.enabled && contact.resume.available[locale] && resumePath;
 ---
 
-<div class="social-links" aria-label={locale === "en" ? "Contact links" : "联系入口"}>
+<div class="social-links" aria-label={copy.contactLinks}>
   {
     contact.github.enabled && contact.github.url && (
       <SocialIconButton
@@ -41,7 +43,7 @@ const resumeAvailable =
     contact.email.enabled && contact.email.address && (
       <SocialIconButton
         href={`mailto:${contact.email.address}`}
-        label="Email"
+        label={copy.email}
         icon="email"
       />
     )
@@ -51,7 +53,7 @@ const resumeAvailable =
     resumeAvailable && (
       <SocialIconButton
         href={withBase(resumePath)}
-        label={locale === "en" ? "Resume" : "简历"}
+        label={copy.resume}
         icon="resume"
         external
       />

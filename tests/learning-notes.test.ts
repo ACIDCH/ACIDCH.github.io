@@ -6,10 +6,20 @@ const layout = readFileSync("src/layouts/NoteLayout.astro", "utf8");
 const hero = readFileSync("src/components/learning/LearningNoteHero.astro", "utf8");
 const toc = readFileSync("src/components/learning/LearningNoteToc.astro", "utf8");
 const noteList = readFileSync("src/components/NoteList.astro", "utf8");
+const sharedUi = readFileSync("src/i18n/shared-ui.ts", "utf8");
 const editorialCss = readFileSync("src/styles/learning-note-editorial.css", "utf8");
-const normalLab = readFileSync("src/components/learning/NormalDistributionLab.astro", "utf8");
-const correlationLab = readFileSync("src/components/learning/CorrelationLab.astro", "utf8");
-const regressionLab = readFileSync("src/components/learning/RegressionLab.astro", "utf8");
+const normalLab = readFileSync(
+  "src/components/learning/NormalDistributionLab.astro",
+  "utf8",
+);
+const correlationLab = readFileSync(
+  "src/components/learning/CorrelationLab.astro",
+  "utf8",
+);
+const regressionLab = readFileSync(
+  "src/components/learning/RegressionLab.astro",
+  "utf8",
+);
 const zhRoute = readFileSync("src/pages/zh/notes/[slug].astro", "utf8");
 const index = readFileSync("src/pages/zh/notes/index.astro", "utf8");
 
@@ -97,8 +107,9 @@ describe("R and Statistics Learning Note handbook", () => {
   });
 
   it("uses the same title-only handbook card on home and Learning Notes lists", () => {
-    expect(noteList).toContain('"descriptive-statistics": "统计学与 R"');
-    expect(noteList).toContain('"sql-relational-data": "SQL 与关系数据"');
+    expect(sharedUi).toContain('"descriptive-statistics": "统计学与 R"');
+    expect(sharedUi).toContain('"sql-relational-data": "SQL 与关系数据"');
+    expect(noteList).toContain("copy.handbookTitles[entry.data.slug]");
     expect(noteList).toContain("isCompactHandbook");
     expect(noteList).toContain('isCompactHandbook && "note-card--handbook"');
     expect(noteList).toContain("{isCompactHandbook ? (");
@@ -125,7 +136,9 @@ describe("R and Statistics Learning Note handbook", () => {
     expect(layout).not.toContain("learning-note-wide.css");
     expect(existsSync("src/styles/learning-note-wide.css")).toBe(false);
     expect(editorialCss).toContain("width: min(94rem");
-    expect(editorialCss).toContain("grid-template-columns: minmax(14rem, 16rem) minmax(0, 1fr)");
+    expect(editorialCss).toContain(
+      "grid-template-columns: minmax(14rem, 16rem) minmax(0, 1fr)",
+    );
     expect(editorialCss).toContain("max-width: 72rem");
     expect(editorialCss).toContain("max-width: 58rem");
   });
@@ -158,7 +171,9 @@ describe("R and Statistics Learning Note handbook", () => {
     expect(editorialCss).toContain("article.learning-note .r-playground");
     expect(editorialCss).toContain("article.learning-note .statistics-lab__visuals");
     expect(editorialCss).toContain("grid-template-columns: 1fr");
-    expect(editorialCss).toContain('[data-learning-block]:not([data-learning-placed="true"])');
+    expect(editorialCss).toContain(
+      '[data-learning-block]:not([data-learning-placed="true"])',
+    );
   });
 
   it("does not reintroduce the old ad-hoc spacing tokens", () => {

@@ -1,15 +1,20 @@
 ---
+import type { Locale } from "../config/site";
+import { sharedUi } from "../i18n/shared-ui";
+
 interface Props {
   title: string;
   description: string;
+  locale?: Locale;
   placeholder?: boolean;
 }
 
-const { title, description, placeholder = false } = Astro.props;
+const { title, description, locale = "en", placeholder = false } = Astro.props;
+const copy = sharedUi[locale].pageIntro;
 ---
 
 <header class="page-intro" data-reveal>
-  {placeholder && <p class="status">Placeholder / 占位内容</p>}
+  {placeholder && <p class="status">{copy.placeholder}</p>}
   <h1>{title}</h1>
   <p>{description}</p>
 </header>

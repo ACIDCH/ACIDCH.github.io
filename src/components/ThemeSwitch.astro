@@ -1,5 +1,6 @@
 ---
 import type { Locale } from "../config/site";
+import { sharedUi } from "../i18n/shared-ui";
 import Icon from "./Icon.astro";
 
 interface Props {
@@ -7,7 +8,7 @@ interface Props {
 }
 
 const { locale } = Astro.props;
-const label = locale === "en" ? "Toggle light or dark theme" : "切换浅色或深色主题";
+const label = sharedUi[locale].theme.toggle;
 ---
 
 <button

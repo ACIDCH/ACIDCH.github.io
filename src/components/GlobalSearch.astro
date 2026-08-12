@@ -1,6 +1,7 @@
 ---
 import { getCollection } from "astro:content";
 import type { Locale } from "../config/site";
+import { sharedUi } from "../i18n/shared-ui";
 import type { SearchItem } from "../utils/search";
 import { withBase } from "../utils/paths";
 import { deepDives, projectBasePath } from "../data/r-machine-learning";
@@ -13,72 +14,14 @@ interface Props {
 const { locale } = Astro.props;
 const projects = await getCollection("projects");
 const notes = (await getCollection("notes")).filter((entry) => !entry.data.draft);
-const pages: SearchItem[] = [
-  {
-    title: "Home",
-    description: "Business analytics, supply chain and decision support.",
-    path: "/",
-    locale: "en",
-    group: "page",
-    searchText: "Home business analytics supply chain decision support portfolio",
-  },
-  {
-    title: "首页",
-    description: "商业分析、供应链与决策支持。",
-    path: "/zh/",
-    locale: "zh",
-    group: "page",
-    searchText: "首页 商业分析 供应链 决策支持 作品集",
-  },
-  {
-    title: "Projects",
-    description: "Analytical projects and clearly labelled demonstrations.",
-    path: "/projects/",
-    locale: "en",
-    group: "page",
-    searchText: "Projects analytics demonstrations",
-  },
-  {
-    title: "项目",
-    description: "分析项目与明确标识的演示内容。",
-    path: "/zh/projects/",
-    locale: "zh",
-    group: "page",
-    searchText: "项目 分析 演示",
-  },
-  {
-    title: "Learning Notes",
-    description: "Bilingual notes on analytics, optimisation and tools.",
-    path: "/notes/",
-    locale: "en",
-    group: "page",
-    searchText: "Learning Notes analytics optimisation tools",
-  },
-  {
-    title: "学习笔记",
-    description: "关于分析、优化与工具的双语笔记。",
-    path: "/zh/notes/",
-    locale: "zh",
-    group: "page",
-    searchText: "学习笔记 分析 优化 工具",
-  },
-  {
-    title: "About",
-    description: "Profile, education, experience, skills and contact.",
-    path: "/about/",
-    locale: "en",
-    group: "page",
-    searchText: "About profile education experience skills contact resume",
-  },
-  {
-    title: "关于我",
-    description: "个人概况、教育、经历、技能与联系信息。",
-    path: "/zh/about/",
-    locale: "zh",
-    group: "page",
-    searchText: "关于我 个人概况 教育 经历 技能 联系 简历",
-  },
-];
+const locales: Locale[] = ["en", "zh"];
+const pages: SearchItem[] = locales.flatMap((pageLocale) =>
+  sharedUi[pageLocale].search.pages.map((page) => ({
+    ...page,
+    locale: pageLocale,
+    group: "page" as const,
+  })),
+);
 
 const index: SearchItem[] = [
   ...pages,
@@ -104,7 +47,7 @@ const index: SearchItem[] = [
     path: `${projectBasePath}${deepDive.slug}/`,
     locale: "zh" as const,
     group: "project" as const,
-    searchText: `${deepDive.titleZh} ${deepDive.title} ${deepDive.summary} R tidymodels classification supervised learning customer churn 客户流失 模型比较`,
+    searchText: `${deepDive.titleZh} ${deepDive.title} ${deepDive.summary} ${sharedUi.zh.search.deepDiveKeywords}`,
   })),
   ...notes.map((entry) => ({
     title: entry.data.title,
@@ -124,33 +67,14 @@ const index: SearchItem[] = [
   })),
 ].map((item) => ({ ...item, path: withBase(item.path) }));
 const serialisedIndex = JSON.stringify(index).replace(/</g, "\\u003c");
-const copy =
-  locale === "en"
-    ? {
-        title: "Search the portfolio",
-        placeholder: "Search pages, projects and notes",
-        close: "Close search",
-        hint: "Type to search in English or Chinese.",
-        empty: "No matching results.",
-        result: "results",
-        groups: { page: "Pages", project: "Projects", note: "Notes" },
-      }
-    : {
-        title: "搜索作品集",
-        placeholder: "搜索页面、项目和笔记",
-        close: "关闭搜索",
-        hint: "输入英文或中文关键词。",
-        empty: "没有匹配结果。",
-        result: "项结果",
-        groups: { page: "页面", project: "项目", note: "笔记" },
-      };
+const copy = sharedUi[locale].search;
 ---
 
 <dialog class="global-search" data-global-search>
   <div class="global-search__panel">
     <header>
       <div>
-        <p class="status">{locale === "en" ? "Global search" : "全局搜索"}</p>
+        <p class="status">{copy.eyebrow}</p>
         <h2>{copy.title}</h2>
       </div>
       <button

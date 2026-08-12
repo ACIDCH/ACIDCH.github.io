@@ -1,5 +1,6 @@
 ---
 import type { Locale } from "../config/site";
+import { formatSharedUi, sharedUi } from "../i18n/shared-ui";
 import { getPaginationPath, withQuery } from "../utils/pagination";
 import { withBase } from "../utils/paths";
 
@@ -12,13 +13,11 @@ interface Props {
 }
 
 const { currentPage, totalPages, basePath, locale, query = {} } = Astro.props;
-const label = locale === "en" ? "Pagination" : "分页";
-const previous = locale === "en" ? "Previous" : "上一页";
-const next = locale === "en" ? "Next" : "下一页";
-const status =
-  locale === "en"
-    ? `Page ${currentPage} of ${totalPages}`
-    : `第 ${currentPage} 页，共 ${totalPages} 页`;
+const copy = sharedUi[locale].pagination;
+const status = formatSharedUi(copy.status, {
+  current: currentPage,
+  total: totalPages,
+});
 const hrefFor = (page: number) =>
   withBase(withQuery(getPaginationPath(basePath, page), query));
 ---
@@ -27,7 +26,7 @@ const hrefFor = (page: number) =>
   totalPages > 1 && (
     <nav
       class="pagination"
-      aria-label={label}
+      aria-label={copy.label}
       data-pagination
       data-pagination-base={basePath}
       data-pagination-current={currentPage}
@@ -39,10 +38,10 @@ const hrefFor = (page: number) =>
       <div class="pagination__controls">
         {currentPage > 1 ? (
           <a rel="prev" href={hrefFor(currentPage - 1)} data-pagination-previous>
-            {previous}
+            {copy.previous}
           </a>
         ) : (
-          <span aria-disabled="true">{previous}</span>
+          <span aria-disabled="true">{copy.previous}</span>
         )}
         <ol>
           {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
@@ -59,10 +58,10 @@ const hrefFor = (page: number) =>
         </ol>
         {currentPage < totalPages ? (
           <a rel="next" href={hrefFor(currentPage + 1)} data-pagination-next>
-            {next}
+            {copy.next}
           </a>
         ) : (
-          <span aria-disabled="true">{next}</span>
+          <span aria-disabled="true">{copy.next}</span>
         )}
       </div>
     </nav>
