@@ -13,7 +13,7 @@ import BaseLayout from "./BaseLayout.astro";
 
 interface Props {
   entry: CollectionEntry<"notes">;
-  alternatePath?: string;
+  alternatePath?: string | null;
 }
 
 const { entry, alternatePath } = Astro.props;
@@ -21,24 +21,29 @@ const { Content, headings } = await render(entry);
 const renderedToc = headings
   .filter((heading) => heading.depth === 2 && heading.slug !== "写在前面")
   .map((heading) => ({ id: heading.slug, label: heading.text }));
-const advancedToc = entry.data.locale === "zh"
-  ? [
-      { id: "bayesian-hierarchical", label: "Bayesian 与层次模型补上了哪些信息" },
-      { id: "association-treatment-effect", label: "关联、预测和处理效应要分开" },
-      { id: "loss-bias-variance", label: "损失函数和偏差—方差决定模型在优化什么" },
-      { id: "resampling-selection", label: "特征选择也必须发生在 resampling 里面" },
-      { id: "calibration-decision-cost", label: "模型排序能力、概率校准和业务价值是三件事" },
-      { id: "model-evidence-checklist", label: "最后检查的是证据链，不是算法数量" },
-    ]
-  : [];
+const advancedToc =
+  entry.data.locale === "zh"
+    ? [
+        { id: "bayesian-hierarchical", label: "Bayesian 与层次模型补上了哪些信息" },
+        { id: "association-treatment-effect", label: "关联、预测和处理效应要分开" },
+        { id: "loss-bias-variance", label: "损失函数和偏差—方差决定模型在优化什么" },
+        { id: "resampling-selection", label: "特征选择也必须发生在 resampling 里面" },
+        {
+          id: "calibration-decision-cost",
+          label: "模型排序能力、概率校准和业务价值是三件事",
+        },
+        { id: "model-evidence-checklist", label: "最后检查的是证据链，不是算法数量" },
+      ]
+    : [];
 const referenceIndex = renderedToc.findIndex((item) => item.id === "参考与许可");
-const toc = referenceIndex >= 0
-  ? [
-      ...renderedToc.slice(0, referenceIndex),
-      ...advancedToc,
-      ...renderedToc.slice(referenceIndex),
-    ]
-  : [...renderedToc, ...advancedToc];
+const toc =
+  referenceIndex >= 0
+    ? [
+        ...renderedToc.slice(0, referenceIndex),
+        ...advancedToc,
+        ...renderedToc.slice(referenceIndex),
+      ]
+    : [...renderedToc, ...advancedToc];
 
 const notes = await getCollection("notes");
 const projects = await getCollection("projects");
@@ -90,7 +95,10 @@ const structuredData = {
       <div class="learning-note__body">
         <Content />
         <DataScienceAdvancedSections locale={entry.data.locale} />
-        <div class="learning-note__inline-block" data-learning-block="prediction-threshold-lab">
+        <div
+          class="learning-note__inline-block"
+          data-learning-block="prediction-threshold-lab"
+        >
           <PredictionThresholdLab />
         </div>
       </div>
@@ -98,7 +106,10 @@ const structuredData = {
 
     {
       relatedNotes.length > 0 && (
-        <section class="related-notes" aria-labelledby="data-science-related-notes-title">
+        <section
+          class="related-notes"
+          aria-labelledby="data-science-related-notes-title"
+        >
           <h2 id="data-science-related-notes-title">
             {entry.data.locale === "en" ? "Related Notes" : "相关笔记"}
           </h2>
@@ -108,7 +119,10 @@ const structuredData = {
     }
     {
       relatedProjects.length > 0 && (
-        <section class="related-notes" aria-labelledby="data-science-related-projects-title">
+        <section
+          class="related-notes"
+          aria-labelledby="data-science-related-projects-title"
+        >
           <h2 id="data-science-related-projects-title">
             {entry.data.locale === "en" ? "Related Projects" : "相关项目"}
           </h2>
@@ -127,7 +141,9 @@ const structuredData = {
 <script>
   function placeDataScienceBlocks() {
     const blocks = Array.from(
-      document.querySelectorAll<HTMLElement>(".data-science-note [data-learning-block]"),
+      document.querySelectorAll<HTMLElement>(
+        ".data-science-note [data-learning-block]",
+      ),
     );
     const slots = Array.from(
       document.querySelectorAll<HTMLElement>(".data-science-note [data-learning-slot]"),
@@ -148,7 +164,11 @@ const structuredData = {
     const referenceHeading = document.querySelector<HTMLElement>(
       '.data-science-note h2[id="参考与许可"]',
     );
-    if (advanced && referenceHeading && advanced.nextElementSibling !== referenceHeading) {
+    if (
+      advanced &&
+      referenceHeading &&
+      advanced.nextElementSibling !== referenceHeading
+    ) {
       referenceHeading.before(advanced);
       advanced.dataset.learningPlaced = "true";
     }

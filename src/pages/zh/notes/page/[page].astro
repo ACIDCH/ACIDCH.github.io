@@ -32,11 +32,20 @@ interface Props {
 const { notes, currentPage } = Astro.props;
 const totalPages = getTotalPages(notes.length, NOTES_PAGE_SIZE);
 const canonicalPath = getPaginationPath("/zh/notes/", currentPage);
+const counterpartCount = (await getCollection("notes")).filter(
+  (entry) =>
+    entry.data.locale === "en" && !entry.data.draft && !entry.data.isPlaceholder,
+).length;
+const alternatePath =
+  currentPage <= getTotalPages(counterpartCount, NOTES_PAGE_SIZE)
+    ? getPaginationPath("/notes/", currentPage)
+    : null;
 ---
 
 <BaseLayout
   title={`学习笔记 — 第 ${currentPage} 页`}
   locale="zh"
+  alternatePath={alternatePath}
   canonicalPath={canonicalPath}
   pagination={{
     previous: getPaginationPath("/zh/notes/", currentPage - 1),

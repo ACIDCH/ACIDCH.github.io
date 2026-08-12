@@ -1,101 +1,12 @@
 ---
-import { getCollection } from "astro:content";
-import ContextBack from "../../../../components/ContextBack.astro";
-import NoteList from "../../../../components/NoteList.astro";
-import { getLearningSeries, learningSeries } from "../../../../data/learning-series";
-import BaseLayout from "../../../../layouts/BaseLayout.astro";
-import { getLocalizedPath } from "../../../../utils/paths";
+import LearningSeriesPage from "../../../../components/learning/LearningSeriesPage.astro";
+import { learningSeries } from "../../../../data/learning-series";
 
 export function getStaticPaths() {
   return learningSeries.map((series) => ({ params: { series: series.slug } }));
 }
 
-const series = getLearningSeries(Astro.params.series ?? "");
-if (!series) return Astro.redirect("/zh/notes/");
-const notes = (await getCollection("notes"))
-  .filter(
-    (entry) =>
-      entry.data.locale === "zh" &&
-      !entry.data.draft &&
-      entry.data.seriesSlug === series.slug,
-  )
-  .sort((left, right) => (left.data.order ?? 999) - (right.data.order ?? 999));
-const isSupplyChain = series.slug === "decision-models";
-const displayTitle = isSupplyChain ? "供应链与优化" : series.title;
-const displayDescription = isSupplyChain
-  ? "围绕供应链分析建立一条连续的优化学习路线：从模型结构、LP/MILP 与敏感性分析，进入 Sets、Indices、PuLP、多维模型、运输分配与多期生产库存。"
-  : series.description;
+const seriesSlug = Astro.params.series ?? "";
 ---
 
-<BaseLayout title={displayTitle} description={displayDescription} locale="zh">
-  <article class="learning-series-page" data-note-folder={series.slug}>
-    <ContextBack
-      locale="zh"
-      fallbackPath="/notes/"
-      label={{ en: "Back to Learning Notes", zh: "返回学习笔记" }}
-    />
-    <header class="learning-series-page__hero">
-      <p class="status">学习笔记文件夹</p>
-      <h1>{displayTitle}</h1>
-      <p>{displayDescription}</p>
-      <div>{series.tools.map((tool) => <span class="tag">{tool}</span>)}</div>
-      <p class="folder-summary">{notes.length} 篇已发布笔记 · {series.modules.length} 个核心模块</p>
-    </header>
-    <section aria-labelledby="series-modules-title">
-      <h2 id="series-modules-title">文件夹内容 · 学习路线</h2>
-      <ol class="learning-series-page__modules folder-module-list">
-        {
-          series.modules.map((module, index) => {
-            const note = notes.find((entry) => entry.data.order === index + 1);
-            return (
-              <li data-folder-module={module.code}>
-                <p>{module.code}</p>
-                <h3>
-                  {note ? (
-                    <a href={getLocalizedPath(`/notes/${note.data.slug}/`, "zh")}>{module.title}</a>
-                  ) : (
-                    module.title
-                  )}
-                </h3>
-                <span>{module.summary}</span>
-                <small>{note ? "已发布 · 点击进入完整笔记" : "待发布"}</small>
-              </li>
-            );
-          })
-        }
-      </ol>
-    </section>
-    <section aria-labelledby="series-notes-title">
-      <h2 id="series-notes-title">文件夹内笔记</h2>
-      <NoteList entries={notes} locale="zh" />
-    </section>
-    <ContextBack
-      locale="zh"
-      fallbackPath="/notes/"
-      label={{ en: "Back to Learning Notes", zh: "返回学习笔记" }}
-    />
-  </article>
-</BaseLayout>
-
-<style>
-  .folder-summary {
-    margin-top: var(--space-4);
-    color: var(--colour-text-muted);
-    font-size: var(--font-size-sm);
-  }
-
-  .folder-module-list li {
-    min-width: 0;
-  }
-
-  .folder-module-list h3 a {
-    text-decoration-thickness: 0.08em;
-    text-underline-offset: 0.18em;
-  }
-
-  .folder-module-list small {
-    display: block;
-    margin-top: var(--space-2);
-    color: var(--colour-text-muted);
-  }
-</style>
+<LearningSeriesPage locale="zh" seriesSlug={seriesSlug} />

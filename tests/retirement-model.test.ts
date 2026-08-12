@@ -48,7 +48,7 @@ describe("retirement Monte Carlo project", () => {
     expect(entry).toContain("Monte Carlo");
     expect(entry).toContain("蒙特卡洛");
     expect(entry).toContain("敏感性分析");
-    expect(route).toContain('getLocalizedPath("/projects/", "en")');
+    expect(route).toContain(": null;");
     expect(page).toContain("data-retirement-lab");
     expect(page).toContain("随机种子");
     expect(page).toContain("模型结果");

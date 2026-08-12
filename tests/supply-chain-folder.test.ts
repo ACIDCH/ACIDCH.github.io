@@ -6,7 +6,7 @@ const read = (path: string) => readFileSync(path, "utf8");
 const notesIndex = read("src/pages/zh/notes/index.astro");
 const notesExplorer = read("src/components/NotesExplorer.astro");
 const seriesMap = read("src/components/learning/LearningSeriesMap.astro");
-const seriesPage = read("src/pages/zh/notes/series/[series].astro");
+const seriesPage = read("src/components/learning/LearningSeriesPage.astro");
 const noteList = read("src/components/NoteList.astro");
 const productionVerifier = read("scripts/verify-decision-models-production.mjs");
 
@@ -20,27 +20,28 @@ describe("Supply chain optimisation Learning Notes folder", () => {
     expect(seriesMap).toContain("按主题进入知识库");
     expect(seriesMap).toContain('left.slug === "decision-models"');
     expect(seriesMap).toContain('slug === "decision-models" ? "供应链与优化"');
-    expect(seriesMap).toContain('data-learning-folder={series.slug}');
+    expect(seriesMap).toContain("data-learning-folder={series.slug}");
     expect(seriesMap).toContain("进入知识库 →");
     expect(seriesMap).toContain("{noteCount} 篇");
   });
 
   it("turns the decision-model series page into a ten-note folder", () => {
-    expect(seriesPage).toContain('const isSupplyChain = series.slug === "decision-models"');
-    expect(seriesPage).toContain('const displayTitle = isSupplyChain ? "供应链与优化"');
+    expect(seriesPage).toContain("getLocalizedLearningSeries");
     expect(seriesPage).toContain("学习笔记文件夹");
     expect(seriesPage).toContain("文件夹内容 · 学习路线");
     expect(seriesPage).toContain("文件夹内笔记");
     expect(seriesPage).toContain("已发布 · 点击进入完整笔记");
     expect(seriesPage).toContain("entry.data.order === index + 1");
-    expect(seriesPage).toContain('data-note-folder={series.slug}');
+    expect(seriesPage).toContain("data-note-folder={series.slug}");
   });
 
   it("labels every decision-model note card with the public folder name", () => {
     expect(noteList).toContain('entry.data.seriesSlug === "decision-models"');
     expect(noteList).toContain('? "供应链与优化"');
     expect(noteList).toContain("displaySeries");
-    expect(noteList).toContain('data-series={(displaySeries ?? "").toLocaleLowerCase()}');
+    expect(noteList).toContain(
+      'data-series={(displaySeries ?? "").toLocaleLowerCase()}',
+    );
   });
 
   it("requires the compact folder entry and structural Learning Notes order in production verification", () => {

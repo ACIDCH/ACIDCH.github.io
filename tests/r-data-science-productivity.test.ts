@@ -3,9 +3,15 @@ import { describe, expect, it } from "vitest";
 
 const note = readFileSync("src/content/notes/r-data-analysis-prediction.zh.md", "utf8");
 const layout = readFileSync("src/layouts/DataScienceNoteLayout.astro", "utf8");
-const lab = readFileSync("src/components/learning/PredictionThresholdLab.astro", "utf8");
-const advanced = readFileSync("src/components/learning/DataScienceAdvancedSections.astro", "utf8");
-const noteRoute = readFileSync("src/pages/zh/notes/[slug].astro", "utf8");
+const lab = readFileSync(
+  "src/components/learning/PredictionThresholdLab.astro",
+  "utf8",
+);
+const advanced = readFileSync(
+  "src/components/learning/DataScienceAdvancedSections.astro",
+  "utf8",
+);
+const noteRoute = readFileSync("src/components/NoteRenderer.astro", "utf8");
 const productivity = readFileSync("src/components/ProductivityPage.astro", "utf8");
 const productivityZh = readFileSync("src/pages/zh/productivity/index.astro", "utf8");
 const productivityEn = readFileSync("src/pages/productivity/index.astro", "utf8");
@@ -71,7 +77,7 @@ describe("R data science handbook and productivity section", () => {
 
   it("makes binary event coding explicit in base R and caret examples", () => {
     expect(note).toContain('churn_flag = if_else(churned == "Churn", 1, 0)');
-    expect(note).toContain("predict(logit_fit, type = \"response\")");
+    expect(note).toContain('predict(logit_fit, type = "response")');
     expect(note).toContain('factor(churned, levels = c("Churn", "Stay"))');
     expect(note).toContain("第一个 level 会被当作 failure");
     expect(note).toContain("twoClassSummary");
@@ -113,12 +119,14 @@ describe("R data science handbook and productivity section", () => {
     expect(lab).toContain("data-threshold-specificity");
     expect(lab).toContain("data-threshold-precision");
     expect(lab).toContain("data-threshold-f1");
-    expect(noteRoute).toContain('entry.data.seriesSlug === "data-science-r"');
+    expect(noteRoute).toContain('"data-science-r": DataScienceNoteLayout');
     expect(noteRoute).toContain("DataScienceNoteLayout");
   });
 
   it("adds Productivity as a bilingual primary navigation destination", () => {
-    expect(navigation).toContain('{ path: "/productivity/", label: { en: "Productivity", zh: "生产力工具" } }');
+    expect(navigation).toContain(
+      '{ path: "/productivity/", label: { en: "Productivity", zh: "生产力工具" } }',
+    );
     expect(header).toContain('"/productivity/": "tool"');
     expect(productivityZh).toContain('<ProductivityPage locale="zh" />');
     expect(productivityEn).toContain('<ProductivityPage locale="en" />');

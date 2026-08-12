@@ -26,25 +26,25 @@ import BaseLayout from "./BaseLayout.astro";
 
 interface Props {
   entry: CollectionEntry<"notes">;
-  alternatePath?: string;
+  alternatePath?: string | null;
 }
 
 const { entry, alternatePath } = Astro.props;
 const { Content, headings } = await render(entry);
 const isStatisticsEditorial = entry.data.seriesSlug === "r-statistics";
-const isStatisticsHandbook = entry.data.slug === "descriptive-statistics";
-const isSamplingEstimation = entry.data.slug === "stat-sampling-estimation";
-const isIntervalEstimation = entry.data.slug === "stat-interval-estimation";
+const isStatisticsHandbook = entry.data.translationKey === "descriptive-statistics";
+const isSamplingEstimation = entry.data.translationKey === "stat-sampling-estimation";
+const isIntervalEstimation = entry.data.translationKey === "stat-interval-estimation";
 const isSqlEditorial = entry.data.seriesSlug === "sql";
-const isSqlOverview = entry.data.slug === "sql-relational-data";
-const isSqlPrimaryKey = entry.data.slug === "sql-primary-key";
-const isSqlForeignKey = entry.data.slug === "sql-foreign-key";
-const isSqlRelationships = entry.data.slug === "sql-relationships";
-const isSqlSelect = entry.data.slug === "sql-select";
-const isSqlWhere = entry.data.slug === "sql-where";
-const isSqlProjection = entry.data.slug === "sql-projection";
-const isSqlOrderBy = entry.data.slug === "sql-order-by";
-const isSqlPagination = entry.data.slug === "sql-pagination";
+const isSqlOverview = entry.data.translationKey === "sql-relational-data";
+const isSqlPrimaryKey = entry.data.translationKey === "sql-primary-key";
+const isSqlForeignKey = entry.data.translationKey === "sql-foreign-key";
+const isSqlRelationships = entry.data.translationKey === "sql-relationships";
+const isSqlSelect = entry.data.translationKey === "sql-select";
+const isSqlWhere = entry.data.translationKey === "sql-where";
+const isSqlProjection = entry.data.translationKey === "sql-projection";
+const isSqlOrderBy = entry.data.translationKey === "sql-order-by";
+const isSqlPagination = entry.data.translationKey === "sql-pagination";
 const isHandbook = isStatisticsEditorial || isSqlEditorial;
 
 const statisticsToc = [
@@ -190,146 +190,160 @@ const noteStructuredData = {
             <LearningNoteToc items={learningToc} />
             <div class="learning-note__body">
               <Content />
-              {
-                isStatisticsHandbook && (
-                  <>
-                    <div class="learning-note__inline-block" data-learning-block="statistics-lab">
-                      <DescriptiveStatisticsLab />
-                    </div>
-                    <div
-                      class="learning-note__inline-block"
-                      data-learning-block="normal-distribution-lab"
-                      data-learning-after-heading="连续概率分布"
-                    >
-                      <NormalDistributionLab />
-                    </div>
-                    <div
-                      class="learning-note__inline-block"
-                      data-learning-block="correlation-lab"
-                      data-learning-after-heading="相关性可视化展示"
-                    >
-                      <CorrelationLab />
-                    </div>
-                    <div
-                      class="learning-note__inline-block"
-                      data-learning-block="regression-lab"
-                      data-learning-after-heading="回归分析"
-                    >
-                      <RegressionLab />
-                    </div>
-                  </>
-                )
-              }
-              {
-                (isSamplingEstimation || isIntervalEstimation) && (
+              {isStatisticsHandbook && (
+                <>
                   <div
                     class="learning-note__inline-block"
-                    data-learning-block="sampling-precision-lab"
+                    data-learning-block="statistics-lab"
                   >
-                    <SamplingPrecisionLab />
+                    <DescriptiveStatisticsLab />
                   </div>
-                )
-              }
-              {
-                isSqlOverview && (
-                  <>
-                    <div
-                      class="learning-note__inline-block"
-                      data-learning-block="relational-model-explorer"
-                    >
-                      <RelationalModelExplorer />
-                    </div>
-                    <div
-                      class="learning-note__inline-block"
-                      data-learning-block="sql-dataset-explorer"
-                    >
-                      <SqlDatasetExplorer />
-                    </div>
-                  </>
-                )
-              }
-              {
-                isSqlPrimaryKey && (
-                  <>
-                    <div class="learning-note__inline-block" data-learning-block="primary-key-lab">
-                      <PrimaryKeyLab />
-                    </div>
-                    <div class="learning-note__inline-block" data-learning-block="sql-playground">
-                      <SqlPlayground />
-                    </div>
-                  </>
-                )
-              }
-              {
-                isSqlForeignKey && (
-                  <>
-                    <div class="learning-note__inline-block" data-learning-block="foreign-key-lab">
-                      <ForeignKeyLab />
-                    </div>
-                    <div class="learning-note__inline-block" data-learning-block="sql-playground">
-                      <SqlPlayground />
-                    </div>
-                  </>
-                )
-              }
-              {
-                isSqlRelationships && (
                   <div
                     class="learning-note__inline-block"
-                    data-learning-block="relationship-cardinality-lab"
+                    data-learning-block="normal-distribution-lab"
+                    data-learning-after-heading="连续概率分布"
                   >
-                    <RelationshipCardinalityLab />
+                    <NormalDistributionLab />
                   </div>
-                )
-              }
-              {
-                isSqlSelect && (
-                  <div class="learning-note__inline-block" data-learning-block="sql-playground">
-                    <SqlPlayground defaultPreset="customers" />
+                  <div
+                    class="learning-note__inline-block"
+                    data-learning-block="correlation-lab"
+                    data-learning-after-heading="相关性可视化展示"
+                  >
+                    <CorrelationLab />
                   </div>
-                )
-              }
-              {
-                isSqlWhere && (
-                  <>
-                    <div class="learning-note__inline-block" data-learning-block="where-filter-lab">
-                      <WhereFilterLab />
-                    </div>
-                    <div class="learning-note__inline-block" data-learning-block="sql-playground">
-                      <SqlPlayground defaultPreset="where-gte" focus="where" />
-                    </div>
-                  </>
-                )
-              }
-              {
-                isSqlProjection && (
-                  <>
-                    <div
-                      class="learning-note__inline-block"
-                      data-learning-block="projection-columns-lab"
-                    >
-                      <ProjectionColumnsLab />
-                    </div>
-                    <div class="learning-note__inline-block" data-learning-block="sql-playground">
-                      <SqlPlayground defaultPreset="projection-columns" focus="projection" />
-                    </div>
-                  </>
-                )
-              }
-              {
-                isSqlOrderBy && (
-                  <div class="learning-note__inline-block" data-learning-block="order-by-lab">
-                    <OrderByLab />
+                  <div
+                    class="learning-note__inline-block"
+                    data-learning-block="regression-lab"
+                    data-learning-after-heading="回归分析"
+                  >
+                    <RegressionLab />
                   </div>
-                )
-              }
-              {
-                isSqlPagination && (
-                  <div class="learning-note__inline-block" data-learning-block="pagination-lab">
-                    <PaginationLab />
+                </>
+              )}
+              {(isSamplingEstimation || isIntervalEstimation) && (
+                <div
+                  class="learning-note__inline-block"
+                  data-learning-block="sampling-precision-lab"
+                >
+                  <SamplingPrecisionLab />
+                </div>
+              )}
+              {isSqlOverview && (
+                <>
+                  <div
+                    class="learning-note__inline-block"
+                    data-learning-block="relational-model-explorer"
+                  >
+                    <RelationalModelExplorer />
                   </div>
-                )
-              }
+                  <div
+                    class="learning-note__inline-block"
+                    data-learning-block="sql-dataset-explorer"
+                  >
+                    <SqlDatasetExplorer />
+                  </div>
+                </>
+              )}
+              {isSqlPrimaryKey && (
+                <>
+                  <div
+                    class="learning-note__inline-block"
+                    data-learning-block="primary-key-lab"
+                  >
+                    <PrimaryKeyLab />
+                  </div>
+                  <div
+                    class="learning-note__inline-block"
+                    data-learning-block="sql-playground"
+                  >
+                    <SqlPlayground />
+                  </div>
+                </>
+              )}
+              {isSqlForeignKey && (
+                <>
+                  <div
+                    class="learning-note__inline-block"
+                    data-learning-block="foreign-key-lab"
+                  >
+                    <ForeignKeyLab />
+                  </div>
+                  <div
+                    class="learning-note__inline-block"
+                    data-learning-block="sql-playground"
+                  >
+                    <SqlPlayground />
+                  </div>
+                </>
+              )}
+              {isSqlRelationships && (
+                <div
+                  class="learning-note__inline-block"
+                  data-learning-block="relationship-cardinality-lab"
+                >
+                  <RelationshipCardinalityLab />
+                </div>
+              )}
+              {isSqlSelect && (
+                <div
+                  class="learning-note__inline-block"
+                  data-learning-block="sql-playground"
+                >
+                  <SqlPlayground defaultPreset="customers" />
+                </div>
+              )}
+              {isSqlWhere && (
+                <>
+                  <div
+                    class="learning-note__inline-block"
+                    data-learning-block="where-filter-lab"
+                  >
+                    <WhereFilterLab />
+                  </div>
+                  <div
+                    class="learning-note__inline-block"
+                    data-learning-block="sql-playground"
+                  >
+                    <SqlPlayground defaultPreset="where-gte" focus="where" />
+                  </div>
+                </>
+              )}
+              {isSqlProjection && (
+                <>
+                  <div
+                    class="learning-note__inline-block"
+                    data-learning-block="projection-columns-lab"
+                  >
+                    <ProjectionColumnsLab />
+                  </div>
+                  <div
+                    class="learning-note__inline-block"
+                    data-learning-block="sql-playground"
+                  >
+                    <SqlPlayground
+                      defaultPreset="projection-columns"
+                      focus="projection"
+                    />
+                  </div>
+                </>
+              )}
+              {isSqlOrderBy && (
+                <div
+                  class="learning-note__inline-block"
+                  data-learning-block="order-by-lab"
+                >
+                  <OrderByLab />
+                </div>
+              )}
+              {isSqlPagination && (
+                <div
+                  class="learning-note__inline-block"
+                  data-learning-block="pagination-lab"
+                >
+                  <PaginationLab />
+                </div>
+              )}
             </div>
           </div>
         </>
@@ -416,7 +430,9 @@ const noteStructuredData = {
     const blocks = Array.from(
       document.querySelectorAll<HTMLElement>("[data-learning-block]"),
     );
-    const slots = Array.from(document.querySelectorAll<HTMLElement>("[data-learning-slot]"));
+    const slots = Array.from(
+      document.querySelectorAll<HTMLElement>("[data-learning-slot]"),
+    );
 
     blocks.forEach((block) => {
       const name = block.dataset.learningBlock;

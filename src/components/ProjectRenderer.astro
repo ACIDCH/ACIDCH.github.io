@@ -1,0 +1,29 @@
+---
+import type { CollectionEntry } from "astro:content";
+import ProjectLayout from "../layouts/ProjectLayout.astro";
+import PowerBIDashboardProject from "./PowerBIDashboardProject.astro";
+import PythonAnalysisProject from "./PythonAnalysisProject.astro";
+import RMachineLearningProject from "./RMachineLearningProject.astro";
+import RetirementMonteCarloProject from "./RetirementMonteCarloProject.astro";
+import SqlDatabaseProject from "./SqlDatabaseProject.astro";
+
+interface Props {
+  entry: CollectionEntry<"projects">;
+  alternatePath: string | null;
+}
+
+const { entry, alternatePath } = Astro.props;
+const rendererByTranslationKey = {
+  "retirement-monte-carlo": RetirementMonteCarloProject,
+  "european-property-market-dashboard": PowerBIDashboardProject,
+  "grammy-spotify-analysis": PythonAnalysisProject,
+  "sales-profitability-warehouse": SqlDatabaseProject,
+  "customer-churn-machine-learning": RMachineLearningProject,
+} as const;
+const Renderer =
+  rendererByTranslationKey[
+    entry.data.translationKey as keyof typeof rendererByTranslationKey
+  ] ?? ProjectLayout;
+---
+
+<Renderer entry={entry} alternatePath={alternatePath} />

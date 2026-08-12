@@ -8,15 +8,16 @@ describe("Python Grammy and Spotify analysis project", () => {
   );
   const page = readFileSync("src/components/PythonAnalysisProject.astro", "utf8");
   const code = readFileSync("src/components/CodeShowcase.astro", "utf8");
-  const route = readFileSync("src/pages/zh/projects/[slug].astro", "utf8");
+  const route = readFileSync("src/components/ProjectRenderer.astro", "utf8");
+  const dynamicRoute = readFileSync("src/pages/zh/projects/[slug].astro", "utf8");
 
-  it("publishes an indexable Chinese-only project and preserves the English fallback", () => {
+  it("publishes an indexable Chinese-only project without a false SEO counterpart", () => {
     expect(entry).toContain("status: completed");
     expect(entry).toContain("Python");
     expect(entry).toContain("模糊匹配");
     expect(entry).not.toMatch(/noindex:\s*true|draft:\s*true/);
     expect(route).toContain("grammy-spotify-analysis");
-    expect(route).toContain('getLocalizedPath("/projects/", "en")');
+    expect(dynamicRoute).toContain(": null;");
   });
 
   it("uses six verified code excerpts with copy and keyboard access", () => {

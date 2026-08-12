@@ -1,7 +1,7 @@
 ---
 import { getCollection, type CollectionEntry } from "astro:content";
-import { findTranslation } from "../../i18n/content";
-import ProjectLayout from "../../layouts/ProjectLayout.astro";
+import ProjectRenderer from "../../components/ProjectRenderer.astro";
+import { findTranslation, isPublicTranslation } from "../../i18n/content";
 import { getLocalizedPath } from "../../utils/paths";
 
 export async function getStaticPaths() {
@@ -18,9 +18,10 @@ interface Props {
 
 const { entry, entries } = Astro.props;
 const translation = findTranslation(entries, entry.data.translationKey, "zh");
-const alternatePath = translation
-  ? getLocalizedPath(`/projects/${translation.data.slug}/`, "zh")
-  : getLocalizedPath("/", "zh");
+const alternatePath =
+  translation && isPublicTranslation(translation)
+    ? getLocalizedPath(`/projects/${translation.data.slug}/`, "zh")
+    : null;
 ---
 
-<ProjectLayout entry={entry} alternatePath={alternatePath} />
+<ProjectRenderer entry={entry} alternatePath={alternatePath} />

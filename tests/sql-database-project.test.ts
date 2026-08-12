@@ -8,20 +8,21 @@ describe("SQL sales profitability warehouse project", () => {
   );
   const page = readFileSync("src/components/SqlDatabaseProject.astro", "utf8");
   const showcase = readFileSync("src/components/SqlShowcase.astro", "utf8");
-  const route = readFileSync("src/pages/zh/projects/[slug].astro", "utf8");
+  const route = readFileSync("src/components/ProjectRenderer.astro", "utf8");
+  const dynamicRoute = readFileSync("src/pages/zh/projects/[slug].astro", "utf8");
   const paginatedRoute = readFileSync(
     "src/pages/zh/projects/page/[page].astro",
     "utf8",
   );
 
-  it("publishes an indexable Chinese-only project with an English fallback", () => {
+  it("publishes an indexable Chinese-only project without false alternate metadata", () => {
     expect(entry).toContain("status: completed");
     expect(entry).toContain("T-SQL");
     expect(entry).toContain("星型模型");
     expect(entry).not.toMatch(/noindex:\s*true|draft:\s*true/);
     expect(route).toContain("sales-profitability-warehouse");
-    expect(route).toContain('getLocalizedPath("/projects/", "en")');
-    expect(paginatedRoute).toContain('alternatePath="/projects/"');
+    expect(dynamicRoute).toContain(": null;");
+    expect(paginatedRoute).toContain("alternatePath={alternatePath}");
   });
 
   it("documents one fact table, five dimensions, and five relationships", () => {

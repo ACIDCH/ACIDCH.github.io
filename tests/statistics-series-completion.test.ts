@@ -6,16 +6,25 @@ const files = [
   ["STAT 03", "src/content/notes/stat-sampling-estimation.zh.md", "抽样与估计", 3],
   ["STAT 04", "src/content/notes/stat-interval-estimation.zh.md", "区间估计", 4],
   ["STAT 05", "src/content/notes/stat-hypothesis-testing.zh.md", "假设检验", 5],
-  ["STAT 06", "src/content/notes/stat-categorical-data-analysis.zh.md", "分类数据分析", 6],
+  [
+    "STAT 06",
+    "src/content/notes/stat-categorical-data-analysis.zh.md",
+    "分类数据分析",
+    6,
+  ],
 ] as const;
 
 const notes = new Map(files.map(([code, path]) => [code, readFileSync(path, "utf8")]));
 const layout = readFileSync("src/layouts/NoteLayout.astro", "utf8");
 const lab = readFileSync("src/components/learning/SamplingPrecisionLab.astro", "utf8");
 const series = readFileSync("src/data/learning-series.ts", "utf8");
-const seriesPage = readFileSync("src/pages/zh/notes/series/[series].astro", "utf8");
+const seriesPage = readFileSync(
+  "src/components/learning/LearningSeriesPage.astro",
+  "utf8",
+);
 
-const publicForbidden = /BUSINFO|Assignment|Lab\b|Lecture|Week\s*\d|Quiz|Solution|Submission|399162766|Xintao Liu|LIU XINTAO|刘鑫涛/u;
+const publicForbidden =
+  /BUSINFO|Assignment|Lab\b|Lecture|Week\s*\d|Quiz|Solution|Submission|399162766|Xintao Liu|LIU XINTAO|刘鑫涛/u;
 const firstPerson = /我|我们|本人|笔者/u;
 
 describe("completed R statistics learning series", () => {
@@ -45,7 +54,7 @@ describe("completed R statistics learning series", () => {
       expect(series).toContain(`code: "${code}"`);
       expect(series).toContain(`title: "${title}"`);
     });
-    expect(seriesPage).toContain('entry.data.seriesSlug === series.slug');
+    expect(seriesPage).toContain("entry.data.seriesSlug === series.slug");
     expect(seriesPage).toContain("entry.data.order === index + 1");
   });
 
@@ -136,8 +145,12 @@ describe("completed R statistics learning series", () => {
   });
 
   it("uses the long-form editorial layout for every r-statistics note", () => {
-    expect(layout).toContain('const isStatisticsEditorial = entry.data.seriesSlug === "r-statistics"');
-    expect(layout).toContain("const isHandbook = isStatisticsEditorial || isSqlEditorial");
+    expect(layout).toContain(
+      'const isStatisticsEditorial = entry.data.seriesSlug === "r-statistics"',
+    );
+    expect(layout).toContain(
+      "const isHandbook = isStatisticsEditorial || isSqlEditorial",
+    );
     expect(layout).toContain("const generatedToc = headings");
     expect(layout).toContain("isStatisticsHandbook ? statisticsToc : generatedToc");
     expect(layout).toContain("SamplingPrecisionLab");
@@ -150,7 +163,7 @@ describe("completed R statistics learning series", () => {
       "data-sampling-n",
       "data-sampling-confidence",
       "data-sampling-reset",
-      "aria-live=\"polite\"",
+      'aria-live="polite"',
       "Standard error",
       "Margin of error",
       "1/√n",

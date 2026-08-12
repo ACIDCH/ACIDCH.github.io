@@ -558,9 +558,15 @@ function auditBuiltAlternates(entries, seriesSlugs, deepDiveSlugs) {
           ? isPublishedNote(candidate) && !candidate.isPlaceholder
           : isPublishedProject(candidate)
         : false;
-      semanticCounterpart = Boolean(valid);
-      if (!valid) reason = "No valid non-placeholder published content counterpart";
-      else if (alternate !== publicRouteFor(candidate)) {
+      if (!valid) {
+        semanticCounterpart = !alternate;
+        if (alternate) {
+          reason = "Alternate emitted without a valid non-placeholder counterpart";
+        }
+      } else if (!alternate) {
+        semanticCounterpart = false;
+        reason = "Valid content counterpart exists but no alternate is emitted";
+      } else if (alternate !== publicRouteFor(candidate)) {
         semanticCounterpart = false;
         reason = "Alternate does not point to the translationKey counterpart";
       }
@@ -572,9 +578,15 @@ function auditBuiltAlternates(entries, seriesSlugs, deepDiveSlugs) {
           item.key === descriptor.key &&
           item.locale !== descriptor.locale,
       );
-      semanticCounterpart = Boolean(counterpart && builtRoutes.has(counterpart[0]));
-      if (!semanticCounterpart) reason = `Missing ${descriptor.type} counterpart`;
-      else if (alternate !== counterpart[0]) {
+      const counterpartExists = Boolean(counterpart && builtRoutes.has(counterpart[0]));
+      if (!counterpartExists) {
+        semanticCounterpart = !alternate;
+        if (alternate)
+          reason = `Alternate emitted without a ${descriptor.type} counterpart`;
+      } else if (!alternate) {
+        semanticCounterpart = false;
+        reason = `${descriptor.type} counterpart exists but no alternate is emitted`;
+      } else if (alternate !== counterpart[0]) {
         semanticCounterpart = false;
         reason = `Alternate does not point to the ${descriptor.type} counterpart`;
       }
@@ -734,7 +746,7 @@ ${report.discrepancies.map((item) => `- ${item}`).join("\n")}
 
 - English-only source route patterns: ${report.routes.englishOnly.length ? report.routes.englishOnly.map((item) => `\`${item}\``).join(", ") : "none"}
 - Chinese-only source route patterns: ${report.routes.chineseOnly.length ? report.routes.chineseOnly.map((item) => `\`${item}\``).join(", ") : "none"}
-- Missing English series instances: ${report.series.slugs.map((slug) => `\`/notes/series/${slug}/\``).join(", ")}
+- Missing English series instances: ${report.series.missingEnglishRoutes ? report.series.slugs.map((slug) => `\`/notes/series/${slug}/\``).join(", ") : "none"}
 
 ## Layout parity defects
 
@@ -781,6 +793,11 @@ const projectAudit = analyseCollection("projects", projects);
 const routes = auditRoutes();
 const seriesSlugs = declaredSeriesSlugs();
 const deepDiveSlugs = declaredDeepDiveSlugs();
+const missingEnglishSeriesRoutes = routes.seriesRouteDifferences.includes(
+  "/notes/series/[series]/",
+)
+  ? seriesSlugs.length
+  : 0;
 const layouts = layoutAudit();
 const components = componentInventory(routes);
 const anchors = auditAnchors(entries);
@@ -809,14 +826,21 @@ const report = {
     ).includes("alternatePath ?? getLocalizedPath"),
     falseAlternates,
   },
-  series: { slugs: seriesSlugs, missingEnglishRoutes: seriesSlugs.length },
+  series: { slugs: seriesSlugs, missingEnglishRoutes: missingEnglishSeriesRoutes },
   deepDives: { slugs: deepDiveSlugs, missingEnglishRoutes: deepDiveSlugs.length },
   discrepancies: [
-    "The repository has one published Chinese Learning Note and no published English Learning Notes; the expected large historical Note corpus is not present on current main.",
-    "Specialised Note handling is a single slug-gated sample inside shared NoteLayout, not multiple locale-specific specialised layout families.",
-    "Special Project renderers exist only in the Chinese dynamic Project route.",
-    "Learning Series metadata is Chinese-only and only the Chinese series route exists.",
-    "Global search deliberately combines both locales and currently includes placeholder Project entries.",
+    `The repository has ${noteAudit.counts.publishedZh} published Chinese Learning Notes and ${noteAudit.counts.publishedEn} published English Learning Notes.`,
+    ...(layouts.defectCount
+      ? [
+          "English and Chinese dynamic content routes do not yet share every renderer decision.",
+        ]
+      : []),
+    ...(missingEnglishSeriesRoutes
+      ? ["Learning Series route instances are available only in Chinese."]
+      : []),
+    ...(search.issues.length
+      ? ["Global search does not yet enforce complete locale and publication parity."]
+      : []),
   ],
   acceptance: {
     publishedZhNotes: noteAudit.counts.publishedZh,
@@ -827,7 +851,7 @@ const report = {
     publishedEnProjects: projectAudit.counts.publishedEn,
     missingEnProjects: projectAudit.counts.missingEn,
     englishPlaceholderProjects: projectAudit.counts.placeholderEn,
-    missingEnSeriesRoutes: seriesSlugs.length,
+    missingEnSeriesRoutes: missingEnglishSeriesRoutes,
     layoutParityDefects: layouts.defectCount,
     componentsRequiringLocaleExtraction: components.requiringLocaleExtraction,
     falseAlternateCases: falseAlternates.falseCaseCount,

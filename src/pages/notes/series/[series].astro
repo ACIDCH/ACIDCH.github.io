@@ -1,0 +1,12 @@
+---
+import LearningSeriesPage from "../../../components/learning/LearningSeriesPage.astro";
+import { learningSeries } from "../../../data/learning-series";
+
+export function getStaticPaths() {
+  return learningSeries.map((series) => ({ params: { series: series.slug } }));
+}
+
+const seriesSlug = Astro.params.series ?? "";
+---
+
+<LearningSeriesPage locale="en" seriesSlug={seriesSlug} />

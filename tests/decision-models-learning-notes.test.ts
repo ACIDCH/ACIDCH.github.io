@@ -22,7 +22,7 @@ const noteFiles = [
   "multi-period-production-inventory.zh.md",
 ];
 const notes = noteFiles.map((file) => read(`src/content/notes/${file}`));
-const route = read("src/pages/zh/notes/[slug].astro");
+const route = read("src/components/NoteRenderer.astro");
 const layout = read("src/layouts/DecisionModelNoteLayout.astro");
 const dispatcher = read("src/components/learning/DecisionModelLearningBlocks.astro");
 
@@ -57,7 +57,10 @@ describe("Supply chain and decision model Learning Notes", () => {
         .soft(note.length, `${file} should remain a substantial long-form note`)
         .toBeGreaterThan(4000);
       expect
-        .soft((note.match(/^## /gmu) || []).length, `${file} should retain a deep section hierarchy`)
+        .soft(
+          (note.match(/^## /gmu) || []).length,
+          `${file} should retain a deep section hierarchy`,
+        )
         .toBeGreaterThanOrEqual(9);
     });
   });
@@ -71,7 +74,9 @@ describe("Supply chain and decision model Learning Notes", () => {
   });
 
   it("locks the canonical constrained product-mix optimum", () => {
-    const best = [...productMixVertices].sort((a, b) => b.contribution - a.contribution)[0];
+    const best = [...productMixVertices].sort(
+      (a, b) => b.contribution - a.contribution,
+    )[0];
     expect(best.core).toBeCloseTo(200 / 7, 8);
     expect(best.premium).toBeCloseTo(270 / 7, 8);
     expect(best.contribution).toBeCloseTo(3437.142857, 5);
@@ -130,7 +135,7 @@ describe("Supply chain and decision model Learning Notes", () => {
   });
 
   it("routes decision-model notes through an isolated editorial layout", () => {
-    expect(route).toContain('entry.data.seriesSlug === "decision-models"');
+    expect(route).toContain('"decision-models": DecisionModelNoteLayout');
     expect(route).toContain("DecisionModelNoteLayout");
     expect(layout).toContain("LearningNoteHero");
     expect(layout).toContain("LearningNoteToc");
@@ -167,7 +172,9 @@ describe("Supply chain and decision model Learning Notes", () => {
       read("src/components/learning/SupplyChainFlowLab.astro"),
     ];
     publicSources.forEach((source) => {
-      expect(source).not.toMatch(/BUSINFO|Assignment|Submission|课程作业|课程项目|UPI|399162766/iu);
+      expect(source).not.toMatch(
+        /BUSINFO|Assignment|Submission|课程作业|课程项目|UPI|399162766/iu,
+      );
       expect(source).not.toMatch(/Xintao Liu|LIU XINTAO|刘鑫涛/u);
     });
     notes.forEach((note) => {

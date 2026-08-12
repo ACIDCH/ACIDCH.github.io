@@ -63,7 +63,7 @@ describe("R machine learning flagship project", () => {
     "utf8",
   );
   const deepening = readFileSync("src/components/ChurnDeepeningSections.astro", "utf8");
-  const route = readFileSync("src/pages/zh/projects/[slug].astro", "utf8");
+  const route = readFileSync("src/components/ProjectRenderer.astro", "utf8");
   const deepDiveRoute = readFileSync(
     "src/pages/zh/projects/customer-churn-machine-learning/[deepDive].astro",
     "utf8",

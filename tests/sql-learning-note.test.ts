@@ -163,7 +163,9 @@ describe("SQL and relational data Learning Notes", () => {
     ].forEach((term) => expect(notes.projection).toContain(term));
     expect(notes.projection).toContain('data-learning-slot="projection-columns-lab"');
     expect(notes.projection).toContain("customer_id AS customer_key");
-    expect(notes.projection).toContain("ROUND(order_value * 1.10, 2) AS scenario_value");
+    expect(notes.projection).toContain(
+      "ROUND(order_value * 1.10, 2) AS scenario_value",
+    );
   });
 
   it("keeps SQL 08 ORDER BY focused on deterministic ordering contracts", () => {
@@ -210,7 +212,9 @@ describe("SQL and relational data Learning Notes", () => {
     expect(layout).toContain("const { Content, headings } = await render(entry)");
     expect(layout).toContain("const generatedToc = headings");
     expect(layout).toContain("heading.depth === 2");
-    expect(layout).toContain("const learningToc = isStatisticsHandbook ? statisticsToc : generatedToc");
+    expect(layout).toContain(
+      "const learningToc = isStatisticsHandbook ? statisticsToc : generatedToc",
+    );
     [
       "sql-relational-data",
       "sql-primary-key",
@@ -221,7 +225,9 @@ describe("SQL and relational data Learning Notes", () => {
       "sql-projection",
       "sql-order-by",
       "sql-pagination",
-    ].forEach((slug) => expect(layout).toContain(`entry.data.slug === "${slug}"`));
+    ].forEach((slug) =>
+      expect(layout).toContain(`entry.data.translationKey === "${slug}"`),
+    );
     expect(layout).toContain("<LearningNoteHero title={handbookTitle} />");
     expect(layout).not.toContain("const sqlOverviewToc");
     expect(layout).not.toContain("const sqlProjectionToc");
@@ -274,7 +280,7 @@ describe("SQL and relational data Learning Notes", () => {
   it("keeps the shared SQLite playground focused and lazy-loaded for SQL 02–07", () => {
     expect(sqlPlayground).toContain("sqlLearningSeedSql");
     expect(sqlPlayground).toContain("inferredFocus");
-    expect(sqlPlayground).toContain('data-sql-focus={focus}');
+    expect(sqlPlayground).toContain("data-sql-focus={focus}");
     expect(sqlPlayground).toContain('value: "duplicate"');
     expect(sqlPlayground).toContain('value: "foreign-key"');
     expect(sqlPlayground).toContain('value: "where-gte"');

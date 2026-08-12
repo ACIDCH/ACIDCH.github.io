@@ -7,15 +7,16 @@ describe("Power BI property market project", () => {
     "utf8",
   );
   const page = readFileSync("src/components/PowerBIDashboardProject.astro", "utf8");
-  const route = readFileSync("src/pages/zh/projects/[slug].astro", "utf8");
+  const route = readFileSync("src/components/ProjectRenderer.astro", "utf8");
+  const dynamicRoute = readFileSync("src/pages/zh/projects/[slug].astro", "utf8");
 
-  it("publishes an indexable Chinese-only project and preserves the English fallback", () => {
+  it("publishes an indexable Chinese-only project without a false SEO counterpart", () => {
     expect(entry).toContain("status: completed");
     expect(entry).toContain("Power BI");
     expect(entry).toContain("DAX");
     expect(entry).not.toMatch(/noindex:\s*true|draft:\s*true/);
     expect(route).toContain("european-property-market-dashboard");
-    expect(route).toContain('getLocalizedPath("/projects/", "en")');
+    expect(dynamicRoute).toContain(": null;");
   });
 
   it("contains a keyboard-operable four-page dashboard", () => {

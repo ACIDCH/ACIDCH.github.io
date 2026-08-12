@@ -22,7 +22,7 @@ const expectedSlots = [
   "logistic-regression-lab",
 ];
 const notes = noteFiles.map((file) => read(`src/content/notes/${file}`));
-const route = read("src/pages/zh/notes/[slug].astro");
+const route = read("src/components/NoteRenderer.astro");
 const layout = read("src/layouts/RegressionNoteLayout.astro");
 const blocks = read("src/components/learning/RegressionLearningBlocks.astro");
 const taxonomy = read("src/data/note-tag-taxonomy.ts");
@@ -53,9 +53,10 @@ describe("Regression and statistics Learning Notes", () => {
       expect(note).toContain(`order: ${index + 1}`);
       expect(note).toContain("status: published");
       expect(note).toContain("draft: false");
-      expect(note.length, `${file} should remain a substantial handbook chapter`).toBeGreaterThan(
-        3400,
-      );
+      expect(
+        note.length,
+        `${file} should remain a substantial handbook chapter`,
+      ).toBeGreaterThan(3400);
       expect(
         (note.match(/^## /gmu) || []).length,
         `${file} should retain a navigable editorial hierarchy`,
@@ -81,7 +82,7 @@ describe("Regression and statistics Learning Notes", () => {
   });
 
   it("routes regression notes through a generated-TOC editorial layout", () => {
-    expect(route).toContain('entry.data.seriesSlug === "regression"');
+    expect(route).toContain("regression: RegressionNoteLayout");
     expect(route).toContain("RegressionNoteLayout");
     expect(layout).toContain("LearningNoteHero");
     expect(layout).toContain("LearningNoteToc");
