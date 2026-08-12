@@ -27,6 +27,10 @@
     "verify:production": "node scripts/verify-production.mjs",
     "audit:learning-notes": "node scripts/audit-learning-notes.mjs",
     "audit:i18n": "node scripts/i18n-audit.mjs",
+    "audit:i18n-sync": "node scripts/i18n-sync.mjs",
+    "audit:i18n-sync:strict": "node scripts/i18n-sync.mjs --strict",
+    "i18n:manifest": "node scripts/i18n-sync.mjs --write",
+    "i18n:protected": "node scripts/i18n-protected.mjs",
     "astro": "astro"
   },
   "dependencies": {

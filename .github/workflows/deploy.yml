@@ -74,6 +74,9 @@ jobs:
       - name: Run tests and public-content security scan
         run: npm run test
 
+      - name: Report bilingual sync status (warning mode)
+        run: npm run audit:i18n-sync
+
       - name: Audit production dependencies
         run: npm audit --audit-level=high
 
