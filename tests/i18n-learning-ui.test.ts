@@ -91,4 +91,12 @@ describe("locale-aware statistics and regression labs", () => {
     expect(sampling).toContain('reset.addEventListener("click", resetLab');
     expect(regression).toContain('input.addEventListener("input", draw');
   });
+
+  it("keeps the regression visual proof aligned with the Chinese published route", () => {
+    const proof = readFileSync("scripts/capture-pr-regression-visuals.py", "utf8");
+    expect(proof).toContain('wait_for_text("[data-logit-class]", "高风险")');
+    expect(proof).toContain('wait_for_text("[data-logit-class]", "低风险")');
+    expect(proof).not.toContain('wait_for_text("[data-logit-class]", "High risk")');
+    expect(proof).not.toContain('wait_for_text("[data-logit-class]", "Low risk")');
+  });
 });
