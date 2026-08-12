@@ -11,9 +11,9 @@ const noteList = read("src/components/NoteList.astro");
 const productionVerifier = read("scripts/verify-decision-models-production.mjs");
 const sharedUi = read("src/i18n/shared-ui.ts");
 
-it("verifies the localised Chinese optimum marker in production", () => {
+it("verifies both localised optimum markers in production", () => {
   expect(productionVerifier).toContain('"最优点 600"');
-  expect(productionVerifier).not.toContain('"optimum 600"');
+  expect(productionVerifier).toContain('"optimum 600"');
 });
 
 describe("Supply chain optimisation Learning Notes folder", () => {
