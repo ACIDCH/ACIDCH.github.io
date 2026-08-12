@@ -55,6 +55,7 @@ describe("production deployment contracts", () => {
     const verifier = await source("scripts/verify-production.mjs");
 
     expect(verifier).toContain("forbiddenMarkers");
+    expect(verifier).toContain("visiblePublicCopy");
     expect(verifier).toContain(">简介<");
     expect(verifier).toContain("service-interactions.webp");
     expect(verifier).toContain("data-model-evaluation");
@@ -76,6 +77,7 @@ describe("production deployment contracts", () => {
     expect(verifier).toContain('data-order-rule="stable"');
     expect(verifier).toContain("data-order-sql-run");
     expect(verifier).toContain("50008");
+    expect(verifier).toContain("visiblePublicCopy");
   });
 
   it("verifies SQL09 Pagination and its four browser proofs", async () => {
@@ -94,6 +96,7 @@ describe("production deployment contracts", () => {
     expect(verifier).toContain("data-pagination-page-index");
     expect(verifier).toContain("data-pagination-run");
     expect(verifier).toContain("50008");
+    expect(verifier).toContain("visiblePublicCopy");
     expect(capture).toContain("sql09-pagination-page2-desktop.png");
     expect(capture).toContain("sql09-pagination-sqlite-page2-desktop.png");
     expect(capture).toContain("sql09-pagination-page2-mobile.png");
