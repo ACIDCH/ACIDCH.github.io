@@ -2,10 +2,8 @@
 import type { CollectionEntry } from "astro:content";
 import { portfolioConfig } from "../config/portfolio";
 import type { Locale } from "../config/site";
-import {
-  canonicalNoteTags,
-  getCanonicalNoteTags,
-} from "../data/note-tag-taxonomy";
+import { sharedUi } from "../i18n/shared-ui";
+import { canonicalNoteTags, getCanonicalNoteTags } from "../data/note-tag-taxonomy";
 import { getTotalPages } from "../utils/pagination";
 import NoteList from "./NoteList.astro";
 import Pagination from "./Pagination.astro";
@@ -41,29 +39,7 @@ const tags = canonicalNoteTags
     count: tagCounts.get(definition.label[locale]) ?? 0,
   }))
   .filter((tag) => tag.count > 0);
-const copy =
-  locale === "en"
-    ? {
-        title: "Browse by tag",
-        description:
-          "A compact topic map groups overlapping article tags into a smaller set of reusable themes.",
-        all: "All notes",
-        result: "notes shown",
-        empty: "No notes match this tag.",
-        latest: "Learning Notes",
-        external: "External Notebook / Cloud Notes",
-        hover: "Hover or focus a tag for its scope; select it to filter the notes below.",
-      }
-    : {
-        title: "按标签浏览",
-        description: "把文章里的细粒度标签归并为少量核心主题，减少重复和重合。",
-        all: "全部笔记",
-        result: "篇笔记",
-        empty: "没有符合该标签的笔记。",
-        latest: "全部笔记",
-        external: "外部笔记本 / 云笔记",
-        hover: "悬浮或聚焦标签可查看范围；点击后筛选下方笔记。",
-      };
+const copy = sharedUi[locale].notesExplorer;
 const notebook = portfolioConfig.externalNotebook;
 ---
 
@@ -74,21 +50,29 @@ const notebook = portfolioConfig.externalNotebook;
   data-current-page={currentPage}
   data-page-size={pageSize}
   data-base-path={basePath}
-  data-page-label={locale === "en" ? "Page" : "第"}
-  data-page-separator={locale === "en" ? "of" : "页，共"}
-  data-page-suffix={locale === "en" ? "" : "页"}
+  data-page-prefix={copy.pagePrefix}
+  data-page-separator={copy.pageSeparator}
+  data-page-suffix={copy.pageSuffix}
 >
-  <section class="tag-cloud-panel tag-cloud-panel--floating" aria-labelledby="tag-cloud-title">
+  <section
+    class="tag-cloud-panel tag-cloud-panel--floating"
+    aria-labelledby="tag-cloud-title"
+  >
     <div class="tag-cloud-panel__copy">
       <div>
-        <p class="status">{locale === "en" ? "Knowledge map" : "知识地图"}</p>
+        <p class="status">{copy.knowledgeMap}</p>
         <h2 id="tag-cloud-title">{copy.title}</h2>
         <p>{copy.description}</p>
       </div>
       <p class="tag-cloud-panel__hint">{copy.hover}</p>
     </div>
     <div class="tag-cloud" role="group" aria-label={copy.title}>
-      <button class="tag-cloud__item tag-cloud__item--all" type="button" data-note-tag="" aria-pressed="true">
+      <button
+        class="tag-cloud__item tag-cloud__item--all"
+        type="button"
+        data-note-tag=""
+        aria-pressed="true"
+      >
         <span>{copy.all}</span>
         <small>{entries.length}</small>
       </button>
@@ -241,7 +225,8 @@ const notebook = portfolioConfig.externalNotebook;
     z-index: 4;
     border-color: var(--colour-primary);
     background: color-mix(in srgb, var(--colour-primary) 10%, var(--colour-surface));
-    box-shadow: 0 0.65rem 1.6rem color-mix(in srgb, var(--colour-primary) 13%, transparent);
+    box-shadow: 0 0.65rem 1.6rem
+      color-mix(in srgb, var(--colour-primary) 13%, transparent);
     transform: translateY(-0.24rem) rotate(0deg);
   }
 
@@ -372,12 +357,11 @@ const notebook = portfolioConfig.externalNotebook;
             if (tag) params.set("tag", tag);
             link.setAttribute("href", params.size ? `${path}?${params}` : path);
           });
-        const status = pagination.querySelector<HTMLElement>("[data-pagination-status]");
+        const status = pagination.querySelector<HTMLElement>(
+          "[data-pagination-status]",
+        );
         if (status) {
-          status.textContent =
-            explorer!.dataset.pageLabel === "Page"
-              ? `Page ${currentPage} of ${totalPages}`
-              : `第 ${currentPage} 页，共 ${totalPages} 页`;
+          status.textContent = `${explorer!.dataset.pagePrefix ?? ""}${currentPage}${explorer!.dataset.pageSeparator ?? ""}${totalPages}${explorer!.dataset.pageSuffix ?? ""}`;
         }
         pagination
           .querySelector<HTMLAnchorElement>("[data-pagination-previous]")

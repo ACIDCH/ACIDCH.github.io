@@ -2,6 +2,7 @@
 import { getCollection } from "astro:content";
 import { skillGroups } from "../config/skills";
 import type { Locale } from "../config/site";
+import { sharedUi } from "../i18n/shared-ui";
 import { getLocalizedPath } from "../utils/paths";
 import Hero from "./hero/Hero.astro";
 import NoteList from "./NoteList.astro";
@@ -19,34 +20,13 @@ const notes = (await getCollection("notes"))
   .filter((entry) => entry.data.locale === locale && !entry.data.draft)
   .slice(0, 3);
 
-const copy = {
-  en: {
-    discipline: "Business Analytics · Supply Chain",
-    projectsAction: "Explore Projects",
-    notesAction: "View Learning Notes",
-    aboutAction: "About",
-    featured: "Featured Projects",
-    notes: "Latest Learning Notes",
-    themes: "Core Themes",
-    cta: "Build decisions on clearer evidence.",
-  },
-  zh: {
-    discipline: "商业分析 · 供应链",
-    projectsAction: "浏览项目",
-    notesAction: "查看学习笔记",
-    aboutAction: "关于我",
-    featured: "精选项目",
-    notes: "最新学习笔记",
-    themes: "核心方向",
-    cta: "用更清晰的证据支持决策。",
-  },
-}[locale];
+const copy = sharedUi[locale].home;
 ---
 
 <Hero locale={locale}>
   <p class="home-hero__discipline">{copy.discipline}</p>
   <h1 id="home-title">
-    {locale === "en" ? "Business Analytics Portfolio" : "商业分析作品集"}
+    {copy.title}
   </h1>
   <div class="cluster">
     <a class="button" href={getLocalizedPath("/projects/", locale)}>

@@ -28,12 +28,15 @@ describe("production deployment contracts", () => {
   it("keeps 关于我 consistent across public About entry points", async () => {
     const home = await source("src/components/HomePage.astro");
     const search = await source("src/components/GlobalSearch.astro");
+    const sharedUi = await source("src/i18n/shared-ui.ts");
     const legacy = await source("src/components/LegacyRoute.astro");
 
-    expect(home).toContain('aboutAction: "关于我"');
-    expect(home).not.toContain('aboutAction: "简介"');
-    expect(search).toContain('title: "关于我"');
-    expect(search).toContain('searchText: "关于我 个人概况');
+    expect(home).toContain("sharedUi[locale].home");
+    expect(search).toContain("sharedUi[pageLocale].search.pages");
+    expect(sharedUi).toContain('aboutAction: "关于我"');
+    expect(sharedUi).not.toContain('aboutAction: "简介"');
+    expect(sharedUi).toContain('title: "关于我"');
+    expect(sharedUi).toContain('searchText: "关于我 个人概况');
     expect(legacy).toContain("前往关于我");
     expect(legacy).not.toContain("前往简介");
   });
@@ -116,7 +119,9 @@ describe("production deployment contracts", () => {
     expect(capture).toContain('browser.screenshot(f"dm-folder-index-{suffix}.png")');
     expect(capture).toContain('browser.screenshot(f"project-grid-home-{suffix}.png")');
     expect(capture).toContain('browser.screenshot(f"project-grid-index-{suffix}.png")');
-    expect(capture).toContain('browser.screenshot(f"dm10-two-batch-plan-{suffix}.png")');
+    expect(capture).toContain(
+      'browser.screenshot(f"dm10-two-batch-plan-{suffix}.png")',
+    );
     expect(capture).toContain("expected = 26");
   });
 
@@ -155,7 +160,9 @@ describe("production deployment contracts", () => {
     expect(workflow).toContain("production/live-verification");
     expect(workflow).toContain("GitHub Pages live verification passed");
     expect(workflow).toContain("GitHub Pages live verification failed");
-    expect(workflow).toContain("$GITHUB_API_URL/repos/$REPOSITORY/statuses/$TARGET_SHA");
-    expect(workflow).toContain('if: always()');
+    expect(workflow).toContain(
+      "$GITHUB_API_URL/repos/$REPOSITORY/statuses/$TARGET_SHA",
+    );
+    expect(workflow).toContain("if: always()");
   });
 });

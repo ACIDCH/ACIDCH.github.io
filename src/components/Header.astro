@@ -1,6 +1,7 @@
 ---
 import { navigationItems } from "../config/navigation";
 import type { Locale } from "../config/site";
+import { sharedUi } from "../i18n/shared-ui";
 import { getLocalizedPath } from "../utils/paths";
 import LanguageSwitch from "./LanguageSwitch.astro";
 import Icon, { type IconName } from "./Icon.astro";
@@ -13,6 +14,7 @@ interface Props {
 }
 
 const { locale, alternatePath } = Astro.props;
+const copy = sharedUi[locale].header;
 const currentPath = Astro.url.pathname;
 const navigationIcons: Record<string, IconName> = {
   "/": "home",
@@ -36,7 +38,7 @@ function isCurrentRoute(path: string): boolean {
       class="site-brand"
       href={getLocalizedPath("/", locale)}
       transition:name="site-logo"
-      aria-label={locale === "en" ? "Portfolio home" : "作品集首页"}
+      aria-label={copy.portfolioHome}
     >
       <Logo size="sm" />
     </a>
@@ -45,10 +47,8 @@ function isCurrentRoute(path: string): boolean {
       <button
         class="icon-button search-trigger search-trigger--mobile"
         type="button"
-        aria-label={locale === "en" ? "Search" : "搜索"}
-        title={locale === "en"
-          ? "Search (Ctrl/Command + K)"
-          : "搜索（Ctrl/Command + K）"}
+        aria-label={copy.search}
+        title={copy.searchShortcut}
         data-search-open
       >
         <Icon name="search" />
@@ -61,15 +61,12 @@ function isCurrentRoute(path: string): boolean {
         data-menu-toggle
       >
         <span><Icon name="menu" /></span>
-        <span>{locale === "en" ? "Menu" : "菜单"}</span>
+        <span>{copy.menu}</span>
       </button>
     </div>
 
     <div class="header-panel" data-header-panel>
-      <nav
-        class="primary-nav"
-        aria-label={locale === "en" ? "Primary navigation" : "主导航"}
-      >
+      <nav class="primary-nav" aria-label={copy.primaryNavigation}>
         <ul>
           {
             navigationItems.map((item) => (
@@ -91,10 +88,8 @@ function isCurrentRoute(path: string): boolean {
         <button
           class="icon-button search-trigger search-trigger--desktop"
           type="button"
-          aria-label={locale === "en" ? "Search" : "搜索"}
-          title={locale === "en"
-            ? "Search (Ctrl/Command + K)"
-            : "搜索（Ctrl/Command + K）"}
+          aria-label={copy.search}
+          title={copy.searchShortcut}
           data-search-open
         >
           <Icon name="search" />
@@ -109,7 +104,7 @@ function isCurrentRoute(path: string): boolean {
 <dialog
   class="mobile-menu"
   id="mobile-navigation"
-  aria-label={locale === "en" ? "Mobile navigation" : "移动端导航"}
+  aria-label={copy.mobileNavigation}
   data-mobile-menu
 >
   <div class="mobile-menu__sheet">
@@ -118,17 +113,14 @@ function isCurrentRoute(path: string): boolean {
       <button
         class="menu-toggle"
         type="button"
-        aria-label={locale === "en" ? "Close menu" : "关闭菜单"}
+        aria-label={copy.closeMenu}
         data-menu-close
       >
         <Icon name="close" />
-        <span>{locale === "en" ? "Close" : "关闭"}</span>
+        <span>{copy.close}</span>
       </button>
     </header>
-    <nav
-      class="mobile-menu__nav primary-nav"
-      aria-label={locale === "en" ? "Mobile navigation" : "移动端导航"}
-    >
+    <nav class="mobile-menu__nav primary-nav" aria-label={copy.mobileNavigation}>
       <ul>
         {
           navigationItems.map((item) => (

@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from "astro:content";
 import type { Locale } from "../config/site";
+import { sharedUi } from "../i18n/shared-ui";
 import ProjectCard from "./ProjectCard.astro";
 
 interface Props {
@@ -9,13 +10,12 @@ interface Props {
 }
 
 const { entries, locale } = Astro.props;
+const copy = sharedUi[locale].projectList;
 ---
 
 {
   entries.length === 0 ? (
-    <p>
-      {locale === "en" ? "No projects are available yet." : "暂时没有可展示的项目。"}
-    </p>
+    <p>{copy.empty}</p>
   ) : (
     <ul class="content-list project-list project-list--balanced">
       {entries.map((entry) => (

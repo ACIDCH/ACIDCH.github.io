@@ -1,12 +1,13 @@
 ---
 import type { Locale } from "../config/site";
+import { sharedUi } from "../i18n/shared-ui";
 
 interface Props {
   locale: Locale;
 }
 
 const { locale } = Astro.props;
-const label = locale === "en" ? "Back to top" : "返回顶部";
+const label = sharedUi[locale].backToTop;
 ---
 
 <button

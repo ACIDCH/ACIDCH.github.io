@@ -1,6 +1,7 @@
 ---
 import type { Locale } from "../config/site";
 import { navigationItems } from "../config/navigation";
+import { sharedUi } from "../i18n/shared-ui";
 import { getLocalizedPath } from "../utils/paths";
 import Logo from "./Logo.astro";
 
@@ -9,21 +10,16 @@ interface Props {
 }
 
 const { locale } = Astro.props;
+const copy = sharedUi[locale].footer;
 ---
 
 <footer class="site-footer">
   <div class="site-footer__inner">
     <div>
       <Logo size="sm" />
-      <p class="site-footer__statement">
-        {
-          locale === "en"
-            ? "Business analytics and supply chain analytics portfolio."
-            : "商业分析与供应链分析作品集。"
-        }
-      </p>
+      <p class="site-footer__statement">{copy.statement}</p>
     </div>
-    <nav aria-label={locale === "en" ? "Footer navigation" : "页脚导航"}>
+    <nav aria-label={copy.navigation}>
       {
         navigationItems.map((item) => (
           <a href={getLocalizedPath(item.path, locale)}>{item.label[locale]}</a>
@@ -32,7 +28,7 @@ const { locale } = Astro.props;
     </nav>
     <p class="site-footer__meta">
       &copy; {new Date().getFullYear()}{" "}
-      {locale === "en" ? "Business Analytics Portfolio" : "商业分析作品集"}
+      {copy.copyright}
     </p>
   </div>
 </footer>

@@ -1,6 +1,7 @@
 ---
 import type { Locale } from "../../config/site";
 import { portfolioConfig } from "../../config/portfolio";
+import { sharedUi } from "../../i18n/shared-ui";
 import { withBase } from "../../utils/paths";
 
 interface Props {
@@ -8,6 +9,7 @@ interface Props {
 }
 
 const { locale } = Astro.props;
+const copy = sharedUi[locale].hero;
 const { homeHero } = portfolioConfig.media;
 const background = homeHero.available ? homeHero.desktop : homeHero.fallback;
 const mobileBackground = homeHero.available ? homeHero.mobile : homeHero.fallback;
@@ -35,7 +37,7 @@ const mobileBackground = homeHero.available ? homeHero.mobile : homeHero.fallbac
     <slot />
   </div>
   <a class="home-hero__scroll-cue" href="#home-content">
-    <span>{locale === "en" ? "Scroll" : "向下浏览"}</span>
+    <span>{copy.scroll}</span>
     <span aria-hidden="true">↓</span>
   </a>
 </section>

@@ -1,5 +1,6 @@
 ---
 import type { Locale } from "../config/site";
+import { sharedUi } from "../i18n/shared-ui";
 import { portfolioConfig } from "../config/portfolio";
 import { withBase } from "../utils/paths";
 import Icon from "./Icon.astro";
@@ -9,6 +10,7 @@ interface Props {
 }
 
 const { locale } = Astro.props;
+const copy = sharedUi[locale].wechat;
 const { wechat } = portfolioConfig.contact;
 ---
 
@@ -18,7 +20,7 @@ const { wechat } = portfolioConfig.contact;
       <button
         class="social-icon-button"
         type="button"
-        aria-label={locale === "en" ? "Open WeChat QR code" : "打开微信二维码"}
+        aria-label={copy.open}
         data-wechat-open
       >
         <Icon name="wechat" size={22} />
@@ -29,22 +31,20 @@ const { wechat } = portfolioConfig.contact;
           <button
             class="icon-button wechat-dialog__close"
             type="button"
-            aria-label={locale === "en" ? "Close WeChat QR code" : "关闭微信二维码"}
+            aria-label={copy.close}
             data-wechat-close
           >
             <Icon name="close" />
           </button>
-          <h2>{locale === "en" ? "Connect on WeChat" : "通过微信联系"}</h2>
+          <h2>{copy.title}</h2>
           <img
             src={withBase(wechat.qrImage)}
             width="360"
             height="360"
-            alt={locale === "en" ? "Portfolio WeChat QR code" : "作品集微信二维码"}
+            alt={copy.imageAlt}
           />
           {wechat.id && <p>{wechat.id}</p>}
-          <p>
-            {locale === "en" ? "Scan the code with WeChat." : "请使用微信扫描二维码。"}
-          </p>
+          <p>{copy.scan}</p>
         </div>
       </dialog>
     </span>

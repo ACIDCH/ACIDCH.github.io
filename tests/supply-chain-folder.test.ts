@@ -9,6 +9,7 @@ const seriesMap = read("src/components/learning/LearningSeriesMap.astro");
 const seriesPage = read("src/components/learning/LearningSeriesPage.astro");
 const noteList = read("src/components/NoteList.astro");
 const productionVerifier = read("scripts/verify-decision-models-production.mjs");
+const sharedUi = read("src/i18n/shared-ui.ts");
 
 it("verifies the localised Chinese optimum marker in production", () => {
   expect(productionVerifier).toContain('"最优点 600"');
@@ -19,9 +20,10 @@ describe("Supply chain optimisation Learning Notes folder", () => {
   it("makes the tag-first folder navigation explicit on the Chinese Learning Notes index", () => {
     expect(notesIndex).toContain("先用标签快速定位知识点，再按主题进入完整知识库");
     expect(notesIndex).toContain('<LearningSeriesMap slot="knowledge-map" />');
-    expect(notesExplorer).toContain("按标签浏览");
+    expect(notesExplorer).toContain("sharedUi[locale].notesExplorer");
+    expect(sharedUi).toContain('title: "按标签浏览"');
     expect(notesExplorer).toContain('<slot name="knowledge-map" />');
-    expect(notesExplorer).toContain('latest: "全部笔记"');
+    expect(sharedUi).toContain('latest: "全部笔记"');
     expect(seriesMap).toContain("按主题进入知识库");
     expect(seriesMap).toContain('left.slug === "decision-models"');
     expect(seriesMap).toContain('slug === "decision-models" ? "供应链与优化"');
@@ -42,7 +44,8 @@ describe("Supply chain optimisation Learning Notes folder", () => {
 
   it("labels every decision-model note card with the public folder name", () => {
     expect(noteList).toContain('entry.data.seriesSlug === "decision-models"');
-    expect(noteList).toContain('? "供应链与优化"');
+    expect(noteList).toContain("? copy.decisionSeries");
+    expect(sharedUi).toContain('decisionSeries: "供应链与优化"');
     expect(noteList).toContain("displaySeries");
     expect(noteList).toContain(
       'data-series={(displaySeries ?? "").toLocaleLowerCase()}',

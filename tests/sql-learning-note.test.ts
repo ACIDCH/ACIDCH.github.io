@@ -16,6 +16,7 @@ const notes = {
 };
 const layout = read("src/layouts/NoteLayout.astro");
 const noteList = read("src/components/NoteList.astro");
+const sharedUi = read("src/i18n/shared-ui.ts");
 const relationalModelExplorer = read(
   "src/components/learning/RelationalModelExplorer.astro",
 );
@@ -263,7 +264,8 @@ describe("SQL and relational data Learning Notes", () => {
   });
 
   it("keeps only the SQL overview as the compact handbook card", () => {
-    expect(noteList).toContain('"sql-relational-data": "SQL 与关系数据"');
+    expect(sharedUi).toContain('"sql-relational-data": "SQL 与关系数据"');
+    expect(noteList).toContain("copy.handbookTitles[entry.data.slug]");
     expect(noteList).toContain("isCompactHandbook");
     [
       "sql-primary-key",
