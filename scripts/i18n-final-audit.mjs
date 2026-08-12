@@ -11,6 +11,7 @@ if (!existsSync("dist") || !existsSync("dist/sitemap-0.xml")) {
   failures.push("static build and sitemap must exist before the final audit");
 }
 
+mkdirSync("tmp", { recursive: true });
 execFileSync(process.execPath, ["scripts/i18n-audit.mjs", "--json"], {
   stdio: "ignore",
 });
@@ -160,7 +161,6 @@ const report = {
   failures,
 };
 
-mkdirSync("tmp", { recursive: true });
 writeFileSync("tmp/i18n-final-audit.json", `${JSON.stringify(report, null, 2)}\n`);
 
 if (failures.length) {
