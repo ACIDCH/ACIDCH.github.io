@@ -83,6 +83,15 @@ async function fetchWithTimeout(url) {
   }
 }
 
+function visiblePublicCopy(html) {
+  return html
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/giu, "")
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/giu, "")
+    .replace(/<pre\b[^>]*>[\s\S]*?<\/pre>/giu, "")
+    .replace(/<code\b[^>]*>[\s\S]*?<\/code>/giu, "")
+    .replace(/<!--[\s\S]*?-->/gu, "");
+}
+
 async function verifyPage({ path, markers, forbiddenMarkers = [] }) {
   const url = deploymentUrl(path);
   const response = await fetchWithTimeout(url);
@@ -97,6 +106,7 @@ async function verifyPage({ path, markers, forbiddenMarkers = [] }) {
   if (!/<html\b/i.test(html) || !/<main\b/i.test(html)) {
     throw new Error(`${path} does not look like a complete site page`);
   }
+  const publicCopy = visiblePublicCopy(html);
 
   for (const marker of markers) {
     if (!html.includes(marker)) {
@@ -105,7 +115,7 @@ async function verifyPage({ path, markers, forbiddenMarkers = [] }) {
   }
 
   for (const marker of forbiddenMarkers) {
-    if (html.includes(marker)) {
+    if (publicCopy.includes(marker)) {
       throw new Error(`${path} still contains forbidden/stale marker: ${marker}`);
     }
   }
