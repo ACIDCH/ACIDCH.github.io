@@ -3,12 +3,12 @@
   "sourceLocale": "zh",
   "targetLocale": "en",
   "mode": "warning",
-  "generatedAt": "2026-08-12T14:15:30.740Z",
+  "generatedAt": "2026-08-12T14:27:07.307Z",
   "counts": {
     "DRAFT_ONLY": 1,
-    "MISSING": 6,
+    "MISSING": 5,
     "PLACEHOLDER": 3,
-    "SYNCED": 32
+    "SYNCED": 33
   },
   "entries": [
     {
@@ -418,10 +418,10 @@
       "key": "notes:r-data-analysis-prediction",
       "collection": "notes",
       "translationKey": "r-data-analysis-prediction",
-      "status": "MISSING",
+      "status": "SYNCED",
       "change": null,
       "sourcePath": "src/content/notes/r-data-analysis-prediction.zh.md",
-      "targetPath": null,
+      "targetPath": "src/content/notes/r-data-analysis-prediction.en.md",
       "sourceHashes": {
         "content": "fe01a00b088c032bce77cc81516950b9612f970b858bd33b1fae45086bf5043c",
         "structure": "c537eb181e816b388a58a55996446e32b8c75e113a63d1694cae0dfb538e2279",
@@ -436,7 +436,13 @@
         "protected": "797118b615c05a46874267b40e3d4288c2388764d46a7e0e534d70468bd0b5bb",
         "file": "487eb40804ee98f995cadda0477e6be8f56d31233407765f489a9916576cd075"
       },
-      "targetHashes": null,
+      "targetHashes": {
+        "content": "9053a96b51174e413ae89c4407da9f684dd3225c8524ba8809d8a8308554cbf5",
+        "structure": "c537eb181e816b388a58a55996446e32b8c75e113a63d1694cae0dfb538e2279",
+        "metadata": "4b33cc8c4e9561b548d981aefdf1e3848a13872259cad5541919318fbfaf2a8f",
+        "protected": "797118b615c05a46874267b40e3d4288c2388764d46a7e0e534d70468bd0b5bb",
+        "file": "c6c8334202498e464a2d99983d232a3a920f1535bb118d77463bfee137a6e59c"
+      },
       "integrityIssues": []
     },
     {

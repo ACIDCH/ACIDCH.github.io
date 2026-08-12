@@ -18,8 +18,33 @@ if (!expectedSha) {
 
 const checks = [
   {
+    path: "notes/r-data-analysis-prediction/",
+    markers: [
+      "Data Analysis and Predictive Modelling with R",
+      "central limit theorem",
+      "Bootstrap",
+      "Ridge",
+      "Lasso",
+      "Cross-validation",
+      "Random forests",
+      "k-means",
+      "data-prediction-threshold-lab",
+      "data-threshold-slider",
+      "data-data-science-advanced",
+      "partial pooling",
+      "Nested cross-validation",
+      "Brier score",
+      "CC BY-NC-SA 4.0",
+    ],
+    forbidden: ["使用 R 进行数据分析和预测算法"],
+  },
+  {
     path: "zh/notes/",
-    markers: ["使用 R 进行数据分析和预测算法", 'data-note-tag="统计推断"', 'data-note-tag="机器学习"'],
+    markers: [
+      "使用 R 进行数据分析和预测算法",
+      'data-note-tag="统计推断"',
+      'data-note-tag="机器学习"',
+    ],
   },
   {
     path: "zh/notes/r-data-analysis-prediction/",
@@ -100,7 +125,16 @@ async function fetchWithTimeout(url) {
   }
 }
 
-async function verifyPage({ path, markers }) {
+function visiblePublicCopy(html) {
+  return html
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/giu, "")
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/giu, "")
+    .replace(/<pre\b[^>]*>[\s\S]*?<\/pre>/giu, "")
+    .replace(/<code\b[^>]*>[\s\S]*?<\/code>/giu, "")
+    .replace(/<!--[\s\S]*?-->/gu, "");
+}
+
+async function verifyPage({ path, markers, forbidden = [] }) {
   const response = await fetchWithTimeout(deploymentUrl(path));
   if (!response.ok) throw new Error(`${path} returned HTTP ${response.status}`);
   const html = await response.text();
@@ -115,8 +149,9 @@ async function verifyPage({ path, markers }) {
       throw new Error(`${path} is missing expected marker: ${marker}`);
     }
   }
-  for (const marker of forbiddenMarkers) {
-    if (html.includes(marker)) {
+  const publicCopy = visiblePublicCopy(html);
+  for (const marker of [...forbiddenMarkers, ...forbidden]) {
+    if (publicCopy.includes(marker)) {
       throw new Error(`${path} contains forbidden marker: ${marker}`);
     }
   }
