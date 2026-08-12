@@ -196,28 +196,28 @@ const noteStructuredData = {
                     class="learning-note__inline-block"
                     data-learning-block="statistics-lab"
                   >
-                    <DescriptiveStatisticsLab />
+                    <DescriptiveStatisticsLab locale={entry.data.locale} />
                   </div>
                   <div
                     class="learning-note__inline-block"
                     data-learning-block="normal-distribution-lab"
                     data-learning-after-heading="连续概率分布"
                   >
-                    <NormalDistributionLab />
+                    <NormalDistributionLab locale={entry.data.locale} />
                   </div>
                   <div
                     class="learning-note__inline-block"
                     data-learning-block="correlation-lab"
                     data-learning-after-heading="相关性可视化展示"
                   >
-                    <CorrelationLab />
+                    <CorrelationLab locale={entry.data.locale} />
                   </div>
                   <div
                     class="learning-note__inline-block"
                     data-learning-block="regression-lab"
                     data-learning-after-heading="回归分析"
                   >
-                    <RegressionLab />
+                    <RegressionLab locale={entry.data.locale} />
                   </div>
                 </>
               )}
@@ -226,7 +226,7 @@ const noteStructuredData = {
                   class="learning-note__inline-block"
                   data-learning-block="sampling-precision-lab"
                 >
-                  <SamplingPrecisionLab />
+                  <SamplingPrecisionLab locale={entry.data.locale} />
                 </div>
               )}
               {isSqlOverview && (

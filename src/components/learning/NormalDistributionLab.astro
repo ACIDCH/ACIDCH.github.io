@@ -1,23 +1,38 @@
-<section class="learning-visual-lab" data-normal-lab aria-labelledby="normal-lab-title">
+---
+import type { Locale } from "../../config/site";
+import { learningLabUi } from "../../i18n/learning-ui";
+
+interface Props {
+  locale?: Locale;
+}
+
+const { locale = "zh" } = Astro.props;
+const copy = learningLabUi[locale].normalDistribution;
+---
+
+<section
+  class="learning-visual-lab"
+  data-normal-lab
+  data-copy={JSON.stringify(copy)}
+  aria-labelledby="normal-lab-title"
+>
   <div class="learning-visual-lab__intro">
-    <p class="learning-note-kicker">互动图表 · 概率分布</p>
-    <h3 id="normal-lab-title">均值、标准差与阈值如何共同改变累计概率？</h3>
-    <p>
-      调整均值、标准差和阈值，曲线与累计概率会同步变化。重点不是记住某个固定数值，而是观察位置、离散程度和阈值之间的关系。
-    </p>
+    <p class="learning-note-kicker">{copy.kicker}</p>
+    <h3 id="normal-lab-title">{copy.title}</h3>
+    <p>{copy.intro}</p>
   </div>
 
-  <div class="learning-visual-lab__controls" aria-label="正态分布参数">
+  <div class="learning-visual-lab__controls" aria-label={copy.controlsLabel}>
     <label>
-      <span>均值 μ：<output data-normal-mean-output>20</output></span>
+      <span>{copy.mean}{" "}<output data-normal-mean-output>20</output></span>
       <input data-normal-mean type="range" min="0" max="40" value="20" step="1" />
     </label>
     <label>
-      <span>标准差 σ：<output data-normal-sd-output>6</output></span>
+      <span>{copy.standardDeviation}{" "}<output data-normal-sd-output>6</output></span>
       <input data-normal-sd type="range" min="2" max="14" value="6" step="1" />
     </label>
     <label>
-      <span>阈值 x：<output data-normal-threshold-output>25</output></span>
+      <span>{copy.threshold}{" "}<output data-normal-threshold-output>25</output></span>
       <input data-normal-threshold type="range" min="0" max="60" value="25" step="1" />
     </label>
   </div>
@@ -25,14 +40,13 @@
   <div class="learning-visual-lab__metric" aria-live="polite">
     <span>P(X ≤ x)</span>
     <strong data-normal-probability>79.8%</strong>
-    <small data-normal-reading>阈值位于均值右侧，因此累计概率超过 50%。</small>
+    <small data-normal-reading>{copy.initialReading}</small>
   </div>
 
   <figure class="learning-visual-lab__figure">
-    <svg viewBox="0 0 760 340" role="img" aria-label="可交互正态分布曲线" data-normal-svg></svg>
-    <figcaption>
-      纵轴表示概率密度，阴影区域对应阈值左侧的累计概率。曲线变宽并不代表总概率增加，曲线下面积始终为 1。
-    </figcaption>
+    <svg viewBox="0 0 760 340" role="img" aria-label={copy.chartLabel} data-normal-svg
+    ></svg>
+    <figcaption>{copy.caption}</figcaption>
   </figure>
 </section>
 
@@ -137,23 +151,45 @@
     normalLabCleanup?.();
     const root = document.querySelector<HTMLElement>("[data-normal-lab]");
     if (!root) return;
+    const copy = JSON.parse(root.dataset.copy ?? "{}") as Record<string, string>;
 
     const meanInput = root.querySelector<HTMLInputElement>("[data-normal-mean]");
     const sdInput = root.querySelector<HTMLInputElement>("[data-normal-sd]");
-    const thresholdInput = root.querySelector<HTMLInputElement>("[data-normal-threshold]");
-    const meanOutput = root.querySelector<HTMLOutputElement>("[data-normal-mean-output]");
+    const thresholdInput = root.querySelector<HTMLInputElement>(
+      "[data-normal-threshold]",
+    );
+    const meanOutput = root.querySelector<HTMLOutputElement>(
+      "[data-normal-mean-output]",
+    );
     const sdOutput = root.querySelector<HTMLOutputElement>("[data-normal-sd-output]");
-    const thresholdOutput = root.querySelector<HTMLOutputElement>("[data-normal-threshold-output]");
-    const probabilityOutput = root.querySelector<HTMLElement>("[data-normal-probability]");
+    const thresholdOutput = root.querySelector<HTMLOutputElement>(
+      "[data-normal-threshold-output]",
+    );
+    const probabilityOutput = root.querySelector<HTMLElement>(
+      "[data-normal-probability]",
+    );
     const reading = root.querySelector<HTMLElement>("[data-normal-reading]");
     const svg = root.querySelector<SVGSVGElement>("[data-normal-svg]");
-    if (!meanInput || !sdInput || !thresholdInput || !meanOutput || !sdOutput || !thresholdOutput || !probabilityOutput || !reading || !svg) return;
+    if (
+      !meanInput ||
+      !sdInput ||
+      !thresholdInput ||
+      !meanOutput ||
+      !sdOutput ||
+      !thresholdOutput ||
+      !probabilityOutput ||
+      !reading ||
+      !svg
+    )
+      return;
 
     const controller = new AbortController();
     const ns = "http://www.w3.org/2000/svg";
     const make = (tag: string, attrs: Record<string, string | number>) => {
       const node = document.createElementNS(ns, tag);
-      Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, String(value)));
+      Object.entries(attrs).forEach(([key, value]) =>
+        node.setAttribute(key, String(value)),
+      );
       svg.append(node);
       return node;
     };
@@ -161,11 +197,18 @@
       const sign = x < 0 ? -1 : 1;
       const value = Math.abs(x);
       const t = 1 / (1 + 0.3275911 * value);
-      const y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-value * value);
+      const y =
+        1 -
+        ((((1.061405429 * t - 1.453152027) * t + 1.421413741) * t - 0.284496736) * t +
+          0.254829592) *
+          t *
+          Math.exp(-value * value);
       return sign * y;
     };
-    const cdf = (x: number, mean: number, sd: number) => 0.5 * (1 + erf((x - mean) / (sd * Math.SQRT2)));
-    const pdf = (x: number, mean: number, sd: number) => Math.exp(-0.5 * ((x - mean) / sd) ** 2) / (sd * Math.sqrt(2 * Math.PI));
+    const cdf = (x: number, mean: number, sd: number) =>
+      0.5 * (1 + erf((x - mean) / (sd * Math.SQRT2)));
+    const pdf = (x: number, mean: number, sd: number) =>
+      Math.exp(-0.5 * ((x - mean) / sd) ** 2) / (sd * Math.sqrt(2 * Math.PI));
 
     const draw = () => {
       const mean = Number(meanInput.value);
@@ -176,11 +219,12 @@
       sdOutput.value = String(sd);
       thresholdOutput.value = String(threshold);
       probabilityOutput.textContent = `${(probability * 100).toFixed(1)}%`;
-      reading.textContent = threshold === mean
-        ? "阈值正好位于均值，累计概率为 50%。"
-        : threshold > mean
-          ? "阈值位于均值右侧，因此累计概率超过 50%。"
-          : "阈值位于均值左侧，因此累计概率低于 50%。";
+      reading.textContent =
+        threshold === mean
+          ? copy.equalReading
+          : threshold > mean
+            ? copy.aboveReading
+            : copy.belowReading;
 
       svg.replaceChildren();
       const left = 54;
@@ -190,10 +234,17 @@
       const domainMin = Math.max(-10, mean - 4.5 * sd);
       const domainMax = Math.min(70, mean + 4.5 * sd);
       const maxDensity = pdf(mean, mean, sd);
-      const xScale = (x: number) => left + ((x - domainMin) / (domainMax - domainMin)) * (right - left);
+      const xScale = (x: number) =>
+        left + ((x - domainMin) / (domainMax - domainMin)) * (right - left);
       const yScale = (y: number) => bottom - (y / maxDensity) * (bottom - top - 18);
 
-      make("line", { x1: left, y1: bottom, x2: right, y2: bottom, stroke: "var(--colour-border-strong)" });
+      make("line", {
+        x1: left,
+        y1: bottom,
+        x2: right,
+        y2: bottom,
+        stroke: "var(--colour-border-strong)",
+      });
       const points: string[] = [];
       const shade: string[] = [`${xScale(domainMin)},${bottom}`];
       for (let index = 0; index <= 180; index += 1) {
@@ -203,21 +254,58 @@
         if (x <= threshold) shade.push(`${xScale(x)},${yScale(y)}`);
       }
       shade.push(`${xScale(Math.min(threshold, domainMax))},${bottom}`);
-      make("polygon", { points: shade.join(" "), fill: "var(--colour-primary)", opacity: 0.14 });
-      make("polyline", { points: points.join(" "), fill: "none", stroke: "var(--colour-primary)", "stroke-width": 3 });
-      make("line", { x1: xScale(mean), y1: top + 18, x2: xScale(mean), y2: bottom, stroke: "var(--colour-border-strong)", "stroke-dasharray": "6 6" });
+      make("polygon", {
+        points: shade.join(" "),
+        fill: "var(--colour-primary)",
+        opacity: 0.14,
+      });
+      make("polyline", {
+        points: points.join(" "),
+        fill: "none",
+        stroke: "var(--colour-primary)",
+        "stroke-width": 3,
+      });
+      make("line", {
+        x1: xScale(mean),
+        y1: top + 18,
+        x2: xScale(mean),
+        y2: bottom,
+        stroke: "var(--colour-border-strong)",
+        "stroke-dasharray": "6 6",
+      });
       if (threshold >= domainMin && threshold <= domainMax) {
-        make("line", { x1: xScale(threshold), y1: top + 18, x2: xScale(threshold), y2: bottom, stroke: "var(--colour-primary-strong)", "stroke-width": 2 });
+        make("line", {
+          x1: xScale(threshold),
+          y1: top + 18,
+          x2: xScale(threshold),
+          y2: bottom,
+          stroke: "var(--colour-primary-strong)",
+          "stroke-width": 2,
+        });
       }
       [domainMin, mean - sd, mean, mean + sd, domainMax].forEach((tick) => {
-        const text = make("text", { x: xScale(tick), y: 314, fill: "currentColor", "font-size": 12, "text-anchor": "middle" });
+        const text = make("text", {
+          x: xScale(tick),
+          y: 314,
+          fill: "currentColor",
+          "font-size": 12,
+          "text-anchor": "middle",
+        });
         text.textContent = Number.isInteger(tick) ? String(tick) : tick.toFixed(1);
       });
-      const label = make("text", { x: 390, y: 334, fill: "currentColor", "font-size": 12, "text-anchor": "middle" });
-      label.textContent = "变量取值";
+      const label = make("text", {
+        x: 390,
+        y: 334,
+        fill: "currentColor",
+        "font-size": 12,
+        "text-anchor": "middle",
+      });
+      label.textContent = copy.xAxis;
     };
 
-    [meanInput, sdInput, thresholdInput].forEach((input) => input.addEventListener("input", draw, { signal: controller.signal }));
+    [meanInput, sdInput, thresholdInput].forEach((input) =>
+      input.addEventListener("input", draw, { signal: controller.signal }),
+    );
     draw();
     normalLabCleanup = () => controller.abort();
   }

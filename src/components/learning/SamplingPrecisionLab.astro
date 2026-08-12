@@ -1,41 +1,56 @@
-<section class="sampling-lab" data-sampling-precision-lab aria-labelledby="sampling-lab-title">
+---
+import type { Locale } from "../../config/site";
+import { learningLabUi } from "../../i18n/learning-ui";
+
+interface Props {
+  locale?: Locale;
+}
+
+const { locale = "zh" } = Astro.props;
+const copy = learningLabUi[locale].samplingPrecision;
+---
+
+<section
+  class="sampling-lab"
+  data-sampling-precision-lab
+  data-copy={JSON.stringify(copy)}
+  aria-labelledby="sampling-lab-title"
+>
   <div class="sampling-lab__intro">
-    <p class="learning-note-kicker">互动图表 · 抽样精度</p>
-    <h3 id="sampling-lab-title">样本变多以后，区间究竟会缩多少？</h3>
-    <p>
-      固定样本比例为 42%，改变样本量和置信水平。这里使用常见的大样本比例正态近似，重点观察
-      standard error 与 margin of error 的变化，而不是把这个示例当成所有比例区间的唯一算法。
-    </p>
+    <p class="learning-note-kicker">{copy.kicker}</p>
+    <h3 id="sampling-lab-title">{copy.title}</h3>
+    <p>{copy.intro}</p>
   </div>
 
   <div class="sampling-lab__controls">
     <label>
-      <span>样本量 n：<output data-sampling-n-output>100</output></span>
+      <span>{copy.sampleSize}{" "}<output data-sampling-n-output>100</output></span>
       <input data-sampling-n type="range" min="25" max="1600" step="25" value="100" />
     </label>
     <label>
-      <span>置信水平</span>
+      <span>{copy.confidenceLevel}</span>
       <select data-sampling-confidence>
         <option value="1.645">90%</option>
         <option value="1.96" selected>95%</option>
         <option value="2.576">99%</option>
       </select>
     </label>
-    <button class="button button--secondary" type="button" data-sampling-reset>恢复默认</button>
+    <button class="button button--secondary" type="button" data-sampling-reset
+      >{copy.reset}</button
+    >
   </div>
 
   <div class="sampling-lab__metrics" aria-live="polite">
-    <dl><dt>样本比例</dt><dd>0.420</dd></dl>
+    <dl><dt>{copy.sampleProportion}</dt><dd>0.420</dd></dl>
     <dl><dt>Standard error</dt><dd data-sampling-se>0.049</dd></dl>
     <dl><dt>Margin of error</dt><dd data-sampling-margin>0.096</dd></dl>
-    <dl><dt>区间宽度</dt><dd data-sampling-width>0.192</dd></dl>
+    <dl><dt>{copy.intervalWidth}</dt><dd data-sampling-width>0.192</dd></dl>
   </div>
 
   <figure class="sampling-lab__figure">
-    <svg viewBox="0 0 760 180" role="img" aria-label="样本比例置信区间随样本量和置信水平变化" data-sampling-svg></svg>
-    <figcaption data-sampling-message>
-      样本量从 100 增加到 400 时，standard error 大约减半；这就是 1/√n 关系在图上的表现。
-    </figcaption>
+    <svg viewBox="0 0 760 180" role="img" aria-label={copy.chartLabel} data-sampling-svg
+    ></svg>
+    <figcaption data-sampling-message>{copy.caption}</figcaption>
   </figure>
 </section>
 
@@ -167,23 +182,39 @@
     const pHat = 0.42;
 
     roots.forEach((root) => {
+      const copy = JSON.parse(root.dataset.copy ?? "{}") as Record<string, string>;
       const nInput = root.querySelector<HTMLInputElement>("[data-sampling-n]");
       const nOutput = root.querySelector<HTMLOutputElement>("[data-sampling-n-output]");
-      const confidence = root.querySelector<HTMLSelectElement>("[data-sampling-confidence]");
+      const confidence = root.querySelector<HTMLSelectElement>(
+        "[data-sampling-confidence]",
+      );
       const seOutput = root.querySelector<HTMLElement>("[data-sampling-se]");
       const marginOutput = root.querySelector<HTMLElement>("[data-sampling-margin]");
       const widthOutput = root.querySelector<HTMLElement>("[data-sampling-width]");
       const reset = root.querySelector<HTMLButtonElement>("[data-sampling-reset]");
       const svg = root.querySelector<SVGSVGElement>("[data-sampling-svg]");
       const message = root.querySelector<HTMLElement>("[data-sampling-message]");
-      if (!nInput || !nOutput || !confidence || !seOutput || !marginOutput || !widthOutput || !reset || !svg || !message) return;
+      if (
+        !nInput ||
+        !nOutput ||
+        !confidence ||
+        !seOutput ||
+        !marginOutput ||
+        !widthOutput ||
+        !reset ||
+        !svg ||
+        !message
+      )
+        return;
 
       const controller = new AbortController();
       controllers.push(controller);
 
       const make = (tag: string, attrs: Record<string, string | number>) => {
         const node = document.createElementNS(ns, tag);
-        Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, String(value)));
+        Object.entries(attrs).forEach(([key, value]) =>
+          node.setAttribute(key, String(value)),
+        );
         svg.append(node);
         return node;
       };
@@ -210,48 +241,79 @@
 
         [0, 0.25, 0.5, 0.75, 1].forEach((tick) => {
           make("line", {
-            x1: xScale(tick), y1: 40, x2: xScale(tick), y2: 116,
-            stroke: "var(--colour-border)", "stroke-width": 1,
+            x1: xScale(tick),
+            y1: 40,
+            x2: xScale(tick),
+            y2: 116,
+            stroke: "var(--colour-border)",
+            "stroke-width": 1,
           });
           const label = make("text", {
-            x: xScale(tick), y: 132, fill: "currentColor", "font-size": 11, "text-anchor": "middle",
+            x: xScale(tick),
+            y: 132,
+            fill: "currentColor",
+            "font-size": 11,
+            "text-anchor": "middle",
           });
           label.textContent = tick.toFixed(2);
         });
 
         make("line", {
-          x1: xScale(lower), y1: centerY, x2: xScale(upper), y2: centerY,
-          stroke: "var(--colour-primary)", "stroke-width": 6, "stroke-linecap": "round",
+          x1: xScale(lower),
+          y1: centerY,
+          x2: xScale(upper),
+          y2: centerY,
+          stroke: "var(--colour-primary)",
+          "stroke-width": 6,
+          "stroke-linecap": "round",
         });
         make("line", {
-          x1: xScale(lower), y1: centerY - 13, x2: xScale(lower), y2: centerY + 13,
-          stroke: "var(--colour-primary)", "stroke-width": 2,
+          x1: xScale(lower),
+          y1: centerY - 13,
+          x2: xScale(lower),
+          y2: centerY + 13,
+          stroke: "var(--colour-primary)",
+          "stroke-width": 2,
         });
         make("line", {
-          x1: xScale(upper), y1: centerY - 13, x2: xScale(upper), y2: centerY + 13,
-          stroke: "var(--colour-primary)", "stroke-width": 2,
+          x1: xScale(upper),
+          y1: centerY - 13,
+          x2: xScale(upper),
+          y2: centerY + 13,
+          stroke: "var(--colour-primary)",
+          "stroke-width": 2,
         });
         make("circle", {
-          cx: xScale(pHat), cy: centerY, r: 7,
+          cx: xScale(pHat),
+          cy: centerY,
+          r: 7,
           fill: "var(--colour-text)",
         });
 
         const estimate = make("text", {
-          x: xScale(pHat), y: 58, fill: "currentColor", "font-size": 12, "text-anchor": "middle",
+          x: xScale(pHat),
+          y: 58,
+          fill: "currentColor",
+          "font-size": 12,
+          "text-anchor": "middle",
         });
         estimate.textContent = "p̂ = 0.42";
 
         const interval = make("text", {
-          x: (xScale(lower) + xScale(upper)) / 2, y: 24, fill: "currentColor", "font-size": 12, "text-anchor": "middle",
+          x: (xScale(lower) + xScale(upper)) / 2,
+          y: 24,
+          fill: "currentColor",
+          "font-size": 12,
+          "text-anchor": "middle",
         });
         interval.textContent = `${level} interval: ${lower.toFixed(3)}–${upper.toFixed(3)}`;
 
         if (n >= 400 && z <= 1.96) {
-          message.textContent = "样本量较大时 standard error 明显缩小；在相同置信水平下，区间随之收窄。";
+          message.textContent = copy.largeSample;
         } else if (z > 2) {
-          message.textContent = "99% 置信水平需要更大的临界值，因此即使样本量不变，区间也会比 95% 更宽。";
+          message.textContent = copy.highConfidence;
         } else {
-          message.textContent = "把 n 扩大四倍，standard error 大约减半；提高置信水平则会把区间重新拉宽。";
+          message.textContent = copy.defaultMessage;
         }
       };
 

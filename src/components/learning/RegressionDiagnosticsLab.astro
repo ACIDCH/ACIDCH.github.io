@@ -1,41 +1,133 @@
-<section class="regression-diagnostics-lab" data-regression-diagnostics aria-labelledby="regression-diagnostics-title">
+---
+import type { Locale } from "../../config/site";
+import { learningLabUi } from "../../i18n/learning-ui";
+
+interface Props {
+  locale?: Locale;
+}
+
+const { locale = "zh" } = Astro.props;
+const copy = learningLabUi[locale].regressionDiagnostics;
+---
+
+<section
+  class="regression-diagnostics-lab"
+  data-regression-diagnostics
+  data-copy={JSON.stringify(copy)}
+  aria-labelledby="regression-diagnostics-title"
+>
   <div class="regression-diagnostics-lab__intro">
-    <p class="learning-note-kicker">互动图表 · Regression diagnostics</p>
-    <h3 id="regression-diagnostics-title">同一条拟合线，残差结构可能完全不同</h3>
-    <p>切换情景，比较残差是否随机围绕 0、方差是否扩大、是否出现弯曲结构，以及单个强影响点如何改变诊断判断。</p>
+    <p class="learning-note-kicker">{copy.kicker}</p>
+    <h3 id="regression-diagnostics-title">{copy.title}</h3>
+    <p>{copy.intro}</p>
   </div>
-  <div class="regression-diagnostics-lab__controls" role="group" aria-label="残差情景">
-    <button type="button" data-diagnostic-mode="clean" aria-pressed="true">随机残差</button>
-    <button type="button" data-diagnostic-mode="fan" aria-pressed="false">漏斗形</button>
-    <button type="button" data-diagnostic-mode="curve" aria-pressed="false">弯曲结构</button>
-    <button type="button" data-diagnostic-mode="influence" aria-pressed="false">强影响点</button>
+  <div
+    class="regression-diagnostics-lab__controls"
+    role="group"
+    aria-label={copy.controlsLabel}
+  >
+    <button type="button" data-diagnostic-mode="clean" aria-pressed="true"
+      >{copy.modes.clean}</button
+    >
+    <button type="button" data-diagnostic-mode="fan" aria-pressed="false"
+      >{copy.modes.fan}</button
+    >
+    <button type="button" data-diagnostic-mode="curve" aria-pressed="false"
+      >{copy.modes.curve}</button
+    >
+    <button type="button" data-diagnostic-mode="influence" aria-pressed="false"
+      >{copy.modes.influence}</button
+    >
   </div>
   <div class="regression-diagnostics-lab__metrics" aria-live="polite">
     <dl><dt>RMSE</dt><dd data-diagnostic-rmse>1.00</dd></dl>
-    <dl><dt>最大 |标准化残差|</dt><dd data-diagnostic-max-residual>1.80</dd></dl>
-    <dl><dt>诊断信号</dt><dd data-diagnostic-signal>结构稳定</dd></dl>
+    <dl><dt>{copy.maxResidual}</dt><dd data-diagnostic-max-residual>1.80</dd></dl>
+    <dl>
+      <dt>{copy.diagnosticSignal}</dt><dd data-diagnostic-signal>
+        {copy.initialSignal}
+      </dd>
+    </dl>
   </div>
   <figure>
-    <svg viewBox="0 0 760 400" role="img" aria-label="拟合值与残差的交互诊断图" data-diagnostic-svg></svg>
-    <figcaption>横轴是 fitted values，纵轴是 residuals。理想残差图不要求“完全均匀”，但不应呈现持续的曲线、漏斗或由单点主导的结构。</figcaption>
+    <svg
+      viewBox="0 0 760 400"
+      role="img"
+      aria-label={copy.chartLabel}
+      data-diagnostic-svg></svg>
+    <figcaption>{copy.caption}</figcaption>
   </figure>
 </section>
 
 <style>
-  .regression-diagnostics-lab { margin: var(--space-10) 0; padding: var(--space-6) 0; border-block: 1px solid var(--colour-border-strong); }
-  .regression-diagnostics-lab__intro { max-width: 58rem; }
-  .regression-diagnostics-lab__intro h3 { margin: var(--space-2) 0 var(--space-3); font-size: clamp(1.35rem, 1.6vw, 1.85rem); }
-  .regression-diagnostics-lab__intro p:last-child, .regression-diagnostics-lab figcaption { color: var(--colour-text-muted); }
-  .regression-diagnostics-lab__controls { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: var(--space-5) 0; }
-  .regression-diagnostics-lab__controls button { padding: .55rem .8rem; border: 1px solid var(--colour-border); border-radius: 999px; background: var(--colour-surface); color: var(--colour-text); cursor: pointer; }
-  .regression-diagnostics-lab__controls button[aria-pressed="true"] { border-color: var(--colour-primary); background: color-mix(in srgb, var(--colour-primary) 10%, var(--colour-surface)); }
-  .regression-diagnostics-lab__metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-4); margin-bottom: var(--space-4); }
-  .regression-diagnostics-lab__metrics dl { margin: 0; padding: var(--space-3) 0; border-bottom: 1px solid var(--colour-border); }
-  .regression-diagnostics-lab__metrics dt { color: var(--colour-text-muted); font-size: var(--font-size-xs); }
-  .regression-diagnostics-lab__metrics dd { margin: var(--space-1) 0 0; font-weight: var(--font-weight-semibold); font-variant-numeric: tabular-nums; }
-  .regression-diagnostics-lab svg { width: 100%; height: auto; display: block; }
-  .regression-diagnostics-lab figcaption { margin-top: var(--space-3); font-size: var(--font-size-sm); line-height: 1.7; }
-  @media (max-width: 48rem) { .regression-diagnostics-lab__metrics { grid-template-columns: 1fr; } }
+  .regression-diagnostics-lab {
+    margin: var(--space-10) 0;
+    padding: var(--space-6) 0;
+    border-block: 1px solid var(--colour-border-strong);
+  }
+  .regression-diagnostics-lab__intro {
+    max-width: 58rem;
+  }
+  .regression-diagnostics-lab__intro h3 {
+    margin: var(--space-2) 0 var(--space-3);
+    font-size: clamp(1.35rem, 1.6vw, 1.85rem);
+  }
+  .regression-diagnostics-lab__intro p:last-child,
+  .regression-diagnostics-lab figcaption {
+    color: var(--colour-text-muted);
+  }
+  .regression-diagnostics-lab__controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: var(--space-5) 0;
+  }
+  .regression-diagnostics-lab__controls button {
+    padding: 0.55rem 0.8rem;
+    border: 1px solid var(--colour-border);
+    border-radius: 999px;
+    background: var(--colour-surface);
+    color: var(--colour-text);
+    cursor: pointer;
+  }
+  .regression-diagnostics-lab__controls button[aria-pressed="true"] {
+    border-color: var(--colour-primary);
+    background: color-mix(in srgb, var(--colour-primary) 10%, var(--colour-surface));
+  }
+  .regression-diagnostics-lab__metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-4);
+    margin-bottom: var(--space-4);
+  }
+  .regression-diagnostics-lab__metrics dl {
+    margin: 0;
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--colour-border);
+  }
+  .regression-diagnostics-lab__metrics dt {
+    color: var(--colour-text-muted);
+    font-size: var(--font-size-xs);
+  }
+  .regression-diagnostics-lab__metrics dd {
+    margin: var(--space-1) 0 0;
+    font-weight: var(--font-weight-semibold);
+    font-variant-numeric: tabular-nums;
+  }
+  .regression-diagnostics-lab svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .regression-diagnostics-lab figcaption {
+    margin-top: var(--space-3);
+    font-size: var(--font-size-sm);
+    line-height: 1.7;
+  }
+  @media (max-width: 48rem) {
+    .regression-diagnostics-lab__metrics {
+      grid-template-columns: 1fr;
+    }
+  }
 </style>
 
 <script>
@@ -44,51 +136,126 @@
     diagnosticsCleanup?.();
     const root = document.querySelector<HTMLElement>("[data-regression-diagnostics]");
     if (!root) return;
+    const copy = JSON.parse(root.dataset.copy ?? "{}") as {
+      signals: Record<string, string>;
+      xAxis: string;
+      yAxis: string;
+    };
     const svg = root.querySelector<SVGSVGElement>("[data-diagnostic-svg]");
-    const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>("[data-diagnostic-mode]"));
+    const buttons = Array.from(
+      root.querySelectorAll<HTMLButtonElement>("[data-diagnostic-mode]"),
+    );
     const rmse = root.querySelector<HTMLElement>("[data-diagnostic-rmse]");
-    const maxResidual = root.querySelector<HTMLElement>("[data-diagnostic-max-residual]");
+    const maxResidual = root.querySelector<HTMLElement>(
+      "[data-diagnostic-max-residual]",
+    );
     const signal = root.querySelector<HTMLElement>("[data-diagnostic-signal]");
     if (!svg || !rmse || !maxResidual || !signal || buttons.length === 0) return;
     const controller = new AbortController();
     const ns = "http://www.w3.org/2000/svg";
     const fitted = Array.from({ length: 18 }, (_, index) => 12 + index * 3.2);
-    const base = [-.8,.4,-.3,.9,-.6,.2,-.7,.6,-.1,.5,-.4,.7,-.5,.35,-.65,.75,-.25,.45];
-    const makeResiduals = (mode: string) => fitted.map((value, index) => {
-      if (mode === "fan") return base[index] * (0.7 + index * 0.13);
-      if (mode === "curve") return ((value - 39) ** 2 / 180 - 2.2) + base[index] * .35;
-      if (mode === "influence") return index === fitted.length - 1 ? 7.2 : base[index] * .9;
-      return base[index];
-    });
+    const base = [
+      -0.8, 0.4, -0.3, 0.9, -0.6, 0.2, -0.7, 0.6, -0.1, 0.5, -0.4, 0.7, -0.5, 0.35,
+      -0.65, 0.75, -0.25, 0.45,
+    ];
+    const makeResiduals = (mode: string) =>
+      fitted.map((value, index) => {
+        if (mode === "fan") return base[index] * (0.7 + index * 0.13);
+        if (mode === "curve") return (value - 39) ** 2 / 180 - 2.2 + base[index] * 0.35;
+        if (mode === "influence")
+          return index === fitted.length - 1 ? 7.2 : base[index] * 0.9;
+        return base[index];
+      });
     const make = (tag: string, attrs: Record<string, string | number>) => {
       const node = document.createElementNS(ns, tag);
-      Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, String(value)));
+      Object.entries(attrs).forEach(([key, value]) =>
+        node.setAttribute(key, String(value)),
+      );
       svg.append(node);
       return node;
     };
     const draw = (mode: string) => {
       const residuals = makeResiduals(mode);
-      const residualRmse = Math.sqrt(residuals.reduce((sum, value) => sum + value ** 2, 0) / residuals.length);
+      const residualRmse = Math.sqrt(
+        residuals.reduce((sum, value) => sum + value ** 2, 0) / residuals.length,
+      );
       const mean = residuals.reduce((sum, value) => sum + value, 0) / residuals.length;
-      const sd = Math.sqrt(residuals.reduce((sum, value) => sum + (value - mean) ** 2, 0) / (residuals.length - 1));
-      const maxStd = Math.max(...residuals.map((value) => Math.abs((value - mean) / sd)));
-      const labels: Record<string, string> = { clean: "结构稳定", fan: "方差随拟合值扩大", curve: "函数形式可能不足", influence: "单点影响过强" };
+      const sd = Math.sqrt(
+        residuals.reduce((sum, value) => sum + (value - mean) ** 2, 0) /
+          (residuals.length - 1),
+      );
+      const maxStd = Math.max(
+        ...residuals.map((value) => Math.abs((value - mean) / sd)),
+      );
       rmse.textContent = residualRmse.toFixed(2);
       maxResidual.textContent = maxStd.toFixed(2);
-      signal.textContent = labels[mode] ?? "检查残差";
-      buttons.forEach((button) => button.setAttribute("aria-pressed", String(button.dataset.diagnosticMode === mode)));
+      signal.textContent = copy.signals[mode] ?? copy.signals.fallback;
+      buttons.forEach((button) =>
+        button.setAttribute(
+          "aria-pressed",
+          String(button.dataset.diagnosticMode === mode),
+        ),
+      );
       svg.replaceChildren();
-      const left = 62, right = 720, top = 28, bottom = 345;
+      const left = 62,
+        right = 720,
+        top = 28,
+        bottom = 345;
       const maxAbs = Math.max(4, ...residuals.map((value) => Math.abs(value))) * 1.15;
-      const x = (value: number) => left + ((value - fitted[0]) / ((fitted.at(-1) ?? value) - fitted[0])) * (right - left);
-      const y = (value: number) => top + ((maxAbs - value) / (2 * maxAbs)) * (bottom - top);
-      make("line", { x1: left, y1: y(0), x2: right, y2: y(0), stroke: "var(--colour-border-strong)", "stroke-dasharray": "5 5" });
-      make("line", { x1: left, y1: top, x2: left, y2: bottom, stroke: "var(--colour-border-strong)" });
-      residuals.forEach((value, index) => make("circle", { cx: x(fitted[index]), cy: y(value), r: mode === "influence" && index === residuals.length - 1 ? 8 : 5.5, fill: "var(--colour-primary)", opacity: mode === "influence" && index === residuals.length - 1 ? .98 : .68 }));
-      const xl = make("text", { x: 392, y: 386, fill: "currentColor", "font-size": 12, "text-anchor": "middle" }); xl.textContent = "Fitted values";
-      const yl = make("text", { x: 18, y: 190, fill: "currentColor", "font-size": 12, transform: "rotate(-90 18 190)", "text-anchor": "middle" }); yl.textContent = "Residuals";
+      const x = (value: number) =>
+        left +
+        ((value - fitted[0]) / ((fitted.at(-1) ?? value) - fitted[0])) * (right - left);
+      const y = (value: number) =>
+        top + ((maxAbs - value) / (2 * maxAbs)) * (bottom - top);
+      make("line", {
+        x1: left,
+        y1: y(0),
+        x2: right,
+        y2: y(0),
+        stroke: "var(--colour-border-strong)",
+        "stroke-dasharray": "5 5",
+      });
+      make("line", {
+        x1: left,
+        y1: top,
+        x2: left,
+        y2: bottom,
+        stroke: "var(--colour-border-strong)",
+      });
+      residuals.forEach((value, index) =>
+        make("circle", {
+          cx: x(fitted[index]),
+          cy: y(value),
+          r: mode === "influence" && index === residuals.length - 1 ? 8 : 5.5,
+          fill: "var(--colour-primary)",
+          opacity: mode === "influence" && index === residuals.length - 1 ? 0.98 : 0.68,
+        }),
+      );
+      const xl = make("text", {
+        x: 392,
+        y: 386,
+        fill: "currentColor",
+        "font-size": 12,
+        "text-anchor": "middle",
+      });
+      xl.textContent = copy.xAxis;
+      const yl = make("text", {
+        x: 18,
+        y: 190,
+        fill: "currentColor",
+        "font-size": 12,
+        transform: "rotate(-90 18 190)",
+        "text-anchor": "middle",
+      });
+      yl.textContent = copy.yAxis;
     };
-    buttons.forEach((button) => button.addEventListener("click", () => draw(button.dataset.diagnosticMode ?? "clean"), { signal: controller.signal }));
+    buttons.forEach((button) =>
+      button.addEventListener(
+        "click",
+        () => draw(button.dataset.diagnosticMode ?? "clean"),
+        { signal: controller.signal },
+      ),
+    );
     draw("clean");
     diagnosticsCleanup = () => controller.abort();
   }
