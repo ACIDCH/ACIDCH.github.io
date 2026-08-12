@@ -96,4 +96,12 @@ describe("locale-aware decision, SQL and data-science learning UI", () => {
     expect(milp).toContain("button.addEventListener(");
     expect(milp).toContain('"click"');
   });
+
+  it("keeps decision-model visual proof waits aligned with the Chinese route", () => {
+    const proof = readFileSync("scripts/capture-pr-decision-model-visuals.py", "utf8");
+    expect(proof).toContain('horizon_text = "短期" if mobile else "容量"');
+    expect(proof).not.toContain(
+      'horizon_text = "short-term" if mobile else "capacity"',
+    );
+  });
 });
