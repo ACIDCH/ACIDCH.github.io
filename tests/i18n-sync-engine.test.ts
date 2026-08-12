@@ -144,8 +144,24 @@ describe("bilingual sync engine", () => {
     expect(manifest.entries[0]).toMatchObject({
       key: "notes:example",
       status: "MISSING",
+      strictBlocking: true,
       sourcePath: "src/content/notes/example.zh.md",
       targetPath: null,
+    });
+  });
+
+  it("keeps explicit draft and placeholder pairs outside the strict public gate", () => {
+    const draft = buildManifest([
+      file("zh", sourceBody, { status: "draft", draft: true }),
+      file("en", targetBody, {
+        status: "draft",
+        draft: true,
+        isPlaceholder: true,
+      }),
+    ]);
+    expect(draft.entries[0]).toMatchObject({
+      status: "DRAFT_ONLY",
+      strictBlocking: false,
     });
   });
 

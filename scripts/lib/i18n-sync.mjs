@@ -387,6 +387,22 @@ export function buildManifest(
     else if (change === "CONTENT_CHANGE") status = "STALE_CONTENT";
     else if (change === "METADATA_CHANGE") status = "METADATA_DRIFT";
 
+    const isPublic = (file) => {
+      if (!file) return false;
+      if (file.collection === "notes") {
+        return (
+          file.frontmatter.status === "published" &&
+          !file.frontmatter.draft &&
+          !file.frontmatter.isPlaceholder
+        );
+      }
+      return (
+        file.frontmatter.status === "completed" &&
+        !file.frontmatter.isPlaceholder &&
+        !file.frontmatter.noindex
+      );
+    };
+
     return {
       key: pair.key,
       collection: pair.collection,
@@ -400,6 +416,7 @@ export function buildManifest(
       currentSourceHashes: currentHashes,
       targetHashes: target ? contentHashes(target) : null,
       integrityIssues,
+      strictBlocking: status !== "SYNCED" && (isPublic(source) || isPublic(target)),
     };
   });
   const counts = Object.fromEntries(

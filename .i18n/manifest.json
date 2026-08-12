@@ -2,8 +2,8 @@
   "version": 1,
   "sourceLocale": "zh",
   "targetLocale": "en",
-  "mode": "warning",
-  "generatedAt": "2026-08-12T14:45:54.848Z",
+  "mode": "strict",
+  "generatedAt": "2026-08-12T15:13:52.000Z",
   "counts": {
     "DRAFT_ONLY": 1,
     "PLACEHOLDER": 3,
@@ -39,7 +39,8 @@
         "protected": "649b3bf2ceca9ef9389273771fe63dbe09bae33babb283a6e23acef7ce2c65de",
         "file": "d088c3d2938c8858107c78c15aa98c56d6988c1ae5cc9c7bdb52a7977bd1bdf5"
       },
-      "integrityIssues": []
+      "integrityIssues": [],
+      "strictBlocking": false
     },
     {
       "key": "notes:constrained-optimisation",
@@ -70,7 +71,8 @@
         "protected": "89bbdf9fd4819a30d6ba07982ad974922dbc6d24561598ae2a566ad32f86f97a",
         "file": "880ba99a2c914c11d6b79f68eef5b1ab8dcf59f226973fd61bd7fed49e70445b"
       },
-      "integrityIssues": []
+      "integrityIssues": [],
+      "strictBlocking": false
     },
     {
       "key": "notes:descriptive-statistics",
@@ -101,7 +103,8 @@
         "protected": "5289d57317716deb1c81d3fc1624eae595d029504353ddd3f75fa186acb1863a",
         "file": "7d54c2da460d37bbbde0a518f436479d694eda023dbab0cea22fc394328efe5c"
       },
-      "integrityIssues": []
+      "integrityIssues": [],
+      "strictBlocking": false
     },
     {
       "key": "notes:foundation-note",
@@ -132,7 +135,8 @@
         "protected": "272ab511d7e44488336b3bcbc72de748b31fd2c20ff07314f19c9671f56c9256",
         "file": "c5d9f700cb9a8b05b1c23d950dae604b36acd66848e6e4b210d57cb053127cb9"
       },
-      "integrityIssues": []
+      "integrityIssues": [],
+      "strictBlocking": false
     },
     {
       "key": "notes:influential-observations",
@@ -163,7 +167,8 @@
         "protected": "cea9727f4b5e69dccc39cac49447385ffc500ac3c4eb3bcf421077e0c2d5088f",
         "file": "c7de29feede89837f17d5e8f7d964bcdf1a0b5d99178ec0433c8182702e20562"
       },
-      "integrityIssues": []
+      "integrityIssues": [],
+      "strictBlocking": false
     },
     {
       "key": "notes:logistic-regression",
@@ -194,7 +199,8 @@
         "protected": "fb12f7e926dfbe792ef1d5a9818f9a8c4e232130a145df61a68fee698bfbc87c",
         "file": "27c91b36921aa4f3ecf735a526f6f6d6e4323d3529b682fbc3a5e5cd92bdebac"
       },
-      "integrityIssues": []
+      "integrityIssues": [],
+      "strictBlocking": false
     },
     {
       "key": "notes:multi-period-production-inventory",
@@ -225,7 +231,8 @@
         "protected": "b03ecd291e733ab9e5ba478bd535d24062e4fdf30b14b30bd5cf421f8d1d25b2",
         "file": "3d9c735638cca45ec69422cdcb1042a8b746d1ea2fba256e5ce742f2a92095f9"
       },
-      "integrityIssues": []
+      "integrityIssues": [],
+      "strictBlocking": false
     },
     {
       "key": "notes:multidimensional-optimisation",
@@ -256,7 +263,8 @@
         "protected": "2d45cf6fc0d9d977c3ea7dc42b1c6570d8b62c29b2ebcd8771beeebaf75c6319",
         "file": "b8539dd0a6519503817d195d9ddf434a467a794aded70eb499364481738e3f4a"
       },
-      "integrityIssues": []
+      "integrityIssues": [],
+      "strictBlocking": false
     },
     {
       "key": "notes:multiple-regression-multicollinearity",
@@ -287,7 +295,8 @@
         "protected": "571201a2d884fd28d17b568a1b468d9ca18dfae92535fa9c61d7b57a1bf07ed1",
         "file": "55615ff2263d6b8aa9eafb9bc9466efc0b0a79424a15637a203150eda51a4bea"
       },
-      "integrityIssues": []
+      "integrityIssues": [],
+      "strictBlocking": false
     },
     {
       "key": "notes:nonlinear-regression-interactions",
@@ -318,7 +327,8 @@
         "protected": "bd3df4f177c6e9e0cd4dc38867dd771445562703158e3e185c4ed7929269f718",
         "file": "7532f4e7edef65476b796d099670c6a1db4538a3d4aeeb6c319e4e3924c70a66"
       },
-      "integrityIssues": []
+      "integrityIssues": [],
+      "strictBlocking": false
     },
     {
       "key": "notes:optimisation-model-anatomy",
@@ -349,7 +359,8 @@
         "protected": "da06186e7a54391bc3fe71442637b8f9c00371c6bbd55c80bbbdcb53e82486f6",
         "file": "80900b1a21b4f31805fed31439b6bb6fd6b3b15a2e44d7e23eb023a69b178a5d"
       },
-      "integrityIssues": []
+      "integrityIssues": [],
+      "strictBlocking": false
     },
     {
       "key": "notes:optimisation-sensitivity-analysis",
@@ -380,7 +391,8 @@
         "protected": "63674e24288764d4f15739c7a610b42d561be05e6b0dcb0d21ef3074372a2fab",
         "file": "9edef17a5da908bbcbc2819463e27310c9904c4c9590568d62bcd5d998e21144"
       },
-      "integrityIssues": []
+      "integrityIssues": [],
+      "strictBlocking": false
     },
     {
       "key": "notes:pulp-model-architecture",
@@ -411,7 +423,8 @@
         "protected": "59d65012eb71e76fa3516b7f4285fb406aee42bb0aab0fa22df05dcb57d576ae",
         "file": "fc55990004c510c34f17d974b49322b6e070d5e9ba39dfcd4bba86aff5f968f8"
       },
-      "integrityIssues": []
+      "integrityIssues": [],
+      "strictBlocking": false
     },
     {
       "key": "notes:r-data-analysis-prediction",
@@ -442,7 +455,8 @@
         "protected": "797118b615c05a46874267b40e3d4288c2388764d46a7e0e534d70468bd0b5bb",
         "file": "349edb2828ad4da0d8d0a844bc5e432bbe4c18683b5231c0b99b326adb3c89ae"
       },
-      "integrityIssues": []
+      "integrityIssues": [],
+      "strictBlocking": false
     },
     {
       "key": "notes:regression-diagnostics",
@@ -473,7 +487,8 @@
         "protected": "7225d07d1db13751294dd3a1a2c797269e4bf3ea49e333b9db12a30ce1f1b6eb",
         "file": "5fcc22ecdda46136f872ba7050e21bb1ac39be18d96912e53eb1c00fd2d92fb8"
       },
-      "integrityIssues": []
+      "integrityIssues": [],
+      "strictBlocking": false
     },
     {
       "key": "notes:regression-feature-selection",
@@ -504,7 +519,8 @@
         "protected": "c67e3d815dcee52f8db291864a758c3565b398b8a0dcdf7aa491415e4ef251e8",
         "file": "d4cafafdb9ed8f78edd6adab9b155336193633a987930ab39a76a0877b1f81ef"
       },
-      "integrityIssues": []
+      "integrityIssues": [],
+      "strictBlocking": false
     },
     {
       "key": "notes:regression-foundations",
@@ -535,7 +551,8 @@
         "protected": "e708a34869e72bc2de7cb36fff96ee04d760fc052744a7a973a8f763a1e2ebcc",
         "file": "a20fef767db86505bba37a618d4b5c50766746864b723c396a5eba2b93f455d7"
       },
-      "integrityIssues": []
+      "integrityIssues": [],
+      "strictBlocking": false
     },
     {
       "key": "notes:sets-indices-model-scale",
@@ -566,7 +583,8 @@
         "protected": "598c16d4d477d12ae6abbe57060181bb68a4efefa5fea22574705ebc646adfca",
         "file": "ebcf08466808da3a23a02cb232ce33ae16beb6598ef1cc416cfa37e2056e98be"
       },
-      "integrityIssues": []
+      "integrityIssues": [],
+      "strictBlocking": false
     },
     {
       "key": "notes:sql-foreign-key",
@@ -597,7 +615,8 @@
         "protected": "cb009f6daad7a481431599a187bc14f0c794f632cae3a2a3f973724f50da4d2e",
         "file": "996f37bac35c07559cab7919148a56d9a782df715654cec5598d4ce40a5c086f"
       },
-      "integrityIssues": []
+      "integrityIssues": [],
+      "strictBlocking": false
     },
     {
       "key": "notes:sql-order-by",
@@ -628,7 +647,8 @@
         "protected": "9113ddf6ad68121c7de51d3f7af69c6425ea402f5b7bf9bc8d5d167d9cdc4874",
         "file": "a814cb86b6211fb55cc44eefb4fd814968374e7d2395e08af7f4be5c80bc93ae"
       },
-      "integrityIssues": []
+      "integrityIssues": [],
+      "strictBlocking": false
     },
     {
       "key": "notes:sql-pagination",
@@ -659,7 +679,8 @@
         "protected": "a592a839c39ba16f0d5b9625f55bb61e93a806098facf719669475f215b8dd15",
         "file": "efd5d5e2db52a8585fc91154e8347b4bf68b1ed4b3388b2ed471d53ba9fbfcf1"
       },
-      "integrityIssues": []
+      "integrityIssues": [],
+      "strictBlocking": false
     },
     {
       "key": "notes:sql-primary-key",
@@ -690,7 +711,8 @@
         "protected": "e972b8e7636ad44f2f71fedc151c6174652d2216bd3b8b23fb192e195a7aa741",
         "file": "2d43bf7399f3a90ac5080ed30c7f7ce259382d04cf6a3ef32e05ff0ff980c723"
       },
-      "integrityIssues": []
+      "integrityIssues": [],
+      "strictBlocking": false
     },
     {
       "key": "notes:sql-projection",
@@ -721,7 +743,8 @@
         "protected": "00f67cc6f71eca1c7d424272f821171629f9046393e3670d6b49e4300adb1cb5",
         "file": "976f16d9637d1fd09868292790a3663bd216d2071983c3e7f5e461c9027f21b5"
       },
-      "integrityIssues": []
+      "integrityIssues": [],
+      "strictBlocking": false
     },
     {
       "key": "notes:sql-relational-data",
@@ -752,7 +775,8 @@
         "protected": "0e561a78c863efb40fa24099d3aab5095a9c20ab9fbe9a24b4a0d8771dfcff76",
         "file": "80205fa573decb5b66ab2087a7d8b5d1ac23a67a102438a889e4bd7628ecddcf"
       },
-      "integrityIssues": []
+      "integrityIssues": [],
+      "strictBlocking": false
     },
     {
       "key": "notes:sql-relationships",
@@ -783,7 +807,8 @@
         "protected": "39560d05a8e1be4a7f9c009dbe1fc12662d698810b25eb91c185a2891feb0d80",
         "file": "e9c5051150598accabe6d0d71eecf166f5604d29f1477a1e796ddc3077db2e5b"
       },
-      "integrityIssues": []
+      "integrityIssues": [],
+      "strictBlocking": false
     },
     {
       "key": "notes:sql-select",
@@ -814,7 +839,8 @@
         "protected": "345c2ef8a2d4f4b226e98bb84132362625b58ba10df8b07a85271cb8f6048fc8",
         "file": "203a3444a319616c36f7efbb04bcf23cc0b9671a462bafeeedd8d04dbe13e821"
       },
-      "integrityIssues": []
+      "integrityIssues": [],
+      "strictBlocking": false
     },
     {
       "key": "notes:sql-where",
@@ -845,7 +871,8 @@
         "protected": "f2e9e5be72c871a1999f032b5c36d8c8f3adc57553ef93e03de422186306a718",
         "file": "7e60bf8c6941d56b1d4014e4038514ef8ba8c2341e95b08a894038586330b692"
       },
-      "integrityIssues": []
+      "integrityIssues": [],
+      "strictBlocking": false
     },
     {
       "key": "notes:stat-categorical-data-analysis",
@@ -876,7 +903,8 @@
         "protected": "6728237d47edefbe69a9657ca1c33eb7714365bd8a867499ab3bc7eed878afe2",
         "file": "2c2831854ff217a36687d07327588003785e316fb8cca7a5ca38fe0eb8fdca77"
       },
-      "integrityIssues": []
+      "integrityIssues": [],
+      "strictBlocking": false
     },
     {
       "key": "notes:stat-data-types-scales",
@@ -907,7 +935,8 @@
         "protected": "222018339e6776a3aa07f61fbbab8d7f06ae1920f1fffe34a4c4a54253dbb60a",
         "file": "61d832b17dde1d1a19bb83aaa297138fe2ea87e2ac6cceb85e0e32134d6955e0"
       },
-      "integrityIssues": []
+      "integrityIssues": [],
+      "strictBlocking": false
     },
     {
       "key": "notes:stat-hypothesis-testing",
@@ -938,7 +967,8 @@
         "protected": "9ff2531057823937d31b4cccce246c6968d98a49e0d60912aabfd5c0b788991d",
         "file": "99d46ffb522500215af37ac82be10eee3c66c5e1410551b10a9c0bb56c5ec2ed"
       },
-      "integrityIssues": []
+      "integrityIssues": [],
+      "strictBlocking": false
     },
     {
       "key": "notes:stat-interval-estimation",
@@ -969,7 +999,8 @@
         "protected": "7afefab8ae85619bf3c521cb924f873084ad9aed3736deb0c3fe77e7913d67f8",
         "file": "3b247eaefc3f203742a012c72f75571752abb3abd2ae9ce875b5246da30261a6"
       },
-      "integrityIssues": []
+      "integrityIssues": [],
+      "strictBlocking": false
     },
     {
       "key": "notes:stat-sampling-estimation",
@@ -1000,7 +1031,8 @@
         "protected": "ded4aba28ad2abb8c11382bf7f3e452e38e00c8ab1be248874b6791608987811",
         "file": "a2adfd9621089ed0b2ea685b1bb23ad7dba1e76a644f8232f51cd0ce2e9e2583"
       },
-      "integrityIssues": []
+      "integrityIssues": [],
+      "strictBlocking": false
     },
     {
       "key": "notes:transportation-models",
@@ -1031,7 +1063,8 @@
         "protected": "155ec2d0dc85cc9099427322871f597c682ce8dc58016d5e0de19e70c25065e2",
         "file": "953ff8238143ca83e0b638fdc7f0160eb9ef72acdb245bfc53bffc0f51edf9fe"
       },
-      "integrityIssues": []
+      "integrityIssues": [],
+      "strictBlocking": false
     },
     {
       "key": "notes:unconstrained-optimisation",
@@ -1062,7 +1095,8 @@
         "protected": "ad7b6ed2b1de062642a5e56c2fd7b3ab2ede2ede0704f4287163283a0dc6bc92",
         "file": "5e7bd9fbe79408863cf6a7418dacc17224560bd58b0c05e4170ab9c1ac1e4933"
       },
-      "integrityIssues": []
+      "integrityIssues": [],
+      "strictBlocking": false
     },
     {
       "key": "projects:customer-churn-machine-learning",
@@ -1093,7 +1127,8 @@
         "protected": "77109eaf3839fdf6c2760c55d1ee4ba2c53c961d46ee09897e033ff406f90d80",
         "file": "3367e4092b771f226c10309b9cd3f9faa029c52caa6af52f12507668f46dec2b"
       },
-      "integrityIssues": []
+      "integrityIssues": [],
+      "strictBlocking": false
     },
     {
       "key": "projects:european-property-market-dashboard",
@@ -1124,7 +1159,8 @@
         "protected": "38ad682fde82d5e02f8c6b42fdd927a47b9428c2ef9719baa1162b10693945f5",
         "file": "99db8fd5378eea96a57ed6e90b60fe66d684a53e48e27523bc3b285f70907d84"
       },
-      "integrityIssues": []
+      "integrityIssues": [],
+      "strictBlocking": false
     },
     {
       "key": "projects:grammy-spotify-analysis",
@@ -1155,7 +1191,8 @@
         "protected": "4a7d257277005ced0ffa1ffc1dcaf7a7de61e56d1a16717d08cc598a2ff666fa",
         "file": "51b66edc79422844cd9bf37f7fdcd807ebbaf5fe9745a2ecb6b861503e6d7893"
       },
-      "integrityIssues": []
+      "integrityIssues": [],
+      "strictBlocking": false
     },
     {
       "key": "projects:inventory-optimisation",
@@ -1186,7 +1223,8 @@
         "protected": "272ab511d7e44488336b3bcbc72de748b31fd2c20ff07314f19c9671f56c9256",
         "file": "878a2fc3cb997e0432a963e84aaad4ae1006315a3aabe2a327b8d15133534e52"
       },
-      "integrityIssues": []
+      "integrityIssues": [],
+      "strictBlocking": false
     },
     {
       "key": "projects:retirement-monte-carlo",
@@ -1217,7 +1255,8 @@
         "protected": "2cdb5140e470aa5ad92afe129d51d780fbe7076d4b28f9f68c44af7ac1745c97",
         "file": "99602ca09ae7490290436f6333190d6505214d7ca37686ac0d4dcdda9e59ce04"
       },
-      "integrityIssues": []
+      "integrityIssues": [],
+      "strictBlocking": false
     },
     {
       "key": "projects:sales-inventory-dashboard",
@@ -1248,7 +1287,8 @@
         "protected": "272ab511d7e44488336b3bcbc72de748b31fd2c20ff07314f19c9671f56c9256",
         "file": "d44ce32b1743dc27f31c5761eaa7abf6d10f70dabbdfcb321965b35c699063a3"
       },
-      "integrityIssues": []
+      "integrityIssues": [],
+      "strictBlocking": false
     },
     {
       "key": "projects:sales-profitability-warehouse",
@@ -1279,7 +1319,8 @@
         "protected": "23b3e0bb266c6a493d68d3df6ad4787675719ac83bd9945d8891c3bafd44ea7d",
         "file": "fd8fe2d44bf1ce3c4292ab5d1fc8157d845f21eb78c68cc857f17e71ae6016f6"
       },
-      "integrityIssues": []
+      "integrityIssues": [],
+      "strictBlocking": false
     },
     {
       "key": "projects:transportation-network",
@@ -1310,7 +1351,8 @@
         "protected": "272ab511d7e44488336b3bcbc72de748b31fd2c20ff07314f19c9671f56c9256",
         "file": "c66e459d9f0692382657b773e223cfb89d3c40f4be80cf752fc64b8e51f6abf6"
       },
-      "integrityIssues": []
+      "integrityIssues": [],
+      "strictBlocking": false
     }
   ]
 }
