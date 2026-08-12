@@ -16,6 +16,8 @@ describe("Learning Notes publication structure", () => {
   });
 
   it("does not publish draft notes through global search", () => {
-    expect(search).toContain(".filter((entry) => !entry.data.draft)");
+    expect(search).toContain('entry.data.status === "published"');
+    expect(search).toContain("!entry.data.draft");
+    expect(search).toContain("!entry.data.isPlaceholder");
   });
 });

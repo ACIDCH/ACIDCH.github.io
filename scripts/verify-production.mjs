@@ -30,6 +30,11 @@ const churnCoursePatterns = [
   /(?<![\d.])704(?![\d.])/,
   /课程项目|课程报告/,
 ];
+const nonPublicProjectSlugs = [
+  "inventory-optimisation",
+  "sales-inventory-dashboard",
+  "transportation-network",
+];
 
 const pageChecks = [
   {
@@ -323,6 +328,7 @@ const pageChecks = [
     markers: [
       "Machine Learning",
       "0.9053",
+      'hreflang="en"',
       "data-predictor-explorer",
       "data-correlation-explorer",
       "data-model-lab",
@@ -452,11 +458,56 @@ async function verifyPage({
   }
 }
 
+async function verifySearchIndex(path, locale) {
+  const response = await fetchWithTimeout(deploymentUrl(path));
+  if (!response.ok) throw new Error(`${path || "/"} returned HTTP ${response.status}`);
+  const html = await response.text();
+  const match = html.match(
+    /<script\b[^>]*data-search-index[^>]*>([\s\S]*?)<\/script>/iu,
+  );
+  if (!match) throw new Error(`${path || "/"} is missing its search index`);
+  const index = JSON.parse(match[1]);
+  if (index.some((item) => item.locale !== locale)) {
+    throw new Error(`${path || "/"} search index contains another locale`);
+  }
+  if (
+    index.some((item) =>
+      nonPublicProjectSlugs.some((slug) => item.path.includes(`/projects/${slug}/`)),
+    )
+  ) {
+    throw new Error(`${path || "/"} search index contains a placeholder project`);
+  }
+}
+
+async function verifySitemap() {
+  const response = await fetchWithTimeout(deploymentUrl("sitemap-0.xml"));
+  if (!response.ok) throw new Error(`sitemap returned HTTP ${response.status}`);
+  const sitemap = await response.text();
+  for (const route of [
+    "/notes/r-data-analysis-prediction/",
+    "/zh/notes/r-data-analysis-prediction/",
+    "/projects/customer-churn-machine-learning/",
+    "/zh/projects/customer-churn-machine-learning/",
+  ]) {
+    if (!sitemap.includes(`https://acidch.github.io${route}`)) {
+      throw new Error(`sitemap is missing published route ${route}`);
+    }
+  }
+  for (const slug of nonPublicProjectSlugs) {
+    if (sitemap.includes(`/projects/${slug}/`)) {
+      throw new Error(`sitemap contains placeholder project ${slug}`);
+    }
+  }
+}
+
 async function verifyProduction() {
   await verifyDeploymentIdentity();
   for (const check of pageChecks) {
     await verifyPage(check);
   }
+  await verifySearchIndex("", "en");
+  await verifySearchIndex("zh/", "zh");
+  await verifySitemap();
 }
 
 let lastError;

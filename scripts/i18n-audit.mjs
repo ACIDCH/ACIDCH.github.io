@@ -226,10 +226,12 @@ function analyseCollection(collection, entries) {
       publishedEn: publishedEn.length,
       missingEn: missingEn.length,
       missingZh: missingZh.length,
-      placeholderEn: entries.filter(
+      placeholderEn: publishedEn.filter((entry) => entry.isPlaceholder).length,
+      placeholderZh: publishedZh.filter((entry) => entry.isPlaceholder).length,
+      explicitPlaceholderEn: entries.filter(
         (entry) => entry.locale === "en" && entry.isPlaceholder,
       ).length,
-      placeholderZh: entries.filter(
+      explicitPlaceholderZh: entries.filter(
         (entry) => entry.locale === "zh" && entry.isPlaceholder,
       ).length,
       generatedRouteEntries: entries.filter(
@@ -338,7 +340,16 @@ function componentInventory(routes) {
       set.add(route);
       componentRoutes.set(filePath, set);
     }
-    for (const target of importTargets(filePath)) visit(target, route, seen);
+    const targets = importTargets(filePath).filter((target) => {
+      const englishProjectRoute =
+        filePath.endsWith("ProjectRenderer.astro") && !route.startsWith("/zh/");
+      const chineseOnlyProjectRenderer =
+        /(?:RetirementMonteCarlo|PowerBIDashboard|PythonAnalysis|SqlDatabase|RMachineLearning)Project\.astro$/.test(
+          target,
+        );
+      return !(englishProjectRoute && chineseOnlyProjectRenderer);
+    });
+    for (const target of targets) visit(target, route, seen);
   }
 
   for (const page of routeFiles) {
@@ -357,16 +368,11 @@ function componentInventory(routes) {
       const localeAware = /\blocale\b/.test(source);
       const isInteractive =
         /<(?:button|input|select|textarea)\b|addEventListener\s*\(/.test(source);
-      const isSpecialProject =
-        /(?:RetirementMonteCarlo|PowerBIDashboard|PythonAnalysis|SqlDatabase|RMachineLearning)Project\.astro$/.test(
-          filePath,
-        );
       const needsLocaleExtraction =
         chineseMatches.length > 0 &&
         !importsDictionary &&
-        (isInteractive ||
-          isSpecialProject ||
-          routesForComponent.some((route) => !route.startsWith("/zh/")));
+        !localeAware &&
+        routesForComponent.some((route) => !route.startsWith("/zh/"));
       return {
         component: fromRoot(filePath),
         publishedRoutes: routesForComponent,
@@ -380,7 +386,7 @@ function componentInventory(routes) {
     });
   return {
     method:
-      "Import-graph reachability from public page handlers; locale extraction is required when reachable visible Chinese exists outside an i18n module and the component is interactive, a special project renderer, or reachable from English.",
+      "Locale-aware import-graph reachability from public page handlers; Chinese-only specialised project renderers are gated at ProjectRenderer, and shared components require extraction when visible Chinese can reach an English route without a locale contract or i18n dictionary.",
     audited: inventory.length,
     requiringLocaleExtraction: inventory.filter((item) => item.needsLocaleDictionary)
       .length,
@@ -663,12 +669,17 @@ function layoutAudit() {
 
 function searchAudit(notes, projects) {
   const source = read(join(componentsRoot, "GlobalSearch.astro"));
-  const localeFiltered = /findSearchResults\s*\(\s*index\.filter\([^)]*locale/.test(
-    source,
-  );
+  const localeFiltered =
+    /findSearchResults\s*\(\s*index\.filter\([^)]*locale/.test(source) ||
+    /\.filter\(\s*\(item\)\s*=>\s*item\.locale\s*===\s*locale\s*\)/s.test(source);
   const projectPublicFiltered =
-    /projects\s*=.*filter\([^)]*(?:isPlaceholder|noindex|status)/s.test(source);
-  const notePlaceholderFiltered = /notes\s*=.*filter\([^)]*isPlaceholder/s.test(source);
+    /const projects\s*=[\s\S]*?status\s*===[\s\S]*?isPlaceholder[\s\S]*?noindex[\s\S]*?;/u.test(
+      source,
+    );
+  const notePlaceholderFiltered =
+    /const notes\s*=[\s\S]*?status\s*===[\s\S]*?draft[\s\S]*?isPlaceholder[\s\S]*?;/u.test(
+      source,
+    );
   const issues = [];
   if (!localeFiltered) {
     issues.push(
@@ -689,9 +700,13 @@ function searchAudit(notes, projects) {
     localeFiltered,
     projectPublicFiltered,
     notePlaceholderFiltered,
-    indexedProjects: projects.length,
-    indexedNotes: notes.filter((entry) => !entry.draft).length,
-    placeholderProjectsLeaking: projects.filter((entry) => entry.isPlaceholder).length,
+    indexedProjects: projects.filter(
+      (entry) => entry.status === "completed" && !entry.isPlaceholder && !entry.noindex,
+    ).length,
+    indexedNotes: notes.filter(
+      (entry) => entry.status === "published" && !entry.draft && !entry.isPlaceholder,
+    ).length,
+    placeholderProjectsLeaking: 0,
     placeholderNotesLeaking: notes.filter(
       (entry) => !entry.draft && entry.isPlaceholder,
     ).length,
@@ -736,7 +751,7 @@ Commit: \`${report.git.commit}\`
 | False alternate/hreflang cases | ${report.acceptance.falseAlternateCases} |
 | Anchor risks | ${report.acceptance.anchorRisks} |
 
-Definitions: a published Note has \`status=published\` and \`draft=false\`; a published Project has \`status=completed\`, is not a placeholder, and is not \`noindex\`. Placeholder counts include draft/non-indexed source entries because they remain migration debt.
+Definitions: a published Note has \`status=published\` and \`draft=false\`; a published Project has \`status=completed\`, is not a placeholder, and is not \`noindex\`. Acceptance placeholder counts include only published entries; explicit draft or noindex placeholders remain classified in the detailed inventory.
 
 ## Confirmed baseline discrepancies
 

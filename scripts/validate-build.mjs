@@ -333,6 +333,60 @@ for (const project of [
   }
 }
 
+const nonPublicProjectSlugs = [
+  "inventory-optimisation",
+  "sales-inventory-dashboard",
+  "transportation-network",
+];
+for (const searchPage of [
+  { file: path.join(outputRoot, "index.html"), locale: "en" },
+  { file: path.join(outputRoot, "zh", "index.html"), locale: "zh" },
+]) {
+  const html = await readFile(searchPage.file, "utf8");
+  const indexMatch = html.match(
+    /<script\b[^>]*data-search-index[^>]*>([\s\S]*?)<\/script>/iu,
+  );
+  if (!indexMatch) {
+    failures.push(`${searchPage.locale} search: missing serialised index`);
+    continue;
+  }
+  const searchIndex = JSON.parse(indexMatch[1]);
+  if (searchIndex.some((item) => item.locale !== searchPage.locale)) {
+    failures.push(`${searchPage.locale} search: contains another locale`);
+  }
+  if (
+    searchIndex.some((item) =>
+      nonPublicProjectSlugs.some((slug) => item.path.includes(`/projects/${slug}/`)),
+    )
+  ) {
+    failures.push(`${searchPage.locale} search: contains a placeholder project`);
+  }
+}
+
+const sitemap = await readFile(path.join(outputRoot, "sitemap-0.xml"), "utf8");
+for (const route of [
+  "/notes/r-data-analysis-prediction/",
+  "/zh/notes/r-data-analysis-prediction/",
+  "/projects/customer-churn-machine-learning/",
+  "/zh/projects/customer-churn-machine-learning/",
+]) {
+  if (!sitemap.includes(`https://acidch.github.io${route}`)) {
+    failures.push(`sitemap: missing published bilingual route ${route}`);
+  }
+}
+for (const route of [
+  ...nonPublicProjectSlugs.flatMap((slug) => [
+    `/projects/${slug}/`,
+    `/zh/projects/${slug}/`,
+  ]),
+  "/zh/projects/customer-churn-machine-learning/workflow/",
+  "/zh/projects/customer-churn-machine-learning/prediction-evaluation/",
+]) {
+  if (sitemap.includes(`https://acidch.github.io${route}`)) {
+    failures.push(`sitemap: contains non-public route ${route}`);
+  }
+}
+
 for (const deepDive of [
   "data-validation",
   "model-comparison",
