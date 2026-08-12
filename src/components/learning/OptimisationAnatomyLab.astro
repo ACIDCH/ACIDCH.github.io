@@ -1,77 +1,68 @@
 ---
-const scenarios = [
-  {
-    id: "mix",
-    label: "产品组合",
-    objective: "最大化总贡献",
-    parameters: "单位贡献、材料用量、人工用量、可用资源",
-    decisions: "Core Kit 与 Premium Kit 的生产数量",
-    constraints: "材料 ≤ 240；人工 ≤ 250；生产数量 ≥ 0",
-    question: "在有限资源下，怎样组合两种产品才能获得最高贡献？",
-  },
-  {
-    id: "hub",
-    label: "枢纽选址",
-    objective: "最小化固定成本与运输成本",
-    parameters: "候选枢纽容量、固定开启成本、区域需求、运输成本",
-    decisions: "哪些枢纽开启，以及各枢纽向各区域配送多少",
-    constraints: "满足需求；不超过产能；未开启枢纽不能发货",
-    question: "网络结构与流量分配应该怎样共同决定？",
-  },
-  {
-    id: "carrier",
-    label: "运输商分配",
-    objective: "最小化干线运输成本",
-    parameters: "单位成本、最低承诺量、最大承运量、总需求",
-    decisions: "分配给每家运输商的货量",
-    constraints: "总货量满足需求；各运输商上下限得到遵守",
-    question: "怎样把需求分给不同运输商，同时满足商业承诺？",
-  },
-];
+import type { Locale } from "../../config/site";
+import { decisionUi } from "../../i18n/decision-ui";
+
+interface Props {
+  locale?: Locale;
+}
+
+const { locale = "zh" } = Astro.props;
+const copy = decisionUi[locale].anatomy;
+const scenarios = copy.scenarios;
 const payload = JSON.stringify(scenarios).replace(/</g, "\\u003c");
 ---
 
-<section class="dm-lab" data-optimisation-anatomy aria-labelledby="optimisation-anatomy-title">
+<section
+  class="dm-lab"
+  data-optimisation-anatomy
+  aria-labelledby="optimisation-anatomy-title"
+>
   <div class="dm-lab__intro">
-    <p class="learning-note-kicker">互动实验 · Model Anatomy</p>
-    <h3 id="optimisation-anatomy-title">同一个业务问题，怎样拆成优化模型的四个核心部分？</h3>
-    <p>切换业务场景，观察 Objective、Parameters、Decision Variables 与 Constraints 的职责如何保持不变。</p>
+    <p class="learning-note-kicker">{copy.kicker}</p>
+    <h3 id="optimisation-anatomy-title">{copy.title}</h3>
+    <p>{copy.intro}</p>
   </div>
 
-  <div class="dm-lab__chips" aria-label="选择优化场景">
-    {scenarios.map((scenario, index) => (
-      <button type="button" data-anatomy-choice={scenario.id} aria-pressed={index === 0 ? "true" : "false"}>
-        {scenario.label}
-      </button>
-    ))}
+  <div class="dm-lab__chips" aria-label={copy.controlsLabel}>
+    {
+      scenarios.map((scenario, index) => (
+        <button
+          type="button"
+          data-anatomy-choice={scenario.id}
+          aria-pressed={index === 0 ? "true" : "false"}
+        >
+          {scenario.label}
+        </button>
+      ))
+    }
   </div>
 
   <div class="dm-lab__callout">
-    <strong>Business question</strong>
+    <strong>{copy.questionLabel}</strong>
     <span data-anatomy-question>{scenarios[0].question}</span>
   </div>
 
   <div class="dm-lab__grid" aria-live="polite">
     <article class="dm-lab__panel">
-      <h4>Objective</h4>
+      <h4>{copy.objectiveLabel}</h4>
       <p data-anatomy-objective>{scenarios[0].objective}</p>
     </article>
     <article class="dm-lab__panel">
-      <h4>Parameters</h4>
+      <h4>{copy.parametersLabel}</h4>
       <p data-anatomy-parameters>{scenarios[0].parameters}</p>
     </article>
     <article class="dm-lab__panel">
-      <h4>Decision Variables</h4>
+      <h4>{copy.decisionsLabel}</h4>
       <p data-anatomy-decisions>{scenarios[0].decisions}</p>
     </article>
     <article class="dm-lab__panel">
-      <h4>Constraints</h4>
+      <h4>{copy.constraintsLabel}</h4>
       <p data-anatomy-constraints>{scenarios[0].constraints}</p>
     </article>
   </div>
 
   <div class="dm-lab__equation" data-anatomy-equation>
-Business question → decisions → objective → constraints → solve → interpret
+    Business question → decisions → objective → constraints → solve → interpret
   </div>
 
   <script is:inline type="application/json" data-anatomy-source set:html={payload} />
@@ -106,22 +97,28 @@ Business question → decisions → objective → constraints → solve → inte
       constraints: root.querySelector<HTMLElement>("[data-anatomy-constraints]"),
     };
 
-    root.querySelectorAll<HTMLButtonElement>("[data-anatomy-choice]").forEach((button) => {
-      button.addEventListener(
-        "click",
-        () => {
-          const selected = scenarios.find((item) => item.id === button.dataset.anatomyChoice);
-          if (!selected) return;
-          root.querySelectorAll<HTMLButtonElement>("[data-anatomy-choice]").forEach((candidate) =>
-            candidate.setAttribute("aria-pressed", String(candidate === button)),
-          );
-          Object.entries(fields).forEach(([key, element]) => {
-            if (element) element.textContent = selected[key as keyof Scenario];
-          });
-        },
-        { signal: controller.signal },
-      );
-    });
+    root
+      .querySelectorAll<HTMLButtonElement>("[data-anatomy-choice]")
+      .forEach((button) => {
+        button.addEventListener(
+          "click",
+          () => {
+            const selected = scenarios.find(
+              (item) => item.id === button.dataset.anatomyChoice,
+            );
+            if (!selected) return;
+            root
+              .querySelectorAll<HTMLButtonElement>("[data-anatomy-choice]")
+              .forEach((candidate) =>
+                candidate.setAttribute("aria-pressed", String(candidate === button)),
+              );
+            Object.entries(fields).forEach(([key, element]) => {
+              if (element) element.textContent = selected[key as keyof Scenario];
+            });
+          },
+          { signal: controller.signal },
+        );
+      });
 
     anatomyCleanup = () => controller.abort();
   }

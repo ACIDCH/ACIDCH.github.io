@@ -1,5 +1,7 @@
 ---
 import { sqlLearningSeedSql } from "../../data/sql-learning";
+import type { Locale } from "../../config/site";
+import { sqlUi } from "../../i18n/sql-ui";
 
 type Preset =
   | "join"
@@ -29,6 +31,7 @@ type Focus = "keys" | "select" | "where" | "projection" | "all";
 interface Props {
   defaultPreset?: Preset;
   focus?: Focus;
+  locale?: Locale;
 }
 
 const pathname = Astro.url.pathname;
@@ -50,52 +53,58 @@ const inferredPreset: Preset = pathname.includes("/sql-primary-key/")
       : pathname.includes("/sql-projection/")
         ? "projection-columns"
         : "customers";
-const { defaultPreset = inferredPreset, focus = inferredFocus } = Astro.props;
+const {
+  defaultPreset = inferredPreset,
+  focus = inferredFocus,
+  locale = "zh",
+} = Astro.props;
+const copy = sqlUi[locale].playground;
+const label = (value: Preset) => copy.options[value];
 const presetOptions = {
   keys: [
-    { value: "customers", label: "查看客户表" },
-    { value: "orders", label: "查看订单表" },
-    { value: "duplicate", label: "测试重复主键" },
-    { value: "foreign-key", label: "测试无效外键" },
+    { value: "customers", label: label("customers") },
+    { value: "orders", label: label("orders") },
+    { value: "duplicate", label: label("duplicate") },
+    { value: "foreign-key", label: label("foreign-key") },
   ],
   select: [
-    { value: "customers", label: "SELECT customers" },
-    { value: "orders", label: "SELECT orders" },
-    { value: "products", label: "SELECT products" },
-    { value: "order-items", label: "SELECT order_items" },
-    { value: "expression", label: "SELECT 1 执行检查" },
+    { value: "customers", label: label("customers") },
+    { value: "orders", label: label("orders") },
+    { value: "products", label: label("products") },
+    { value: "order-items", label: label("order-items") },
+    { value: "expression", label: label("expression") },
   ],
   where: [
-    { value: "where-gte", label: "金额 >= 500" },
-    { value: "where-and", label: "AND：同时满足" },
-    { value: "where-or", label: "OR：任意满足" },
-    { value: "where-grouped", label: "括号改变优先级" },
-    { value: "where-between", label: "BETWEEN 闭区间" },
-    { value: "where-in", label: "IN 多个离散值" },
-    { value: "where-like", label: "LIKE 文本模式" },
-    { value: "where-null", label: "IS NULL 缺失检查" },
+    { value: "where-gte", label: label("where-gte") },
+    { value: "where-and", label: label("where-and") },
+    { value: "where-or", label: label("where-or") },
+    { value: "where-grouped", label: label("where-grouped") },
+    { value: "where-between", label: label("where-between") },
+    { value: "where-in", label: label("where-in") },
+    { value: "where-like", label: label("where-like") },
+    { value: "where-null", label: label("where-null") },
   ],
   projection: [
-    { value: "projection-columns", label: "选择三列" },
-    { value: "projection-reorder", label: "重排列顺序" },
-    { value: "projection-alias", label: "AS 列别名" },
-    { value: "projection-where", label: "Projection + WHERE" },
-    { value: "projection-expression", label: "表达式派生列" },
+    { value: "projection-columns", label: label("projection-columns") },
+    { value: "projection-reorder", label: label("projection-reorder") },
+    { value: "projection-alias", label: label("projection-alias") },
+    { value: "projection-where", label: label("projection-where") },
+    { value: "projection-expression", label: label("projection-expression") },
   ],
   all: [
-    { value: "customers", label: "查看客户表" },
-    { value: "orders", label: "查看订单表" },
-    { value: "products", label: "查看产品表" },
-    { value: "order-items", label: "查看订单明细" },
-    { value: "expression", label: "SELECT 1 执行检查" },
-    { value: "where-gte", label: "WHERE 金额筛选" },
-    { value: "where-between", label: "WHERE 区间筛选" },
-    { value: "projection-columns", label: "Projection 三列" },
-    { value: "projection-alias", label: "Projection 别名" },
-    { value: "join", label: "连接客户与订单" },
-    { value: "aggregate", label: "按客户汇总订单" },
-    { value: "duplicate", label: "测试重复主键" },
-    { value: "foreign-key", label: "测试无效外键" },
+    { value: "customers", label: label("customers") },
+    { value: "orders", label: label("orders") },
+    { value: "products", label: label("products") },
+    { value: "order-items", label: label("order-items") },
+    { value: "expression", label: label("expression") },
+    { value: "where-gte", label: label("where-gte") },
+    { value: "where-between", label: label("where-between") },
+    { value: "projection-columns", label: label("projection-columns") },
+    { value: "projection-alias", label: label("projection-alias") },
+    { value: "join", label: label("join") },
+    { value: "aggregate", label: label("aggregate") },
+    { value: "duplicate", label: label("duplicate") },
+    { value: "foreign-key", label: label("foreign-key") },
   ],
 } as const;
 const visiblePresets = presetOptions[focus];
@@ -107,46 +116,54 @@ const serializedSeed = JSON.stringify(sqlLearningSeedSql).replace(/</g, "\\u003c
   data-sql-playground
   data-default-preset={defaultPreset}
   data-sql-focus={focus}
+  data-copy={JSON.stringify(copy)}
   aria-labelledby="sql-playground-title"
 >
   <div class="sql-playground__intro">
-    <p class="learning-note-kicker">浏览器实验 · SQLite</p>
-    <h3 id="sql-playground-title">直接修改 SQL，再运行同一组业务数据</h3>
-    <p>
-      客户、订单、产品、订单明细和客户扩展资料都来自 SQL 系列的统一数据源。数据库只存在于当前浏览器内存中，重置后会恢复为同一份初始数据。下拉示例只保留当前笔记真正需要的主题。
-    </p>
+    <p class="learning-note-kicker">{copy.kicker}</p><h3 id="sql-playground-title">
+      {copy.title}
+    </h3><p>{copy.intro}</p>
   </div>
 
   <div class="sql-playground__toolbar">
     <label for="sql-playground-preset">
-      <span>当前主题示例</span>
+      <span>{copy.presetLabel}</span>
       <select id="sql-playground-preset" data-sql-preset>
-        {visiblePresets.map((option) => (
-          <option value={option.value}>{option.label}</option>
-        ))}
+        {
+          visiblePresets.map((option) => (
+            <option value={option.value}>{option.label}</option>
+          ))
+        }
       </select>
     </label>
     <div class="sql-playground__actions">
-      <button type="button" class="button" data-sql-run>运行 SQL</button>
-      <button type="button" class="button button--secondary" data-sql-reset>重置数据库</button>
+      <button type="button" class="button" data-sql-run>{copy.run}</button>
+      <button type="button" class="button button--secondary" data-sql-reset
+        >{copy.reset}</button
+      >
     </div>
   </div>
 
   <label class="sql-playground__editor" for="sql-playground-code">
     <span>SQL</span>
-    <textarea id="sql-playground-code" data-sql-code rows="9" spellcheck="false"></textarea>
+    <textarea id="sql-playground-code" data-sql-code rows="9" spellcheck="false"
+    ></textarea>
   </label>
 
   <div class="sql-playground__status" aria-live="polite" data-sql-status>
-    运行环境尚未加载。
+    {copy.loading}
   </div>
 
-  <div class="sql-playground__result-summary" data-sql-result-summary aria-live="polite">
-    尚未运行查询。
+  <div
+    class="sql-playground__result-summary"
+    data-sql-result-summary
+    aria-live="polite"
+  >
+    {copy.notRun}
   </div>
 
   <div class="sql-playground__output" data-sql-output aria-live="polite">
-    <p>运行查询后，结果表会显示在这里。</p>
+    <p>{copy.outputHint}</p>
   </div>
 
   <script is:inline type="application/json" data-sql-seed set:html={serializedSeed} />
@@ -322,7 +339,9 @@ const serializedSeed = JSON.stringify(sqlLearningSeedSql).replace(/</g, "\\u003c
     if (typeof existing === "function") return Promise.resolve(existing as InitSqlJs);
 
     return new Promise((resolve, reject) => {
-      const prior = document.querySelector<HTMLScriptElement>('script[data-sqljs-loader="true"]');
+      const prior = document.querySelector<HTMLScriptElement>(
+        'script[data-sqljs-loader="true"]',
+      );
       if (prior) {
         prior.addEventListener(
           "load",
@@ -376,6 +395,7 @@ const serializedSeed = JSON.stringify(sqlLearningSeedSql).replace(/</g, "\\u003c
     sqlPlaygroundCleanup?.();
     const root = document.querySelector<HTMLElement>("[data-sql-playground]");
     if (!root) return;
+    const copy = JSON.parse(root.dataset.copy ?? "{}") as Record<string, string>;
 
     const preset = root.querySelector<HTMLSelectElement>("[data-sql-preset]");
     const code = root.querySelector<HTMLTextAreaElement>("[data-sql-code]");
@@ -449,7 +469,10 @@ const serializedSeed = JSON.stringify(sqlLearningSeedSql).replace(/</g, "\\u003c
         summaryOutput.textContent = `${result.values.length} rows × ${result.columns.length} columns`;
         return;
       }
-      const rowCount = results.reduce((total, result) => total + result.values.length, 0);
+      const rowCount = results.reduce(
+        (total, result) => total + result.values.length,
+        0,
+      );
       summaryOutput.textContent = `${results.length} result sets · ${rowCount} returned rows`;
     }
 
@@ -458,7 +481,7 @@ const serializedSeed = JSON.stringify(sqlLearningSeedSql).replace(/</g, "\\u003c
       setResultSummary(results);
       if (results.length === 0) {
         const paragraph = document.createElement("p");
-        paragraph.textContent = "SQL 执行成功，没有返回结果集。";
+        paragraph.textContent = copy.noResults;
         resultOutput.append(paragraph);
         return;
       }
@@ -491,28 +514,28 @@ const serializedSeed = JSON.stringify(sqlLearningSeedSql).replace(/</g, "\\u003c
     }
 
     async function resetDatabase(showStatus = true) {
-      if (showStatus) setStatus("正在加载 SQLite…", "loading");
+      if (showStatus) setStatus(copy.loadingSqlite, "loading");
       const SQL = await getSqlModule();
       db?.close();
       db = new SQL.Database();
       db.run(seedSql);
-      if (showStatus) setStatus("SQLite 已就绪，统一示例数据库已重置。", "ready");
+      if (showStatus) setStatus(copy.ready, "ready");
     }
 
     async function runQuery() {
       runControl.disabled = true;
       try {
         if (!db) await resetDatabase(false);
-        setStatus("正在执行 SQL…", "running");
+        setStatus(copy.running, "running");
         const results = db?.exec(codeEditor.value) ?? [];
         renderResults(results);
-        setStatus("SQL 执行完成。", "success");
+        setStatus(copy.success, "success");
       } catch (error) {
         const paragraph = document.createElement("p");
         paragraph.textContent = error instanceof Error ? error.message : String(error);
         resultOutput.replaceChildren(paragraph);
         summaryOutput.textContent = "query failed";
-        setStatus("SQL 执行失败。查看下方错误信息。", "error");
+        setStatus(copy.failure, "error");
       } finally {
         runControl.disabled = false;
       }
@@ -533,7 +556,7 @@ const serializedSeed = JSON.stringify(sqlLearningSeedSql).replace(/</g, "\\u003c
         try {
           await resetDatabase();
           const paragraph = document.createElement("p");
-          paragraph.textContent = "数据库已恢复到统一的初始业务数据。";
+          paragraph.textContent = copy.resetMessage;
           resultOutput.replaceChildren(paragraph);
           summaryOutput.textContent = "database reset · no query result yet";
         } catch (error) {
@@ -555,7 +578,9 @@ const serializedSeed = JSON.stringify(sqlLearningSeedSql).replace(/</g, "\\u003c
     );
 
     const requestedPreset = playgroundRoot.dataset.defaultPreset || "customers";
-    const availablePresets = Array.from(presetSelect.options).map((option) => option.value);
+    const availablePresets = Array.from(presetSelect.options).map(
+      (option) => option.value,
+    );
     const initialPreset =
       requestedPreset in examples && availablePresets.includes(requestedPreset)
         ? requestedPreset

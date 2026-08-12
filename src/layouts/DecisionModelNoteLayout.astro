@@ -67,10 +67,13 @@ const structuredData = {
     />
     <LearningNoteHero title={entry.data.title} />
     <div class="learning-note__grid">
-      <LearningNoteToc items={toc} />
+      <LearningNoteToc items={toc} locale={entry.data.locale} />
       <div class="learning-note__body">
         <Content />
-        <DecisionModelLearningBlocks slug={entry.data.slug} />
+        <DecisionModelLearningBlocks
+          slug={entry.data.slug}
+          locale={entry.data.locale}
+        />
       </div>
     </div>
 

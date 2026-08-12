@@ -11,6 +11,7 @@ const advanced = readFileSync(
   "src/components/learning/DataScienceAdvancedSections.astro",
   "utf8",
 );
+const dataScienceUi = readFileSync("src/i18n/data-science-ui.ts", "utf8");
 const noteRoute = readFileSync("src/components/NoteRenderer.astro", "utf8");
 const productivity = readFileSync("src/components/ProductivityPage.astro", "utf8");
 const productivityZh = readFileSync("src/pages/zh/productivity/index.astro", "utf8");
@@ -66,7 +67,8 @@ describe("R data science handbook and productivity section", () => {
       "discrimination",
       "calibration",
       "Brier score",
-    ].forEach((marker) => expect(advanced).toContain(marker));
+    ].forEach((marker) => expect(`${dataScienceUi}\n${advanced}`).toContain(marker));
+    expect(advanced).toContain("dataScienceUi[locale].advanced");
     expect(layout).toContain("DataScienceAdvancedSections");
     expect(layout).toContain('id: "bayesian-hierarchical"');
     expect(layout).toContain('id: "loss-bias-variance"');

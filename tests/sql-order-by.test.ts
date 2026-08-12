@@ -43,17 +43,22 @@ describe("SQL 08 ORDER BY Learning Note", () => {
 
   it("keeps ascending and descending examples aligned with canonical orders", () => {
     expect(
-      [...sqlOrders].sort((a, b) => a.order_value - b.order_value).map((row) => row.order_id),
+      [...sqlOrders]
+        .sort((a, b) => a.order_value - b.order_value)
+        .map((row) => row.order_id),
     ).toEqual([50002, 50001, 50004, 50003]);
     expect(
-      [...sqlOrders].sort((a, b) => b.order_value - a.order_value).map((row) => row.order_id),
+      [...sqlOrders]
+        .sort((a, b) => b.order_value - a.order_value)
+        .map((row) => row.order_id),
     ).toEqual([50003, 50004, 50001, 50002]);
   });
 
   it("uses the second sort key only to resolve the canonical customer tie", () => {
     const ordered = [...sqlOrders]
       .sort(
-        (a, b) => a.customer_id - b.customer_id || b.order_date.localeCompare(a.order_date),
+        (a, b) =>
+          a.customer_id - b.customer_id || b.order_date.localeCompare(a.order_date),
       )
       .map((row) => row.order_id);
     expect(ordered).toEqual([50002, 50001, 50003, 50004]);
@@ -72,7 +77,7 @@ describe("SQL 08 ORDER BY Learning Note", () => {
     expect(lab).toContain("sqlLearningSeedSql");
     expect(lab).toContain('data-order-rule="multi"');
     expect(lab).toContain('data-order-rule="stable"');
-    expect(lab).toContain('data-order-sql-run');
+    expect(lab).toContain("data-order-sql-run");
     expect(lab).toContain("sql.js@1.14.1");
     expect(lab).toContain("ORDER BY order_value DESC, order_id ASC");
     expect(lab).toContain("ORDER BY customer_id ASC, order_date DESC, order_id ASC");
@@ -83,8 +88,10 @@ describe("SQL 08 ORDER BY Learning Note", () => {
     expect(layout).toContain('entry.data.seriesSlug === "sql"');
     expect(layout).toContain("const generatedToc = headings");
     expect(layout).toContain("heading.depth === 2");
-    expect(layout).toContain("const learningToc = isStatisticsHandbook ? statisticsToc : generatedToc");
-    expect(layout).toContain("<OrderByLab />");
+    expect(layout).toContain(
+      "const learningToc = isStatisticsHandbook ? statisticsToc : generatedToc",
+    );
+    expect(layout).toContain("<OrderByLab locale={entry.data.locale} />");
     expect(layout).not.toContain("const sqlOrderByToc");
   });
 

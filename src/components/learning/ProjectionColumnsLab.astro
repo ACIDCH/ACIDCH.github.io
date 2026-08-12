@@ -1,29 +1,54 @@
 ---
 import { sqlCustomers, sqlOrders } from "../../data/sql-learning";
+import type { Locale } from "../../config/site";
+import { sqlUi } from "../../i18n/sql-ui";
+interface Props {
+  locale?: Locale;
+}
+const { locale = "zh" } = Astro.props;
+const copy = sqlUi[locale].projection;
 
-const payload = JSON.stringify({ customers: sqlCustomers, orders: sqlOrders }).replace(/</g, "\\u003c");
+const payload = JSON.stringify({ customers: sqlCustomers, orders: sqlOrders }).replace(
+  /</g,
+  "\\u003c",
+);
 ---
 
-<section class="projection-lab" data-projection-lab aria-labelledby="projection-lab-title">
+<section
+  class="projection-lab"
+  data-projection-lab
+  data-copy={JSON.stringify(copy)}
+  aria-labelledby="projection-lab-title"
+>
   <div class="projection-lab__intro">
-    <p class="learning-note-kicker">互动图表 · Result Shape</p>
-    <h3 id="projection-lab-title">同一批记录，SELECT 列表怎样改变结果结构？</h3>
-    <p>
-      所有模式都读取 SQL 系列的 canonical dataset。切换后同时观察行数、列数、输出字段名与列顺序；Projection 只改变当前结果集，不修改原表 schema。
-    </p>
+    <p class="learning-note-kicker">{copy.kicker}</p>
+    <h3 id="projection-lab-title">{copy.title}</h3>
+    <p>{copy.intro}</p>
   </div>
 
-  <div class="projection-lab__controls" role="group" aria-label="选择 Projection 示例">
-    <button type="button" data-projection-mode="all" aria-pressed="false">SELECT *</button>
-    <button type="button" data-projection-mode="columns" aria-pressed="true">选择三列</button>
-    <button type="button" data-projection-mode="reorder" aria-pressed="false">重排列</button>
-    <button type="button" data-projection-mode="alias" aria-pressed="false">列别名</button>
-    <button type="button" data-projection-mode="where" aria-pressed="false">WHERE + Projection</button>
+  <div class="projection-lab__controls" role="group" aria-label={copy.controlsLabel}>
+    <button type="button" data-projection-mode="all" aria-pressed="false"
+      >SELECT *</button
+    >
+    <button type="button" data-projection-mode="columns" aria-pressed="true"
+      >{copy.buttons.columns}</button
+    >
+    <button type="button" data-projection-mode="reorder" aria-pressed="false"
+      >{copy.buttons.reorder}</button
+    >
+    <button type="button" data-projection-mode="alias" aria-pressed="false"
+      >{copy.buttons.alias}</button
+    >
+    <button type="button" data-projection-mode="where" aria-pressed="false"
+      >WHERE + Projection</button
+    >
   </div>
 
   <div class="projection-lab__statement">
     <span>SELECT</span>
-    <code data-projection-statement>customer_id, customer_name, segment FROM customers</code>
+    <code data-projection-statement
+      >customer_id, customer_name, segment FROM customers</code
+    >
   </div>
 
   <div class="projection-lab__metrics" aria-live="polite">
@@ -39,10 +64,15 @@ const payload = JSON.stringify({ customers: sqlCustomers, orders: sqlOrders }).r
     </table>
   </div>
 
-  <div class="projection-lab__cards" data-projection-cards aria-label="Projection mobile records"></div>
+  <div
+    class="projection-lab__cards"
+    data-projection-cards
+    aria-label="Projection mobile records"
+  >
+  </div>
 
   <p class="projection-lab__reading" data-projection-reading aria-live="polite">
-    3 条 customer 记录全部保留，结果从原表 5 列缩小为 3 列。
+    {copy.initialReading}
   </p>
   <script is:inline type="application/json" data-projection-source set:html={payload} />
 </section>
@@ -284,6 +314,9 @@ const payload = JSON.stringify({ customers: sqlCustomers, orders: sqlOrders }).r
     const cardOutput = cards;
     const readingOutput = reading;
     const data = JSON.parse(source.textContent || "{}") as Data;
+    const copy = JSON.parse(root.dataset.copy ?? "{}") as {
+      readings: Record<Mode, string>;
+    };
     const controller = new AbortController();
 
     const makeResult = (mode: Mode): ResultShape => {
@@ -299,16 +332,20 @@ const payload = JSON.stringify({ customers: sqlCustomers, orders: sqlOrders }).r
             row.segment,
           ]),
           grain: "customer",
-          reading: "SELECT * 保留 3 条 customer 记录并返回全部 5 列。",
+          reading: copy.readings.all,
         };
       }
       if (mode === "reorder") {
         return {
           statement: "segment, customer_name, customer_id FROM customers",
           columns: ["segment", "customer_name", "customer_id"],
-          rows: data.customers.map((row) => [row.segment, row.customer_name, row.customer_id]),
+          rows: data.customers.map((row) => [
+            row.segment,
+            row.customer_name,
+            row.customer_id,
+          ]),
           grain: "customer",
-          reading: "记录数不变，结果列顺序完全由 SELECT 列表决定。",
+          reading: copy.readings.reorder,
         };
       }
       if (mode === "alias") {
@@ -316,9 +353,13 @@ const payload = JSON.stringify({ customers: sqlCustomers, orders: sqlOrders }).r
           statement:
             "customer_id AS customer_key, customer_name AS customer, segment AS customer_segment FROM customers",
           columns: ["customer_key", "customer", "customer_segment"],
-          rows: data.customers.map((row) => [row.customer_id, row.customer_name, row.segment]),
+          rows: data.customers.map((row) => [
+            row.customer_id,
+            row.customer_name,
+            row.segment,
+          ]),
           grain: "customer",
-          reading: "AS 只重命名当前结果集字段；原表 schema 与字段名没有改变。",
+          reading: copy.readings.alias,
         };
       }
       if (mode === "where") {
@@ -329,15 +370,19 @@ const payload = JSON.stringify({ customers: sqlCustomers, orders: sqlOrders }).r
           columns: ["order_id", "customer_id", "value"],
           rows: selected.map((row) => [row.order_id, row.customer_id, row.order_value]),
           grain: "order",
-          reading: "WHERE 先把 4 行缩小为 2 行，Projection 再把 4 列塑造成 3 列。",
+          reading: copy.readings.where,
         };
       }
       return {
         statement: "customer_id, customer_name, segment FROM customers",
         columns: ["customer_id", "customer_name", "segment"],
-        rows: data.customers.map((row) => [row.customer_id, row.customer_name, row.segment]),
+        rows: data.customers.map((row) => [
+          row.customer_id,
+          row.customer_name,
+          row.segment,
+        ]),
         grain: "customer",
-        reading: "3 条 customer 记录全部保留，结果从原表 5 列缩小为 3 列。",
+        reading: copy.readings.columns,
       };
     };
 

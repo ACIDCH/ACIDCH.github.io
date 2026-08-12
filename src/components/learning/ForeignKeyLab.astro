@@ -1,22 +1,36 @@
 ---
 import { sqlCustomers } from "../../data/sql-learning";
+import type { Locale } from "../../config/site";
+import { sqlUi } from "../../i18n/sql-ui";
+interface Props {
+  locale?: Locale;
+}
+const { locale = "zh" } = Astro.props;
+const copy = sqlUi[locale].foreignKey;
 ---
 
-<section class="foreign-key-lab" data-foreign-key-lab aria-labelledby="foreign-key-lab-title">
+<section
+  class="foreign-key-lab"
+  data-foreign-key-lab
+  data-copy={JSON.stringify(copy)}
+  aria-labelledby="foreign-key-lab-title"
+>
   <div class="foreign-key-lab__intro">
-    <p class="learning-note-kicker">互动图表 · 引用完整性</p>
-    <h3 id="foreign-key-lab-title">一个订单能否指向不存在的客户？</h3>
-    <p>
-      客户 ID 来自统一 SQL 数据集。切换订单中的 <code>customer_id</code>，再切换“数据库外键约束”与“只有逻辑引用”，观察无效引用在两个设计中的差别。
-    </p>
+    <p class="learning-note-kicker">{copy.kicker}</p>
+    <h3 id="foreign-key-lab-title">{copy.title}</h3>
+    <p>{copy.intro}</p>
   </div>
 
-  <div class="foreign-key-lab__mode" role="group" aria-label="选择引用检查模式">
-    <button type="button" data-fk-mode="constraint" aria-pressed="true">数据库 FOREIGN KEY</button>
-    <button type="button" data-fk-mode="logical" aria-pressed="false">仅逻辑外键</button>
+  <div class="foreign-key-lab__mode" role="group" aria-label={copy.controlsLabel}>
+    <button type="button" data-fk-mode="constraint" aria-pressed="true"
+      >{copy.constraintMode}</button
+    >
+    <button type="button" data-fk-mode="logical" aria-pressed="false"
+      >{copy.logicalMode}</button
+    >
   </div>
 
-  <div class="foreign-key-lab__relation" aria-label="当前引用规则">
+  <div class="foreign-key-lab__relation" aria-label={copy.relationLabel}>
     <span>orders.customer_id</span>
     <strong data-fk-relation-label>FK → PK</strong>
     <span>customers.customer_id</span>
@@ -24,7 +38,7 @@ import { sqlCustomers } from "../../data/sql-learning";
 
   <div class="foreign-key-lab__grid">
     <div class="foreign-key-lab__table-wrap">
-      <p class="foreign-key-lab__label">父表 · customers</p>
+      <p class="foreign-key-lab__label">{copy.parentTable}</p>
       <table>
         <thead>
           <tr>
@@ -33,35 +47,39 @@ import { sqlCustomers } from "../../data/sql-learning";
           </tr>
         </thead>
         <tbody>
-          {sqlCustomers.map((customer) => (
-            <tr data-parent-row={customer.customer_id}>
-              <td>{customer.customer_id}</td>
-              <td>{customer.customer_name}</td>
-            </tr>
-          ))}
+          {
+            sqlCustomers.map((customer) => (
+              <tr data-parent-row={customer.customer_id}>
+                <td>{customer.customer_id}</td>
+                <td>{customer.customer_name}</td>
+              </tr>
+            ))
+          }
         </tbody>
       </table>
     </div>
 
     <aside class="foreign-key-lab__candidate" aria-live="polite">
-      <p class="foreign-key-lab__label">子表 · 候选新订单</p>
+      <p class="foreign-key-lab__label">{copy.childTable}</p>
       <dl>
         <div><dt>order_id</dt><dd>50999</dd></div>
         <div>
           <dt>customer_id</dt>
           <dd>
-            <select data-foreign-key-choice aria-label="选择订单 customer_id">
-              {sqlCustomers.map((customer) => (
-                <option value={customer.customer_id}>{customer.customer_id}</option>
-              ))}
-              <option value="9999">9999 · 不存在</option>
+            <select data-foreign-key-choice aria-label={copy.choiceLabel}>
+              {
+                sqlCustomers.map((customer) => (
+                  <option value={customer.customer_id}>{customer.customer_id}</option>
+                ))
+              }
+              <option value="9999">9999 · {copy.missing}</option>
             </select>
           </dd>
         </div>
         <div><dt>order_value</dt><dd>99.00</dd></div>
       </dl>
       <div class="foreign-key-lab__result" data-foreign-key-result data-state="valid">
-        <strong data-foreign-key-status>引用有效</strong>
+        <strong data-foreign-key-status>{copy.valid}</strong>
         <p data-foreign-key-reading></p>
       </div>
       <div class="foreign-key-lab__decision" data-fk-decision></div>
@@ -275,6 +293,9 @@ import { sqlCustomers } from "../../data/sql-learning";
     foreignKeyCleanup?.();
     const root = document.querySelector<HTMLElement>("[data-foreign-key-lab]");
     if (!root) return;
+    const copy = JSON.parse(root.dataset.copy ?? "{}") as Record<string, string>;
+    const format = (template: string, value: string) =>
+      template.replace("{value}", value);
 
     const choice = root.querySelector<HTMLSelectElement>("[data-foreign-key-choice]");
     const result = root.querySelector<HTMLElement>("[data-foreign-key-result]");
@@ -282,9 +303,14 @@ import { sqlCustomers } from "../../data/sql-learning";
     const reading = root.querySelector<HTMLElement>("[data-foreign-key-reading]");
     const decision = root.querySelector<HTMLElement>("[data-fk-decision]");
     const relationLabel = root.querySelector<HTMLElement>("[data-fk-relation-label]");
-    const modeButtons = Array.from(root.querySelectorAll<HTMLButtonElement>("[data-fk-mode]"));
-    const parentRows = Array.from(root.querySelectorAll<HTMLElement>("[data-parent-row]"));
-    if (!choice || !result || !status || !reading || !decision || !relationLabel) return;
+    const modeButtons = Array.from(
+      root.querySelectorAll<HTMLButtonElement>("[data-fk-mode]"),
+    );
+    const parentRows = Array.from(
+      root.querySelectorAll<HTMLElement>("[data-parent-row]"),
+    );
+    if (!choice || !result || !status || !reading || !decision || !relationLabel)
+      return;
 
     const choiceControl = choice;
     const resultOutput = result;
@@ -300,10 +326,10 @@ import { sqlCustomers } from "../../data/sql-learning";
       const value = choiceControl.value;
       const valid = validKeys.has(value);
       resultOutput.dataset.state = valid ? "valid" : "invalid";
-      statusOutput.textContent = valid ? "引用有效" : "引用无效";
+      statusOutput.textContent = valid ? copy.valid : copy.invalid;
       readingOutput.textContent = valid
-        ? `customer_id = ${value} 能在 customers.customer_id 中找到对应记录。`
-        : `customer_id = ${value} 在 customers.customer_id 中不存在，因此形成孤立引用。`;
+        ? format(copy.validReading, value)
+        : format(copy.invalidReading, value);
 
       if (mode === "constraint") {
         relationOutput.textContent = "FK → PK";

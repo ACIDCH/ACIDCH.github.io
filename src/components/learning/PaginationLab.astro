@@ -1,19 +1,29 @@
 ---
 import { sqlLearningSeedSql, sqlOrders } from "../../data/sql-learning";
+import type { Locale } from "../../config/site";
+import { sqlUi } from "../../i18n/sql-ui";
+interface Props {
+  locale?: Locale;
+}
+const { locale = "zh" } = Astro.props;
+const copy = sqlUi[locale].pagination;
 
-const payload = JSON.stringify({ orders: sqlOrders, seedSql: sqlLearningSeedSql }).replace(
-  /</g,
-  "\\u003c",
-);
+const payload = JSON.stringify({
+  orders: sqlOrders,
+  seedSql: sqlLearningSeedSql,
+}).replace(/</g, "\\u003c");
 ---
 
-<section class="pagination-lab" data-pagination-lab aria-labelledby="pagination-lab-title">
+<section
+  class="pagination-lab"
+  data-pagination-lab
+  data-copy={JSON.stringify(copy)}
+  aria-labelledby="pagination-lab-title"
+>
   <div class="pagination-lab__intro">
-    <p class="learning-note-kicker">互动实验 · Page Window Contract</p>
-    <h3 id="pagination-lab-title">页码改变时，LIMIT、OFFSET 与结果窗口怎样一起变化？</h3>
-    <p>
-      统一 orders 先按 <code>order_value DESC, order_id ASC</code> 建立稳定顺序，再由 pageSize 与 pageIndex 计算窗口。下半部分可直接在浏览器 SQLite 中执行生成的查询。
-    </p>
+    <p class="learning-note-kicker">{copy.kicker}</p>
+    <h3 id="pagination-lab-title">{copy.title}</h3>
+    <p>{copy.intro}</p>
   </div>
 
   <div class="pagination-lab__controls">
@@ -26,11 +36,22 @@ const payload = JSON.stringify({ orders: sqlOrders, seedSql: sqlLearningSeedSql 
     </label>
     <label for="pagination-page-index">
       <span>pageIndex</span>
-      <input id="pagination-page-index" data-pagination-page-index type="number" min="1" max="6" value="1" />
+      <input
+        id="pagination-page-index"
+        data-pagination-page-index
+        type="number"
+        min="1"
+        max="6"
+        value="1"
+      />
     </label>
     <div class="pagination-lab__actions" aria-label="Pagination navigation">
-      <button type="button" class="button button--secondary" data-pagination-prev>上一页</button>
-      <button type="button" class="button button--secondary" data-pagination-next>下一页</button>
+      <button type="button" class="button button--secondary" data-pagination-prev
+        >{copy.previous}</button
+      >
+      <button type="button" class="button button--secondary" data-pagination-next
+        >{copy.next}</button
+      >
     </div>
   </div>
 
@@ -48,7 +69,7 @@ const payload = JSON.stringify({ orders: sqlOrders, seedSql: sqlLearningSeedSql 
 
   <div class="pagination-lab__window" aria-labelledby="pagination-window-title">
     <div class="pagination-lab__window-head">
-      <h4 id="pagination-window-title">完整排序结果与当前窗口</h4>
+      <h4 id="pagination-window-title">{copy.windowTitle}</h4>
       <span data-pagination-range>positions 1–2</span>
     </div>
     <div class="pagination-lab__rail" data-pagination-rail></div>
@@ -81,25 +102,36 @@ LIMIT 2 OFFSET 0;</code></pre>
     </table>
   </div>
 
-  <div class="pagination-lab__cards" data-pagination-cards aria-label="Pagination mobile records"></div>
+  <div
+    class="pagination-lab__cards"
+    data-pagination-cards
+    aria-label="Pagination mobile records"
+  >
+  </div>
 
   <p class="pagination-lab__reading" data-pagination-reading aria-live="polite">
-    Page 1 使用 OFFSET 0，从稳定排序结果开头最多返回 2 行。
+    {copy.initialReading}
   </p>
 
   <div class="pagination-lab__runner" aria-labelledby="pagination-runner-title">
     <div class="pagination-lab__runner-intro">
-      <p class="learning-note-kicker">浏览器实验 · SQLite</p>
-      <h4 id="pagination-runner-title">执行当前页面查询，核对窗口计算与数据库结果</h4>
+      <p class="learning-note-kicker">{copy.runnerKicker}</p>
+      <h4 id="pagination-runner-title">{copy.runnerTitle}</h4>
     </div>
     <div class="pagination-lab__runner-toolbar">
-      <button type="button" class="button" data-pagination-run>运行当前 SQL</button>
-      <button type="button" class="button button--secondary" data-pagination-demo-beyond>查看越界页</button>
+      <button type="button" class="button" data-pagination-run>{copy.run}</button>
+      <button type="button" class="button button--secondary" data-pagination-demo-beyond
+        >{copy.beyond}</button
+      >
     </div>
-    <div class="pagination-lab__status" data-pagination-status aria-live="polite">运行环境尚未加载。</div>
-    <div class="pagination-lab__summary" data-pagination-summary aria-live="polite">尚未运行查询。</div>
+    <div class="pagination-lab__status" data-pagination-status aria-live="polite">
+      {copy.loading}
+    </div>
+    <div class="pagination-lab__summary" data-pagination-summary aria-live="polite">
+      {copy.notRun}
+    </div>
     <div class="pagination-lab__output" data-pagination-output aria-live="polite">
-      <p>运行后，SQLite 返回结果会显示在这里。</p>
+      <p>{copy.outputHint}</p>
     </div>
   </div>
 
@@ -442,7 +474,9 @@ LIMIT 2 OFFSET 0;</code></pre>
     close: () => void;
   };
   type SqlModule = { Database: new () => SqlDatabase };
-  type InitSqlJs = (config: { locateFile: (filename: string) => string }) => Promise<SqlModule>;
+  type InitSqlJs = (config: {
+    locateFile: (filename: string) => string;
+  }) => Promise<SqlModule>;
 
   let paginationCleanup: (() => void) | undefined;
   let sqlModulePromise: Promise<SqlModule> | undefined;
@@ -459,7 +493,9 @@ LIMIT 2 OFFSET 0;</code></pre>
     if (typeof existing === "function") return Promise.resolve(existing as InitSqlJs);
 
     return new Promise((resolve, reject) => {
-      const prior = document.querySelector<HTMLScriptElement>('script[data-sqljs-loader="true"]');
+      const prior = document.querySelector<HTMLScriptElement>(
+        'script[data-sqljs-loader="true"]',
+      );
       if (prior) {
         prior.addEventListener(
           "load",
@@ -470,9 +506,13 @@ LIMIT 2 OFFSET 0;</code></pre>
           },
           { once: true },
         );
-        prior.addEventListener("error", () => reject(new Error("SQLite loader failed.")), {
-          once: true,
-        });
+        prior.addEventListener(
+          "error",
+          () => reject(new Error("SQLite loader failed.")),
+          {
+            once: true,
+          },
+        );
         return;
       }
 
@@ -489,9 +529,13 @@ LIMIT 2 OFFSET 0;</code></pre>
         },
         { once: true },
       );
-      script.addEventListener("error", () => reject(new Error("SQLite loader failed.")), {
-        once: true,
-      });
+      script.addEventListener(
+        "error",
+        () => reject(new Error("SQLite loader failed.")),
+        {
+          once: true,
+        },
+      );
       document.head.append(script);
     });
   }
@@ -511,11 +555,20 @@ LIMIT 2 OFFSET 0;</code></pre>
     if (!root) return;
 
     const sourceNode = required<HTMLScriptElement>(root, "[data-pagination-source]");
-    const pageSizeSelect = required<HTMLSelectElement>(root, "[data-pagination-page-size]");
-    const pageIndexInput = required<HTMLInputElement>(root, "[data-pagination-page-index]");
+    const pageSizeSelect = required<HTMLSelectElement>(
+      root,
+      "[data-pagination-page-size]",
+    );
+    const pageIndexInput = required<HTMLInputElement>(
+      root,
+      "[data-pagination-page-index]",
+    );
     const prevButton = required<HTMLButtonElement>(root, "[data-pagination-prev]");
     const nextButton = required<HTMLButtonElement>(root, "[data-pagination-next]");
-    const beyondButton = required<HTMLButtonElement>(root, "[data-pagination-demo-beyond]");
+    const beyondButton = required<HTMLButtonElement>(
+      root,
+      "[data-pagination-demo-beyond]",
+    );
     const runButton = required<HTMLButtonElement>(root, "[data-pagination-run]");
     const formula = required<HTMLElement>(root, "[data-pagination-formula]");
     const totalMetric = required<HTMLElement>(root, "[data-pagination-total]");
@@ -533,6 +586,9 @@ LIMIT 2 OFFSET 0;</code></pre>
     const output = required<HTMLElement>(root, "[data-pagination-output]");
 
     const source = JSON.parse(sourceNode.textContent || "{}") as Source;
+    const copy = JSON.parse(root.dataset.copy ?? "{}") as Record<string, string>;
+    const format = (template: string, values: Record<string, string>) =>
+      template.replace(/\{(\w+)\}/g, (_, key: string) => values[key] ?? "");
     const ordered = [...source.orders].sort(
       (a, b) => b.order_value - a.order_value || a.order_id - b.order_id,
     );
@@ -574,13 +630,17 @@ LIMIT 2 OFFSET 0;</code></pre>
 
       rows.forEach(({ order, position }) => {
         const tr = document.createElement("tr");
-        [position, order.order_id, order.customer_id, order.order_date, order.order_value].forEach(
-          (value) => {
-            const td = document.createElement("td");
-            td.textContent = String(value);
-            tr.append(td);
-          },
-        );
+        [
+          position,
+          order.order_id,
+          order.customer_id,
+          order.order_date,
+          order.order_value,
+        ].forEach((value) => {
+          const td = document.createElement("td");
+          td.textContent = String(value);
+          tr.append(td);
+        });
         body.append(tr);
 
         const article = document.createElement("article");
@@ -625,12 +685,21 @@ LIMIT 2 OFFSET 0;</code></pre>
 
       if (rows.length === 0) {
         range.textContent = `offset ${offset} · empty window`;
-        reading.textContent = `Page ${index} 的 OFFSET ${offset} 已越过当前 ${ordered.length} 条记录，SQL 会返回空结果集，而不是补齐不存在的记录。`;
+        reading.textContent = format(copy.emptyReading, {
+          page: String(index),
+          offset: String(offset),
+          total: String(ordered.length),
+        });
       } else {
         const start = offset + 1;
         const end = offset + rows.length;
         range.textContent = `positions ${start}–${end}`;
-        reading.textContent = `Page ${index} 使用 OFFSET ${offset}，从稳定排序结果的 position ${start} 开始，最多返回 ${size} 行。`;
+        reading.textContent = format(copy.pageReading, {
+          page: String(index),
+          offset: String(offset),
+          start: String(start),
+          size: String(size),
+        });
       }
 
       prevButton.disabled = index <= 1;
@@ -641,7 +710,7 @@ LIMIT 2 OFFSET 0;</code></pre>
       if (results.length === 0) {
         summary.textContent = "0 result sets · statement completed";
         const p = document.createElement("p");
-        p.textContent = "SQL 执行成功，但没有返回结果集。";
+        p.textContent = copy.noResults;
         output.append(p);
         return;
       }
@@ -676,21 +745,21 @@ LIMIT 2 OFFSET 0;</code></pre>
     async function runQuery() {
       runButton.disabled = true;
       try {
-        status.textContent = "正在加载并执行 SQLite…";
+        status.textContent = copy.running;
         status.dataset.state = "running";
         const SQL = await getSqlModule();
         db?.close();
         db = new SQL.Database();
         db.run(source.seedSql);
         renderSqlResults(db.exec(sql.textContent || ""));
-        status.textContent = "SQLite 执行完成，结果窗口与当前分页参数一致。";
+        status.textContent = copy.success;
         status.dataset.state = "success";
       } catch (error) {
         const p = document.createElement("p");
         p.textContent = error instanceof Error ? error.message : String(error);
         output.replaceChildren(p);
         summary.textContent = "query failed";
-        status.textContent = "SQLite 执行失败。";
+        status.textContent = copy.failure;
         status.dataset.state = "error";
       } finally {
         runButton.disabled = false;
@@ -738,7 +807,9 @@ LIMIT 2 OFFSET 0;</code></pre>
       },
       { signal: controller.signal },
     );
-    runButton.addEventListener("click", () => void runQuery(), { signal: controller.signal });
+    runButton.addEventListener("click", () => void runQuery(), {
+      signal: controller.signal,
+    });
 
     render();
     paginationCleanup = () => {

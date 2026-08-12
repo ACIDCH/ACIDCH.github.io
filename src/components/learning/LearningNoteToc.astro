@@ -1,4 +1,10 @@
 ---
+import type { Locale } from "../../config/site";
+import {
+  learningHeadingIdOverrides,
+  learningShellUi,
+} from "../../i18n/learning-shell-ui";
+
 interface Item {
   id: string;
   label: string;
@@ -7,27 +13,21 @@ interface Item {
 
 interface Props {
   items: Item[];
+  locale?: Locale;
 }
 
-const { items } = Astro.props;
+const { items, locale = "zh" } = Astro.props;
+const copy = learningShellUi[locale].toc;
 
 // Compact TOC labels intentionally remain stable even when an article heading is
 // refined. These overrides keep the server-rendered anchor tied to the current
 // Markdown heading ID. Browser QA verifies every emitted target exists.
-const headingIdOverrides: Record<string, string> = {
-  自增整数最容易理解的主键方案: "自增整数常见但不是唯一方案",
-  uuid当记录需要在不同系统中独立生成: "uuid适合分布式生成但不是一种单一算法",
-  联合主键一条记录也可以由多个字段共同确定: "联合主键多个字段也可以共同确定身份",
-  逻辑外键与数据库外键约束不是同一件事: "逻辑外键与数据库约束不是同一件事",
-  多对多订单和产品为什么不能只加一个外键: "多对多订单与产品为什么不能只加一个外键",
-};
-
-const resolveHeadingId = (id: string) => headingIdOverrides[id] ?? id;
+const resolveHeadingId = (id: string) => learningHeadingIdOverrides[id] ?? id;
 ---
 
-<nav class="learning-note-toc" aria-label="本页目录" data-learning-note-toc>
+<nav class="learning-note-toc" aria-label={copy.ariaLabel} data-learning-note-toc>
   <details open>
-    <summary>本页内容</summary>
+    <summary>{copy.summary}</summary>
     <ol>
       {
         items.map((item) => (
@@ -35,19 +35,17 @@ const resolveHeadingId = (id: string) => headingIdOverrides[id] ?? id;
             <a href={`#${resolveHeadingId(item.id)}`} data-learning-toc-link>
               {item.label}
             </a>
-            {
-              item.children?.length ? (
-                <ol class="learning-note-toc__nested">
-                  {item.children.map((child) => (
-                    <li>
-                      <a href={`#${resolveHeadingId(child.id)}`} data-learning-toc-link>
-                        {child.label}
-                      </a>
-                    </li>
-                  ))}
-                </ol>
-              ) : null
-            }
+            {item.children?.length ? (
+              <ol class="learning-note-toc__nested">
+                {item.children.map((child) => (
+                  <li>
+                    <a href={`#${resolveHeadingId(child.id)}`} data-learning-toc-link>
+                      {child.label}
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            ) : null}
           </li>
         ))
       }
