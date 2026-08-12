@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   getGeneratedPageNumbers,
   getPaginationPath,
+  NOTES_PAGE_SIZE,
   paginate,
   withQuery,
 } from "../src/utils/pagination";
@@ -21,6 +22,16 @@ describe("static pagination", () => {
       "item-12",
     ]);
     expect(page.totalPages).toBe(3);
+  });
+
+  it("uses twelve Learning Notes per page so four-column desktop grids form three full rows", () => {
+    expect(NOTES_PAGE_SIZE).toBe(12);
+    const notes = Array.from({ length: 33 }, (_, index) => `note-${index + 1}`);
+    const firstPage = paginate(notes, 1, NOTES_PAGE_SIZE);
+    const secondPage = paginate(notes, 2, NOTES_PAGE_SIZE);
+    expect(firstPage.items).toHaveLength(12);
+    expect(secondPage.items).toHaveLength(12);
+    expect(firstPage.totalPages).toBe(3);
   });
 
   it("generates page 2+ only and rejects invalid pages", () => {
@@ -45,6 +56,12 @@ describe("static pagination", () => {
 describe("pagination markup", () => {
   const pagination = readFileSync("src/components/Pagination.astro", "utf8");
   const notes = readFileSync("src/components/NotesExplorer.astro", "utf8");
+  const notePages = [
+    readFileSync("src/pages/notes/index.astro", "utf8"),
+    readFileSync("src/pages/notes/page/[page].astro", "utf8"),
+    readFileSync("src/pages/zh/notes/index.astro", "utf8"),
+    readFileSync("src/pages/zh/notes/page/[page].astro", "utf8"),
+  ];
 
   it("provides current-page and non-link disabled states", () => {
     expect(pagination).toContain('aria-current={page === currentPage ? "page"');
@@ -57,5 +74,13 @@ describe("pagination markup", () => {
     expect(notes).toContain("matches.slice(start, start + pageSize)");
     expect(notes).toContain('url.searchParams.set("tag", tag)');
     expect(notes).toContain("location.assign(target)");
+  });
+
+  it("keeps every bilingual Learning Notes route on the shared twelve-card page size", () => {
+    notePages.forEach((source) => {
+      expect(source).toContain("NOTES_PAGE_SIZE");
+      expect(source).toContain("pageSize={NOTES_PAGE_SIZE}");
+      expect(source).not.toContain("pageSize={9}");
+    });
   });
 });

@@ -1,3 +1,5 @@
+export const NOTES_PAGE_SIZE = 12;
+
 export interface PaginationSlice<T> {
   items: T[];
   currentPage: number;
