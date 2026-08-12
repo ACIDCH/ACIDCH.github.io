@@ -18,6 +18,95 @@ if (!expectedSha) {
 
 const checks = [
   {
+    path: "notes/series/r-statistics/",
+    markers: [
+      "R and Statistics",
+      "STAT 01",
+      "STAT 02",
+      "STAT 03",
+      "STAT 04",
+      "STAT 05",
+      "STAT 06",
+      "Data Types and Measurement Scales",
+      "Sampling and Estimation",
+      "Interval Estimation",
+      "Hypothesis Testing",
+      "Categorical Data Analysis",
+    ],
+    forbidden: ["待发布"],
+  },
+  {
+    path: "notes/descriptive-statistics/",
+    markers: [
+      "Statistics with R",
+      "Descriptive statistics",
+      "Probability and distributions",
+      "Correlation analysis",
+      "data-statistics-lab",
+    ],
+    forbidden: ["统计学与 R"],
+  },
+  {
+    path: "notes/stat-data-types-scales/",
+    markers: [
+      "Data Types and Measurement Scales",
+      "Nominal",
+      "Ordinal",
+      "Interval",
+      "Ratio",
+      "data dictionary",
+    ],
+    forbidden: ["数据类型与尺度"],
+  },
+  {
+    path: "notes/stat-sampling-estimation/",
+    markers: [
+      "Sampling and Estimation",
+      "Sampling distributions",
+      "standard error",
+      "central limit theorem",
+      "data-sampling-precision-lab",
+      "data-sampling-n",
+    ],
+    forbidden: ["抽样与估计"],
+  },
+  {
+    path: "notes/stat-interval-estimation/",
+    markers: [
+      "Interval Estimation",
+      "margin of error",
+      "t distribution",
+      "Bootstrap",
+      "data-sampling-precision-lab",
+      "data-sampling-confidence",
+    ],
+    forbidden: ["区间估计"],
+  },
+  {
+    path: "notes/stat-hypothesis-testing/",
+    markers: [
+      "Hypothesis Testing",
+      "null hypothesis",
+      "p-value",
+      "Type I error",
+      "Power",
+      "p.adjust",
+    ],
+    forbidden: ["假设检验"],
+  },
+  {
+    path: "notes/stat-categorical-data-analysis/",
+    markers: [
+      "Categorical Data Analysis",
+      "contingency table",
+      "Chi-square",
+      "odds ratio",
+      "Simpson's paradox",
+      "logistic regression",
+    ],
+    forbidden: ["分类数据分析"],
+  },
+  {
     path: "zh/notes/series/r-statistics/",
     markers: [
       "R 与统计",
@@ -37,7 +126,14 @@ const checks = [
   },
   {
     path: "zh/notes/stat-data-types-scales/",
-    markers: ["数据类型与尺度", "Nominal", "Ordinal", "Interval", "Ratio", "data dictionary"],
+    markers: [
+      "数据类型与尺度",
+      "Nominal",
+      "Ordinal",
+      "Interval",
+      "Ratio",
+      "data dictionary",
+    ],
   },
   {
     path: "zh/notes/stat-sampling-estimation/",
@@ -63,7 +159,14 @@ const checks = [
   },
   {
     path: "zh/notes/stat-hypothesis-testing/",
-    markers: ["假设检验", "null hypothesis", "p-value", "第一类错误", "Power", "p.adjust"],
+    markers: [
+      "假设检验",
+      "null hypothesis",
+      "p-value",
+      "第一类错误",
+      "Power",
+      "p.adjust",
+    ],
   },
   {
     path: "zh/notes/stat-categorical-data-analysis/",
@@ -107,6 +210,15 @@ async function fetchWithTimeout(url) {
   }
 }
 
+function visiblePublicCopy(html) {
+  return html
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/giu, "")
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/giu, "")
+    .replace(/<pre\b[^>]*>[\s\S]*?<\/pre>/giu, "")
+    .replace(/<code\b[^>]*>[\s\S]*?<\/code>/giu, "")
+    .replace(/<!--[\s\S]*?-->/gu, "");
+}
+
 async function verifyPage({ path, markers, forbidden = [] }) {
   const response = await fetchWithTimeout(deploymentUrl(path));
   if (!response.ok) throw new Error(`${path} returned HTTP ${response.status}`);
@@ -117,13 +229,14 @@ async function verifyPage({ path, markers, forbidden = [] }) {
   if (!/<html\b/i.test(html) || !/<main\b/i.test(html)) {
     throw new Error(`${path} does not look like a complete site page`);
   }
+  const publicCopy = visiblePublicCopy(html);
   for (const marker of markers) {
     if (!html.includes(marker)) {
       throw new Error(`${path} is missing expected marker: ${marker}`);
     }
   }
   for (const marker of [...forbiddenMarkers, ...forbidden]) {
-    if (html.includes(marker)) {
+    if (publicCopy.includes(marker)) {
       throw new Error(`${path} contains forbidden marker: ${marker}`);
     }
   }

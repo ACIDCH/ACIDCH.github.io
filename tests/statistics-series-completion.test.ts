@@ -153,7 +153,9 @@ describe("completed R statistics learning series", () => {
       "const isHandbook = isStatisticsEditorial || isSqlEditorial",
     );
     expect(layout).toContain("const generatedToc = headings");
-    expect(layout).toContain("isStatisticsHandbook ? statisticsToc : generatedToc");
+    expect(layout).toContain(
+      'isStatisticsHandbook && entry.data.locale === "zh" ? statisticsToc : generatedToc',
+    );
     expect(layout).toContain("SamplingPrecisionLab");
     expect(layout).toContain('data-learning-block="sampling-precision-lab"');
   });

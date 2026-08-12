@@ -3,12 +3,12 @@
   "sourceLocale": "zh",
   "targetLocale": "en",
   "mode": "warning",
-  "generatedAt": "2026-08-12T13:00:58.680Z",
+  "generatedAt": "2026-08-12T13:25:48.746Z",
   "counts": {
     "DRAFT_ONLY": 1,
-    "MISSING": 28,
+    "MISSING": 22,
     "PLACEHOLDER": 4,
-    "SYNCED": 9
+    "SYNCED": 15
   },
   "entries": [
     {
@@ -65,10 +65,10 @@
       "key": "notes:descriptive-statistics",
       "collection": "notes",
       "translationKey": "descriptive-statistics",
-      "status": "MISSING",
+      "status": "SYNCED",
       "change": null,
       "sourcePath": "src/content/notes/descriptive-statistics.zh.md",
-      "targetPath": null,
+      "targetPath": "src/content/notes/descriptive-statistics.en.md",
       "sourceHashes": {
         "content": "9f90d316f84f4b54bdc1b6b15d7743512518db061fd952774440e4455f16013f",
         "structure": "97e3bd78a9e2339899acd7be45a06d4291fc4711780e51b3f9282621ff1d75f3",
@@ -83,7 +83,13 @@
         "protected": "4523b24601f2598328c4c07b019e2aec6b8ce58de560f07f7dfa03cc4a205d69",
         "file": "79749f23b3acd276966ce7af6ecca8c46a99be19e2aa10a28474bd31efb769e9"
       },
-      "targetHashes": null,
+      "targetHashes": {
+        "content": "09affeac505afe734252d31e2c20bafea7ae6e5ae8a7ae37d6dda104da8ce691",
+        "structure": "97e3bd78a9e2339899acd7be45a06d4291fc4711780e51b3f9282621ff1d75f3",
+        "metadata": "7774a93bb5f46e79725314a9b584ac681a29d2ff2c1d6f320ab7beb47d076629",
+        "protected": "5289d57317716deb1c81d3fc1624eae595d029504353ddd3f75fa186acb1863a",
+        "file": "7d54c2da460d37bbbde0a518f436479d694eda023dbab0cea22fc394328efe5c"
+      },
       "integrityIssues": []
     },
     {
@@ -750,10 +756,10 @@
       "key": "notes:stat-categorical-data-analysis",
       "collection": "notes",
       "translationKey": "stat-categorical-data-analysis",
-      "status": "MISSING",
+      "status": "SYNCED",
       "change": null,
       "sourcePath": "src/content/notes/stat-categorical-data-analysis.zh.md",
-      "targetPath": null,
+      "targetPath": "src/content/notes/stat-categorical-data-analysis.en.md",
       "sourceHashes": {
         "content": "0ae2c6fa4f00e15dda6cc54ac447fc0a3ee2e00ce39fb98dc9ff03660d904676",
         "structure": "8d7df39e3500ea360990766a5df95f3c571ebd0bf443c8f09c059ed210adb5d5",
@@ -768,17 +774,23 @@
         "protected": "6728237d47edefbe69a9657ca1c33eb7714365bd8a867499ab3bc7eed878afe2",
         "file": "f706faf6519bf78d373498de98faec6086f313be93334bc82da41686f81c0c02"
       },
-      "targetHashes": null,
+      "targetHashes": {
+        "content": "5b9ef037f8c404582e729be1ab67cd9b7137efc925e48d99347908fcb1873892",
+        "structure": "8d7df39e3500ea360990766a5df95f3c571ebd0bf443c8f09c059ed210adb5d5",
+        "metadata": "cf8dd581686279e581742a2f0de74371eb9da2d3882179fa048a588c5d0359ba",
+        "protected": "6728237d47edefbe69a9657ca1c33eb7714365bd8a867499ab3bc7eed878afe2",
+        "file": "2c2831854ff217a36687d07327588003785e316fb8cca7a5ca38fe0eb8fdca77"
+      },
       "integrityIssues": []
     },
     {
       "key": "notes:stat-data-types-scales",
       "collection": "notes",
       "translationKey": "stat-data-types-scales",
-      "status": "MISSING",
+      "status": "SYNCED",
       "change": null,
       "sourcePath": "src/content/notes/stat-data-types-scales.zh.md",
-      "targetPath": null,
+      "targetPath": "src/content/notes/stat-data-types-scales.en.md",
       "sourceHashes": {
         "content": "5db8ee66ed5f8a31ec7b42fac013e4dacee6079b06d73fb6f8da2aae7d3ff7bb",
         "structure": "e4bc76c5dbde09a9162e4c6646981e6eff49a770eaa039bd9c1f384e71a4e11a",
@@ -793,17 +805,23 @@
         "protected": "222018339e6776a3aa07f61fbbab8d7f06ae1920f1fffe34a4c4a54253dbb60a",
         "file": "4e0eeb04b0f3c3562e3ed7226f2e34d46d7176f72ddc557902d885c0a7d642a6"
       },
-      "targetHashes": null,
+      "targetHashes": {
+        "content": "9aa249011750652a7d9b11597631a47fc97f1fba3c1f2da8b09d1f3fdb6a56b7",
+        "structure": "e4bc76c5dbde09a9162e4c6646981e6eff49a770eaa039bd9c1f384e71a4e11a",
+        "metadata": "1329e2e1beb539dbc3be1b6733b4b5b4e279d9856cb74a6b1f3b21704ba8261f",
+        "protected": "222018339e6776a3aa07f61fbbab8d7f06ae1920f1fffe34a4c4a54253dbb60a",
+        "file": "61d832b17dde1d1a19bb83aaa297138fe2ea87e2ac6cceb85e0e32134d6955e0"
+      },
       "integrityIssues": []
     },
     {
       "key": "notes:stat-hypothesis-testing",
       "collection": "notes",
       "translationKey": "stat-hypothesis-testing",
-      "status": "MISSING",
+      "status": "SYNCED",
       "change": null,
       "sourcePath": "src/content/notes/stat-hypothesis-testing.zh.md",
-      "targetPath": null,
+      "targetPath": "src/content/notes/stat-hypothesis-testing.en.md",
       "sourceHashes": {
         "content": "9e811c34ac078401831c12c2614c40e445de184288de8358b5326fdd9551f296",
         "structure": "efc4fae80360e95b5c64641fa2d981ac58bbee2006f59fcdd5d23fe759a3b1bd",
@@ -818,17 +836,23 @@
         "protected": "9ff2531057823937d31b4cccce246c6968d98a49e0d60912aabfd5c0b788991d",
         "file": "9cca15b209ada17bab717056222b97a20861553df1607cce26be7c6894723ce2"
       },
-      "targetHashes": null,
+      "targetHashes": {
+        "content": "593f4cab07cc1bfe579f3b7bebcfd2900c626e419d525bac85ebd1bddbeb1e69",
+        "structure": "efc4fae80360e95b5c64641fa2d981ac58bbee2006f59fcdd5d23fe759a3b1bd",
+        "metadata": "a7a237b6ca67420546ee57dbf36df4cd6992d1599ae6dcd42ee15d219127ad47",
+        "protected": "9ff2531057823937d31b4cccce246c6968d98a49e0d60912aabfd5c0b788991d",
+        "file": "f553e16b230554579230148c5b451913f66a3e4f2cf557604983cb8a906a4a38"
+      },
       "integrityIssues": []
     },
     {
       "key": "notes:stat-interval-estimation",
       "collection": "notes",
       "translationKey": "stat-interval-estimation",
-      "status": "MISSING",
+      "status": "SYNCED",
       "change": null,
       "sourcePath": "src/content/notes/stat-interval-estimation.zh.md",
-      "targetPath": null,
+      "targetPath": "src/content/notes/stat-interval-estimation.en.md",
       "sourceHashes": {
         "content": "2982c7b7eb62565644448b200dfcf6d1ae7dc1ecb1bf13b991d8c6322313bc39",
         "structure": "bd6d971e1a37677b3074408f94a7fbc8c2413f66f2cb12c9773f59aa010e351f",
@@ -843,17 +867,23 @@
         "protected": "7afefab8ae85619bf3c521cb924f873084ad9aed3736deb0c3fe77e7913d67f8",
         "file": "62818367db52489260908fdb5eabc5bad0d2375157eb623b2dda6ff6e6ebe0c4"
       },
-      "targetHashes": null,
+      "targetHashes": {
+        "content": "6b498db9f270d951874818a826a4ab9d6143214942db51008a38467684a336cf",
+        "structure": "bd6d971e1a37677b3074408f94a7fbc8c2413f66f2cb12c9773f59aa010e351f",
+        "metadata": "47e0c03a0e5e52058c78cede9d6a68cd466645674b24fe7f41e276b2c27328f0",
+        "protected": "7afefab8ae85619bf3c521cb924f873084ad9aed3736deb0c3fe77e7913d67f8",
+        "file": "3b247eaefc3f203742a012c72f75571752abb3abd2ae9ce875b5246da30261a6"
+      },
       "integrityIssues": []
     },
     {
       "key": "notes:stat-sampling-estimation",
       "collection": "notes",
       "translationKey": "stat-sampling-estimation",
-      "status": "MISSING",
+      "status": "SYNCED",
       "change": null,
       "sourcePath": "src/content/notes/stat-sampling-estimation.zh.md",
-      "targetPath": null,
+      "targetPath": "src/content/notes/stat-sampling-estimation.en.md",
       "sourceHashes": {
         "content": "c09361b957065738d827b82f7ab5025895ee3c67ef225fcb178f09974e6cb46e",
         "structure": "74ad8e0f39e5710f85c0ddec316c64c799dffe7650c08fcd3d763dce882ff55b",
@@ -868,7 +898,13 @@
         "protected": "cf1ca228a6c3fdd65edd19c8622f600e5d9d55d7eeaf33e6a1b18f54019b4612",
         "file": "aae88c37bae1d20126b4a1ffa405aebdd7fc1b1fbd16f51035c40d852c580457"
       },
-      "targetHashes": null,
+      "targetHashes": {
+        "content": "7c8c786e13bfe91dcf812cd98bca8820e7b44c7f0652f6adba37a3596cfb0cf5",
+        "structure": "74ad8e0f39e5710f85c0ddec316c64c799dffe7650c08fcd3d763dce882ff55b",
+        "metadata": "44be548d0eadd4f7607607283115d66559e84233b126c4dcdc9d0f8d466f1227",
+        "protected": "ded4aba28ad2abb8c11382bf7f3e452e38e00c8ab1be248874b6791608987811",
+        "file": "a2adfd9621089ed0b2ea685b1bb23ad7dba1e76a644f8232f51cd0ce2e9e2583"
+      },
       "integrityIssues": []
     },
     {

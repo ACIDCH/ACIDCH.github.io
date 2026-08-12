@@ -214,7 +214,7 @@ describe("SQL and relational data Learning Notes", () => {
     expect(layout).toContain("const generatedToc = headings");
     expect(layout).toContain("heading.depth === 2");
     expect(layout).toContain(
-      "const learningToc = isStatisticsHandbook ? statisticsToc : generatedToc",
+      'isStatisticsHandbook && entry.data.locale === "zh" ? statisticsToc : generatedToc',
     );
     [
       "sql-relational-data",

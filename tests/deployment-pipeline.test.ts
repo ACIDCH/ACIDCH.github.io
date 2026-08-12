@@ -162,6 +162,19 @@ describe("production deployment contracts", () => {
     expect(capture).toContain("expected = 10");
   });
 
+  it("verifies English and Chinese statistics routes after deployment", async () => {
+    const workflow = await source(".github/workflows/deploy.yml");
+    const verifier = await source("scripts/verify-statistics-production.mjs");
+
+    expect(workflow).toContain("node scripts/verify-statistics-production.mjs");
+    expect(verifier).toContain('path: "notes/series/r-statistics/"');
+    expect(verifier).toContain('path: "notes/descriptive-statistics/"');
+    expect(verifier).toContain('path: "notes/stat-categorical-data-analysis/"');
+    expect(verifier).toContain('path: "zh/notes/series/r-statistics/"');
+    expect(verifier).toContain("Data Types and Measurement Scales");
+    expect(verifier).toContain("visiblePublicCopy");
+  });
+
   it("publishes a machine-readable commit status after live verification", async () => {
     const workflow = await source(".github/workflows/deploy.yml");
 
