@@ -702,8 +702,8 @@ function markdownReport(report) {
     .join("\n");
   return `# Phase 0 Bilingual Architecture Audit
 
-Generated: ${report.generatedAt}  
-Branch: \`${report.git.branch}\`  
+Generated: ${report.generatedAt}
+Branch: \`${report.git.branch}\`
 Commit: \`${report.git.commit}\`
 
 ## Acceptance counts
