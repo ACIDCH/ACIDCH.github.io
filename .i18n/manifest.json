@@ -3,12 +3,12 @@
   "sourceLocale": "zh",
   "targetLocale": "en",
   "mode": "warning",
-  "generatedAt": "2026-08-12T13:25:48.746Z",
+  "generatedAt": "2026-08-12T13:49:09.178Z",
   "counts": {
     "DRAFT_ONLY": 1,
-    "MISSING": 22,
+    "MISSING": 15,
     "PLACEHOLDER": 4,
-    "SYNCED": 15
+    "SYNCED": 22
   },
   "entries": [
     {
@@ -127,10 +127,10 @@
       "key": "notes:influential-observations",
       "collection": "notes",
       "translationKey": "influential-observations",
-      "status": "MISSING",
+      "status": "SYNCED",
       "change": null,
       "sourcePath": "src/content/notes/influential-observations.zh.md",
-      "targetPath": null,
+      "targetPath": "src/content/notes/influential-observations.en.md",
       "sourceHashes": {
         "content": "5b9315f4430f4af4227b80122757e4022c8de0c8140cf57fa6509bf8f007d34b",
         "structure": "6bb1e5a05c028cbceb5ad500c3351f0632f2ac1651947eb24681177a7d630ea4",
@@ -145,17 +145,23 @@
         "protected": "cea9727f4b5e69dccc39cac49447385ffc500ac3c4eb3bcf421077e0c2d5088f",
         "file": "72604d758473008556ab36be5784f6eebde28be166bd081c7e2f49d80ede4da3"
       },
-      "targetHashes": null,
+      "targetHashes": {
+        "content": "ac76af0f8d51893ddb45f88d3b1bd98a80f9d2cbf20bf4ab90d5bd24d5d05f49",
+        "structure": "6bb1e5a05c028cbceb5ad500c3351f0632f2ac1651947eb24681177a7d630ea4",
+        "metadata": "b9a1e27b126956d11921602356bfd27e0fb95042779268cffe7eb3d80ccaacbc",
+        "protected": "cea9727f4b5e69dccc39cac49447385ffc500ac3c4eb3bcf421077e0c2d5088f",
+        "file": "c7de29feede89837f17d5e8f7d964bcdf1a0b5d99178ec0433c8182702e20562"
+      },
       "integrityIssues": []
     },
     {
       "key": "notes:logistic-regression",
       "collection": "notes",
       "translationKey": "logistic-regression",
-      "status": "MISSING",
+      "status": "SYNCED",
       "change": null,
       "sourcePath": "src/content/notes/logistic-regression.zh.md",
-      "targetPath": null,
+      "targetPath": "src/content/notes/logistic-regression.en.md",
       "sourceHashes": {
         "content": "38f398df41a1d8a49e3feafd101893f57854739d2f7e4412ea8322fa3b17a40b",
         "structure": "b4551d53a7315e4d4788045339be95b2947e3633cef9de2c17f4e121195e7bf7",
@@ -170,7 +176,13 @@
         "protected": "fb12f7e926dfbe792ef1d5a9818f9a8c4e232130a145df61a68fee698bfbc87c",
         "file": "bccbfa861b741a6445110874357dfaef855c1c9c8c3fb9fe6a96f342f13c225f"
       },
-      "targetHashes": null,
+      "targetHashes": {
+        "content": "1bbb56512ab9351fcb0fdf6e911bc9005c966fe27303b93b569f5bdb336a1363",
+        "structure": "b4551d53a7315e4d4788045339be95b2947e3633cef9de2c17f4e121195e7bf7",
+        "metadata": "510da0bed6b232a791db2d697e92dddf70f808d96423aa9e8148ff43e37bb0b7",
+        "protected": "fb12f7e926dfbe792ef1d5a9818f9a8c4e232130a145df61a68fee698bfbc87c",
+        "file": "27c91b36921aa4f3ecf735a526f6f6d6e4323d3529b682fbc3a5e5cd92bdebac"
+      },
       "integrityIssues": []
     },
     {
@@ -227,10 +239,10 @@
       "key": "notes:multiple-regression-multicollinearity",
       "collection": "notes",
       "translationKey": "multiple-regression-multicollinearity",
-      "status": "MISSING",
+      "status": "SYNCED",
       "change": null,
       "sourcePath": "src/content/notes/multiple-regression-multicollinearity.zh.md",
-      "targetPath": null,
+      "targetPath": "src/content/notes/multiple-regression-multicollinearity.en.md",
       "sourceHashes": {
         "content": "85e43a4e9f008dee9cf1068bd116a90e7631256e6c7b373f8febeabd361a5e2c",
         "structure": "18ceb54179c06cde7c82846e3563a5b5b1bbd1e3b3ea9d7ad06dccb4342adad1",
@@ -245,17 +257,23 @@
         "protected": "571201a2d884fd28d17b568a1b468d9ca18dfae92535fa9c61d7b57a1bf07ed1",
         "file": "a259d48665feca138f72f47fe53e1f87a87350a5c06a3a90bafb142e4013e2a9"
       },
-      "targetHashes": null,
+      "targetHashes": {
+        "content": "2c9d5403fa81e73c493f78ff8072718d9a1c9eca002d5bdcb3cabee765b0dfb9",
+        "structure": "18ceb54179c06cde7c82846e3563a5b5b1bbd1e3b3ea9d7ad06dccb4342adad1",
+        "metadata": "dfcabb3947eda828b553c3a681eddba8d9a986f4de3de5a43c63af18da5c78fc",
+        "protected": "571201a2d884fd28d17b568a1b468d9ca18dfae92535fa9c61d7b57a1bf07ed1",
+        "file": "55615ff2263d6b8aa9eafb9bc9466efc0b0a79424a15637a203150eda51a4bea"
+      },
       "integrityIssues": []
     },
     {
       "key": "notes:nonlinear-regression-interactions",
       "collection": "notes",
       "translationKey": "nonlinear-regression-interactions",
-      "status": "MISSING",
+      "status": "SYNCED",
       "change": null,
       "sourcePath": "src/content/notes/nonlinear-regression-interactions.zh.md",
-      "targetPath": null,
+      "targetPath": "src/content/notes/nonlinear-regression-interactions.en.md",
       "sourceHashes": {
         "content": "30ec428c926967f6fcc61bb2e5ec1a80785347e0e29ef7d646b8dc917b1170c3",
         "structure": "dcd908a0ce0f8fda5a83aea48757cecfb8089241dd8dc61c7ad6422d87529b3c",
@@ -270,7 +288,13 @@
         "protected": "bd3df4f177c6e9e0cd4dc38867dd771445562703158e3e185c4ed7929269f718",
         "file": "5c73a22b1acec6d4784063f2e0932165103b7487897ea602883816689f5a9908"
       },
-      "targetHashes": null,
+      "targetHashes": {
+        "content": "3907567181d232e9be86997856322dad7126f9b398be007bfdbd8f1754f6b690",
+        "structure": "dcd908a0ce0f8fda5a83aea48757cecfb8089241dd8dc61c7ad6422d87529b3c",
+        "metadata": "0d2fee331ac3e5feb0ff0a76c0f293d276498337e507f49a196c0b08cf8fddfc",
+        "protected": "bd3df4f177c6e9e0cd4dc38867dd771445562703158e3e185c4ed7929269f718",
+        "file": "7532f4e7edef65476b796d099670c6a1db4538a3d4aeeb6c319e4e3924c70a66"
+      },
       "integrityIssues": []
     },
     {
@@ -377,10 +401,10 @@
       "key": "notes:regression-diagnostics",
       "collection": "notes",
       "translationKey": "regression-diagnostics",
-      "status": "MISSING",
+      "status": "SYNCED",
       "change": null,
       "sourcePath": "src/content/notes/regression-diagnostics.zh.md",
-      "targetPath": null,
+      "targetPath": "src/content/notes/regression-diagnostics.en.md",
       "sourceHashes": {
         "content": "c3df6c1d8723458b20ac9a5be356b412dec96add59bdb90a748aebb78092dc1d",
         "structure": "7d09eba3c6b565b22c65dcae7276f2e1113225ea17ba78132a707238820ec061",
@@ -395,17 +419,23 @@
         "protected": "7225d07d1db13751294dd3a1a2c797269e4bf3ea49e333b9db12a30ce1f1b6eb",
         "file": "2255d410e03891aa2140afe829b32265ccd2d07e3ba6050baf53989c5f29223e"
       },
-      "targetHashes": null,
+      "targetHashes": {
+        "content": "f3bbf6f823fcc066f152bbaa811c7c849cf1c59a6677f215b5f31d18b1cf095a",
+        "structure": "7d09eba3c6b565b22c65dcae7276f2e1113225ea17ba78132a707238820ec061",
+        "metadata": "d74746fe06b680e5f9ae6ee646e6c94919ffc9bb99d6a6a3fa73e626af0e6c2c",
+        "protected": "7225d07d1db13751294dd3a1a2c797269e4bf3ea49e333b9db12a30ce1f1b6eb",
+        "file": "5fcc22ecdda46136f872ba7050e21bb1ac39be18d96912e53eb1c00fd2d92fb8"
+      },
       "integrityIssues": []
     },
     {
       "key": "notes:regression-feature-selection",
       "collection": "notes",
       "translationKey": "regression-feature-selection",
-      "status": "MISSING",
+      "status": "SYNCED",
       "change": null,
       "sourcePath": "src/content/notes/regression-feature-selection.zh.md",
-      "targetPath": null,
+      "targetPath": "src/content/notes/regression-feature-selection.en.md",
       "sourceHashes": {
         "content": "c2b814f32f3b98c3ae5d010b1b424911d4629731a18b1895f8e888d4a5f7bb5a",
         "structure": "53a3f8ecd6dac98eb0a8fdb564a3f8a13e094d6fa6f58ebc4b116089bc420f15",
@@ -420,17 +450,23 @@
         "protected": "c67e3d815dcee52f8db291864a758c3565b398b8a0dcdf7aa491415e4ef251e8",
         "file": "3e4f29d6676c6e16635c7a1c687c281930b25555885904cc3ad9ed537d850b5a"
       },
-      "targetHashes": null,
+      "targetHashes": {
+        "content": "4d6bf4d71463eec1c77a41f3fafa081282ce96859eecd9e3b0fd3a0a0943b952",
+        "structure": "53a3f8ecd6dac98eb0a8fdb564a3f8a13e094d6fa6f58ebc4b116089bc420f15",
+        "metadata": "62652712b7efd3fc0a3645ef38fc42dffe4df0c17e6285d8594903377df08b64",
+        "protected": "c67e3d815dcee52f8db291864a758c3565b398b8a0dcdf7aa491415e4ef251e8",
+        "file": "d4cafafdb9ed8f78edd6adab9b155336193633a987930ab39a76a0877b1f81ef"
+      },
       "integrityIssues": []
     },
     {
       "key": "notes:regression-foundations",
       "collection": "notes",
       "translationKey": "regression-foundations",
-      "status": "MISSING",
+      "status": "SYNCED",
       "change": null,
       "sourcePath": "src/content/notes/regression-foundations.zh.md",
-      "targetPath": null,
+      "targetPath": "src/content/notes/regression-foundations.en.md",
       "sourceHashes": {
         "content": "4c1d0a71a438d72c4f11f0960d2df7ac5332197d447807bfb1f21deee337d2d7",
         "structure": "e5a5c460e0114a012d6c270256fd8b055676391101f71233b61f39e3ff42dd17",
@@ -445,7 +481,13 @@
         "protected": "e708a34869e72bc2de7cb36fff96ee04d760fc052744a7a973a8f763a1e2ebcc",
         "file": "9d1e5eac7affef42759ea6696fd6f6a1569ed49a528d3a2f1443097237cf3f9f"
       },
-      "targetHashes": null,
+      "targetHashes": {
+        "content": "2564ac703be3b4a09a1c2be0ac340f2860ea5a3bb30732790d4b96324dd7c321",
+        "structure": "e5a5c460e0114a012d6c270256fd8b055676391101f71233b61f39e3ff42dd17",
+        "metadata": "ce97ced2181f2c9f6b587846dcfd21ab25698de8ee041d37c89ee27752a03e3d",
+        "protected": "e708a34869e72bc2de7cb36fff96ee04d760fc052744a7a973a8f763a1e2ebcc",
+        "file": "a20fef767db86505bba37a618d4b5c50766746864b723c396a5eba2b93f455d7"
+      },
       "integrityIssues": []
     },
     {
@@ -837,11 +879,11 @@
         "file": "9cca15b209ada17bab717056222b97a20861553df1607cce26be7c6894723ce2"
       },
       "targetHashes": {
-        "content": "593f4cab07cc1bfe579f3b7bebcfd2900c626e419d525bac85ebd1bddbeb1e69",
+        "content": "0f681d6ed4b98ec8994cdf699abe0983ee9b1be43575ad7a9c2733f58eb7f907",
         "structure": "efc4fae80360e95b5c64641fa2d981ac58bbee2006f59fcdd5d23fe759a3b1bd",
         "metadata": "a7a237b6ca67420546ee57dbf36df4cd6992d1599ae6dcd42ee15d219127ad47",
         "protected": "9ff2531057823937d31b4cccce246c6968d98a49e0d60912aabfd5c0b788991d",
-        "file": "f553e16b230554579230148c5b451913f66a3e4f2cf557604983cb8a906a4a38"
+        "file": "99d46ffb522500215af37ac82be10eee3c66c5e1410551b10a9c0bb56c5ec2ed"
       },
       "integrityIssues": []
     },
