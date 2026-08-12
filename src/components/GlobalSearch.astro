@@ -12,8 +12,16 @@ interface Props {
 }
 
 const { locale } = Astro.props;
-const projects = await getCollection("projects");
-const notes = (await getCollection("notes")).filter((entry) => !entry.data.draft);
+const projects = (await getCollection("projects")).filter(
+  (entry) =>
+    entry.data.status === "completed" &&
+    !entry.data.isPlaceholder &&
+    !entry.data.noindex,
+);
+const notes = (await getCollection("notes")).filter(
+  (entry) =>
+    entry.data.status === "published" && !entry.data.draft && !entry.data.isPlaceholder,
+);
 const locales: Locale[] = ["en", "zh"];
 const pages: SearchItem[] = locales.flatMap((pageLocale) =>
   sharedUi[pageLocale].search.pages.map((page) => ({
