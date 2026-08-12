@@ -18,6 +18,83 @@ if (!expectedSha) {
 
 const checks = [
   {
+    path: "notes/series/decision-models/",
+    markers: [
+      "Supply Chain and Decision Models",
+      "DM 01",
+      "DM 10",
+      "The Anatomy of an Optimisation Model",
+      "Building Optimisation Models with PuLP",
+      "Supply Chain Transportation Planning",
+      "Multi-period Production and Inventory Optimisation",
+    ],
+    forbidden: ["待发布", "供应链与优化"],
+  },
+  {
+    path: "notes/optimisation-model-anatomy/",
+    markers: ["The Anatomy of an Optimisation Model", "data-optimisation-anatomy"],
+    forbidden: ["优化建模基础"],
+  },
+  {
+    path: "notes/unconstrained-optimisation/",
+    markers: ["Unconstrained Optimisation", "data-unconstrained-lab", "optimum 600"],
+    forbidden: ["无约束优化"],
+  },
+  {
+    path: "notes/constrained-optimisation/",
+    markers: ["Constrained Optimisation", "data-feasible-lab", "42·Core + 58·Premium"],
+    forbidden: ["受约束优化"],
+  },
+  {
+    path: "notes/optimisation-sensitivity-analysis/",
+    markers: ["Optimisation Sensitivity Analysis", "Shadow price", "data-feasible-lab"],
+    forbidden: ["敏感性分析"],
+  },
+  {
+    path: "notes/binary-milp-decisions/",
+    markers: ["Binary Decisions and MILP", "data-milp-lab", "linking constraint"],
+    forbidden: ["二进制决策与 MILP"],
+  },
+  {
+    path: "notes/sets-indices-model-scale/",
+    markers: ["Sets, Indices and Model Scale", "data-scale-lab", "Sparse indexing"],
+    forbidden: ["集合与索引"],
+  },
+  {
+    path: "notes/pulp-model-architecture/",
+    markers: [
+      "Building Optimisation Models with PuLP",
+      "data-pulp-lab",
+      "LpVariable.dicts",
+    ],
+    forbidden: ["PuLP 建模"],
+  },
+  {
+    path: "notes/multidimensional-optimisation/",
+    markers: ["Multidimensional Optimisation Models", "data-scale-lab", "Mass balance"],
+    forbidden: ["多维优化模型"],
+  },
+  {
+    path: "notes/transportation-models/",
+    markers: [
+      "Supply Chain Transportation Planning",
+      "data-horizon-lab",
+      "data-flow-lab",
+      "Carrier allocation",
+    ],
+    forbidden: ["供应链运输规划"],
+  },
+  {
+    path: "notes/multi-period-production-inventory/",
+    markers: [
+      "Multi-period Production and Inventory Optimisation",
+      "data-flow-lab",
+      'data-default-mode="period"',
+      "12324",
+    ],
+    forbidden: ["多期生产与库存优化"],
+  },
+  {
     path: "zh/notes/",
     markers: [
       "按标签浏览",
@@ -134,7 +211,16 @@ async function fetchWithTimeout(url) {
   }
 }
 
-async function verifyPage({ path, markers, orderedMarkers = [] }) {
+function visiblePublicCopy(html) {
+  return html
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/giu, "")
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/giu, "")
+    .replace(/<pre\b[^>]*>[\s\S]*?<\/pre>/giu, "")
+    .replace(/<code\b[^>]*>[\s\S]*?<\/code>/giu, "")
+    .replace(/<!--[\s\S]*?-->/gu, "");
+}
+
+async function verifyPage({ path, markers, forbidden = [], orderedMarkers = [] }) {
   const response = await fetchWithTimeout(deploymentUrl(path));
   if (!response.ok) throw new Error(`${path} returned HTTP ${response.status}`);
   const html = await response.text();
@@ -158,8 +244,9 @@ async function verifyPage({ path, markers, orderedMarkers = [] }) {
       previousIndex = index;
     }
   }
-  for (const marker of forbiddenMarkers) {
-    if (html.includes(marker))
+  const publicCopy = visiblePublicCopy(html);
+  for (const marker of [...forbiddenMarkers, ...forbidden]) {
+    if (publicCopy.includes(marker))
       throw new Error(`${path} contains forbidden marker: ${marker}`);
   }
 }

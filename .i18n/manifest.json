@@ -3,22 +3,22 @@
   "sourceLocale": "zh",
   "targetLocale": "en",
   "mode": "warning",
-  "generatedAt": "2026-08-12T13:49:09.178Z",
+  "generatedAt": "2026-08-12T14:15:30.740Z",
   "counts": {
     "DRAFT_ONLY": 1,
-    "MISSING": 15,
-    "PLACEHOLDER": 4,
-    "SYNCED": 22
+    "MISSING": 6,
+    "PLACEHOLDER": 3,
+    "SYNCED": 32
   },
   "entries": [
     {
       "key": "notes:binary-milp-decisions",
       "collection": "notes",
       "translationKey": "binary-milp-decisions",
-      "status": "MISSING",
+      "status": "SYNCED",
       "change": null,
       "sourcePath": "src/content/notes/binary-milp-decisions.zh.md",
-      "targetPath": null,
+      "targetPath": "src/content/notes/binary-milp-decisions.en.md",
       "sourceHashes": {
         "content": "81f5c3db6e4738e77138ad9746140bef23dd27f725cf4cd16db34d711989ab06",
         "structure": "63ea7177fdd5f0947c9a2519342a072c873be5d1fdc95dc7a055f5364764aa83",
@@ -33,17 +33,23 @@
         "protected": "cd082965a94748077888dc936fde67e6859a2c56f37abe1a594ee26c7b8dc6d4",
         "file": "360cc30d33b90d7c02fb75559e1e2fec51d3faf6e697503716d9fb9eca0f8b09"
       },
-      "targetHashes": null,
+      "targetHashes": {
+        "content": "a5a356a3e431448bedc90cf205b5ab209e92f9481f63ea5b3b413a589fc7fd00",
+        "structure": "63ea7177fdd5f0947c9a2519342a072c873be5d1fdc95dc7a055f5364764aa83",
+        "metadata": "da7ffc2ebf991d56bb41881ea3c21377d25db3eb5747b0f8289cd0be63426d8f",
+        "protected": "649b3bf2ceca9ef9389273771fe63dbe09bae33babb283a6e23acef7ce2c65de",
+        "file": "d088c3d2938c8858107c78c15aa98c56d6988c1ae5cc9c7bdb52a7977bd1bdf5"
+      },
       "integrityIssues": []
     },
     {
       "key": "notes:constrained-optimisation",
       "collection": "notes",
       "translationKey": "constrained-optimisation",
-      "status": "MISSING",
+      "status": "SYNCED",
       "change": null,
       "sourcePath": "src/content/notes/constrained-optimisation.zh.md",
-      "targetPath": null,
+      "targetPath": "src/content/notes/constrained-optimisation.en.md",
       "sourceHashes": {
         "content": "e128414df29f5310aa247db1a66e905a184e8a7f8ab8e578cbe0a43fc8698300",
         "structure": "74ad438e52642f4b96237dd84adfc94e96d48b2c892c393c944f2ede27ee3ab1",
@@ -58,7 +64,13 @@
         "protected": "89bbdf9fd4819a30d6ba07982ad974922dbc6d24561598ae2a566ad32f86f97a",
         "file": "0b1f02031245fdb99a799e741c313c8b7d4a41c249f5469134e2e1a92485bd69"
       },
-      "targetHashes": null,
+      "targetHashes": {
+        "content": "ba062669e530338a5629dd511e5291ccfdf70129bdbd308a696dc479c30a22b7",
+        "structure": "74ad438e52642f4b96237dd84adfc94e96d48b2c892c393c944f2ede27ee3ab1",
+        "metadata": "75bf41f2d9f5c408a6f9e3de92ad66a594a1e7737d9d564f47331dfc8d957297",
+        "protected": "89bbdf9fd4819a30d6ba07982ad974922dbc6d24561598ae2a566ad32f86f97a",
+        "file": "880ba99a2c914c11d6b79f68eef5b1ab8dcf59f226973fd61bd7fed49e70445b"
+      },
       "integrityIssues": []
     },
     {
@@ -189,10 +201,10 @@
       "key": "notes:multi-period-production-inventory",
       "collection": "notes",
       "translationKey": "multi-period-production-inventory",
-      "status": "MISSING",
+      "status": "SYNCED",
       "change": null,
       "sourcePath": "src/content/notes/multi-period-production-inventory.zh.md",
-      "targetPath": null,
+      "targetPath": "src/content/notes/multi-period-production-inventory.en.md",
       "sourceHashes": {
         "content": "779031c875f2304a239c046d65fcfa72197b39a4a3a40498a7427da4c7403c69",
         "structure": "97706d82134014f152d3df9155fca3d98792fe669f0efd6fad3700aa6192b561",
@@ -207,17 +219,23 @@
         "protected": "b03ecd291e733ab9e5ba478bd535d24062e4fdf30b14b30bd5cf421f8d1d25b2",
         "file": "82aab7754382039864f773e23e78d968a08c683f7529349fa8474ec1ac72ef05"
       },
-      "targetHashes": null,
+      "targetHashes": {
+        "content": "f66ee81aac5d8d667f57a1fff859e251bdaa9be2d528e26364cb54c88c6cc512",
+        "structure": "97706d82134014f152d3df9155fca3d98792fe669f0efd6fad3700aa6192b561",
+        "metadata": "fd7688e5d2336886c95094e3b294c7be86d3ba0d051153db3c6e8325bcc1d5c5",
+        "protected": "b03ecd291e733ab9e5ba478bd535d24062e4fdf30b14b30bd5cf421f8d1d25b2",
+        "file": "3d9c735638cca45ec69422cdcb1042a8b746d1ea2fba256e5ce742f2a92095f9"
+      },
       "integrityIssues": []
     },
     {
       "key": "notes:multidimensional-optimisation",
       "collection": "notes",
       "translationKey": "multidimensional-optimisation",
-      "status": "MISSING",
+      "status": "SYNCED",
       "change": null,
       "sourcePath": "src/content/notes/multidimensional-optimisation.zh.md",
-      "targetPath": null,
+      "targetPath": "src/content/notes/multidimensional-optimisation.en.md",
       "sourceHashes": {
         "content": "e711e47010dcd6b906d55bfd62ba9ff6322badc6f418bffff446886692179919",
         "structure": "f65a53874ffe4645ff14fa9a7f216f4b3d102c7d699e1a3f5a68032b9b675952",
@@ -232,7 +250,13 @@
         "protected": "2d45cf6fc0d9d977c3ea7dc42b1c6570d8b62c29b2ebcd8771beeebaf75c6319",
         "file": "01996f0a529c41b1ad1dbeb4a8c3e058d04314736556708367c72e644fa3272b"
       },
-      "targetHashes": null,
+      "targetHashes": {
+        "content": "dd93eedd4880603ba6674e0db36ee328c0431fded6f21f39597ea22e43137f5c",
+        "structure": "f65a53874ffe4645ff14fa9a7f216f4b3d102c7d699e1a3f5a68032b9b675952",
+        "metadata": "a0984e778c20cbe2a49aea380e68d8ae7647bc1f424679a0ac113e08f2127e74",
+        "protected": "2d45cf6fc0d9d977c3ea7dc42b1c6570d8b62c29b2ebcd8771beeebaf75c6319",
+        "file": "b8539dd0a6519503817d195d9ddf434a467a794aded70eb499364481738e3f4a"
+      },
       "integrityIssues": []
     },
     {
@@ -301,10 +325,10 @@
       "key": "notes:optimisation-model-anatomy",
       "collection": "notes",
       "translationKey": "optimisation-model-anatomy",
-      "status": "MISSING",
+      "status": "SYNCED",
       "change": null,
       "sourcePath": "src/content/notes/optimisation-model-anatomy.zh.md",
-      "targetPath": null,
+      "targetPath": "src/content/notes/optimisation-model-anatomy.en.md",
       "sourceHashes": {
         "content": "0ff4a819a9ab83b8c51bb96b179edc0fb1211d134f930e761ca009ae72b02618",
         "structure": "b1bd5be70aac2ba9352d494790db394393cd2ee9445626cfe4fa9f83ff0c48d9",
@@ -319,17 +343,23 @@
         "protected": "da06186e7a54391bc3fe71442637b8f9c00371c6bbd55c80bbbdcb53e82486f6",
         "file": "a9dd4f977516c5e40043bac26d9aaf9eb269a6f5f2a4800abee0a6163aa54f3f"
       },
-      "targetHashes": null,
+      "targetHashes": {
+        "content": "539a7b51c8e5c6123f7de7f8d7637e7b8f3bbd7d89409c878f2a48d03d18a713",
+        "structure": "b1bd5be70aac2ba9352d494790db394393cd2ee9445626cfe4fa9f83ff0c48d9",
+        "metadata": "dc4f5a67dfed6db29603d1b3170c236ec076bf4be24ff8eaa628c2c9a8e7a192",
+        "protected": "da06186e7a54391bc3fe71442637b8f9c00371c6bbd55c80bbbdcb53e82486f6",
+        "file": "80900b1a21b4f31805fed31439b6bb6fd6b3b15a2e44d7e23eb023a69b178a5d"
+      },
       "integrityIssues": []
     },
     {
       "key": "notes:optimisation-sensitivity-analysis",
       "collection": "notes",
       "translationKey": "optimisation-sensitivity-analysis",
-      "status": "MISSING",
+      "status": "SYNCED",
       "change": null,
       "sourcePath": "src/content/notes/optimisation-sensitivity-analysis.zh.md",
-      "targetPath": null,
+      "targetPath": "src/content/notes/optimisation-sensitivity-analysis.en.md",
       "sourceHashes": {
         "content": "3e8e67338bbd188551fe9bb9b82bc4283d0533ff596990e9315b660f47d389e1",
         "structure": "ab115bd8783f2805c893362022930eb9b0d0f3c1023966c4ae1b0ab0ee3c21ba",
@@ -344,17 +374,23 @@
         "protected": "63674e24288764d4f15739c7a610b42d561be05e6b0dcb0d21ef3074372a2fab",
         "file": "22807e7aaea4091521a5c3175879ea5b229ecacde000edb4144739044a18ea45"
       },
-      "targetHashes": null,
+      "targetHashes": {
+        "content": "65c61e6f79415b7229444264a050428c3036a711783072022e4bcb3b4b78914d",
+        "structure": "ab115bd8783f2805c893362022930eb9b0d0f3c1023966c4ae1b0ab0ee3c21ba",
+        "metadata": "63c7b9d4afda0ec776bbff8ca62db59d4a1a64008389b7a7a487d4215c4fa4c2",
+        "protected": "63674e24288764d4f15739c7a610b42d561be05e6b0dcb0d21ef3074372a2fab",
+        "file": "9edef17a5da908bbcbc2819463e27310c9904c4c9590568d62bcd5d998e21144"
+      },
       "integrityIssues": []
     },
     {
       "key": "notes:pulp-model-architecture",
       "collection": "notes",
       "translationKey": "pulp-model-architecture",
-      "status": "MISSING",
+      "status": "SYNCED",
       "change": null,
       "sourcePath": "src/content/notes/pulp-model-architecture.zh.md",
-      "targetPath": null,
+      "targetPath": "src/content/notes/pulp-model-architecture.en.md",
       "sourceHashes": {
         "content": "17691895d4524b44a8ad7db0fc17d877ea3eeada4872bf85f7ee5d938362cfc9",
         "structure": "2ff9c8b2290056993be040720e5c1fa200766e40dc1c46502245600668cb35a7",
@@ -369,7 +405,13 @@
         "protected": "59d65012eb71e76fa3516b7f4285fb406aee42bb0aab0fa22df05dcb57d576ae",
         "file": "21f8f4adcdd4c364045157c9ba18167cec2a16303c1867dffcbd7ce259422fc0"
       },
-      "targetHashes": null,
+      "targetHashes": {
+        "content": "7580bc336917708860048f34d83ce55dc8f5475d4c4e427cdce459bc96d016e3",
+        "structure": "2ff9c8b2290056993be040720e5c1fa200766e40dc1c46502245600668cb35a7",
+        "metadata": "3b90b6c4e8c551c6029666c566fe624485a58f313f72dbf41c02bf6cce29ecee",
+        "protected": "59d65012eb71e76fa3516b7f4285fb406aee42bb0aab0fa22df05dcb57d576ae",
+        "file": "fc55990004c510c34f17d974b49322b6e070d5e9ba39dfcd4bba86aff5f968f8"
+      },
       "integrityIssues": []
     },
     {
@@ -494,10 +536,10 @@
       "key": "notes:sets-indices-model-scale",
       "collection": "notes",
       "translationKey": "sets-indices-model-scale",
-      "status": "MISSING",
+      "status": "SYNCED",
       "change": null,
       "sourcePath": "src/content/notes/sets-indices-model-scale.zh.md",
-      "targetPath": null,
+      "targetPath": "src/content/notes/sets-indices-model-scale.en.md",
       "sourceHashes": {
         "content": "0b969b8c800a8cb4ddc321477cad23f13e2b85d0a64e8084bf608e16b53f97a6",
         "structure": "1c4a1c7babfa8d7ad2b1d999287b5335117b85bc4a04bf5f57627f2f8d37d3ba",
@@ -512,7 +554,13 @@
         "protected": "598c16d4d477d12ae6abbe57060181bb68a4efefa5fea22574705ebc646adfca",
         "file": "3afa68f52810c28a88166808e1403e9c6841b7ad7f0d31207ea5fb5b082fe221"
       },
-      "targetHashes": null,
+      "targetHashes": {
+        "content": "ec7b420943824dd231db4d687dd69bc4cb764b0e559543ff2fdc5495609b1b32",
+        "structure": "1c4a1c7babfa8d7ad2b1d999287b5335117b85bc4a04bf5f57627f2f8d37d3ba",
+        "metadata": "325c511cd72ef6185f46545d5260f4decae2270a4bb58ae065fae54894b89307",
+        "protected": "598c16d4d477d12ae6abbe57060181bb68a4efefa5fea22574705ebc646adfca",
+        "file": "ebcf08466808da3a23a02cb232ce33ae16beb6598ef1cc416cfa37e2056e98be"
+      },
       "integrityIssues": []
     },
     {
@@ -953,7 +1001,7 @@
       "key": "notes:transportation-models",
       "collection": "notes",
       "translationKey": "transportation-models",
-      "status": "PLACEHOLDER",
+      "status": "SYNCED",
       "change": null,
       "sourcePath": "src/content/notes/transportation-models.zh.md",
       "targetPath": "src/content/notes/transportation-models.en.md",
@@ -972,194 +1020,22 @@
         "file": "310456a0ec2d043d64553936cf6c060fa6e8edc0d706d4581ddd55034496208c"
       },
       "targetHashes": {
-        "content": "d431364d90009b64782b07d9474360e50422a9ffddb1983ae8aa68e262f81b8f",
-        "structure": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-        "metadata": "91e55910839575d42b09653dfec20666eb4458473dc81156751c3ddec33d1a09",
-        "protected": "272ab511d7e44488336b3bcbc72de748b31fd2c20ff07314f19c9671f56c9256",
-        "file": "24eea1a8de89737af088df8ae4b6775232b17f9bf676682d3e718865ed0dfbdf"
+        "content": "0097c824a41b953ffc2cded6f13e3649728f9b3d1e53c08c8a29c57645068069",
+        "structure": "e1dc303c744b6c4c850138c141e9fad43cbfa8674a75f9e657afa89e4e95df1a",
+        "metadata": "aab6b112de588529fe9a7c1148da128ea8c0ea13773847f4cfa0f9476da54c6a",
+        "protected": "155ec2d0dc85cc9099427322871f597c682ce8dc58016d5e0de19e70c25065e2",
+        "file": "953ff8238143ca83e0b638fdc7f0160eb9ef72acdb245bfc53bffc0f51edf9fe"
       },
-      "integrityIssues": [
-        {
-          "type": "METADATA_DRIFT",
-          "field": "seriesSlug"
-        },
-        {
-          "type": "METADATA_DRIFT",
-          "field": "order"
-        },
-        {
-          "type": "PROTECTED_TOKEN_MISMATCH",
-          "tokenType": "code",
-          "missing": [
-            "```text\n战略层 Strategic\n→ 长期网络结构\n\n战术层 Tactical\n→ 中期容量和合同\n\n运营层 Operational\n→ 短期流量和履约\n```",
-            "```text\n是否开启 Central Hub？\n是否开启 Harbour Hub？\n每个枢纽配置多少容量？\n哪些区域由哪个节点覆盖？\n```",
-            "```text\n要不要签 Carrier A？\n给 A、B、C 各分多少货？\n最低承诺量能不能满足？\n某家承运商最多能接多少？\n```",
-            "```text\nminimum volume\nmaximum capacity\nunit transport cost\n```",
-            "```text\nCarrier A = 300\nCarrier B = 300\nCarrier C = 260\n```",
-            "```text\nA: 180 ≤ 300 ≤ 420\nB: 120 ≤ 300 ≤ 360\nC:   0 ≤ 260 ≤ 300\n```",
-            "```text\n不创建非法路线变量\n```",
-            "```text\n战略结果\n→ 网络和长期容量\n\n战术结果\n→ 合同和可用资源\n\n运营结果\n→ 在这些边界内安排实际流量\n```",
-            "```text\n开仓成本\n长期租赁\n设备投入\n```",
-            "```text\n每单位运输费\n每公里成本\n燃油附加费\n```",
-            "```text\n每个区域必须被覆盖\n平均距离不能太高\n关键客户必须由特定节点服务\n某些区域需要两个备选来源\n```",
-            "```text\nx[north,metro] = ...\nx[north,coast] = ...\nx[south,inland] = ...\n```",
-            "```text\n需求 +10%\n某仓库容量下降\n某承运商价格上涨\n一条路线中断\n新设施固定成本变化\n```"
-          ],
-          "added": []
-        },
-        {
-          "type": "PROTECTED_TOKEN_MISMATCH",
-          "tokenType": "codeLanguages",
-          "missing": [
-            "text",
-            "text",
-            "text",
-            "text",
-            "text",
-            "text",
-            "text",
-            "text",
-            "text",
-            "text",
-            "text",
-            "text",
-            "text"
-          ],
-          "added": []
-        },
-        {
-          "type": "PROTECTED_TOKEN_MISMATCH",
-          "tokenType": "math",
-          "missing": [
-            "\\[\ny_h\\in\\{0,1\\}\n\\]",
-            "\\[\nx_{h,r}\\ge0\n\\]",
-            "\\[\n\\sum_r x_{h,r}\\le Capacity_h\\cdot y_h\n\\]",
-            "\\[\n\\min \\sum_h F_hy_h+\\sum_h\\sum_r c_{h,r}x_{h,r}\n\\]",
-            "\\[\n860\n\\]",
-            "\\[\nx_A,x_B,x_C\\ge0\n\\]",
-            "\\[\nx_A+x_B+x_C=860\n\\]",
-            "\\[\n180\\le x_A\\le420\n\\]",
-            "\\[\n120\\le x_B\\le360\n\\]",
-            "\\[\n0\\le x_C\\le300\n\\]",
-            "\\[\n\\min 7.2x_A+6.7x_B+7.8x_C\n\\]",
-            "\\[\n300+300+260=860\n\\]",
-            "\\[\n300(7.2)+300(6.7)+260(7.8)=6198\n\\]",
-            "\\[\n\\sum_k x_{k,r}\\ge demand_r\n\\]",
-            "\\[\n\\sum_k x_{k,r}=demand_r\n\\]",
-            "\\[\n\\sum_r x_{k,r}\\le capacity_k\n\\]",
-            "\\[\nx_{south,metro}=0\n\\]"
-          ],
-          "added": []
-        },
-        {
-          "type": "PROTECTED_TOKEN_MISMATCH",
-          "tokenType": "slots",
-          "missing": ["planning-horizon", "supply-chain-flow"],
-          "added": []
-        },
-        {
-          "type": "PROTECTED_TOKEN_MISMATCH",
-          "tokenType": "dataAttributes",
-          "missing": [
-            "data-learning-slot=\"planning-horizon\"",
-            "data-learning-slot=\"supply-chain-flow\""
-          ],
-          "added": []
-        },
-        {
-          "type": "PROTECTED_TOKEN_MISMATCH",
-          "tokenType": "numbers",
-          "missing": [
-            "860",
-            "180",
-            "420",
-            "7.2",
-            "120",
-            "360",
-            "6.7",
-            "0",
-            "300",
-            "7.8",
-            "360",
-            "180",
-            "300",
-            "500",
-            "100%",
-            "90%",
-            "95%",
-            "1",
-            "2",
-            "3",
-            "4",
-            "5",
-            "6",
-            "7",
-            "8",
-            "9"
-          ],
-          "added": []
-        },
-        {
-          "type": "STRUCTURE_MISMATCH",
-          "source": [
-            "heading:2",
-            "code:text",
-            "heading:2",
-            "code:text",
-            "math",
-            "math",
-            "math",
-            "math",
-            "heading:2",
-            "code:text",
-            "code:text",
-            "heading:2",
-            "math",
-            "math",
-            "math",
-            "math",
-            "math",
-            "math",
-            "math",
-            "heading:2",
-            "heading:2",
-            "code:text",
-            "math",
-            "math",
-            "code:text",
-            "heading:2",
-            "math",
-            "math",
-            "math",
-            "heading:2",
-            "code:text",
-            "math",
-            "heading:2",
-            "code:text",
-            "heading:2",
-            "code:text",
-            "code:text",
-            "heading:2",
-            "code:text",
-            "heading:2",
-            "heading:2",
-            "code:text",
-            "heading:2",
-            "code:text",
-            "heading:2"
-          ],
-          "target": []
-        }
-      ]
+      "integrityIssues": []
     },
     {
       "key": "notes:unconstrained-optimisation",
       "collection": "notes",
       "translationKey": "unconstrained-optimisation",
-      "status": "MISSING",
+      "status": "SYNCED",
       "change": null,
       "sourcePath": "src/content/notes/unconstrained-optimisation.zh.md",
-      "targetPath": null,
+      "targetPath": "src/content/notes/unconstrained-optimisation.en.md",
       "sourceHashes": {
         "content": "be62dc180e3fa25e28ad982fb6ba9f828a47fd8c4f2e8e646d90a34a1ef741fb",
         "structure": "676a2b03f41aa6f09c88d3dec0fe6460e444733372512efa01732fdb2ceb451e",
@@ -1174,7 +1050,13 @@
         "protected": "ad7b6ed2b1de062642a5e56c2fd7b3ab2ede2ede0704f4287163283a0dc6bc92",
         "file": "4dd279bd1de6614af8211cc8f40805aa782b44d56480c202c2aa3e8bcb1138fb"
       },
-      "targetHashes": null,
+      "targetHashes": {
+        "content": "5056765a32ae010e7a57d6f82bc71a4ab6598158e15bc4a415a03905197ab889",
+        "structure": "676a2b03f41aa6f09c88d3dec0fe6460e444733372512efa01732fdb2ceb451e",
+        "metadata": "ba5901be99137308a0ce6bfe531bab86729fac3a8c1856dbad5ce7564447a06a",
+        "protected": "ad7b6ed2b1de062642a5e56c2fd7b3ab2ede2ede0704f4287163283a0dc6bc92",
+        "file": "5e7bd9fbe79408863cf6a7418dacc17224560bd58b0c05e4170ab9c1ac1e4933"
+      },
       "integrityIssues": []
     },
     {
