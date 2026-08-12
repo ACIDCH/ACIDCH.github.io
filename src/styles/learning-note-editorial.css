@@ -338,7 +338,8 @@
     min-width: 0;
   }
 
-  html[data-js="true"] article.learning-note
+  html[data-js="true"]
+    article.learning-note
     [data-learning-block]:not([data-learning-placed="true"]) {
     display: none;
   }
@@ -662,10 +663,32 @@
       margin-top: var(--space-10);
     }
 
-    article.learning-note .learning-note__body > table {
-      display: block;
+    article.learning-note .learning-note__body table {
+      display: table;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      table-layout: fixed;
+      white-space: normal;
+    }
+
+    article.learning-note .learning-note__body table :is(th, td) {
+      overflow-wrap: anywhere;
+    }
+
+    article.learning-note .learning-note__body > pre {
+      max-width: 100%;
+      min-width: 0;
+      contain: inline-size;
+    }
+
+    article.learning-note .learning-note__body > p:has(> .katex-display) {
+      max-width: 100%;
       overflow-x: auto;
-      white-space: nowrap;
+    }
+
+    article.learning-note .learning-note__body > p {
+      overflow-wrap: anywhere;
     }
 
     article.learning-note .statistics-lab__controls {
