@@ -31,6 +31,7 @@
     "audit:i18n-sync:strict": "node scripts/i18n-sync.mjs --strict",
     "i18n:manifest": "node scripts/i18n-sync.mjs --write",
     "i18n:protected": "node scripts/i18n-protected.mjs",
+    "i18n:translate": "node scripts/i18n-translate.mjs",
     "astro": "astro"
   },
   "dependencies": {

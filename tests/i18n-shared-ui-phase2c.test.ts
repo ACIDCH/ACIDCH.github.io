@@ -71,6 +71,7 @@ describe("Phase 2C shared UI localisation", () => {
     expect(search).toContain('"keydown",');
     expect(search).toContain('event.key === "ArrowDown"');
     expect(search).toContain("results.replaceChildren()");
+    expect(search).toContain(".filter((item) => item.locale === locale)");
     expect(search).toContain("opener?.focus");
     expect(notes).toContain('button.addEventListener("click"');
     expect(notes).toContain("history.replaceState");

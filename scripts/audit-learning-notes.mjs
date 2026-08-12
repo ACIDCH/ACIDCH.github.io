@@ -15,7 +15,10 @@ const handbooks = [
     route: "multiple-regression-multicollinearity",
   },
   { source: "influential-observations.zh.md", route: "influential-observations" },
-  { source: "regression-feature-selection.zh.md", route: "regression-feature-selection" },
+  {
+    source: "regression-feature-selection.zh.md",
+    route: "regression-feature-selection",
+  },
   { source: "logistic-regression.zh.md", route: "logistic-regression" },
   { source: "sql-relational-data.zh.md", route: "sql-relational-data" },
   { source: "sql-primary-key.zh.md", route: "sql-primary-key" },
@@ -36,7 +39,10 @@ const handbooks = [
   { source: "binary-milp-decisions.zh.md", route: "binary-milp-decisions" },
   { source: "sets-indices-model-scale.zh.md", route: "sets-indices-model-scale" },
   { source: "pulp-model-architecture.zh.md", route: "pulp-model-architecture" },
-  { source: "multidimensional-optimisation.zh.md", route: "multidimensional-optimisation" },
+  {
+    source: "multidimensional-optimisation.zh.md",
+    route: "multidimensional-optimisation",
+  },
   { source: "transportation-models.zh.md", route: "transportation-models" },
   {
     source: "multi-period-production-inventory.zh.md",
@@ -69,7 +75,9 @@ for (const handbook of handbooks) {
   const publicText = note.replace(/^---[\s\S]*?---\s*/u, "");
   const sourceHits = forbidden.filter((pattern) => pattern.test(publicText));
   if (sourceHits.length) {
-    console.error(`Learning-note public source contains a restricted label: ${handbook.source}`);
+    console.error(
+      `Learning-note public source contains a restricted label: ${handbook.source}`,
+    );
     process.exit(1);
   }
 
@@ -80,8 +88,19 @@ for (const handbook of handbooks) {
   }
 
   const builtText = readFileSync(buildRoute, "utf8");
-  if (forbidden.some((pattern) => pattern.test(builtText))) {
-    console.error(`Published learning-note build contains a restricted label: ${handbook.route}`);
+  // Astro embeds the global search catalogue and client code in script tags. Those
+  // payloads are not part of this handbook's rendered public copy, so scanning the
+  // complete document creates cross-page false positives (for example, ordinary
+  // English prose containing "task"). Keep the built-output check focused on
+  // visible markup while the source check above continues to inspect the full note.
+  const visibleBuiltText = builtText
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/giu, "")
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/giu, "")
+    .replace(/<!--[\s\S]*?-->/gu, "");
+  if (forbidden.some((pattern) => pattern.test(visibleBuiltText))) {
+    console.error(
+      `Published learning-note build contains a restricted label: ${handbook.route}`,
+    );
     process.exit(1);
   }
 }

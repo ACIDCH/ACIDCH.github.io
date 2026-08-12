@@ -33,6 +33,63 @@ const churnCoursePatterns = [
 
 const pageChecks = [
   {
+    path: "notes/series/sql/",
+    markers: [
+      "SQL and Relational Data",
+      "Primary Keys",
+      "Column Selection and Expressions",
+    ],
+    forbiddenMarkers: ["SQL 与关系数据", ">简介<"],
+  },
+  {
+    path: "notes/sql-relational-data/",
+    markers: [
+      "SQL and Relational Data",
+      "Why use a database?",
+      "data-relational-model-explorer",
+      "data-sql-dataset-explorer",
+    ],
+    forbiddenMarkers: ["为什么需要数据库", ">简介<"],
+  },
+  {
+    path: "notes/sql-primary-key/",
+    markers: ["Primary Keys", "record identity", "data-primary-key-lab"],
+    forbiddenMarkers: ["主键", ">简介<"],
+  },
+  {
+    path: "notes/sql-foreign-key/",
+    markers: ["Foreign Keys", "referential integrity", "data-foreign-key-lab"],
+    forbiddenMarkers: ["外键", ">简介<"],
+  },
+  {
+    path: "notes/sql-relationships/",
+    markers: [
+      "Table Relationships",
+      "One-to-many",
+      "data-relationship-cardinality-lab",
+    ],
+    forbiddenMarkers: ["表关系", ">简介<"],
+  },
+  {
+    path: "notes/sql-select/",
+    markers: ["SELECT Queries", "What the asterisk", "data-sql-playground"],
+    forbiddenMarkers: ["SELECT 查询", ">简介<"],
+  },
+  {
+    path: "notes/sql-where/",
+    markers: ["Filtering with WHERE", "Comparison operators", "data-where-filter-lab"],
+    forbiddenMarkers: ["WHERE 筛选", ">简介<"],
+  },
+  {
+    path: "notes/sql-projection/",
+    markers: [
+      "Column Selection and Expressions",
+      "Projection controls the columns",
+      "data-projection-lab",
+    ],
+    forbiddenMarkers: ["列选择与表达式", ">简介<"],
+  },
+  {
     path: "zh/",
     markers: ["关于我", "学习笔记"],
     forbiddenMarkers: [">简介<"],

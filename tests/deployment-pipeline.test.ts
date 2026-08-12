@@ -58,6 +58,9 @@ describe("production deployment contracts", () => {
     expect(verifier).toContain(">简介<");
     expect(verifier).toContain("service-interactions.webp");
     expect(verifier).toContain("data-model-evaluation");
+    expect(verifier).toContain('path: "notes/series/sql/"');
+    expect(verifier).toContain('path: "notes/sql-relational-data/"');
+    expect(verifier).toContain('path: "notes/sql-projection/"');
   });
 
   it("verifies SQL08 itself after the Pages deployment", async () => {
@@ -66,6 +69,8 @@ describe("production deployment contracts", () => {
 
     expect(workflow).toContain("node scripts/verify-sql08-production.mjs");
     expect(verifier).toContain('path: "zh/notes/sql-order-by/"');
+    expect(verifier).toContain('path: "notes/sql-order-by/"');
+    expect(verifier).toContain("Sorting with ORDER BY");
     expect(verifier).toContain("ORDER BY 排序");
     expect(verifier).toContain('data-order-rule="multi"');
     expect(verifier).toContain('data-order-rule="stable"');
@@ -82,6 +87,8 @@ describe("production deployment contracts", () => {
     expect(workflow).toContain("python3 scripts/capture-pr-sql09-visuals.py");
     expect(workflow).toContain("node scripts/verify-sql09-production.mjs");
     expect(verifier).toContain('path: "zh/notes/sql-pagination/"');
+    expect(verifier).toContain('path: "notes/sql-pagination/"');
+    expect(verifier).toContain("Pagination Queries");
     expect(verifier).toContain("分页查询");
     expect(verifier).toContain("data-pagination-page-size");
     expect(verifier).toContain("data-pagination-page-index");

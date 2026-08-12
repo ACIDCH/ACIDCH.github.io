@@ -18,6 +18,17 @@ if (!expectedSha) {
 
 const checks = [
   {
+    path: "notes/sql-pagination/",
+    markers: [
+      "Pagination Queries",
+      "LIMIT sets the maximum rows per page",
+      "OFFSET sets how many rows to skip",
+      "data-pagination-lab",
+      "data-pagination-run",
+    ],
+    forbiddenMarkers: ["分页查询", ">简介<"],
+  },
+  {
     path: "zh/notes/",
     markers: ["SQL 与关系数据", "分页查询"],
     forbiddenMarkers: [">简介<"],
@@ -123,5 +134,7 @@ for (let attempt = 1; attempt <= attempts; attempt += 1) {
   }
 }
 
-console.error(`SQL09 production verification failed: ${lastError?.message || "unknown error"}`);
+console.error(
+  `SQL09 production verification failed: ${lastError?.message || "unknown error"}`,
+);
 process.exit(1);

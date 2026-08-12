@@ -3,11 +3,12 @@
   "sourceLocale": "zh",
   "targetLocale": "en",
   "mode": "warning",
-  "generatedAt": "2026-08-12T12:27:32.643Z",
+  "generatedAt": "2026-08-12T13:00:58.680Z",
   "counts": {
     "DRAFT_ONLY": 1,
-    "MISSING": 37,
-    "PLACEHOLDER": 4
+    "MISSING": 28,
+    "PLACEHOLDER": 4,
+    "SYNCED": 9
   },
   "entries": [
     {
@@ -470,10 +471,10 @@
       "key": "notes:sql-foreign-key",
       "collection": "notes",
       "translationKey": "sql-foreign-key",
-      "status": "MISSING",
+      "status": "SYNCED",
       "change": null,
       "sourcePath": "src/content/notes/sql-foreign-key.zh.md",
-      "targetPath": null,
+      "targetPath": "src/content/notes/sql-foreign-key.en.md",
       "sourceHashes": {
         "content": "08ad37df2d9573e5cf4b271ae5b43aef41faff721dbadc0cd58b9ab6e634a566",
         "structure": "c16da470becf594fd56f15d82544f3fa9b2e6791dc83618c08562d007f71a127",
@@ -488,17 +489,23 @@
         "protected": "cb009f6daad7a481431599a187bc14f0c794f632cae3a2a3f973724f50da4d2e",
         "file": "c796236b0d0cf31bce13c7b54449dbc7e215c4deca2c9feafafe3712563deffa"
       },
-      "targetHashes": null,
+      "targetHashes": {
+        "content": "b93b880466d1e5c1137d7de4c8b326c0f85f582c2edce3ce2e67d3cd92d9d5c9",
+        "structure": "c16da470becf594fd56f15d82544f3fa9b2e6791dc83618c08562d007f71a127",
+        "metadata": "ee95db3d718dfdc37b41596ee779f4ae4a0c23c8148fb3d502c4e5658adcf4b9",
+        "protected": "cb009f6daad7a481431599a187bc14f0c794f632cae3a2a3f973724f50da4d2e",
+        "file": "996f37bac35c07559cab7919148a56d9a782df715654cec5598d4ce40a5c086f"
+      },
       "integrityIssues": []
     },
     {
       "key": "notes:sql-order-by",
       "collection": "notes",
       "translationKey": "sql-order-by",
-      "status": "MISSING",
+      "status": "SYNCED",
       "change": null,
       "sourcePath": "src/content/notes/sql-order-by.zh.md",
-      "targetPath": null,
+      "targetPath": "src/content/notes/sql-order-by.en.md",
       "sourceHashes": {
         "content": "25a59d7c0c28f3f46c562d064da401c6c906da4ba89cacae38e7ddaa7cf94266",
         "structure": "c43433ae57d7ab0272561cc633776e718f5922599a71eb508d6809906324be69",
@@ -513,17 +520,23 @@
         "protected": "9113ddf6ad68121c7de51d3f7af69c6425ea402f5b7bf9bc8d5d167d9cdc4874",
         "file": "3ec2e08943d142a6618fa4602282774637f26f4f6cec8a99108b92d943ec31a5"
       },
-      "targetHashes": null,
+      "targetHashes": {
+        "content": "ec66ea2dbdef4d65e28abb287997a7eb3fef266027b5511e95f610508e61453f",
+        "structure": "c43433ae57d7ab0272561cc633776e718f5922599a71eb508d6809906324be69",
+        "metadata": "5954988b9df59104a571bb1865ea43cf847126bcd7cef69dd68cec31fb7a0ab6",
+        "protected": "9113ddf6ad68121c7de51d3f7af69c6425ea402f5b7bf9bc8d5d167d9cdc4874",
+        "file": "a814cb86b6211fb55cc44eefb4fd814968374e7d2395e08af7f4be5c80bc93ae"
+      },
       "integrityIssues": []
     },
     {
       "key": "notes:sql-pagination",
       "collection": "notes",
       "translationKey": "sql-pagination",
-      "status": "MISSING",
+      "status": "SYNCED",
       "change": null,
       "sourcePath": "src/content/notes/sql-pagination.zh.md",
-      "targetPath": null,
+      "targetPath": "src/content/notes/sql-pagination.en.md",
       "sourceHashes": {
         "content": "b8e4af51d3e5f5b8f2cd065c22f9b3106ac9c84aa8c74f588d17246ea5364bc6",
         "structure": "a3e49ef458bb0b8cd66be7a08e5fb4f77adb7487abf6e92305498eafa0b44d48",
@@ -538,17 +551,23 @@
         "protected": "a592a839c39ba16f0d5b9625f55bb61e93a806098facf719669475f215b8dd15",
         "file": "6aea8bb94546a5db88dd02b3eeaa76e68a320987a164fef73821c8d3408d58a2"
       },
-      "targetHashes": null,
+      "targetHashes": {
+        "content": "0390ad980fca0cc485ead0fd489346930f88c8bef64908e1a15dcdc8932cbc3f",
+        "structure": "a3e49ef458bb0b8cd66be7a08e5fb4f77adb7487abf6e92305498eafa0b44d48",
+        "metadata": "ada633117275072a80aa57051bc224a021b080c50f6799c82d7fcafba773f754",
+        "protected": "a592a839c39ba16f0d5b9625f55bb61e93a806098facf719669475f215b8dd15",
+        "file": "efd5d5e2db52a8585fc91154e8347b4bf68b1ed4b3388b2ed471d53ba9fbfcf1"
+      },
       "integrityIssues": []
     },
     {
       "key": "notes:sql-primary-key",
       "collection": "notes",
       "translationKey": "sql-primary-key",
-      "status": "MISSING",
+      "status": "SYNCED",
       "change": null,
       "sourcePath": "src/content/notes/sql-primary-key.zh.md",
-      "targetPath": null,
+      "targetPath": "src/content/notes/sql-primary-key.en.md",
       "sourceHashes": {
         "content": "abe1299b5b599feed7dfeba4dc1c3f910a22ed63b24a4c8e97b4e12ee5303648",
         "structure": "120826d4b1f324769630243e2e7adc5ca858263cb112712e105150f5c0e7e147",
@@ -563,17 +582,23 @@
         "protected": "e972b8e7636ad44f2f71fedc151c6174652d2216bd3b8b23fb192e195a7aa741",
         "file": "98571d3c79a517b95f5bd6aa73b9109f5acf030447226f2a07f8cb7870481f80"
       },
-      "targetHashes": null,
+      "targetHashes": {
+        "content": "797e1728efcb54c238997edb4d514d55df1877d1e5ae9346a4a899083a2bfb7e",
+        "structure": "120826d4b1f324769630243e2e7adc5ca858263cb112712e105150f5c0e7e147",
+        "metadata": "041e7c8b427851ed7ffad3ec2ef10ea87609995117268b7f7801c91fd07e9a64",
+        "protected": "e972b8e7636ad44f2f71fedc151c6174652d2216bd3b8b23fb192e195a7aa741",
+        "file": "2d43bf7399f3a90ac5080ed30c7f7ce259382d04cf6a3ef32e05ff0ff980c723"
+      },
       "integrityIssues": []
     },
     {
       "key": "notes:sql-projection",
       "collection": "notes",
       "translationKey": "sql-projection",
-      "status": "MISSING",
+      "status": "SYNCED",
       "change": null,
       "sourcePath": "src/content/notes/sql-projection.zh.md",
-      "targetPath": null,
+      "targetPath": "src/content/notes/sql-projection.en.md",
       "sourceHashes": {
         "content": "bb24323f944390e4f1e86a147b1062a21d8962713f203f32f034cd8e5e2358cc",
         "structure": "cac693916653f2e01203bf01654ad875529a6291a88f9382fcf0b8effc3c42d0",
@@ -588,17 +613,23 @@
         "protected": "00f67cc6f71eca1c7d424272f821171629f9046393e3670d6b49e4300adb1cb5",
         "file": "2d6a8e4a35afeacc4731b2fb9f5132e4b2d2c43e44fe16f0d785a4d15d96efdd"
       },
-      "targetHashes": null,
+      "targetHashes": {
+        "content": "5170c56fd92303edbbcbbb4ab40f4ee18b4dd76c81ab217c24ed955999d3ce08",
+        "structure": "cac693916653f2e01203bf01654ad875529a6291a88f9382fcf0b8effc3c42d0",
+        "metadata": "18c2a0f3c59d7f154df0e72c0be7edb8a50a0b9824775baf3c6cb8553330c8a0",
+        "protected": "00f67cc6f71eca1c7d424272f821171629f9046393e3670d6b49e4300adb1cb5",
+        "file": "976f16d9637d1fd09868292790a3663bd216d2071983c3e7f5e461c9027f21b5"
+      },
       "integrityIssues": []
     },
     {
       "key": "notes:sql-relational-data",
       "collection": "notes",
       "translationKey": "sql-relational-data",
-      "status": "MISSING",
+      "status": "SYNCED",
       "change": null,
       "sourcePath": "src/content/notes/sql-relational-data.zh.md",
-      "targetPath": null,
+      "targetPath": "src/content/notes/sql-relational-data.en.md",
       "sourceHashes": {
         "content": "3e9c1b1adb931b539ed557d03dbe81bd9df9c016fdcdaf7ba67dfaf097d9252f",
         "structure": "9554ee402aa1b8417da7d69aec59c5decf84b23a1856ef473ecfd159ad6ff09c",
@@ -613,17 +644,23 @@
         "protected": "0e561a78c863efb40fa24099d3aab5095a9c20ab9fbe9a24b4a0d8771dfcff76",
         "file": "8b1cc4d1202e7e1ab7d4507ee42fa497a11650b731f2e954b1f68e006290d4f8"
       },
-      "targetHashes": null,
+      "targetHashes": {
+        "content": "5ac3f05b883cec68a3df019590cf9cf4c3f50c3189c4afe0fed7465ecc36d074",
+        "structure": "9554ee402aa1b8417da7d69aec59c5decf84b23a1856ef473ecfd159ad6ff09c",
+        "metadata": "fd2c0504758104307c8cd917e7946492a78584bfa00980c8f66f05eaf9193581",
+        "protected": "0e561a78c863efb40fa24099d3aab5095a9c20ab9fbe9a24b4a0d8771dfcff76",
+        "file": "80205fa573decb5b66ab2087a7d8b5d1ac23a67a102438a889e4bd7628ecddcf"
+      },
       "integrityIssues": []
     },
     {
       "key": "notes:sql-relationships",
       "collection": "notes",
       "translationKey": "sql-relationships",
-      "status": "MISSING",
+      "status": "SYNCED",
       "change": null,
       "sourcePath": "src/content/notes/sql-relationships.zh.md",
-      "targetPath": null,
+      "targetPath": "src/content/notes/sql-relationships.en.md",
       "sourceHashes": {
         "content": "7f2ee0f052ab990d36082f1bd60b27cc455fa92df862505ee0ce63518bc65daf",
         "structure": "468799894e5ea2745ec17c83d3650587bda826b778bdf2f489b27f712fcc00b9",
@@ -638,17 +675,23 @@
         "protected": "efd51ef3196932772684bb9ed709cc833d29ecf3a06d5442e3ffaec7458d7adb",
         "file": "58c040d1614cc904acd434d0e227bf4b12ae41ef9fd855e7e8587f6e0824619b"
       },
-      "targetHashes": null,
+      "targetHashes": {
+        "content": "6d1b63d3848ca169dac69cc18bcf5c228b2fd123513d99d2a4901b79faa5e015",
+        "structure": "468799894e5ea2745ec17c83d3650587bda826b778bdf2f489b27f712fcc00b9",
+        "metadata": "123ba0c7832cf6b7267173ce13b565bd5a1d5bd98b0f3bb5cfe69e51dad7d5a9",
+        "protected": "39560d05a8e1be4a7f9c009dbe1fc12662d698810b25eb91c185a2891feb0d80",
+        "file": "e9c5051150598accabe6d0d71eecf166f5604d29f1477a1e796ddc3077db2e5b"
+      },
       "integrityIssues": []
     },
     {
       "key": "notes:sql-select",
       "collection": "notes",
       "translationKey": "sql-select",
-      "status": "MISSING",
+      "status": "SYNCED",
       "change": null,
       "sourcePath": "src/content/notes/sql-select.zh.md",
-      "targetPath": null,
+      "targetPath": "src/content/notes/sql-select.en.md",
       "sourceHashes": {
         "content": "36f96d9e2384453a7558a620f006058b0eec0790154ed5c31f8a5206f2da30ae",
         "structure": "487e89f011cf0293d992c12474fffb2c18af470bf89b2eda7cdf348a75dfd59f",
@@ -663,17 +706,23 @@
         "protected": "345c2ef8a2d4f4b226e98bb84132362625b58ba10df8b07a85271cb8f6048fc8",
         "file": "fc0137a85e72daf6f555d088e8732e361f3ed435455fd574a396ee9e5d129790"
       },
-      "targetHashes": null,
+      "targetHashes": {
+        "content": "c631ab6dbea0a4d3bab9b6bc3029100b0f1f602a0ec7ff646f7b279ca8631421",
+        "structure": "487e89f011cf0293d992c12474fffb2c18af470bf89b2eda7cdf348a75dfd59f",
+        "metadata": "8a9aa5815c50619963e43b41a309af8e683be55bb9cba508a1bc068e4b2037e5",
+        "protected": "345c2ef8a2d4f4b226e98bb84132362625b58ba10df8b07a85271cb8f6048fc8",
+        "file": "203a3444a319616c36f7efbb04bcf23cc0b9671a462bafeeedd8d04dbe13e821"
+      },
       "integrityIssues": []
     },
     {
       "key": "notes:sql-where",
       "collection": "notes",
       "translationKey": "sql-where",
-      "status": "MISSING",
+      "status": "SYNCED",
       "change": null,
       "sourcePath": "src/content/notes/sql-where.zh.md",
-      "targetPath": null,
+      "targetPath": "src/content/notes/sql-where.en.md",
       "sourceHashes": {
         "content": "06f7218d88e239af1738642863090902537b2a110b7c29c968f8c39cd6a2ab9f",
         "structure": "73f65601f01710eb5512405e7169a91bbdcd1bd918620d73c352f56ede2e5d80",
@@ -688,7 +737,13 @@
         "protected": "f2e9e5be72c871a1999f032b5c36d8c8f3adc57553ef93e03de422186306a718",
         "file": "24d7500750535c3dd8dc2b648ddad883f92942877753bc1a4524376156322c89"
       },
-      "targetHashes": null,
+      "targetHashes": {
+        "content": "cd5f8adf64eefc927dded900e908c26a7c4d85a319cebb4b3561b257b8b05497",
+        "structure": "73f65601f01710eb5512405e7169a91bbdcd1bd918620d73c352f56ede2e5d80",
+        "metadata": "ef2d741b9b46ecb64bd8b7ed2752bed78a216fef6652a3681ee9ae547be1e90a",
+        "protected": "f2e9e5be72c871a1999f032b5c36d8c8f3adc57553ef93e03de422186306a718",
+        "file": "7e60bf8c6941d56b1d4014e4038514ef8ba8c2341e95b08a894038586330b692"
+      },
       "integrityIssues": []
     },
     {
@@ -921,10 +976,7 @@
         {
           "type": "PROTECTED_TOKEN_MISMATCH",
           "tokenType": "slots",
-          "missing": [
-            "planning-horizon",
-            "supply-chain-flow"
-          ],
+          "missing": ["planning-horizon", "supply-chain-flow"],
           "added": []
         },
         {

@@ -18,6 +18,17 @@ if (!expectedSha) {
 
 const checks = [
   {
+    path: "notes/sql-order-by/",
+    markers: [
+      "Sorting with ORDER BY",
+      "ASC is the default",
+      "Multi-column sorting",
+      "data-order-by-lab",
+      "data-order-sql-run",
+    ],
+    forbiddenMarkers: ["ORDER BY 排序", ">简介<"],
+  },
+  {
     path: "zh/notes/",
     markers: ["SQL 与关系数据", "ORDER BY"],
     forbiddenMarkers: [">简介<"],
@@ -121,5 +132,7 @@ for (let attempt = 1; attempt <= attempts; attempt += 1) {
   }
 }
 
-console.error(`SQL08 production verification failed: ${lastError?.message || "unknown error"}`);
+console.error(
+  `SQL08 production verification failed: ${lastError?.message || "unknown error"}`,
+);
 process.exit(1);

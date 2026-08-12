@@ -126,11 +126,7 @@ const generatedToc = headings
   .filter((heading) => heading.depth === 2 && heading.slug !== "写在前面")
   .map((heading) => ({ id: heading.slug, label: heading.text }));
 const learningToc = isStatisticsHandbook ? statisticsToc : generatedToc;
-const handbookTitle = isSqlOverview
-  ? "SQL 与关系数据"
-  : isStatisticsHandbook
-    ? "统计学与 R"
-    : entry.data.title;
+const handbookTitle = entry.data.title;
 
 const notes = await getCollection("notes");
 const projects = await getCollection("projects");
