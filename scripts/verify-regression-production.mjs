@@ -18,6 +18,53 @@ if (!expectedSha) {
 
 const checks = [
   {
+    path: "notes/series/regression/",
+    markers: [
+      "Regression Modelling",
+      "REG 01",
+      "REG 07",
+      "Simple Linear Regression",
+      "Nonlinear Terms and Interactions",
+      "Logistic Regression",
+    ],
+    forbidden: ["待发布", "简单线性回归"],
+  },
+  {
+    path: "notes/regression-foundations/",
+    markers: ["Simple Linear Regression", "data-regression-lab"],
+    forbidden: ["简单线性回归"],
+  },
+  {
+    path: "notes/regression-diagnostics/",
+    markers: ["Regression Diagnostics", "data-regression-diagnostics"],
+    forbidden: ["回归诊断"],
+  },
+  {
+    path: "notes/nonlinear-regression-interactions/",
+    markers: ["Nonlinear Terms and Interactions", "data-polynomial-regression"],
+    forbidden: ["非线性回归"],
+  },
+  {
+    path: "notes/multiple-regression-multicollinearity/",
+    markers: ["Multiple Regression and Multicollinearity", "data-multicollinearity"],
+    forbidden: ["多元线性回归"],
+  },
+  {
+    path: "notes/influential-observations/",
+    markers: ["Outliers and Influential Observations", "data-regression-diagnostics"],
+    forbidden: ["异常点与影响点"],
+  },
+  {
+    path: "notes/regression-feature-selection/",
+    markers: ["Feature Selection and Regularisation", "data-model-selection"],
+    forbidden: ["特征选择与正则化"],
+  },
+  {
+    path: "notes/logistic-regression/",
+    markers: ["Logistic Regression", "data-logistic-lab"],
+    forbidden: ["逻辑回归"],
+  },
+  {
     path: "zh/notes/",
     markers: [
       "按标签浏览",
@@ -28,11 +75,15 @@ const checks = [
       "按主题进入知识库",
     ],
     validate(html) {
-      const tagButtons = [...html.matchAll(/data-note-tag="([^"]*)"/gu)].map((match) => match[1]);
+      const tagButtons = [...html.matchAll(/data-note-tag="([^"]*)"/gu)].map(
+        (match) => match[1],
+      );
       const canonical = tagButtons.filter(Boolean);
       const unique = new Set(canonical);
       if (canonical.length > 10) {
-        throw new Error(`zh/notes/ exposes ${canonical.length} canonical tags; expected at most 10`);
+        throw new Error(
+          `zh/notes/ exposes ${canonical.length} canonical tags; expected at most 10`,
+        );
       }
       if (canonical.length !== unique.size) {
         throw new Error("zh/notes/ contains duplicate canonical tag buttons");
@@ -114,7 +165,16 @@ async function fetchWithTimeout(url) {
   }
 }
 
-async function verifyPage({ path, markers, validate }) {
+function visiblePublicCopy(html) {
+  return html
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/giu, "")
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/giu, "")
+    .replace(/<pre\b[^>]*>[\s\S]*?<\/pre>/giu, "")
+    .replace(/<code\b[^>]*>[\s\S]*?<\/code>/giu, "")
+    .replace(/<!--[\s\S]*?-->/gu, "");
+}
+
+async function verifyPage({ path, markers, forbidden = [], validate }) {
   const response = await fetchWithTimeout(deploymentUrl(path));
   if (!response.ok) throw new Error(`${path} returned HTTP ${response.status}`);
   const html = await response.text();
@@ -125,10 +185,14 @@ async function verifyPage({ path, markers, validate }) {
     throw new Error(`${path} does not look like a complete site page`);
   }
   for (const marker of markers) {
-    if (!html.includes(marker)) throw new Error(`${path} is missing expected marker: ${marker}`);
+    if (!html.includes(marker))
+      throw new Error(`${path} is missing expected marker: ${marker}`);
   }
-  for (const marker of forbiddenMarkers) {
-    if (html.includes(marker)) throw new Error(`${path} contains forbidden marker: ${marker}`);
+  const publicCopy = visiblePublicCopy(html);
+  for (const marker of [...forbiddenMarkers, ...forbidden]) {
+    if (publicCopy.includes(marker)) {
+      throw new Error(`${path} contains forbidden marker: ${marker}`);
+    }
   }
   validate?.(html);
 }
@@ -154,5 +218,7 @@ for (let attempt = 1; attempt <= attempts; attempt += 1) {
   }
 }
 
-console.error(`Regression production verification failed: ${lastError?.message || "unknown error"}`);
+console.error(
+  `Regression production verification failed: ${lastError?.message || "unknown error"}`,
+);
 process.exit(1);
