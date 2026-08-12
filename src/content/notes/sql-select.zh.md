@@ -64,11 +64,11 @@ customers
 
 客户表现在有三条记录：
 
-| customer_id | customer_name | email | phone | segment |
-|---:|---|---|---|---|
-| 1001 | North Retail | north@example.com | 021-440-810 | Retail |
-| 1002 | Coast Foods | coast@example.com | 021-440-811 | Wholesale |
-| 1003 | Alpine Labs | alpine@example.com | 021-440-812 | Enterprise |
+| customer_id | customer_name | email              | phone       | segment    |
+| ----------: | ------------- | ------------------ | ----------- | ---------- |
+|        1001 | North Retail  | north@example.com  | 021-440-810 | Retail     |
+|        1002 | Coast Foods   | coast@example.com  | 021-440-811 | Wholesale  |
+|        1003 | Alpine Labs   | alpine@example.com | 021-440-812 | Enterprise |
 
 所以这条查询会返回 3 行、5 列。
 
@@ -106,11 +106,11 @@ FROM orders;
 没有筛选条件，所以返回当前订单表的全部记录：
 
 | order_id | customer_id | order_date | order_value |
-|---:|---:|---|---:|
-| 50001 | 1001 | 2026-07-03 | 420.00 |
-| 50002 | 1001 | 2026-07-05 | 185.00 |
-| 50003 | 1002 | 2026-07-06 | 760.00 |
-| 50004 | 1003 | 2026-07-09 | 510.00 |
+| -------: | ----------: | ---------- | ----------: |
+|    50001 |        1001 | 2026-07-03 |      420.00 |
+|    50002 |        1001 | 2026-07-05 |      185.00 |
+|    50003 |        1002 | 2026-07-06 |      760.00 |
+|    50004 |        1003 | 2026-07-09 |      510.00 |
 
 这里的重点不是记住“4 行”，而是理解：**SELECT 本身不负责筛选。** 如果只想要某些订单，需要再加 WHERE。
 

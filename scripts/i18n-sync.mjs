@@ -16,6 +16,7 @@ const previous = existsSync(manifestPath)
   ? JSON.parse(readFileSync(manifestPath, "utf8"))
   : null;
 const manifest = buildManifest(inventoryContent(), previous, acceptedKeys);
+manifest.mode = strict || previous?.mode === "strict" ? "strict" : "warning";
 
 if (write) {
   mkdirSync(".i18n", { recursive: true });
@@ -25,14 +26,15 @@ if (write) {
 console.log(
   JSON.stringify({ mode: strict ? "strict" : "warning", ...manifest.counts }, null, 2),
 );
-const blocking = manifest.entries.filter((entry) => entry.status !== "SYNCED");
-if (blocking.length) {
+const tracked = manifest.entries.filter((entry) => entry.status !== "SYNCED");
+const blocking = tracked.filter((entry) => entry.strictBlocking);
+if (tracked.length) {
   console.warn(
-    `Bilingual sync found ${blocking.length} non-synced entries. ${strict ? "Strict mode blocks this run." : "Warning mode remains non-blocking during backfill."}`,
+    `Bilingual sync found ${tracked.length} non-synced entries; ${blocking.length} affect published content. ${strict && blocking.length ? "Strict mode blocks this run." : "The published bilingual backlog is clear."}`,
   );
-  blocking.slice(0, 12).forEach((entry) => {
+  tracked.slice(0, 12).forEach((entry) => {
     console.warn(
-      `- ${entry.key}: ${entry.status}${entry.change ? ` (${entry.change})` : ""}`,
+      `- ${entry.key}: ${entry.status}${entry.strictBlocking ? " [PUBLIC BLOCKER]" : " [NON-PUBLIC]"}${entry.change ? ` (${entry.change})` : ""}`,
     );
   });
 }

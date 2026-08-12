@@ -136,6 +136,15 @@ describe("bilingual sync engine", () => {
     expect(classifyChange(baseline, cosmetic)).toBe("COSMETIC_CHANGE");
   });
 
+  it("keeps prose wrapping and Markdown table alignment out of content hashes", () => {
+    const compact = `A sentence that wraps onto the next line.\n\n| period | demand |\n|---|---:|\n| P1 | 180 |`;
+    const formatted = `A sentence that wraps\nonto the next line.\n\n| period | demand |\n| ------ | -----: |\n| P1     |    180 |\n`;
+    expect(translatableContent(compact)).toBe(translatableContent(formatted));
+    expect(contentHashes(file("zh", compact)).content).toBe(
+      contentHashes(file("zh", formatted)).content,
+    );
+  });
+
   it("keeps historical debt non-blocking in a versioned warning manifest", () => {
     const manifest = buildManifest([file("zh", sourceBody)]);
     expect(manifest.version).toBe(1);
@@ -144,8 +153,24 @@ describe("bilingual sync engine", () => {
     expect(manifest.entries[0]).toMatchObject({
       key: "notes:example",
       status: "MISSING",
+      strictBlocking: true,
       sourcePath: "src/content/notes/example.zh.md",
       targetPath: null,
+    });
+  });
+
+  it("keeps explicit draft and placeholder pairs outside the strict public gate", () => {
+    const draft = buildManifest([
+      file("zh", sourceBody, { status: "draft", draft: true }),
+      file("en", targetBody, {
+        status: "draft",
+        draft: true,
+        isPlaceholder: true,
+      }),
+    ]);
+    expect(draft.entries[0]).toMatchObject({
+      status: "DRAFT_ONLY",
+      strictBlocking: false,
     });
   });
 

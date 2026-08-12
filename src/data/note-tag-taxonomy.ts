@@ -162,13 +162,19 @@ export function getCanonicalNoteTagIds(entry: CollectionEntry<"notes">): string[
   }
 
   if (tags.length === 0) {
-    if (/回归|regression|logit|logistic/u.test(sourceText)) pushUnique(tags, "regression");
-    if (/诊断|残差|vif|cook|leverage|outlier/u.test(sourceText)) pushUnique(tags, "model-diagnostics");
-    if (/概率|假设|检验|估计|anova|置信/u.test(sourceText)) pushUnique(tags, "statistical-inference");
-    if (/聚类|pca|lasso|ridge|机器学习|machine learning/u.test(sourceText)) pushUnique(tags, "machine-learning");
+    if (/回归|regression|logit|logistic/u.test(sourceText))
+      pushUnique(tags, "regression");
+    if (/诊断|残差|vif|cook|leverage|outlier/u.test(sourceText))
+      pushUnique(tags, "model-diagnostics");
+    if (/概率|假设|检验|估计|anova|置信/u.test(sourceText))
+      pushUnique(tags, "statistical-inference");
+    if (/聚类|pca|lasso|ridge|机器学习|machine learning/u.test(sourceText))
+      pushUnique(tags, "machine-learning");
     if (/sql|select|join|database/u.test(sourceText)) pushUnique(tags, "sql");
-    if (/供应链|运输|库存|production|inventory|transport/u.test(sourceText)) pushUnique(tags, "supply-chain");
-    if (/优化|milp|linear programming|pulp/u.test(sourceText)) pushUnique(tags, "optimisation");
+    if (/供应链|运输|库存|production|inventory|transport/u.test(sourceText))
+      pushUnique(tags, "supply-chain");
+    if (/优化|milp|linear programming|pulp/u.test(sourceText))
+      pushUnique(tags, "optimisation");
   }
 
   return tags.slice(0, 2);

@@ -298,6 +298,6 @@ with(customer_survey, prop.table(table(response_status, region), margin = 2))
 
 ## 参考资料
 
-知识结构参考 Rafael A. Irizarry 的 *Introduction to Data Science: Statistics and Prediction Algorithms Through Case Studies*，尤其是 Probability 中的 sampling models、Central Limit Theorem，以及 Statistical Inference 中 estimates 与 standard error 的处理。正文、模拟和业务案例均重新组织。
+知识结构参考 Rafael A. Irizarry 的 _Introduction to Data Science: Statistics and Prediction Algorithms Through Case Studies_，尤其是 Probability 中的 sampling models、Central Limit Theorem，以及 Statistical Inference 中 estimates 与 standard error 的处理。正文、模拟和业务案例均重新组织。
 
 参考站点：<https://rafalab.dfci.harvard.edu/dsbook-part-2/> 。原资料采用 CC BY-NC-SA 4.0 许可。

@@ -37,20 +37,20 @@ relatedNotes:
 
 客户表：
 
-| customer_id | customer_name | segment |
-|---:|---|---|
-| 1001 | North Retail | Retail |
-| 1002 | Coast Foods | Wholesale |
-| 1003 | Alpine Labs | Enterprise |
+| customer_id | customer_name | segment    |
+| ----------: | ------------- | ---------- |
+|        1001 | North Retail  | Retail     |
+|        1002 | Coast Foods   | Wholesale  |
+|        1003 | Alpine Labs   | Enterprise |
 
 订单表：
 
 | order_id | customer_id | order_date | order_value |
-|---:|---:|---|---:|
-| 50001 | 1001 | 2026-07-03 | 420.00 |
-| 50002 | 1001 | 2026-07-05 | 185.00 |
-| 50003 | 1002 | 2026-07-06 | 760.00 |
-| 50004 | 1003 | 2026-07-09 | 510.00 |
+| -------: | ----------: | ---------- | ----------: |
+|    50001 |        1001 | 2026-07-03 |      420.00 |
+|    50002 |        1001 | 2026-07-05 |      185.00 |
+|    50003 |        1002 | 2026-07-06 |      760.00 |
+|    50004 |        1003 | 2026-07-09 |      510.00 |
 
 这里：
 

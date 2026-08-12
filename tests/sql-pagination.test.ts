@@ -39,8 +39,12 @@ describe("SQL09 Pagination contract", () => {
     const component = read("src/components/learning/PaginationLab.astro");
     const note = read("src/content/notes/sql-pagination.zh.md");
 
-    expect(component).toContain('import { sqlLearningSeedSql, sqlOrders } from "../../data/sql-learning"');
-    expect(component).toContain("b.order_value - a.order_value || a.order_id - b.order_id");
+    expect(component).toContain(
+      'import { sqlLearningSeedSql, sqlOrders } from "../../data/sql-learning"',
+    );
+    expect(component).toContain(
+      "b.order_value - a.order_value || a.order_id - b.order_id",
+    );
     expect(component).toContain("ORDER BY order_value DESC, order_id ASC");
     expect(component).toContain("data-pagination-run");
     expect(note).toContain("Keyset pagination");

@@ -69,10 +69,10 @@ tab
 
 得到：
 
-| Channel | No | Yes |
-|---|---:|---:|
-| Store | 58 | 142 |
-| Web | 36 | 164 |
+| Channel |  No | Yes |
+| ------- | --: | --: |
+| Store   |  58 | 142 |
+| Web     |  36 | 164 |
 
 这张表同时保留了两个变量的联合频数。
 
@@ -278,10 +278,10 @@ probability 0.82 表示 82% 的概率；odds 4.56 表示事件发生与不发生
 
 对于 2×2 表：
 
-|  | Event | No event |
-|---|---:|---:|
-| Group A | a | c |
-| Group B | b | d |
+|         | Event | No event |
+| ------- | ----: | -------: |
+| Group A |     a |        c |
+| Group B |     b |        d |
 
 odds ratio：
 
@@ -441,6 +441,6 @@ table(customer$category, useNA = "ifany")
 
 ## 参考资料
 
-知识结构参考 Rafael A. Irizarry 的 *Introduction to Data Science* 中 categorical data 的可视化与总结，以及新版 *Statistics and Prediction Algorithms Through Case Studies* 在线性模型部分对 chi-square、odds ratio 与 generalized linear models 的连接。正文、业务示例和代码均重新组织。
+知识结构参考 Rafael A. Irizarry 的 _Introduction to Data Science_ 中 categorical data 的可视化与总结，以及新版 _Statistics and Prediction Algorithms Through Case Studies_ 在线性模型部分对 chi-square、odds ratio 与 generalized linear models 的连接。正文、业务示例和代码均重新组织。
 
 参考站点：<https://rafalab.dfci.harvard.edu/dsbook-part-1/> 与 <https://rafalab.dfci.harvard.edu/dsbook-part-2/> 。原资料采用 CC BY-NC-SA 4.0 许可。

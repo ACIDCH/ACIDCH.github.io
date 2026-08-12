@@ -1,0 +1,131 @@
+name: Prepare bilingual translation draft
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_path:
+        description: Chinese Markdown source path
+        required: true
+        type: string
+      target_path:
+        description: English Markdown target path
+        required: true
+        type: string
+      manifest_key:
+        description: Manifest key such as notes:example-slug
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: i18n-draft-${{ inputs.manifest_key }}
+  cancel-in-progress: false
+
+jobs:
+  prepare-draft:
+    name: Generate and validate translation draft
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SOURCE_PATH: ${{ inputs.source_path }}
+      TARGET_PATH: ${{ inputs.target_path }}
+      MANIFEST_KEY: ${{ inputs.manifest_key }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Validate requested content paths
+        shell: bash
+        run: |
+          if [[ ! "$SOURCE_PATH" =~ ^src/content/(notes|projects)/[a-z0-9-]+\.zh\.md$ ]]; then
+            echo "Invalid Chinese source path: $SOURCE_PATH" >&2
+            exit 2
+          fi
+          if [[ ! "$TARGET_PATH" =~ ^src/content/(notes|projects)/[a-z0-9-]+\.en\.md$ ]]; then
+            echo "Invalid English target path: $TARGET_PATH" >&2
+            exit 2
+          fi
+          if [[ ! "$MANIFEST_KEY" =~ ^(notes|projects):[a-z0-9-]+$ ]]; then
+            echo "Invalid manifest key: $MANIFEST_KEY" >&2
+            exit 2
+          fi
+      - name: Check out main
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Create or update translation branch
+        id: branch
+        shell: bash
+        run: |
+          slug="${MANIFEST_KEY#*:}"
+          branch="codex/i18n-sync-${slug}"
+          git fetch origin "$branch" || true
+          if git show-ref --verify --quiet "refs/remotes/origin/$branch"; then
+            git switch -C "$branch" "origin/$branch"
+            git rebase origin/main
+          else
+            git switch -c "$branch"
+          fi
+          echo "name=$branch" >> "$GITHUB_OUTPUT"
+
+      - name: Generate protected English draft
+        run: >-
+          node scripts/i18n-translate.mjs
+          --source="$SOURCE_PATH"
+          --target="$TARGET_PATH"
+          --provider=google-draft
+
+      - name: Format and verify protected content
+        shell: bash
+        run: |
+          npx prettier --write "$TARGET_PATH"
+          node scripts/i18n-protected.mjs "$SOURCE_PATH" "$TARGET_PATH"
+          node scripts/i18n-sync.mjs --write --strict --accept="$MANIFEST_KEY"
+          npm run check
+          npm run lint
+          npm run test
+
+      - name: Commit and push draft
+        env:
+          BRANCH: ${{ steps.branch.outputs.name }}
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- "$TARGET_PATH" .i18n/manifest.json
+          if git diff --cached --quiet; then
+            echo "No translation changes to publish."
+            exit 0
+          fi
+          git commit -m "Prepare English translation draft for $MANIFEST_KEY"
+          git push --force-with-lease --set-upstream origin "$BRANCH"
+
+      - name: Open or update draft pull request
+        env:
+          BRANCH: ${{ steps.branch.outputs.name }}
+        shell: bash
+        run: |
+          existing=$(gh pr list --head "$BRANCH" --base main --state open --json number --jq '.[0].number // empty')
+          body=$(cat <<EOF
+          Automated first-pass translation for \`$MANIFEST_KEY\`.
+
+          Protected code, formulas, URLs, numeric results and structural tokens passed validation. Editorial and semantic review is still required before this draft can be marked ready.
+          EOF
+          )
+          if [ -n "$existing" ]; then
+            gh pr edit "$existing" --title "Translate $MANIFEST_KEY" --body "$body"
+          else
+            gh pr create --draft --base main --head "$BRANCH" --title "Translate $MANIFEST_KEY" --body "$body"
+          fi

@@ -29,6 +29,7 @@
     "audit:i18n": "node scripts/i18n-audit.mjs",
     "audit:i18n-sync": "node scripts/i18n-sync.mjs",
     "audit:i18n-sync:strict": "node scripts/i18n-sync.mjs --strict",
+    "audit:i18n-final": "node scripts/i18n-final-audit.mjs",
     "i18n:manifest": "node scripts/i18n-sync.mjs --write",
     "i18n:protected": "node scripts/i18n-protected.mjs",
     "i18n:translate": "node scripts/i18n-translate.mjs",

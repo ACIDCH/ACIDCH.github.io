@@ -111,10 +111,10 @@ c(lower = estimate - margin, upper = estimate + margin)
 常见标准正态临界值：
 
 | 置信水平 | 临界值 z* |
-|---|---:|
-| 90% | 1.645 |
-| 95% | 1.960 |
-| 99% | 2.576 |
+| -------- | --------: |
+| 90%      |     1.645 |
+| 95%      |     1.960 |
+| 99%      |     2.576 |
 
 ```r
 z <- qnorm(c(0.95, 0.975, 0.995))
@@ -325,6 +325,6 @@ predict(fit, newdata = new_route, interval = "prediction")
 
 ## 参考资料
 
-知识结构参考 Rafael A. Irizarry 的 *Introduction to Data Science: Statistics and Prediction Algorithms Through Case Studies* 中 Estimates and Confidence Intervals、Data-Driven Models 与 Bootstrap 的处理。正文、模拟、业务示例与代码均重新组织。
+知识结构参考 Rafael A. Irizarry 的 _Introduction to Data Science: Statistics and Prediction Algorithms Through Case Studies_ 中 Estimates and Confidence Intervals、Data-Driven Models 与 Bootstrap 的处理。正文、模拟、业务示例与代码均重新组织。
 
 参考站点：<https://rafalab.dfci.harvard.edu/dsbook-part-2/> 。原资料采用 CC BY-NC-SA 4.0 许可。

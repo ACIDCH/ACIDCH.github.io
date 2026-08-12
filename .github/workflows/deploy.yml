@@ -74,14 +74,17 @@ jobs:
       - name: Run tests and public-content security scan
         run: npm run test
 
-      - name: Report bilingual sync status (warning mode)
-        run: npm run audit:i18n-sync
+      - name: Enforce strict bilingual sync parity
+        run: npm run audit:i18n-sync:strict
 
       - name: Audit production dependencies
         run: npm audit --audit-level=high
 
       - name: Build and validate static site
         run: npm run build
+
+      - name: Run final bilingual acceptance audit
+        run: npm run audit:i18n-final
 
       - name: Install CJK fonts for visual proofs
         if: github.event_name == 'pull_request'

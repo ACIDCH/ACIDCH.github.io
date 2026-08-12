@@ -184,12 +184,12 @@ difftime(service$visit_time[2], service$visit_time[1], units = "mins")
 
 统计教材常把测量尺度进一步区分为 nominal、ordinal、interval 与 ratio。这个框架最重要的价值，是提醒分析者：**不是所有数字都支持同样的数学解释。**
 
-| 尺度 | 能比较类别 | 能排序 | 差值有意义 | 比例有意义 | 示例 |
-|---|---:|---:|---:|---:|---|
-| Nominal | 是 | 否 | 否 | 否 | 渠道、地区 |
-| Ordinal | 是 | 是 | 未必 | 否 | 满意度等级 |
-| Interval | 是 | 是 | 是 | 否 | 摄氏温度 |
-| Ratio | 是 | 是 | 是 | 是 | 金额、重量、时长 |
+| 尺度     | 能比较类别 | 能排序 | 差值有意义 | 比例有意义 | 示例             |
+| -------- | ---------: | -----: | ---------: | ---------: | ---------------- |
+| Nominal  |         是 |     否 |         否 |         否 | 渠道、地区       |
+| Ordinal  |         是 |     是 |       未必 |         否 | 满意度等级       |
+| Interval |         是 |     是 |         是 |         否 | 摄氏温度         |
+| Ratio    |         是 |     是 |         是 |         是 | 金额、重量、时长 |
 
 Interval scale 有等距差值，但零点不是“完全不存在”。摄氏 20°C 比 10°C 高 10 度，却不能说“温度是两倍”。
 
@@ -260,14 +260,14 @@ service$channel <- factor(service$channel)
 
 正式分析前，可以为关键字段建立一个简短 data dictionary。
 
-| 字段 | 观察单位 | 统计角色 | R 类型 | 允许的值 | 缺失含义 |
-|---|---|---|---|---|---|
-| customer_id | 客户 | 标识符 | character | 唯一编号 | 不应缺失 |
-| channel | 服务记录 | nominal | factor | Web/Store/Phone | 未记录渠道 |
-| satisfaction | 服务记录 | ordinal | ordered factor | 1–5 | 未完成评价 |
-| waiting_minutes | 服务记录 | continuous ratio | numeric | ≥ 0 | 未成功计时 |
-| resolved | 服务记录 | binary | logical | TRUE/FALSE | 状态未知 |
-| visit_time | 服务记录 | datetime | POSIXct | 合法时间 | 未记录时间 |
+| 字段            | 观察单位 | 统计角色         | R 类型         | 允许的值        | 缺失含义   |
+| --------------- | -------- | ---------------- | -------------- | --------------- | ---------- |
+| customer_id     | 客户     | 标识符           | character      | 唯一编号        | 不应缺失   |
+| channel         | 服务记录 | nominal          | factor         | Web/Store/Phone | 未记录渠道 |
+| satisfaction    | 服务记录 | ordinal          | ordered factor | 1–5             | 未完成评价 |
+| waiting_minutes | 服务记录 | continuous ratio | numeric        | ≥ 0             | 未成功计时 |
+| resolved        | 服务记录 | binary           | logical        | TRUE/FALSE      | 状态未知   |
+| visit_time      | 服务记录 | datetime         | POSIXct        | 合法时间        | 未记录时间 |
 
 这张表会影响后面几乎所有步骤：数据质量检查、描述统计、图形、推断、特征工程和模型解释。
 
@@ -293,6 +293,6 @@ service$channel <- factor(service$channel)
 
 ## 参考资料
 
-知识结构参考 Rafael A. Irizarry 的 *Introduction to Data Science*，尤其是 R basics 中的数据类型与 factor，以及 Data Visualization 中对 categorical、ordinal、discrete 和 continuous variables 的区分。正文、业务示例与代码均重新组织。
+知识结构参考 Rafael A. Irizarry 的 _Introduction to Data Science_，尤其是 R basics 中的数据类型与 factor，以及 Data Visualization 中对 categorical、ordinal、discrete 和 continuous variables 的区分。正文、业务示例与代码均重新组织。
 
 参考站点：<https://rafalab.dfci.harvard.edu/dsbook-part-1/> 。原资料采用 CC BY-NC-SA 4.0 许可。

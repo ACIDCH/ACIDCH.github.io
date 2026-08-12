@@ -1,7 +1,19 @@
 export const optimisationUniverse = {
   products: [
-    { id: "core", name: "Core Kit", unitContribution: 42, materialUse: 3, labourUse: 2 },
-    { id: "premium", name: "Premium Kit", unitContribution: 58, materialUse: 4, labourUse: 5 },
+    {
+      id: "core",
+      name: "Core Kit",
+      unitContribution: 42,
+      materialUse: 3,
+      labourUse: 2,
+    },
+    {
+      id: "premium",
+      name: "Premium Kit",
+      unitContribution: 58,
+      materialUse: 4,
+      labourUse: 5,
+    },
   ],
   resources: {
     materialCapacity: 240,
@@ -68,7 +80,9 @@ export type OptimisationUniverse = typeof optimisationUniverse;
 export function capacityNetValue(capacity: number) {
   const { linearValuePerUnit, congestionCoefficient, fixedBase } =
     optimisationUniverse.capacityContract;
-  return linearValuePerUnit * capacity - congestionCoefficient * capacity ** 2 - fixedBase;
+  return (
+    linearValuePerUnit * capacity - congestionCoefficient * capacity ** 2 - fixedBase
+  );
 }
 
 export const unconstrainedOptimum =

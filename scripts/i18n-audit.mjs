@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
   existsSync,
+  mkdirSync,
   readdirSync,
   readFileSync,
   statSync,
@@ -874,6 +875,7 @@ const report = {
   },
 };
 
+mkdirSync(tmpRoot, { recursive: true });
 writeFileSync(join(tmpRoot, "i18n-audit.json"), `${JSON.stringify(report, null, 2)}\n`);
 writeFileSync(join(tmpRoot, "i18n-audit.md"), markdownReport(report));
 console.log(JSON.stringify(report.acceptance, null, 2));
