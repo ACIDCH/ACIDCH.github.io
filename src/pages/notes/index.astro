@@ -4,7 +4,11 @@ import NotesExplorer from "../../components/NotesExplorer.astro";
 import PageIntro from "../../components/PageIntro.astro";
 import ProjectList from "../../components/ProjectList.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import { getPaginationPath, getTotalPages } from "../../utils/pagination";
+import {
+  getPaginationPath,
+  getTotalPages,
+  NOTES_PAGE_SIZE,
+} from "../../utils/pagination";
 
 const includeDrafts = import.meta.env.DEV;
 const notes = (await getCollection("notes"))
@@ -17,7 +21,7 @@ const relatedProjects = (await getCollection("projects")).filter(
   (entry) =>
     entry.data.locale === "en" && relatedProjectKeys.has(entry.data.translationKey),
 );
-const totalPages = getTotalPages(notes.length, 9);
+const totalPages = getTotalPages(notes.length, NOTES_PAGE_SIZE);
 ---
 
 <BaseLayout
@@ -35,7 +39,7 @@ const totalPages = getTotalPages(notes.length, 9);
     entries={notes}
     locale="en"
     currentPage={1}
-    pageSize={9}
+    pageSize={NOTES_PAGE_SIZE}
     basePath="/notes/"
   />
   {
