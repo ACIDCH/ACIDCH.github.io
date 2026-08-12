@@ -54,6 +54,13 @@ function stripAllowedUiPhrases(content) {
   );
 }
 
+function visibleMarkup(content) {
+  return content
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/giu, "")
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/giu, "")
+    .replace(/<!--[\s\S]*?-->/gu, "");
+}
+
 function compactContext(content, index, length) {
   const start = Math.max(0, index - 70);
   const end = Math.min(content.length, index + length + 70);
@@ -67,7 +74,7 @@ async function reportRestrictedTermMatches() {
   const diagnostics = [];
 
   for (const file of htmlFiles) {
-    const html = await readFile(file, "utf8");
+    const html = visibleMarkup(await readFile(file, "utf8"));
     for (const check of restrictedTermDiagnostics) {
       const match = check.pattern.exec(html);
       if (!match) continue;
@@ -108,7 +115,9 @@ async function runLegacyValidation() {
   if (remainingFailures.length > 0) {
     console.error("Built-site validation found non-exempt failures:");
     for (const line of remainingFailures) console.error(line);
-    if (remainingFailures.some((line) => line.includes("restricted public terminology"))) {
+    if (
+      remainingFailures.some((line) => line.includes("restricted public terminology"))
+    ) {
       await reportRestrictedTermMatches();
     }
     process.exit(1);
@@ -130,7 +139,7 @@ async function validateFirstPersonCopy() {
     const isStaticRedirect = /<meta\b[^>]*http-equiv=["']refresh["']/i.test(html);
     if (isStaticRedirect) continue;
 
-    const copyForCheck = stripAllowedUiPhrases(html);
+    const copyForCheck = stripAllowedUiPhrases(visibleMarkup(html));
     for (const check of firstPersonDiagnostics) {
       const match = check.pattern.exec(copyForCheck);
       if (!match) continue;

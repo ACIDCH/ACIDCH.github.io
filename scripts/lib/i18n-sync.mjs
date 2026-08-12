@@ -240,7 +240,7 @@ export function structuralSignature(body) {
   });
 }
 
-function translatableContent(body) {
+export function translatableContent(body) {
   return scanMarkdown(body)
     .filter((block) => !["code", "math", "component"].includes(block.type))
     .map((block) => block.value)
@@ -373,7 +373,9 @@ export function buildManifest(
       status = "DRAFT_ONLY";
     else if (!target) status = "MISSING";
     else if (target.frontmatter.isPlaceholder) status = "PLACEHOLDER";
-    else if (integrityIssues.some((issue) => issue.type === "METADATA_DRIFT")) {
+    else if (/[\u3400-\u9fff]/u.test(translatableContent(target.body))) {
+      status = "LANGUAGE_LEAK";
+    } else if (integrityIssues.some((issue) => issue.type === "METADATA_DRIFT")) {
       status = "METADATA_DRIFT";
     } else if (integrityIssues.some((issue) => issue.type === "STRUCTURE_MISMATCH")) {
       status = "STRUCTURE_MISMATCH";

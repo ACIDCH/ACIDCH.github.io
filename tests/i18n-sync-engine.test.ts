@@ -5,6 +5,7 @@ import {
   contentHashes,
   protectedTokens,
   structuralSignature,
+  translatableContent,
   validateProtectedPair,
 } from "../scripts/lib/i18n-sync.mjs";
 
@@ -81,6 +82,17 @@ describe("bilingual sync engine", () => {
     expect(
       validateProtectedPair(file("zh", sourceBody), file("en", targetBody)),
     ).toEqual([]);
+  });
+
+  it("detects untranslated Han prose while exempting protected code", () => {
+    expect(
+      translatableContent("English prose.\n\n```text\n中文保护内容\n```"),
+    ).not.toMatch(/[\u3400-\u9fff]/u);
+    const leaked = buildManifest([
+      file("zh", sourceBody),
+      file("en", targetBody.replace("Keep", "保留")),
+    ]);
+    expect(leaked.entries[0].status).toBe("LANGUAGE_LEAK");
   });
 
   it("fails changed code, math, URLs, numeric results and learning slots", () => {

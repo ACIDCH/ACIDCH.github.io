@@ -65,7 +65,9 @@ const index: SearchItem[] = [
       "body" in entry ? String(entry.body ?? "") : "",
     ].join(" "),
   })),
-].map((item) => ({ ...item, path: withBase(item.path) }));
+]
+  .filter((item) => item.locale === locale)
+  .map((item) => ({ ...item, path: withBase(item.path) }));
 const serialisedIndex = JSON.stringify(index).replace(/</g, "\\u003c");
 const copy = sharedUi[locale].search;
 ---

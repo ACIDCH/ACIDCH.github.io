@@ -95,8 +95,8 @@ describe("R and Statistics Learning Note handbook", () => {
       "isSqlWhere",
       "isSqlProjection",
     ].forEach((flag) => expect(layout).toContain(flag));
-    expect(layout).toContain('isStatisticsHandbook\n    ? "统计学与 R"');
-    expect(layout).toContain(": entry.data.title;");
+    expect(layout).toContain("const handbookTitle = entry.data.title;");
+    expect(layout).not.toContain('? "统计学与 R"');
     expect(layout).toContain("<LearningNoteHero title={handbookTitle} />");
     expect(hero).toContain("learning-note-titlebar");
     expect(hero).not.toContain("LEARNING NOTE");
