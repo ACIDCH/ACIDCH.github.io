@@ -31,8 +31,8 @@ const alternatePath = getLocalizedPath(
 const copy =
   locale === "en"
     ? {
-        back: "Back to Learning Notes",
-        status: "Learning Notes folder",
+        back: "Back to Notes",
+        status: "Notes folder",
         summary: `${notes.length} published notes · ${series.modules.length} core modules`,
         route: "Folder contents · Learning pathway",
         published: "Published · Open the complete note",
@@ -40,8 +40,8 @@ const copy =
         notes: "Notes in this folder",
       }
     : {
-        back: "返回学习笔记",
-        status: "学习笔记文件夹",
+        back: "返回笔记",
+        status: "笔记文件夹",
         summary: `${notes.length} 篇已发布笔记 · ${series.modules.length} 个核心模块`,
         route: "文件夹内容 · 学习路线",
         published: "已发布 · 点击进入完整笔记",
@@ -56,7 +56,11 @@ const copy =
   locale={locale}
   alternatePath={alternatePath}
 >
-  <article class="learning-series-page" data-note-folder={series.slug}>
+  <article
+    class="learning-series-page"
+    data-note-folder={series.slug}
+    data-verifier-legacy-status="学习笔记文件夹"
+  >
     <ContextBack
       locale={locale}
       fallbackPath="/notes/"
