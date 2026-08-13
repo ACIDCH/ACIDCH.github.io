@@ -44,9 +44,9 @@ const copy = {
     courses:
       "I also use Coursera and DataCamp for structured courses and practice, especially when I need to fill a specific gap in SQL, Python, R, Power BI, statistics, business analytics or modelling.",
     notesLink:
-      "External resources are where I learn; Learning Notes are where I keep what was worth remembering.",
+      "External resources are where I learn; Notes are where I keep what was worth remembering.",
     websiteBody:
-      "This site is both a portfolio and a working archive. Projects collect the models, dashboards and analysis I have built; Learning Notes collect methods, explanations and small ideas that I want to be able to find again later.",
+      "This site is both a portfolio and a working archive. Projects collect the models, dashboards and analysis I have built; Notes collect methods, explanations and small ideas that I want to be able to find again later.",
     websiteBody2:
       "I would rather keep improving a useful page than pretend every project is finished forever, so both sides of the site will continue to change as the work changes.",
     connectBody:
@@ -82,9 +82,9 @@ const copy = {
     courses:
       "平时也会在 Coursera 和 DataCamp 上选择一些课程和练习，主要用于补充 SQL、Python、R、Power BI、统计、商业分析和建模中当前项目正好需要的那一块知识。",
     notesLink:
-      "这些外部资料解决的是“我从哪里学”，网站里的 Learning Notes 更多是在记录“我最后留下了什么”。",
+      "这些外部资料解决的是“我从哪里学”，网站里的笔记更多是在记录“我最后留下了什么”。",
     websiteBody:
-      "这个网站既是作品集，也是一份持续整理的工作记录。Projects 用来放模型、Dashboard 和分析项目；Learning Notes 用来留下以后还会回来看的方法、解释和小结。",
+      "这个网站既是作品集，也是一份持续整理的工作记录。Projects 用来放模型、Dashboard 和分析项目；笔记用来留下以后还会回来看的方法、解释和小结。",
     websiteBody2:
       "比起把一个页面做完以后就永远不动，我更愿意让真正有用的内容随着项目一起继续更新，所以这里大概会一直处在“还能再改一点”的状态。",
     connectBody:
@@ -325,7 +325,7 @@ const sections = [
       </p>
       <p>{copy.notesLink}</p>
       <a class="button button--secondary" href={withBase(locale === "zh" ? "/zh/notes/" : "/notes/")}>
-        {locale === "en" ? "Browse Learning Notes" : "查看 Learning Notes"}
+        {locale === "en" ? "Browse Notes" : "查看笔记"}
       </a>
       <ContextBack locale={locale} fallbackPath="/about/#about-profile" label={{ en: copy.back, zh: copy.back }} />
     </section>
@@ -339,7 +339,7 @@ const sections = [
           {locale === "en" ? "Projects" : "项目"}
         </a>
         <a class="button button--secondary" href={withBase(locale === "zh" ? "/zh/notes/" : "/notes/")}>
-          {locale === "en" ? "Learning Notes" : "学习笔记"}
+          {locale === "en" ? "Notes" : "笔记"}
         </a>
       </div>
       <ContextBack locale={locale} fallbackPath="/about/#about-profile" label={{ en: copy.back, zh: copy.back }} />
