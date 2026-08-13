@@ -51,7 +51,7 @@ export const portfolioConfig = {
     wechat: {
       enabled: true,
       id: "",
-      qrImage: "/contact/wechat-qr.svg",
+      qrImage: "/contact/wechat-qr-v2.svg",
       qrAvailable: true,
     },
     resume: {
