@@ -1,10 +1,10 @@
-# 商业分析作品集
+# 数据分析项目集
 
 [English](README.md) | [中文](README.zh-CN.md)
 
-本仓库包含中英双语商业分析与供应链分析静态作品集。英文是默认语言，简体中文页面位于 `/zh/`。
+本仓库用于维护基于 Astro 的中英双语数据分析项目集，并通过 GitHub Pages 发布。当前内容策略以中文为主版本：先完成中文页面、项目说明和 Learning Notes，再依据同一套内容模型维护对应英文版本。
 
-本地实现已包括 Light/Dark/System 主题、可配置 Hero 背景、双语 Content Collections、可分享的项目筛选、使用合成数据的供应链网络演示、reduced-motion、SEO 元数据和 GitHub Pages 部署准备文件。
+站点已包含 Light/Dark/System 主题、双语 Content Collections、全局搜索、Projects 与 Learning Notes 路由、reduced-motion、SEO 元数据、隐私检查和 GitHub Pages 自动部署。
 
 ## 环境要求
 
@@ -26,20 +26,16 @@ npm run format:check
 npm run check
 npm run lint
 npm run test
+npm run audit:i18n-sync:strict
 npm run build
+npm run audit:i18n-final
 ```
 
-`npm run build` 还会检查构建产物中的内部链接、核心文档语义与静态资源。生产构建结果生成在 `dist/`。
+CI 在部署前还会执行公开内容隐私与安全检查。生产构建结果生成在 `dist/`，并由 `.github/workflows/deploy.yml` 发布。
 
 ## 内容管理
 
-项目位于 `src/content/projects/`，学习笔记位于 `src/content/notes/`。每组翻译使用相同的 `translationKey`，并分别建立英文和中文条目：
-
-```yaml
-translationKey: example-project
-locale: en
-slug: example-project
-```
+项目位于 `src/content/projects/`，Learning Notes 位于 `src/content/notes/`。同一篇中文和英文内容使用相同的 `translationKey`：
 
 ```yaml
 translationKey: example-project
@@ -47,30 +43,32 @@ locale: zh
 slug: example-project
 ```
 
-标记为 `isPlaceholder: true` 或 `isDemo: true` 的内容不得作为已经完成或已经核实的真实成果展示。
+```yaml
+translationKey: example-project
+locale: en
+slug: example-project
+```
+
+当前作品集只保留已经完成并能够核实的项目。后续会根据新的课程成果和实际完成的分析项目继续增加内容，不再长期保留“以后可能会做”的项目占位页。
+
+## 双语工作流
+
+现阶段中文作为主要编辑版本。已经公开的中英文内容会检查路由、搜索、sitemap、元数据、结构以及代码、公式、URL、数字等受保护内容的一致性。
+
+`.github/workflows/i18n-translation.yml` 用于生成英文第一版翻译 Draft PR。代码、公式、URL、数字和结构标记在翻译过程中受到保护；自动生成的英文仍需进行语义和编辑审核后才能合并上线。
 
 ## 集中配置
 
-- 站点、语言、技术账号和仓库 owner：`src/config/site.ts`
-- 公开个人资料占位：`src/config/profile.ts`
-- 图片、社交、简历与外部笔记入口开关：`src/config/portfolio.ts`
+- 站点、语言、技术账号和仓库设置：`src/config/site.ts`
+- 公开个人资料配置：`src/config/profile.ts`
+- 图片、社交、简历和外部笔记入口开关：`src/config/portfolio.ts`
 - 导航：`src/config/navigation.ts`
 - 路径和 URL helper：`src/utils/paths.ts` 与 `src/utils/urls.ts`
 
-不要在组件和内容文件中重复写入技术账号或完整技术 URL。
-
-## V2 视觉系统与背景素材
-
-公开 Home 与 About 页面采用 Southern Alpine Minimal 视觉系统，并使用本地、可替换的风景占位素材。素材路径、可用状态、遮罩与 object-position 集中维护在 `src/config/portfolio.ts`。原有多背景组件继续保留，但不会加载未经确认的个人素材。
-
 ## 隐私
 
-本仓库按未来公开仓库设计。加入个人、雇主、学校或项目资料前，请先阅读 `SECURITY.md`。不得提交私人联系方式、密钥、受限制课程内容或未经确认的项目结果。
+本仓库为公开仓库。加入个人、雇主、学校或项目资料前，请先阅读 `SECURITY.md`。不得提交私人联系方式、密钥、受限制课程材料或未经确认的项目结果。
 
-## 部署准备
+## 部署
 
-GitHub Pages 工作流已准备在 `.github/workflows/deploy.yml`。启用与迁移说明见
-[`docs/deployment/GITHUB_PAGES.md`](docs/deployment/GITHUB_PAGES.md) 和
-[`docs/deployment/STATIC_HOST_MIGRATION.md`](docs/deployment/STATIC_HOST_MIGRATION.md)。
-
-当前站点通过现有 GitHub Actions 工作流发布至 GitHub Pages；未配置自定义域名或付费服务。
+站点通过仓库现有 CI/CD 工作流发布至 GitHub Pages。流水线会在部署前验证当前 commit，并在部署后再次确认线上版本。当前未配置自定义域名或付费托管服务。
