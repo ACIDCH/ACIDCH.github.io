@@ -58,7 +58,7 @@ describe("Phase 2C shared UI localisation", () => {
     });
   });
 
-  it("preserves menu, search, filter, theme, dialog and reset event contracts", () => {
+  it("preserves menu, search, filter, theme, contact popover and reset event contracts", () => {
     const header = read("src/components/Header.astro");
     const search = read("src/components/GlobalSearch.astro");
     const notes = read("src/components/NotesExplorer.astro");
@@ -76,8 +76,11 @@ describe("Phase 2C shared UI localisation", () => {
     expect(notes).toContain('button.addEventListener("click"');
     expect(notes).toContain("history.replaceState");
     expect(theme).toContain("localStorage.setItem(storageKey, preference)");
-    expect(wechat).toContain('dialog.addEventListener("click"');
-    expect(wechat).toContain('dialog.addEventListener("close"');
+    expect(wechat).toContain("data-wechat-trigger");
+    expect(wechat).toContain("(hover: none), (pointer: coarse)");
+    expect(wechat).toContain('document.addEventListener("click"');
+    expect(wechat).toContain('document.addEventListener("keydown"');
+    expect(wechat).not.toContain("<dialog");
     expect(backToTop).toContain("button.addEventListener(");
     expect(backToTop).toContain('"click",');
     expect(backToTop).toContain("window.scrollTo");
