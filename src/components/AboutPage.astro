@@ -1,13 +1,9 @@
 ---
 import { portfolioConfig } from "../config/portfolio";
-import { profileConfig } from "../config/profile";
-import { toolset } from "../config/skills";
 import type { Locale } from "../config/site";
 import { withBase } from "../utils/paths";
 import ContextBack from "./ContextBack.astro";
-import SkillGrid from "./SkillGrid.astro";
 import SocialLinks from "./SocialLinks.astro";
-import Timeline from "./Timeline.astro";
 
 interface Props {
   locale: Locale;
@@ -17,55 +13,207 @@ const { locale } = Astro.props;
 const { aboutHero, portrait } = portfolioConfig.media;
 const aboutBackground = aboutHero.available ? aboutHero.image : aboutHero.fallback;
 const portraitImage = portrait.available ? portrait.image : portrait.fallback;
+
 const copy = {
   en: {
     title: "About",
-    heroLine: "Analytics with context, clarity and practical intent.",
-    role: "Business Analytics · Supply Chain · Decision Support",
+    heroLine: "A little about what I study, build, learn and keep experimenting with.",
+    role: "Business Analytics · Supply Chain · Decision Modelling",
     location: "Auckland, New Zealand",
     nav: "On this page",
-    about: "About",
-    education: "Education",
-    experience: "Experience",
-    skills: "Skills & Tools",
-    resume: "Resume",
-    contact: "Contact",
-    approach:
-      "Decision support starts with a clear question, then combines appropriate data, methods and visual communication to make trade-offs easier to understand and discuss.",
-    resumeSoon: "Resume",
-    resumeBody:
-      "Education, projects and experience are summarised on this page for a quick view of the full profile.",
-    contactBody:
-      "Public professional channels are collected here for direct follow-up.",
+    about: "About me",
+    aboutTitle: "Business analytics, practical models, and a lot of curiosity",
+    summary:
+      "I am currently studying for a Master of Business Analytics at the University of Auckland, with a focus on supply chain analytics, decision modelling and data analytics. I am interested in how data and models can be used to work through practical business problems and support better decisions.",
+    curiosity:
+      "Outside coursework, I spend quite a bit of time exploring useful GitHub projects, deploying the ones that look interesting, and seeing how far they can go beyond the demo. I also keep experimenting with prompts, agents, skills, context design, tool use and multi-step model workflows. My GitHub Stars are probably a slightly over-optimistic to-do list.",
+    focus: "What I focus on",
+    background: "Background",
+    how: "How I work",
+    learn: "Where I learn",
+    website: "This website",
+    connect: "Connect",
+    backgroundIntro:
+      "A short version of the academic background behind the projects and notes on this site.",
+    howBody:
+      "When I work on a project, I care about whether the analysis can actually support a decision rather than stopping at code, charts or model metrics. I keep notes on methods worth coming back to, and I use prompts, agents, skills, tool calling and multi-step workflows where they can reduce repetitive work or make a process easier to reuse. I am especially interested in how context, task decomposition and different model/tool combinations change the quality of a result.",
+    howAside:
+      "Sometimes I spend longer automating a five-minute task than doing it manually. The reusable workflow is usually the part I wanted to understand anyway.",
+    learnIntro:
+      "A lot of my learning happens outside a single textbook or course. I usually start with a real problem, follow the references I need, test the idea in a project, and keep the parts that are useful enough to revisit.",
+    courses:
+      "I also use Coursera and DataCamp for structured courses and practice, especially when I need to fill a specific gap in SQL, Python, R, Power BI, statistics, business analytics or modelling.",
+    notesLink:
+      "External resources are where I learn; Learning Notes are where I keep what was worth remembering.",
+    websiteBody:
+      "This site is both a portfolio and a working archive. Projects collect the models, dashboards and analysis I have built; Learning Notes collect methods, explanations and small ideas that I want to be able to find again later.",
+    websiteBody2:
+      "I would rather keep improving a useful page than pretend every project is finished forever, so both sides of the site will continue to change as the work changes.",
+    connectBody:
+      "Only public professional channels are shown here. More links can be added later when they are ready for the public site.",
     back: "Back to About",
   },
   zh: {
     title: "关于我",
-    heroLine: "在真实语境中，用清晰分析支持实际决策。",
-    role: "商业分析 · 供应链 · 决策支持",
+    heroLine: "关于我平时在学什么、做什么，以及还在折腾些什么。",
+    role: "商业分析 · 供应链 · 决策建模",
     location: "新西兰奥克兰",
     nav: "本页导航",
     about: "关于我",
-    education: "教育背景",
-    experience: "实践经历",
-    skills: "技能与工具",
-    resume: "简历",
-    contact: "联系",
-    approach:
-      "分析从明确问题和决策目标开始，再选择合适的数据、方法与可视化，把复杂结果整理成可理解、可比较、可讨论的判断依据。",
-    resumeSoon: "简历",
-    resumeBody: "教育、项目与实践经历已在本页集中整理，便于快速了解完整背景。",
-    contactBody: "公开的职业联系渠道集中在这里，可直接前往相应平台继续查看。",
+    aboutTitle: "商业分析、实用模型，以及一些停不下来的好奇心",
+    summary:
+      "目前就读于奥克兰大学商业分析硕士项目，主要关注供应链分析、决策建模和数据分析。我比较关心的是怎样把数据和模型真正放进实际业务问题里，用来比较方案、理解取舍并支持决策。",
+    curiosity:
+      "课程之外，我也会经常逛 GitHub，看到有意思而且看起来真能用的项目，就会想办法部署起来试一试，看看它离“实际能用”到底还有多远。最近也一直在折腾 Prompt、Agent、Skills、上下文组织、工具调用以及多步骤模型工作流。我的 GitHub Stars 有时候更像一份稍微过于乐观的待办清单。",
+    focus: "我关注的方向",
+    background: "学习背景",
+    how: "我的工作方式",
+    learn: "我平时从哪里学东西",
+    website: "关于这个网站",
+    connect: "联系",
+    backgroundIntro:
+      "这里只保留和网站内容直接相关的学习背景，详细履历不在 About 页面重复展开。",
+    howBody:
+      "做项目时，我会关注分析结果是否真的能够支持判断，而不是停留在代码跑通、图表完成或者模型指标本身。值得反复使用的方法会整理下来；对于重复性的分析、资料整理、内容处理和项目维护，我也会尝试用 Prompt、Agent、Skills、工具调用和多步骤流程把它们做得更清楚、更容易复用。我尤其关注上下文、任务拆解以及不同模型和工具组合会怎样改变最终结果。",
+    howAside:
+      "有时候为了自动化一个五分钟的任务，会先花更多时间研究怎么自动化它。不过通常最好玩的也正是这一部分。",
+    learnIntro:
+      "很多时候我的学习并不是从头到尾读完一本教程，而是先碰到一个具体问题，再顺着资料往下找、动手试，最后把真正有用的部分留下来。",
+    courses:
+      "平时也会在 Coursera 和 DataCamp 上选择一些课程和练习，主要用于补充 SQL、Python、R、Power BI、统计、商业分析和建模中当前项目正好需要的那一块知识。",
+    notesLink:
+      "这些外部资料解决的是“我从哪里学”，网站里的 Learning Notes 更多是在记录“我最后留下了什么”。",
+    websiteBody:
+      "这个网站既是作品集，也是一份持续整理的工作记录。Projects 用来放模型、Dashboard 和分析项目；Learning Notes 用来留下以后还会回来看的方法、解释和小结。",
+    websiteBody2:
+      "比起把一个页面做完以后就永远不动，我更愿意让真正有用的内容随着项目一起继续更新，所以这里大概会一直处在“还能再改一点”的状态。",
+    connectBody:
+      "这里只显示确认可以公开的职业联系渠道。LinkedIn、WeChat 等信息会在准备好并确认适合公开后再加入。",
     back: "返回关于我",
   },
 }[locale];
+
+const focusAreas = {
+  en: [
+    {
+      title: "Supply Chain & Decision Modelling",
+      body: "Optimisation, resource allocation, network and cost models, scenario analysis and Monte Carlo simulation for comparing practical alternatives.",
+      tags: ["Excel", "Solver", "Optimisation", "Simulation"],
+    },
+    {
+      title: "Data Analytics & Business Intelligence",
+      body: "Working from data modelling and SQL through to dashboards, performance analysis and business-facing interpretation.",
+      tags: ["SQL", "T-SQL", "Power BI", "Data Modelling"],
+    },
+    {
+      title: "Predictive Analytics",
+      body: "Statistical and predictive modelling with an emphasis on evaluation, interpretation and what a model can actually support in practice.",
+      tags: ["Python", "R", "Statistics", "Forecasting"],
+    },
+    {
+      title: "AI Tools & Workflows",
+      body: "Exploring prompts, agents, skills, context management, tool use and model combinations, with more interest in useful workflows than in chasing every new model name.",
+      tags: ["Prompts", "Agents", "Skills", "Workflows"],
+    },
+  ],
+  zh: [
+    {
+      title: "供应链与决策建模",
+      body: "围绕优化、资源配置、网络与成本模型、情景分析和蒙特卡洛模拟，用模型比较不同方案并支持实际决策。",
+      tags: ["Excel", "Solver", "优化", "模拟"],
+    },
+    {
+      title: "数据分析与商业智能",
+      body: "从数据建模和 SQL 到 Dashboard、业务表现分析与结果解释，关注一条完整而实用的分析链路。",
+      tags: ["SQL", "T-SQL", "Power BI", "数据建模"],
+    },
+    {
+      title: "预测分析",
+      body: "使用统计与预测模型处理实际问题，更关注模型如何评估、如何解释，以及结果最后能够支持什么判断。",
+      tags: ["Python", "R", "统计", "预测"],
+    },
+    {
+      title: "AI 工具与工作流",
+      body: "持续尝试 Prompt、Agent、Skills、上下文管理、工具调用和不同模型组合。相比追着每个新模型跑，我更关心这些东西到底能不能让工作流程变得更好用。",
+      tags: ["Prompt", "Agent", "Skills", "Workflows"],
+    },
+  ],
+}[locale];
+
+const backgroundItems = {
+  en: [
+    {
+      title: "University of Auckland",
+      body: "Master of Business Analytics · Supply Chain Analytics focus",
+    },
+    {
+      title: "Universiti Putra Malaysia",
+      body: "Bachelor of Economics (Honours)",
+    },
+  ],
+  zh: [
+    {
+      title: "奥克兰大学",
+      body: "商业分析硕士 · 供应链分析方向",
+    },
+    {
+      title: "博特拉大学",
+      body: "经济学荣誉学士",
+    },
+  ],
+}[locale];
+
+const learningResources = [
+  {
+    title: "learnR",
+    href: "https://kaopubear.top/learnR/",
+    detail: {
+      en: "R learning notes and references that are useful for following a topic beyond the first example.",
+      zh: "平时会参考的 R 学习内容入口，也常顺着其中的内容继续寻找数据处理和可视化资料。",
+    },
+  },
+  {
+    title: "SQL Tutorial · Liaoxuefeng",
+    href: "https://liaoxuefeng.com/books/sql/relational/foreign-key/index.html",
+    detail: {
+      en: "A quick reference for relational database concepts and SQL fundamentals.",
+      zh: "重新确认关系数据库、主键外键、查询和表关系等基础概念时经常会翻看的资料。",
+    },
+  },
+  {
+    title: "R Language Tutorial · PKU",
+    href: "https://math.pku.edu.cn/teachers/lidf/docs/Rbook/html/_Rbook/intro.html",
+    detail: {
+      en: "A systematic R reference that is useful when I need to return to the fundamentals or statistical methods.",
+      zh: "较系统的 R 语言参考资料，需要回头确认语言基础或统计方法时很有用。",
+    },
+  },
+  {
+    title: "R for Data Science",
+    href: "https://bookdown.org/wangminjie/R4DS/tidystats-logistic-regression.html",
+    detail: {
+      en: "A practical reference for data analysis, tidy workflows and statistical modelling in R.",
+      zh: "用于补充 R 数据分析、tidy 工作流和统计建模知识的在线资料。",
+    },
+  },
+  {
+    title: "Computer Programming for Engineers",
+    href: "https://programming.engineeringcodehub.com/en/latest/Introduction/index_p1.html",
+    detail: {
+      en: "Practice-oriented material for programming, Python, SQL and related workflows.",
+      zh: "偏实践的编程学习资料，会用于 Python、SQL、数据处理和相关练习。",
+    },
+  },
+];
+
 const sections = [
   ["about-profile", copy.about],
-  ["education", copy.education],
-  ["experience", copy.experience],
-  ["skills", copy.skills],
-  ["resume", copy.resume],
-  ["contact", copy.contact],
+  ["focus", copy.focus],
+  ["background", copy.background],
+  ["how-i-work", copy.how],
+  ["where-i-learn", copy.learn],
+  ["this-website", copy.website],
+  ["connect", copy.connect],
 ];
 ---
 
@@ -83,9 +231,7 @@ const sections = [
   />
   <span aria-hidden="true"></span>
   <div>
-    <p class="status">
-      {locale === "en" ? "Profile & approach" : "个人概况与方法"}
-    </p>
+    <p class="status">{locale === "en" ? "Profile, interests & notes" : "个人、兴趣与记录"}</p>
     <h1 id="about-title">{copy.title}</h1>
     <p>{copy.heroLine}</p>
   </div>
@@ -97,9 +243,9 @@ const sections = [
       src={withBase(portraitImage)}
       alt={portrait.available
         ? locale === "en"
-          ? "Full-body graduation portrait"
-          : "毕业全身照"
-        : "XL profile placeholder"}
+          ? "Profile portrait"
+          : "个人照片"
+        : "Profile placeholder"}
       width="360"
       height="360"
       style={`object-position: ${portrait.position};`}
@@ -109,9 +255,10 @@ const sections = [
   <article class="profile-card" id="about-profile" data-reveal>
     <header class="profile-card__header">
       <p class="status">{copy.role}</p>
-      <h2>{locale === "en" ? "Business analytics profile" : "商业分析个人概况"}</h2>
+      <h2>{copy.aboutTitle}</h2>
       <p>{copy.location}</p>
-      <p class="profile-card__summary">{profileConfig.summary[locale]}</p>
+      <p class="profile-card__summary">{copy.summary}</p>
+      <p>{copy.curiosity}</p>
       <SocialLinks locale={locale} />
     </header>
 
@@ -119,63 +266,90 @@ const sections = [
       {sections.map(([id, label]) => <a href={`#${id}`}>{label}</a>)}
     </nav>
 
-    <section class="about-section" aria-labelledby="about-section-title">
-      <h2 id="about-section-title">{copy.about}</h2>
-      <p>{copy.approach}</p>
+    <section class="about-section" id="focus" aria-labelledby="focus-title">
+      <h2 id="focus-title">{copy.focus}</h2>
+      <div class="capability-grid">
+        {focusAreas.map((area) => (
+          <article class="ui-card">
+            <h3>{area.title}</h3>
+            <p>{area.body}</p>
+            <ul class="tag-list" aria-label={area.title}>
+              {area.tags.map((tag) => <li class="tag">{tag}</li>)}
+            </ul>
+          </article>
+        ))}
+      </div>
+      <ContextBack locale={locale} fallbackPath="/about/#about-profile" label={{ en: copy.back, zh: copy.back }} />
     </section>
 
-    <section class="about-section" id="education" aria-labelledby="education-title">
-      <h2 id="education-title">{copy.education}</h2>
-      <Timeline locale={locale} kinds={["education"]} />
-      <ContextBack
-        locale={locale}
-        fallbackPath="/about/#about-profile"
-        label={{ en: copy.back, zh: copy.back }}
-      />
+    <section class="about-section" id="background" aria-labelledby="background-title">
+      <h2 id="background-title">{copy.background}</h2>
+      <p>{copy.backgroundIntro}</p>
+      <div class="capability-grid">
+        {backgroundItems.map((item) => (
+          <article class="ui-card">
+            <h3>{item.title}</h3>
+            <p>{item.body}</p>
+          </article>
+        ))}
+      </div>
+      <ContextBack locale={locale} fallbackPath="/about/#about-profile" label={{ en: copy.back, zh: copy.back }} />
     </section>
 
-    <section class="about-section" id="experience" aria-labelledby="experience-title">
-      <h2 id="experience-title">{copy.experience}</h2>
-      <Timeline locale={locale} kinds={["experience"]} />
-      <ContextBack
-        locale={locale}
-        fallbackPath="/about/#about-profile"
-        label={{ en: copy.back, zh: copy.back }}
-      />
+    <section class="about-section" id="how-i-work" aria-labelledby="how-title">
+      <h2 id="how-title">{copy.how}</h2>
+      <p>{copy.howBody}</p>
+      <blockquote>{copy.howAside}</blockquote>
+      <ContextBack locale={locale} fallbackPath="/about/#about-profile" label={{ en: copy.back, zh: copy.back }} />
     </section>
 
-    <section class="about-section" id="skills" aria-labelledby="skills-title">
-      <h2 id="skills-title">{copy.skills}</h2>
-      <SkillGrid locale={locale} />
-      <ul class="tool-grid">
-        {toolset.map((tool) => <li>{tool}</li>)}
-      </ul>
-      <ContextBack
-        locale={locale}
-        fallbackPath="/about/#about-profile"
-        label={{ en: copy.back, zh: copy.back }}
-      />
+    <section class="about-section" id="where-i-learn" aria-labelledby="learn-title">
+      <h2 id="learn-title">{copy.learn}</h2>
+      <p>{copy.learnIntro}</p>
+      <div class="capability-grid">
+        {learningResources.map((resource) => (
+          <article class="ui-card">
+            <h3>{resource.title}</h3>
+            <p>{resource.detail[locale]}</p>
+            <a href={resource.href} target="_blank" rel="noreferrer">
+              {locale === "en" ? "Open resource ↗" : "打开资料 ↗"}
+            </a>
+          </article>
+        ))}
+      </div>
+      <p>{copy.courses}</p>
+      <p>
+        <a href="https://www.coursera.org/" target="_blank" rel="noreferrer">Coursera ↗</a>
+        {" · "}
+        <a href="https://www.datacamp.com/" target="_blank" rel="noreferrer">DataCamp ↗</a>
+      </p>
+      <p>{copy.notesLink}</p>
+      <a class="button button--secondary" href={withBase(locale === "zh" ? "/zh/notes/" : "/notes/")}>
+        {locale === "en" ? "Browse Learning Notes" : "查看 Learning Notes"}
+      </a>
+      <ContextBack locale={locale} fallbackPath="/about/#about-profile" label={{ en: copy.back, zh: copy.back }} />
     </section>
 
-    <section class="about-section" id="resume" aria-labelledby="resume-title">
-      <h2 id="resume-title">{copy.resumeSoon}</h2>
-      <p>{copy.resumeBody}</p>
-      <ContextBack
-        locale={locale}
-        fallbackPath="/about/#about-profile"
-        label={{ en: copy.back, zh: copy.back }}
-      />
+    <section class="about-section" id="this-website" aria-labelledby="website-title">
+      <h2 id="website-title">{copy.website}</h2>
+      <p>{copy.websiteBody}</p>
+      <p>{copy.websiteBody2}</p>
+      <div class="cluster">
+        <a class="button button--secondary" href={withBase(locale === "zh" ? "/zh/projects/" : "/projects/")}>
+          {locale === "en" ? "Projects" : "项目"}
+        </a>
+        <a class="button button--secondary" href={withBase(locale === "zh" ? "/zh/notes/" : "/notes/")}>
+          {locale === "en" ? "Learning Notes" : "学习笔记"}
+        </a>
+      </div>
+      <ContextBack locale={locale} fallbackPath="/about/#about-profile" label={{ en: copy.back, zh: copy.back }} />
     </section>
 
-    <section class="about-section" id="contact" aria-labelledby="contact-title">
-      <h2 id="contact-title">{copy.contact}</h2>
-      <p>{copy.contactBody}</p>
+    <section class="about-section" id="connect" aria-labelledby="connect-title">
+      <h2 id="connect-title">{copy.connect}</h2>
+      <p>{copy.connectBody}</p>
       <SocialLinks locale={locale} />
-      <ContextBack
-        locale={locale}
-        fallbackPath="/about/#about-profile"
-        label={{ en: copy.back, zh: copy.back }}
-      />
+      <ContextBack locale={locale} fallbackPath="/about/#about-profile" label={{ en: copy.back, zh: copy.back }} />
     </section>
   </article>
 </div>
