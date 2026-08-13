@@ -6,9 +6,9 @@ type LocalisedString = Record<Locale, string>;
 export const portfolioConfig = {
   media: {
     homeHero: {
-      desktop: "/backgrounds/home-hero-desktop.webp",
-      mobile: "/backgrounds/home-hero-mobile.webp",
-      fallback: "/backgrounds/southern-alpine-placeholder.svg",
+      desktop: "/backgrounds/home-hero-analytical.svg",
+      mobile: "/backgrounds/home-hero-analytical-mobile.svg",
+      fallback: "/backgrounds/home-hero-analytical.svg",
       available: true,
       overlay: 0.52,
       position: {
@@ -17,8 +17,8 @@ export const portfolioConfig = {
       },
     },
     aboutHero: {
-      image: "/backgrounds/about-hero.webp",
-      fallback: "/backgrounds/southern-alpine-about-placeholder.svg",
+      image: "/backgrounds/about-hero-analytical.svg",
+      fallback: "/backgrounds/about-hero-analytical.svg",
       available: true,
       overlay: 0.42,
       position: "center 51%",
