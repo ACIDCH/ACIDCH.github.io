@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
-  <title id="title">Business Analytics Portfolio social card</title>
+  <title id="title">Data Analytics Portfolio social card</title>
   <desc id="desc">Southern Alpine Minimal card for a business analytics and supply chain analytics portfolio.</desc>
   <defs>
     <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
@@ -22,7 +22,7 @@
     <rect width="118" height="118" rx="26" fill="#f5f0e7" fill-opacity=".96"/>
     <path d="M28 30h18l17 24 17-24h18L72 68l29 39H82L63 81l-19 26H25l29-39z" fill="#466b72"/>
   </g>
-  <text x="84" y="300" fill="#fffdf8" font-family="Arial, sans-serif" font-size="68" font-weight="700">Business Analytics Portfolio</text>
+  <text x="84" y="300" fill="#fffdf8" font-family="Arial, sans-serif" font-size="68" font-weight="700">Data Analytics Portfolio</text>
   <text x="84" y="378" fill="#d9e2df" font-family="Arial, sans-serif" font-size="34">Supply Chain · Analysis · Decision Support</text>
   <path d="M84 454h580" stroke="#d5b28c" stroke-width="5" stroke-linecap="round"/>
   <g fill="#d5b28c">

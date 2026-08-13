@@ -1,6 +1,6 @@
 ---
-import type { Locale } from "../config/site";
 import { navigationItems } from "../config/navigation";
+import { siteConfig, type Locale } from "../config/site";
 import { sharedUi } from "../i18n/shared-ui";
 import { getLocalizedPath } from "../utils/paths";
 import Logo from "./Logo.astro";
@@ -28,7 +28,7 @@ const copy = sharedUi[locale].footer;
     </nav>
     <p class="site-footer__meta">
       &copy; {new Date().getFullYear()}{" "}
-      {copy.copyright}
+      {siteConfig.siteTitleByLocale[locale]}
     </p>
   </div>
 </footer>

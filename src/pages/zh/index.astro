@@ -1,10 +1,11 @@
 ---
 import HomePage from "../../components/HomePage.astro";
+import { siteConfig } from "../../config/site";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 ---
 
 <BaseLayout
-  title="商业分析作品集"
+  title={siteConfig.siteTitleByLocale.zh}
   description="中英双语商业分析与供应链分析作品集。"
   locale="zh"
   pageType="profile"

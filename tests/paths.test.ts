@@ -59,7 +59,7 @@ describe("URL helpers", () => {
 describe("Phase 2 configuration", () => {
   it("uses an anonymous public identity and a system theme baseline", () => {
     expect(siteConfig.publicDisplayName).toBe("");
-    expect(siteConfig.siteTitle).toBe("数据分析项目集");
+    expect(siteConfig.siteTitle).toBe("数据分析作品集");
     expect(siteConfig.design.defaultTheme).toBe("system");
     expect(siteConfig.design.themeStorageKey).toBe("portfolio-theme");
   });

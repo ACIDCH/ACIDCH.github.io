@@ -1,7 +1,7 @@
 ---
 import { getCollection } from "astro:content";
 import { skillGroups } from "../config/skills";
-import type { Locale } from "../config/site";
+import { siteConfig, type Locale } from "../config/site";
 import { sharedUi } from "../i18n/shared-ui";
 import { getLocalizedPath } from "../utils/paths";
 import Hero from "./hero/Hero.astro";
@@ -26,7 +26,7 @@ const copy = sharedUi[locale].home;
 <Hero locale={locale}>
   <p class="home-hero__discipline">{copy.discipline}</p>
   <h1 id="home-title">
-    {copy.title}
+    {siteConfig.siteTitleByLocale[locale]}
   </h1>
   <div class="cluster">
     <a class="button" href={getLocalizedPath("/projects/", locale)}>

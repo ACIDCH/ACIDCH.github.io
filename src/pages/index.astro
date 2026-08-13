@@ -1,10 +1,11 @@
 ---
 import HomePage from "../components/HomePage.astro";
+import { siteConfig } from "../config/site";
 import BaseLayout from "../layouts/BaseLayout.astro";
 ---
 
 <BaseLayout
-  title="Business Analytics Portfolio"
+  title={siteConfig.siteTitleByLocale.en}
   description="A bilingual business analytics and supply chain analytics portfolio."
   locale="en"
   pageType="profile"
