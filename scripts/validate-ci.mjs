@@ -4,6 +4,7 @@ import path from "node:path";
 import process from "node:process";
 
 const outputRoot = path.join(process.cwd(), "dist");
+const aboutRoutes = new Set(["/about/", "/zh/about/"]);
 const allowedFirstPersonUiPhrases = [
   "关于我",
   "II 型错误",
@@ -100,6 +101,38 @@ async function reportRestrictedTermMatches() {
   }
 }
 
+async function validateAboutRestrictedTerms() {
+  const htmlFiles = (await collectFiles(outputRoot)).filter((file) =>
+    file.endsWith(".html"),
+  );
+  const failures = [];
+  const disallowedOnAbout = restrictedTermDiagnostics.filter(
+    (check) => check.label !== "AI",
+  );
+
+  for (const file of htmlFiles) {
+    const route = routeForFile(file);
+    if (!aboutRoutes.has(route)) continue;
+    const html = visibleMarkup(await readFile(file, "utf8"));
+    for (const check of disallowedOnAbout) {
+      const match = check.pattern.exec(html);
+      if (!match) continue;
+      failures.push(
+        `${route}: ${check.label} → ${compactContext(html, match.index, match[0].length)}`,
+      );
+      break;
+    }
+  }
+
+  if (failures.length > 0) {
+    console.error("About-page restricted terminology validation failed:");
+    for (const failure of failures) console.error(`- ${failure}`);
+    process.exit(1);
+  }
+
+  console.log("About pages may use the standalone AI label; all other restricted terms remain blocked.");
+}
+
 async function runLegacyValidation() {
   const result = spawnSync(process.execPath, ["scripts/validate-build.mjs"], {
     cwd: process.cwd(),
@@ -116,7 +149,8 @@ async function runLegacyValidation() {
   const remainingFailures = lines.filter(
     (line) =>
       !/^Built-site validation failed \(\d+ issue\(s\)\)\.$/.test(line) &&
-      !/^- \/.*: contains first-person public wording$/.test(line),
+      !/^- \/.*: contains first-person public wording$/.test(line) &&
+      !/^- \/(?:zh\/)?about\/: contains restricted public terminology$/.test(line),
   );
 
   if (remainingFailures.length > 0) {
@@ -131,7 +165,7 @@ async function runLegacyValidation() {
   }
 
   console.log(
-    "Legacy build validation passed after deferring first-person checks to the UI-aware validator.",
+    "Legacy build validation passed after deferring About-page and first-person checks to the UI-aware validator.",
   );
 }
 
@@ -142,6 +176,9 @@ async function validateFirstPersonCopy() {
   const failures = [];
 
   for (const file of htmlFiles) {
+    const route = routeForFile(file);
+    if (aboutRoutes.has(route)) continue;
+
     const html = await readFile(file, "utf8");
     const isStaticRedirect = /<meta\b[^>]*http-equiv=["']refresh["']/i.test(html);
     if (isStaticRedirect) continue;
@@ -151,7 +188,7 @@ async function validateFirstPersonCopy() {
       const match = check.pattern.exec(copyForCheck);
       if (!match) continue;
       failures.push(
-        `${routeForFile(file)}: ${check.label} "${match[0]}" → ${compactContext(copyForCheck, match.index, match[0].length)}`,
+        `${route}: ${check.label} "${match[0]}" → ${compactContext(copyForCheck, match.index, match[0].length)}`,
       );
       break;
     }
@@ -166,10 +203,11 @@ async function validateFirstPersonCopy() {
   }
 
   console.log(
-    "UI-aware first-person validation passed; only approved navigation and statistical labels are exempt.",
+    "UI-aware first-person validation passed; personal first-person copy is confined to About.",
   );
 }
 
 await runLegacyValidation();
+await validateAboutRestrictedTerms();
 await validateFirstPersonCopy();
 console.log("Built-site validation passed.");
