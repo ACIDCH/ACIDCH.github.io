@@ -3,6 +3,10 @@ export type HeroBackgroundMode = "video" | "image" | "aurora" | "network";
 export const siteConfig = {
   publicDisplayName: "",
   siteTitle: "数据分析项目集",
+  siteTitleByLocale: {
+    en: "Data Analytics Portfolio",
+    zh: "数据分析项目集",
+  },
   siteUrl: "https://ACIDCH.github.io",
   basePath: "/",
   github: {
