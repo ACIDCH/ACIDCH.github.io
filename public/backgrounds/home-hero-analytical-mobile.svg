@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1920" fill="none" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <pattern id="grid" width="56" height="56" patternUnits="userSpaceOnUse">
+      <path d="M56 0H0V56" stroke="#79908c" stroke-opacity=".13" stroke-width="1"/>
+    </pattern>
+    <pattern id="dots" width="26" height="26" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="2" fill="#5d7f78" fill-opacity=".2"/>
+    </pattern>
+  </defs>
+  <rect width="1080" height="1920" fill="url(#grid)"/>
+  <rect x="540" y="580" width="480" height="760" fill="url(#dots)" opacity=".5"/>
+  <g stroke-linecap="round" stroke-linejoin="round">
+    <path d="M60 1480C220 1400 300 1295 410 1335C535 1380 570 1490 700 1415C820 1345 850 1120 1040 990" stroke="#55756f" stroke-opacity=".32" stroke-width="3"/>
+    <path d="M120 1590C285 1500 365 1450 480 1395C600 1335 625 1190 755 1200C865 1210 930 1305 1050 1265" stroke="#7e968f" stroke-opacity=".22" stroke-width="2" stroke-dasharray="8 12"/>
+    <path d="M300 1360C465 1300 545 1125 680 1085C800 1048 900 1090 1038 970" stroke="#446b72" stroke-opacity=".22" stroke-width="2"/>
+  </g>
+  <g fill="#55756f">
+    <circle cx="410" cy="1335" r="7" fill-opacity=".26"/><circle cx="570" cy="1490" r="6" fill-opacity=".22"/>
+    <circle cx="700" cy="1415" r="8" fill-opacity=".28"/><circle cx="755" cy="1200" r="6" fill-opacity=".24"/>
+    <circle cx="900" cy="1090" r="7" fill-opacity=".25"/>
+  </g>
+  <g fill="#6f8781" fill-opacity=".18">
+    <rect x="595" y="1450" width="50" height="115"/><rect x="660" y="1390" width="50" height="175"/>
+    <rect x="725" y="1422" width="50" height="143"/><rect x="790" y="1332" width="50" height="233"/>
+    <rect x="855" y="1265" width="50" height="300"/><rect x="920" y="1305" width="50" height="260"/>
+  </g>
+  <circle cx="826" cy="950" r="118" stroke="#5d7f78" stroke-opacity=".14" stroke-width="32"/>
+  <path d="M826 832A118 118 0 0 1 934 998" stroke="#446b72" stroke-opacity=".24" stroke-width="32" stroke-linecap="round"/>
+  <g stroke="#8aa09a" stroke-opacity=".13">
+    <path d="M520 1655H1020"/><path d="M520 1695H1020"/><path d="M520 1735H1020"/>
+    <path d="M650 1638V1760"/><path d="M800 1638V1760"/><path d="M950 1638V1760"/>
+  </g>
+</svg>
