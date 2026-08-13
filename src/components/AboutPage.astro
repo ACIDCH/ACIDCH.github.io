@@ -268,17 +268,20 @@ const sections = [
 
     <section class="about-section" id="focus" aria-labelledby="focus-title">
       <h2 id="focus-title">{copy.focus}</h2>
-      <div class="capability-grid">
-        {focusAreas.map((area) => (
-          <article class="ui-card">
-            <h3>{area.title}</h3>
-            <p>{area.body}</p>
-            <ul class="tag-list" aria-label={area.title}>
+      <ol class="focus-list">
+        {focusAreas.map((area, index) => (
+          <li class="focus-row">
+            <span class="focus-row__number" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+            <div class="focus-row__copy">
+              <h3>{area.title}</h3>
+              <p>{area.body}</p>
+            </div>
+            <ul class="tag-list focus-row__tags" aria-label={area.title}>
               {area.tags.map((tag) => <li class="tag">{tag}</li>)}
             </ul>
-          </article>
+          </li>
         ))}
-      </div>
+      </ol>
       <ContextBack locale={locale} fallbackPath="/about/#about-profile" label={{ en: copy.back, zh: copy.back }} />
     </section>
 
@@ -353,3 +356,68 @@ const sections = [
     </section>
   </article>
 </div>
+
+<style>
+  .focus-list {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--colour-border);
+    list-style: none;
+  }
+
+  .focus-row {
+    display: grid;
+    grid-template-columns: 3.5rem minmax(15rem, 0.9fr) minmax(18rem, 1.1fr);
+    gap: var(--space-6);
+    align-items: start;
+    padding-block: var(--space-7);
+    border-bottom: 1px solid var(--colour-border);
+  }
+
+  .focus-row__number {
+    padding-top: 0.15rem;
+    color: var(--colour-primary-strong);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--letter-spacing-label);
+  }
+
+  .focus-row__copy {
+    display: grid;
+    gap: var(--space-3);
+    min-width: 0;
+  }
+
+  .focus-row__copy h3 {
+    font-size: var(--font-size-lg);
+  }
+
+  .focus-row__copy p {
+    max-width: 38rem;
+  }
+
+  .focus-row__tags {
+    align-self: center;
+    justify-content: flex-start;
+    margin: 0;
+  }
+
+  @media (max-width: 56rem) {
+    .focus-row {
+      grid-template-columns: 2.75rem minmax(0, 1fr);
+      gap: var(--space-4) var(--space-5);
+    }
+
+    .focus-row__tags {
+      grid-column: 2;
+    }
+  }
+
+  @media (max-width: 36rem) {
+    .focus-row {
+      grid-template-columns: 2.25rem minmax(0, 1fr);
+      padding-block: var(--space-6);
+    }
+  }
+</style>
