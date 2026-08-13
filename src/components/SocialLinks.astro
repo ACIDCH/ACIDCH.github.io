@@ -3,6 +3,7 @@ import { portfolioConfig } from "../config/portfolio";
 import type { Locale } from "../config/site";
 import { sharedUi } from "../i18n/shared-ui";
 import { withBase } from "../utils/paths";
+import Icon from "./Icon.astro";
 import SocialIconButton from "./SocialIconButton.astro";
 import WechatQrDialog from "./WechatQrDialog.astro";
 
@@ -16,6 +17,8 @@ const { contact } = portfolioConfig;
 const resumePath = contact.resume.paths[locale];
 const resumeAvailable =
   contact.resume.enabled && contact.resume.available[locale] && resumePath;
+const linkedinSoon =
+  locale === "en" ? "LinkedIn — link coming soon" : "LinkedIn — 链接稍后补充";
 ---
 
 <div class="social-links" aria-label={copy.contactLinks}>
@@ -30,14 +33,25 @@ const resumeAvailable =
     )
   }
   {
-    contact.linkedin.enabled && contact.linkedin.url && (
-      <SocialIconButton
-        href={contact.linkedin.url}
-        label="LinkedIn"
-        icon="linkedin"
-        external
-      />
-    )
+    contact.linkedin.enabled &&
+      (contact.linkedin.url ? (
+        <SocialIconButton
+          href={contact.linkedin.url}
+          label="LinkedIn"
+          icon="linkedin"
+          external
+        />
+      ) : (
+        <span
+          class="social-icon-button"
+          aria-disabled="true"
+          aria-label={linkedinSoon}
+          title={linkedinSoon}
+        >
+          <Icon name="linkedin" size={22} />
+          <span>LinkedIn</span>
+        </span>
+      ))
   }
   {
     contact.email.enabled && contact.email.address && (
