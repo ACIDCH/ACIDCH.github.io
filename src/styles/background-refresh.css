@@ -1,0 +1,155 @@
+/* Approved Home/About background refinement. Keep layout and interaction structure unchanged. */
+.home-hero {
+  background: var(--colour-page);
+}
+
+.home-hero__media img {
+  opacity: 0.88;
+}
+
+.home-hero__overlay {
+  background:
+    linear-gradient(
+      90deg,
+      rgb(243 238 229 / 98%) 0%,
+      rgb(243 238 229 / 94%) 34%,
+      rgb(243 238 229 / 74%) 55%,
+      rgb(243 238 229 / 30%) 82%,
+      rgb(243 238 229 / 12%) 100%
+    ),
+    linear-gradient(0deg, rgb(243 238 229 / 18%), transparent 55%);
+}
+
+.home-hero h1 {
+  color: var(--colour-text);
+}
+
+.home-hero__discipline {
+  color: var(--colour-primary-strong) !important;
+}
+
+.home-hero__content > p:not(.home-hero__discipline, .home-hero__statement) {
+  color: var(--colour-text-muted);
+}
+
+.home-hero .button--secondary {
+  border-color: var(--colour-border-strong);
+  background: rgb(255 253 248 / 78%);
+  color: var(--colour-text);
+  backdrop-filter: blur(0.45rem);
+}
+
+.home-hero .button--secondary:hover {
+  border-color: var(--colour-primary);
+  background: var(--colour-surface);
+  color: var(--colour-primary-strong);
+}
+
+.home-hero .button--ghost-light {
+  border-color: var(--colour-border-strong);
+  background: rgb(255 253 248 / 40%);
+  color: var(--colour-text);
+}
+
+.home-hero .button--ghost-light:hover {
+  border-color: var(--colour-primary);
+  background: var(--colour-surface);
+  color: var(--colour-primary-strong);
+}
+
+.home-hero__scroll-cue {
+  color: var(--colour-text-muted);
+}
+
+.about-hero {
+  background: var(--colour-page);
+}
+
+.about-hero > img {
+  opacity: 0.78;
+}
+
+.about-hero > span {
+  background:
+    radial-gradient(circle at 50% 58%, rgb(243 238 229 / 93%) 0 18%, rgb(243 238 229 / 66%) 42%, transparent 72%),
+    linear-gradient(180deg, rgb(243 238 229 / 52%), rgb(243 238 229 / 30%));
+}
+
+.about-hero > div {
+  color: var(--colour-text);
+}
+
+.about-hero .status {
+  color: var(--colour-primary-strong);
+}
+
+:root[data-theme="dark"] .home-hero,
+:root[data-theme="dark"] .about-hero {
+  background: var(--colour-navy-950);
+}
+
+:root[data-theme="dark"] .home-hero__media img,
+:root[data-theme="dark"] .about-hero > img {
+  opacity: 0.42;
+  filter: brightness(0.88) saturate(0.78);
+}
+
+:root[data-theme="dark"] .home-hero__overlay {
+  background:
+    linear-gradient(
+      90deg,
+      rgb(28 36 38 / 98%) 0%,
+      rgb(28 36 38 / 93%) 36%,
+      rgb(28 36 38 / 72%) 58%,
+      rgb(28 36 38 / 34%) 84%,
+      rgb(28 36 38 / 18%) 100%
+    ),
+    linear-gradient(0deg, rgb(28 36 38 / 30%), transparent 55%);
+}
+
+:root[data-theme="dark"] .home-hero h1,
+:root[data-theme="dark"] .about-hero > div {
+  color: #f2eee5;
+}
+
+:root[data-theme="dark"] .home-hero__discipline,
+:root[data-theme="dark"] .about-hero .status {
+  color: var(--colour-primary) !important;
+}
+
+:root[data-theme="dark"] .home-hero__content > p:not(.home-hero__discipline, .home-hero__statement),
+:root[data-theme="dark"] .home-hero__scroll-cue {
+  color: var(--colour-text-muted);
+}
+
+:root[data-theme="dark"] .home-hero .button--secondary,
+:root[data-theme="dark"] .home-hero .button--ghost-light {
+  border-color: rgb(242 238 229 / 34%);
+  background: rgb(28 36 38 / 62%);
+  color: #f2eee5;
+}
+
+:root[data-theme="dark"] .home-hero .button--secondary:hover,
+:root[data-theme="dark"] .home-hero .button--ghost-light:hover {
+  border-color: var(--colour-primary);
+  background: var(--colour-navy-900);
+  color: #f2eee5;
+}
+
+:root[data-theme="dark"] .about-hero > span {
+  background:
+    radial-gradient(circle at 50% 58%, rgb(28 36 38 / 92%) 0 18%, rgb(28 36 38 / 66%) 42%, transparent 72%),
+    linear-gradient(180deg, rgb(28 36 38 / 48%), rgb(28 36 38 / 24%));
+}
+
+@media (max-width: 52rem) {
+  .home-hero__overlay {
+    background:
+      linear-gradient(180deg, rgb(243 238 229 / 97%) 0 48%, rgb(243 238 229 / 72%) 66%, rgb(243 238 229 / 18%) 100%);
+  }
+
+  :root[data-theme="dark"] .home-hero__overlay {
+    background:
+      linear-gradient(180deg, rgb(28 36 38 / 97%) 0 48%, rgb(28 36 38 / 72%) 66%, rgb(28 36 38 / 22%) 100%);
+  }
+}
