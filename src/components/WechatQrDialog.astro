@@ -16,61 +16,155 @@ const { wechat } = portfolioConfig.contact;
 
 {
   wechat.enabled && wechat.qrAvailable && (
-    <span class="wechat-control" data-wechat-control>
+    <span class="wechat-control" data-wechat-control data-open="false">
       <button
         class="social-icon-button"
         type="button"
         aria-label={copy.open}
-        data-wechat-open
+        aria-expanded="false"
+        data-wechat-trigger
       >
         <Icon name="wechat" size={22} />
         <span>WeChat</span>
       </button>
-      <dialog class="wechat-dialog" data-wechat-dialog>
-        <div class="wechat-dialog__content">
-          <button
-            class="icon-button wechat-dialog__close"
-            type="button"
-            aria-label={copy.close}
-            data-wechat-close
-          >
-            <Icon name="close" />
-          </button>
-          <h2>{copy.title}</h2>
-          <img
-            src={withBase(wechat.qrImage)}
-            width="360"
-            height="360"
-            alt={copy.imageAlt}
-          />
-          {wechat.id && <p>{wechat.id}</p>}
-          <p>{copy.scan}</p>
-        </div>
-      </dialog>
+      <span class="wechat-qr-popover" data-wechat-popover>
+        <img
+          src={withBase(wechat.qrImage)}
+          width="490"
+          height="490"
+          alt={copy.imageAlt}
+          loading="lazy"
+          decoding="async"
+        />
+      </span>
     </span>
   )
 }
 
 <script>
-  function initWechatDialog() {
+  function closeWechatPopovers() {
     document
-      .querySelectorAll<HTMLElement>("[data-wechat-control]")
+      .querySelectorAll<HTMLElement>('[data-wechat-control][data-open="true"]')
       .forEach((control) => {
-        const dialog = control.querySelector<HTMLDialogElement>("[data-wechat-dialog]");
-        const open = control.querySelector<HTMLButtonElement>("[data-wechat-open]");
-        const close = dialog?.querySelector<HTMLButtonElement>("[data-wechat-close]");
-        if (!dialog || !open || !close || control.dataset.ready === "true") return;
-
-        control.dataset.ready = "true";
-        open.addEventListener("click", () => dialog.showModal());
-        close.addEventListener("click", () => dialog.close());
-        dialog.addEventListener("click", (event) => {
-          if (event.target === dialog) dialog.close();
-        });
-        dialog.addEventListener("close", () => open.focus());
+        control.dataset.open = "false";
+        control
+          .querySelector<HTMLButtonElement>("[data-wechat-trigger]")
+          ?.setAttribute("aria-expanded", "false");
       });
   }
 
-  document.addEventListener("astro:page-load", initWechatDialog);
-  initWechatDialog();
+  function initWechatPopover() {
+    document
+      .querySelectorAll<HTMLElement>("[data-wechat-control]")
+      .forEach((control) => {
+        const trigger = control.querySelector<HTMLButtonElement>("[data-wechat-trigger]");
+        if (!trigger || control.dataset.ready === "true") return;
+
+        control.dataset.ready = "true";
+        trigger.addEventListener("click", (event) => {
+          const coarsePointer = window.matchMedia(
+            "(hover: none), (pointer: coarse)",
+          ).matches;
+          if (!coarsePointer) return;
+
+          event.preventDefault();
+          const nextOpen = control.dataset.open !== "true";
+          closeWechatPopovers();
+          control.dataset.open = nextOpen ? "true" : "false";
+          trigger.setAttribute("aria-expanded", String(nextOpen));
+        });
+      });
+
+    if (document.documentElement.dataset.wechatPopoverBound === "true") return;
+    document.documentElement.dataset.wechatPopoverBound = "true";
+
+    document.addEventListener("click", (event) => {
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      if ((target as Element).closest?.("[data-wechat-control]")) return;
+      closeWechatPopovers();
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeWechatPopovers();
+    });
+  }
+
+  document.addEventListener("astro:page-load", initWechatPopover);
+  initWechatPopover();
 </script>
+
+<style>
+  .wechat-control {
+    position: relative;
+    display: inline-flex;
+  }
+
+  .wechat-qr-popover {
+    position: absolute;
+    z-index: 80;
+    bottom: calc(100% + 0.75rem);
+    left: 50%;
+    width: min(19rem, calc(100vw - 2rem));
+    padding: 0.3rem;
+    border: 1px solid var(--colour-border);
+    border-radius: 1rem;
+    background: #fff;
+    box-shadow: var(--shadow-lg);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translate(-50%, 0.4rem) scale(0.98);
+    transform-origin: bottom center;
+    transition:
+      opacity var(--duration-fast) var(--ease-standard),
+      transform var(--duration-fast) var(--ease-standard),
+      visibility var(--duration-fast) var(--ease-standard);
+  }
+
+  .wechat-qr-popover img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 0.8rem;
+    background: #fff;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .wechat-control:hover .wechat-qr-popover,
+    .wechat-control:focus-within .wechat-qr-popover {
+      opacity: 1;
+      visibility: visible;
+      transform: translate(-50%, 0) scale(1);
+    }
+  }
+
+  .wechat-control[data-open="true"] .wechat-qr-popover {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, 0) scale(1);
+  }
+
+  @media (hover: none), (pointer: coarse) {
+    .wechat-qr-popover {
+      position: fixed;
+      top: 50%;
+      right: auto;
+      bottom: auto;
+      left: 50%;
+      width: min(21rem, calc(100vw - 2rem));
+      transform: translate(-50%, calc(-50% + 0.4rem)) scale(0.98);
+      transform-origin: center;
+    }
+
+    .wechat-control[data-open="true"] .wechat-qr-popover {
+      transform: translate(-50%, -50%) scale(1);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .wechat-qr-popover {
+      transition: none;
+    }
+  }
+</style>
