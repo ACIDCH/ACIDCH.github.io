@@ -1,0 +1,2 @@
+:root[data-theme="dark"] .about-hero{background-image:url('/backgrounds/about-hero-analytical.svg')}
+:root[data-theme="dark"] .home-hero__media img,:root[data-theme="dark"] .about-hero>img{opacity:0}
