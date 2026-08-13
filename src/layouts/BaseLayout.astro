@@ -45,8 +45,9 @@ const {
 } = Astro.props;
 const resolvedCanonicalPath = canonicalPath ?? Astro.url.pathname;
 const canonicalUrl = getCanonicalUrl(resolvedCanonicalPath);
+const localizedSiteTitle = siteConfig.siteTitleByLocale[locale];
 const fullTitle =
-  title === siteConfig.siteTitle ? title : `${title} | ${siteConfig.siteTitle}`;
+  title === localizedSiteTitle ? title : `${title} | ${localizedSiteTitle}`;
 const { seoAlternatePath, languageSwitchPath, englishPath, chinesePath } =
   resolveLocalePaths({
     locale,
@@ -63,7 +64,7 @@ const jsonLd = {
     {
       "@type": "WebSite",
       "@id": `${siteConfig.siteUrl}/#website`,
-      name: siteConfig.siteTitle,
+      name: localizedSiteTitle,
       url: siteConfig.siteUrl,
       inLanguage: ["en", "zh-CN"],
     },
@@ -118,7 +119,7 @@ const serialisedJsonLd = JSON.stringify(jsonLd).replace(/</g, "\\u003c");
       content={noindex ? "noindex, follow" : "index, follow, max-image-preview:large"}
     />
     <meta property="og:type" content={pageType} />
-    <meta property="og:site_name" content={siteConfig.siteTitle} />
+    <meta property="og:site_name" content={localizedSiteTitle} />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalUrl} />
