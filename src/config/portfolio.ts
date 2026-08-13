@@ -41,7 +41,7 @@ export const portfolioConfig = {
       url: `${siteConfig.github.origin}/${siteConfig.github.username}`,
     },
     linkedin: {
-      enabled: false,
+      enabled: true,
       url: "",
     },
     email: {
@@ -49,10 +49,10 @@ export const portfolioConfig = {
       address: "",
     },
     wechat: {
-      enabled: false,
+      enabled: true,
       id: "",
-      qrImage: "/contact/wechat-qr.webp",
-      qrAvailable: false,
+      qrImage: "/contact/wechat-qr.svg",
+      qrAvailable: true,
     },
     resume: {
       enabled: false,
