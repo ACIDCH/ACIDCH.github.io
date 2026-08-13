@@ -3,11 +3,10 @@
   "sourceLocale": "zh",
   "targetLocale": "en",
   "mode": "strict",
-  "generatedAt": "2026-08-13T10:16:05.454Z",
+  "generatedAt": "2026-08-13T10:17:44.301Z",
   "counts": {
     "DRAFT_ONLY": 1,
-    "STALE_CONTENT": 1,
-    "SYNCED": 37
+    "SYNCED": 38
   },
   "entries": [
     {
@@ -814,16 +813,16 @@
       "key": "notes:sql-select",
       "collection": "notes",
       "translationKey": "sql-select",
-      "status": "STALE_CONTENT",
-      "change": "CONTENT_CHANGE",
+      "status": "SYNCED",
+      "change": null,
       "sourcePath": "src/content/notes/sql-select.zh.md",
       "targetPath": "src/content/notes/sql-select.en.md",
       "sourceHashes": {
-        "content": "7a47d1488a0e54ec43a2f6bb93fdf150e89671ca273f09dc21cd7190aec5d973",
+        "content": "fe686fe6a0ef6a9170c8684e86da716453fade763b75964d754782462161bc26",
         "structure": "487e89f011cf0293d992c12474fffb2c18af470bf89b2eda7cdf348a75dfd59f",
         "metadata": "0ee4e6d3e7a8bad3405012fcf84b13ecee15327a5174e1b15c0118a7d9e8ae9c",
         "protected": "345c2ef8a2d4f4b226e98bb84132362625b58ba10df8b07a85271cb8f6048fc8",
-        "file": "7a629087ab0828495c07b2152d680660b1c69fbd92548b6fafe52a249e26ec5a"
+        "file": "3bdbd54b15856ffc1a22bad902412121df5be9f9c0985135f93162ee64450b73"
       },
       "currentSourceHashes": {
         "content": "fe686fe6a0ef6a9170c8684e86da716453fade763b75964d754782462161bc26",
@@ -833,14 +832,14 @@
         "file": "3bdbd54b15856ffc1a22bad902412121df5be9f9c0985135f93162ee64450b73"
       },
       "targetHashes": {
-        "content": "da18c872468595bfe8fa160e7c8cabe616cb267570decbd34148bcaf19a481b3",
+        "content": "482bf2163dbd343e3f98f8be5afac0be095fdc8b25169d3de4d7ddc6e6f60a30",
         "structure": "487e89f011cf0293d992c12474fffb2c18af470bf89b2eda7cdf348a75dfd59f",
         "metadata": "8a9aa5815c50619963e43b41a309af8e683be55bb9cba508a1bc068e4b2037e5",
         "protected": "345c2ef8a2d4f4b226e98bb84132362625b58ba10df8b07a85271cb8f6048fc8",
-        "file": "203a3444a319616c36f7efbb04bcf23cc0b9671a462bafeeedd8d04dbe13e821"
+        "file": "62aca05892aef404e4151079e0226098709f5d316e7305f0478379246fbc3e34"
       },
       "integrityIssues": [],
-      "strictBlocking": true
+      "strictBlocking": false
     },
     {
       "key": "notes:sql-where",
