@@ -1,5 +1,11 @@
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  writeFileSync,
+} from "node:fs";
 import process from "node:process";
 import { inventoryContent, translatableContent } from "./lib/i18n-sync.mjs";
 
@@ -95,15 +101,22 @@ if (englishContentLeaks.length) {
   );
 }
 
+function generatedPaginationPages(root) {
+  if (!existsSync(root)) return [];
+  return readdirSync(root, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => `${root}/${entry.name}/index.html`)
+    .filter((file) => existsSync(file));
+}
+
 const sharedEnglishPages = [
   "dist/index.html",
   "dist/about/index.html",
   "dist/productivity/index.html",
   "dist/projects/index.html",
-  "dist/projects/page/2/index.html",
+  ...generatedPaginationPages("dist/projects/page"),
   "dist/notes/index.html",
-  "dist/notes/page/2/index.html",
-  "dist/notes/page/3/index.html",
+  ...generatedPaginationPages("dist/notes/page"),
   "dist/notes/series/r-statistics/index.html",
   "dist/notes/series/regression/index.html",
   "dist/notes/series/sql/index.html",
