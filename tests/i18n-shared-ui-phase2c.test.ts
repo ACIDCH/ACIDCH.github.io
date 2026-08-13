@@ -64,6 +64,8 @@ describe("Phase 2C shared UI localisation", () => {
     const notes = read("src/components/NotesExplorer.astro");
     const theme = read("src/components/ThemeSwitch.astro");
     const wechat = read("src/components/WechatQrDialog.astro");
+    const whatsapp = read("src/components/WhatsappQrPopover.astro");
+    const socialLinks = read("src/components/SocialLinks.astro");
     const backToTop = read("src/components/BackToTop.astro");
 
     expect(header).toContain("data-menu-toggle");
@@ -81,6 +83,13 @@ describe("Phase 2C shared UI localisation", () => {
     expect(wechat).toContain('document.addEventListener("click"');
     expect(wechat).toContain('document.addEventListener("keydown"');
     expect(wechat).not.toContain("<dialog");
+    expect(whatsapp).toContain("data-whatsapp-trigger");
+    expect(whatsapp).toContain("/contact/whatsapp-qr.svg");
+    expect(whatsapp).toContain("(hover: none), (pointer: coarse)");
+    expect(whatsapp).toContain('document.addEventListener("click"');
+    expect(whatsapp).toContain('document.addEventListener("keydown"');
+    expect(whatsapp).not.toContain("<dialog");
+    expect(socialLinks).toContain("<WhatsappQrPopover />");
     expect(backToTop).toContain("button.addEventListener(");
     expect(backToTop).toContain('"click",');
     expect(backToTop).toContain("window.scrollTo");
