@@ -248,6 +248,8 @@ The easier to debug sequence is:
 
 If the final query result is incorrect, you can go back layer by layer and quickly find out which step changed the result.
 
+The interactive exercise below runs SQLite locally in the browser through sql.js. Queries entered here are not sent to a remote database server, so this is a repeatable local practice environment rather than a production database connection.
+
 <div data-learning-slot="sql-playground"></div>
 
 ## Common beginner mistakes
