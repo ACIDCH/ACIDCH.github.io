@@ -1,15 +1,10 @@
-# Business Analytics Portfolio
+# 数据分析项目集
 
 [English](README.md) | [中文](README.zh-CN.md)
 
-This repository contains a static bilingual business analytics and
-supply chain analytics portfolio. English is the default language and
-Simplified Chinese is available under `/zh/`.
+This repository contains the source code and content for a bilingual data analytics portfolio built with Astro and deployed to GitHub Pages. Chinese content is the current editorial priority; English pages follow the same content model and are maintained as corresponding translations.
 
-The local implementation includes Light/Dark/System themes, configurable Hero
-backgrounds, bilingual Content Collections, shareable project filters, a
-synthetic supply-chain network demonstration, reduced-motion support, SEO
-metadata, and deployment-ready GitHub Pages configuration.
+The site includes Light/Dark/System themes, bilingual Content Collections, global search, project and Learning Note routes, reduced-motion support, SEO metadata, privacy checks, and automated GitHub Pages deployment.
 
 ## Requirements
 
@@ -31,23 +26,16 @@ npm run format:check
 npm run check
 npm run lint
 npm run test
+npm run audit:i18n-sync:strict
 npm run build
+npm run audit:i18n-final
 ```
 
-`npm run build` also checks the generated site's internal links, core document
-semantics and static assets. The production output is generated in `dist/`.
+The CI pipeline also runs public-content privacy and security checks before deployment. Production output is generated in `dist/` and deployed through `.github/workflows/deploy.yml`.
 
 ## Content
 
-Projects are stored in `src/content/projects/` and notes in
-`src/content/notes/`. Each translated pair uses the same `translationKey` and
-has one entry per locale:
-
-```yaml
-translationKey: example-project
-locale: en
-slug: example-project
-```
+Projects are stored in `src/content/projects/` and Learning Notes in `src/content/notes/`. A Chinese and English pair shares the same `translationKey`:
 
 ```yaml
 translationKey: example-project
@@ -55,43 +43,32 @@ locale: zh
 slug: example-project
 ```
 
-Content marked with `isPlaceholder: true` or `isDemo: true` must not be
-presented as a completed or verified real-world result.
+```yaml
+translationKey: example-project
+locale: en
+slug: example-project
+```
+
+Only verified project content is retained in the active portfolio. New projects will be added from completed coursework and independently verified work as they become ready for publication.
+
+## Bilingual workflow
+
+Chinese is treated as the current source editorial version. Published bilingual content is checked for route, search, sitemap, metadata, structural and protected-token parity.
+
+`.github/workflows/i18n-translation.yml` can generate an English first-pass translation as a Draft PR. Code, formulas, URLs, numbers and structural tokens are protected during translation. Generated English content still requires editorial and semantic review before merge.
 
 ## Central configuration
 
-- Site, language, account, and repository-owner settings:
-  `src/config/site.ts`
-- Public profile placeholders: `src/config/profile.ts`
-- Media, social, resume, and external-notebook switches:
-  `src/config/portfolio.ts`
+- Site, language, account and repository settings: `src/config/site.ts`
+- Public profile configuration: `src/config/profile.ts`
+- Media, social, resume and external-note switches: `src/config/portfolio.ts`
 - Navigation: `src/config/navigation.ts`
 - Path and URL builders: `src/utils/paths.ts` and `src/utils/urls.ts`
 
-Do not duplicate account names or complete technical URLs across components and
-content files.
-
-## V2 visual system and media
-
-The public Home and About pages use the Southern Alpine Minimal system with
-local, replaceable landscape placeholders. Media paths, availability,
-overlays, and object positions are centralised in `src/config/portfolio.ts`.
-The earlier multi-background components remain available without loading
-unconfirmed personal media.
-
 ## Privacy
 
-This repository is designed to be public. Read `SECURITY.md` before adding
-personal, employer, university, or project material. Never commit private
-contact information, secrets, restricted coursework, or unapproved project
-results.
+This repository is public. Read `SECURITY.md` before adding personal, employer, university or project material. Do not commit private contact details, secrets, restricted coursework or unapproved project results.
 
-## Deployment preparation
+## Deployment
 
-The Pages workflow is prepared in `.github/workflows/deploy.yml`. Activation
-and migration instructions are in
-[`docs/deployment/GITHUB_PAGES.md`](docs/deployment/GITHUB_PAGES.md) and
-[`docs/deployment/STATIC_HOST_MIGRATION.md`](docs/deployment/STATIC_HOST_MIGRATION.md).
-
-No remote repository is configured, and no push, deployment, domain binding or
-paid service operation was performed during local preparation.
+The site is deployed to GitHub Pages through the repository CI/CD workflow. The pipeline validates the current commit before deployment and verifies the live deployment afterwards. No custom domain or paid hosting service is currently configured.
