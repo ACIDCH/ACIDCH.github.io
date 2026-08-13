@@ -25,7 +25,7 @@ const totalPages = getTotalPages(notes.length, NOTES_PAGE_SIZE);
 ---
 
 <BaseLayout
-  title="Learning Notes"
+  title="Notes"
   locale="en"
   pagination={{
     next: totalPages > 1 ? getPaginationPath("/notes/", 2) : undefined,
@@ -33,7 +33,7 @@ const totalPages = getTotalPages(notes.length, NOTES_PAGE_SIZE);
 >
   <PageIntro
     locale="en"
-    title="Learning Notes"
+    title="Notes"
     description="A bilingual, searchable knowledge base for analytics, optimisation and decision support."
   />
   <NotesExplorer
