@@ -10,9 +10,15 @@ interface Props {
 }
 
 const { locale, fallbackPath, label } = Astro.props;
+const resolvedLabel =
+  fallbackPath === "/notes/"
+    ? locale === "en"
+      ? "Back to Notes"
+      : "返回笔记"
+    : label[locale];
 ---
 
 <a class="context-back" href={getLocalizedPath(fallbackPath, locale)}>
   <Icon name="back" />
-  <span>{label[locale]}</span>
+  <span>{resolvedLabel}</span>
 </a>

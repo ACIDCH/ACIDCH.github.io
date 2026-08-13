@@ -26,7 +26,7 @@ const totalPages = getTotalPages(notes.length, NOTES_PAGE_SIZE);
 ---
 
 <BaseLayout
-  title="学习笔记"
+  title="笔记"
   locale="zh"
   pagination={{
     next: totalPages > 1 ? getPaginationPath("/zh/notes/", 2) : undefined,
@@ -34,7 +34,7 @@ const totalPages = getTotalPages(notes.length, NOTES_PAGE_SIZE);
 >
   <PageIntro
     locale="zh"
-    title="学习笔记"
+    title="笔记"
     description="先用标签快速定位知识点，再按主题进入完整知识库；全部笔记保留在下方并支持分页浏览。"
   />
   <NotesExplorer
