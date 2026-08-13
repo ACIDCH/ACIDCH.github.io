@@ -3,11 +3,11 @@
   "sourceLocale": "zh",
   "targetLocale": "en",
   "mode": "strict",
-  "generatedAt": "2026-08-12T15:24:35.303Z",
+  "generatedAt": "2026-08-13T10:16:05.454Z",
   "counts": {
     "DRAFT_ONLY": 1,
-    "PLACEHOLDER": 3,
-    "SYNCED": 38
+    "STALE_CONTENT": 1,
+    "SYNCED": 37
   },
   "entries": [
     {
@@ -814,8 +814,8 @@
       "key": "notes:sql-select",
       "collection": "notes",
       "translationKey": "sql-select",
-      "status": "SYNCED",
-      "change": null,
+      "status": "STALE_CONTENT",
+      "change": "CONTENT_CHANGE",
       "sourcePath": "src/content/notes/sql-select.zh.md",
       "targetPath": "src/content/notes/sql-select.en.md",
       "sourceHashes": {
@@ -826,11 +826,11 @@
         "file": "7a629087ab0828495c07b2152d680660b1c69fbd92548b6fafe52a249e26ec5a"
       },
       "currentSourceHashes": {
-        "content": "7a47d1488a0e54ec43a2f6bb93fdf150e89671ca273f09dc21cd7190aec5d973",
+        "content": "fe686fe6a0ef6a9170c8684e86da716453fade763b75964d754782462161bc26",
         "structure": "487e89f011cf0293d992c12474fffb2c18af470bf89b2eda7cdf348a75dfd59f",
         "metadata": "0ee4e6d3e7a8bad3405012fcf84b13ecee15327a5174e1b15c0118a7d9e8ae9c",
         "protected": "345c2ef8a2d4f4b226e98bb84132362625b58ba10df8b07a85271cb8f6048fc8",
-        "file": "7a629087ab0828495c07b2152d680660b1c69fbd92548b6fafe52a249e26ec5a"
+        "file": "3bdbd54b15856ffc1a22bad902412121df5be9f9c0985135f93162ee64450b73"
       },
       "targetHashes": {
         "content": "da18c872468595bfe8fa160e7c8cabe616cb267570decbd34148bcaf19a481b3",
@@ -840,7 +840,7 @@
         "file": "203a3444a319616c36f7efbb04bcf23cc0b9671a462bafeeedd8d04dbe13e821"
       },
       "integrityIssues": [],
-      "strictBlocking": false
+      "strictBlocking": true
     },
     {
       "key": "notes:sql-where",
@@ -1195,38 +1195,6 @@
       "strictBlocking": false
     },
     {
-      "key": "projects:inventory-optimisation",
-      "collection": "projects",
-      "translationKey": "inventory-optimisation",
-      "status": "PLACEHOLDER",
-      "change": null,
-      "sourcePath": "src/content/projects/inventory-optimisation.zh.md",
-      "targetPath": "src/content/projects/inventory-optimisation.en.md",
-      "sourceHashes": {
-        "content": "f648ddccf43d7d75a71b40da345535428ef98c1cc9d45c62b741e9fc9c6279a5",
-        "structure": "8f0b61051eb23239885d452b116f1fadc771b0e3b4e413513ac2b65ee853b651",
-        "metadata": "63479051458e816ad6e3414680e0f90af9970dd985766e87db6ccc8b9a487e25",
-        "protected": "272ab511d7e44488336b3bcbc72de748b31fd2c20ff07314f19c9671f56c9256",
-        "file": "7fe10454a8230d43c37f1c1511faad8c29d4f0976e66821ce6d989bfb43d9037"
-      },
-      "currentSourceHashes": {
-        "content": "f648ddccf43d7d75a71b40da345535428ef98c1cc9d45c62b741e9fc9c6279a5",
-        "structure": "8f0b61051eb23239885d452b116f1fadc771b0e3b4e413513ac2b65ee853b651",
-        "metadata": "63479051458e816ad6e3414680e0f90af9970dd985766e87db6ccc8b9a487e25",
-        "protected": "272ab511d7e44488336b3bcbc72de748b31fd2c20ff07314f19c9671f56c9256",
-        "file": "7fe10454a8230d43c37f1c1511faad8c29d4f0976e66821ce6d989bfb43d9037"
-      },
-      "targetHashes": {
-        "content": "2f406acaba0e7a75bf66ce9827a80e8b0c16fc1c8b69a4438d8cbd453bf4338f",
-        "structure": "8f0b61051eb23239885d452b116f1fadc771b0e3b4e413513ac2b65ee853b651",
-        "metadata": "63479051458e816ad6e3414680e0f90af9970dd985766e87db6ccc8b9a487e25",
-        "protected": "272ab511d7e44488336b3bcbc72de748b31fd2c20ff07314f19c9671f56c9256",
-        "file": "878a2fc3cb997e0432a963e84aaad4ae1006315a3aabe2a327b8d15133534e52"
-      },
-      "integrityIssues": [],
-      "strictBlocking": false
-    },
-    {
       "key": "projects:retirement-monte-carlo",
       "collection": "projects",
       "translationKey": "retirement-monte-carlo",
@@ -1259,38 +1227,6 @@
       "strictBlocking": false
     },
     {
-      "key": "projects:sales-inventory-dashboard",
-      "collection": "projects",
-      "translationKey": "sales-inventory-dashboard",
-      "status": "PLACEHOLDER",
-      "change": null,
-      "sourcePath": "src/content/projects/sales-inventory-dashboard.zh.md",
-      "targetPath": "src/content/projects/sales-inventory-dashboard.en.md",
-      "sourceHashes": {
-        "content": "a7ae918edabf1b20875e131d521efb35aa55b0407a029bc4cc9451fa13cdf8f3",
-        "structure": "8f0b61051eb23239885d452b116f1fadc771b0e3b4e413513ac2b65ee853b651",
-        "metadata": "c962bb07a291692d2439e0f6770864192a6ddb0d756836386262e5a1bb43e7cf",
-        "protected": "272ab511d7e44488336b3bcbc72de748b31fd2c20ff07314f19c9671f56c9256",
-        "file": "94d2311b4d1f9a201198f0989fb68f7495a5cc978217410ad13dcb86c20857f6"
-      },
-      "currentSourceHashes": {
-        "content": "a7ae918edabf1b20875e131d521efb35aa55b0407a029bc4cc9451fa13cdf8f3",
-        "structure": "8f0b61051eb23239885d452b116f1fadc771b0e3b4e413513ac2b65ee853b651",
-        "metadata": "c962bb07a291692d2439e0f6770864192a6ddb0d756836386262e5a1bb43e7cf",
-        "protected": "272ab511d7e44488336b3bcbc72de748b31fd2c20ff07314f19c9671f56c9256",
-        "file": "94d2311b4d1f9a201198f0989fb68f7495a5cc978217410ad13dcb86c20857f6"
-      },
-      "targetHashes": {
-        "content": "a48e061c5cfbe2fd029f8bde41098b99d67e01aedcf031534460f52d2407e3ae",
-        "structure": "8f0b61051eb23239885d452b116f1fadc771b0e3b4e413513ac2b65ee853b651",
-        "metadata": "578cf64709f968da10dffd9b135cf9bd1332bdb8941b99c8c371e812523bceae",
-        "protected": "272ab511d7e44488336b3bcbc72de748b31fd2c20ff07314f19c9671f56c9256",
-        "file": "d44ce32b1743dc27f31c5761eaa7abf6d10f70dabbdfcb321965b35c699063a3"
-      },
-      "integrityIssues": [],
-      "strictBlocking": false
-    },
-    {
       "key": "projects:sales-profitability-warehouse",
       "collection": "projects",
       "translationKey": "sales-profitability-warehouse",
@@ -1318,38 +1254,6 @@
         "metadata": "9cca310b11aa3f12eaff98d83e9c4712df9848bf4b1782518a9bc6e806de9ee5",
         "protected": "23b3e0bb266c6a493d68d3df6ad4787675719ac83bd9945d8891c3bafd44ea7d",
         "file": "fd8fe2d44bf1ce3c4292ab5d1fc8157d845f21eb78c68cc857f17e71ae6016f6"
-      },
-      "integrityIssues": [],
-      "strictBlocking": false
-    },
-    {
-      "key": "projects:transportation-network",
-      "collection": "projects",
-      "translationKey": "transportation-network",
-      "status": "PLACEHOLDER",
-      "change": null,
-      "sourcePath": "src/content/projects/transportation-network.zh.md",
-      "targetPath": "src/content/projects/transportation-network.en.md",
-      "sourceHashes": {
-        "content": "8490465f48659d1ef745856a1c1227726e64f8a90e0db0747cbb4c158bffcf6c",
-        "structure": "8f0b61051eb23239885d452b116f1fadc771b0e3b4e413513ac2b65ee853b651",
-        "metadata": "dc8121799fd925e31b80fa36dce1fbe7499695facf7ab3ad6a1a539de7533260",
-        "protected": "272ab511d7e44488336b3bcbc72de748b31fd2c20ff07314f19c9671f56c9256",
-        "file": "b10d0c93373298cf0070e8d82cc59cac5756c0852c1344c069552742dc03fb67"
-      },
-      "currentSourceHashes": {
-        "content": "8490465f48659d1ef745856a1c1227726e64f8a90e0db0747cbb4c158bffcf6c",
-        "structure": "8f0b61051eb23239885d452b116f1fadc771b0e3b4e413513ac2b65ee853b651",
-        "metadata": "dc8121799fd925e31b80fa36dce1fbe7499695facf7ab3ad6a1a539de7533260",
-        "protected": "272ab511d7e44488336b3bcbc72de748b31fd2c20ff07314f19c9671f56c9256",
-        "file": "b10d0c93373298cf0070e8d82cc59cac5756c0852c1344c069552742dc03fb67"
-      },
-      "targetHashes": {
-        "content": "a2bef617d6c2a697a0e8312180afc30e64fc1cdb2bf1a5600f08b914ae5bfd64",
-        "structure": "8f0b61051eb23239885d452b116f1fadc771b0e3b4e413513ac2b65ee853b651",
-        "metadata": "40566d15f5d3277302c78254cc4b0909ecde88b4befe658ed8e89a9c5de2c553",
-        "protected": "272ab511d7e44488336b3bcbc72de748b31fd2c20ff07314f19c9671f56c9256",
-        "file": "c66e459d9f0692382657b773e223cfb89d3c40f4be80cf752fc64b8e51f6abf6"
       },
       "integrityIssues": [],
       "strictBlocking": false
