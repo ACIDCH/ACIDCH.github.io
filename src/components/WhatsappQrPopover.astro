@@ -96,26 +96,32 @@ import { withBase } from "../utils/paths";
 
 <style>
   .whatsapp-control {
+    --whatsapp-qr-size: min(12.5rem, calc(100vw - 3rem));
+
     position: relative;
     display: inline-flex;
+    align-self: flex-start;
+    padding-bottom: 0;
+    overflow: visible;
+    transition: padding-bottom var(--duration-fast) var(--ease-standard);
   }
 
   .whatsapp-qr-popover {
     position: absolute;
     z-index: 80;
-    bottom: calc(100% + 0.75rem);
+    top: calc(2.75rem + 0.7rem);
     left: 50%;
-    width: min(19rem, calc(100vw - 2rem));
+    width: var(--whatsapp-qr-size);
     padding: 0.3rem;
     border: 1px solid var(--colour-border);
-    border-radius: 1rem;
+    border-radius: 0.95rem;
     background: #fff;
     box-shadow: var(--shadow-lg);
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-    transform: translate(-50%, 0.4rem) scale(0.98);
-    transform-origin: bottom center;
+    transform: translate(-50%, -0.35rem) scale(0.985);
+    transform-origin: top center;
     transition:
       opacity var(--duration-fast) var(--ease-standard),
       transform var(--duration-fast) var(--ease-standard),
@@ -126,43 +132,44 @@ import { withBase } from "../utils/paths";
     display: block;
     width: 100%;
     height: auto;
-    border-radius: 0.8rem;
+    border-radius: 0.72rem;
     background: #fff;
   }
 
   @media (hover: hover) and (pointer: fine) {
+    .whatsapp-control:hover,
+    .whatsapp-control:focus-within {
+      padding-bottom: calc(var(--whatsapp-qr-size) + 0.8rem);
+    }
+
     .whatsapp-control:hover .whatsapp-qr-popover,
     .whatsapp-control:focus-within .whatsapp-qr-popover {
       opacity: 1;
       visibility: visible;
+      pointer-events: auto;
       transform: translate(-50%, 0) scale(1);
     }
+  }
+
+  .whatsapp-control[data-open="true"] {
+    padding-bottom: calc(var(--whatsapp-qr-size) + 0.8rem);
   }
 
   .whatsapp-control[data-open="true"] .whatsapp-qr-popover {
     opacity: 1;
     visibility: visible;
+    pointer-events: auto;
     transform: translate(-50%, 0) scale(1);
   }
 
-  @media (hover: none), (pointer: coarse) {
-    .whatsapp-qr-popover {
-      position: fixed;
-      top: 50%;
-      right: auto;
-      bottom: auto;
-      left: 50%;
-      width: min(21rem, calc(100vw - 2rem));
-      transform: translate(-50%, calc(-50% + 0.4rem)) scale(0.98);
-      transform-origin: center;
-    }
-
-    .whatsapp-control[data-open="true"] .whatsapp-qr-popover {
-      transform: translate(-50%, -50%) scale(1);
+  @media (max-width: 34rem) {
+    .whatsapp-control {
+      --whatsapp-qr-size: min(11.5rem, calc(100vw - 2rem));
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
+    .whatsapp-control,
     .whatsapp-qr-popover {
       transition: none;
     }
