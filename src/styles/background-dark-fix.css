@@ -1,2 +1,13 @@
-:root[data-theme="dark"] .about-hero{background-image:url('/backgrounds/about-hero-analytical.svg')}
-:root[data-theme="dark"] .home-hero__media img,:root[data-theme="dark"] .about-hero>img{opacity:0}
+:root[data-theme="dark"] .about-hero {
+  background-image:
+    linear-gradient(rgb(17 25 27 / 28%), rgb(17 25 27 / 28%)),
+    url('/backgrounds/about-hero-analytical.svg');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+:root[data-theme="dark"] .home-hero__media img,
+:root[data-theme="dark"] .about-hero > img {
+  opacity: 0;
+}

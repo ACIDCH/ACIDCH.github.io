@@ -62,21 +62,31 @@
 }
 
 .about-hero {
-  background: var(--colour-page);
+  background:
+    linear-gradient(180deg, rgb(249 246 239 / 96%), rgb(243 238 229 / 92%)),
+    var(--colour-page);
 }
 
 .about-hero > img {
-  opacity: 0.78;
+  opacity: 0.96;
+  filter: saturate(0.92) contrast(0.99);
 }
 
 .about-hero > span {
   background:
-    radial-gradient(circle at 50% 58%, rgb(243 238 229 / 93%) 0 18%, rgb(243 238 229 / 66%) 42%, transparent 72%),
-    linear-gradient(180deg, rgb(243 238 229 / 52%), rgb(243 238 229 / 30%));
+    radial-gradient(
+      circle at 50% 58%,
+      rgb(243 238 229 / 78%) 0 17%,
+      rgb(243 238 229 / 47%) 31%,
+      rgb(243 238 229 / 18%) 49%,
+      transparent 69%
+    ),
+    linear-gradient(180deg, rgb(243 238 229 / 18%), rgb(243 238 229 / 7%));
 }
 
 .about-hero > div {
   color: var(--colour-text);
+  text-shadow: 0 1px 0 rgb(255 255 255 / 55%);
 }
 
 .about-hero .status {
@@ -138,8 +148,14 @@
 
 :root[data-theme="dark"] .about-hero > span {
   background:
-    radial-gradient(circle at 50% 58%, rgb(28 36 38 / 92%) 0 18%, rgb(28 36 38 / 66%) 42%, transparent 72%),
-    linear-gradient(180deg, rgb(28 36 38 / 48%), rgb(28 36 38 / 24%));
+    radial-gradient(
+      circle at 50% 58%,
+      rgb(28 36 38 / 78%) 0 17%,
+      rgb(28 36 38 / 47%) 31%,
+      rgb(28 36 38 / 18%) 49%,
+      transparent 69%
+    ),
+    linear-gradient(180deg, rgb(28 36 38 / 18%), rgb(28 36 38 / 8%));
 }
 
 @media (max-width: 52rem) {
