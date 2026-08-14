@@ -17,12 +17,8 @@ const portraitImage = portrait.available ? portrait.image : portrait.fallback;
 const copy = {
   en: {
     title: "About",
-    heroLine: "A little about what I study, build, learn and keep experimenting with.",
-    role: "Business Analytics · Supply Chain · Decision Modelling",
-    location: "Auckland, New Zealand",
     nav: "On this page",
     about: "About me",
-    aboutTitle: "Business analytics, practical models, and a lot of curiosity",
     summary:
       "I am currently studying for a Master of Business Analytics at the University of Auckland, with a focus on supply chain analytics, decision modelling and data analytics. I am interested in how data and models can be used to work through practical business problems and support better decisions.",
     curiosity:
@@ -43,24 +39,16 @@ const copy = {
       "A lot of my learning happens outside a single textbook or course. I usually start with a real problem, follow the references I need, test the idea in a project, and keep the parts that are useful enough to revisit.",
     courses:
       "I also use Coursera and DataCamp for structured courses and practice, especially when I need to fill a specific gap in SQL, Python, R, Power BI, statistics, business analytics or modelling.",
-    notesLink:
-      "External resources are where I learn; Notes are where I keep what was worth remembering.",
     websiteBody:
       "This site is both a portfolio and a working archive. Projects collect the models, dashboards and analysis I have built; Notes collect methods, explanations and small ideas that I want to be able to find again later.",
     websiteBody2:
       "I would rather keep improving a useful page than pretend every project is finished forever, so both sides of the site will continue to change as the work changes.",
-    connectBody:
-      "Only public professional channels are shown here. More links can be added later when they are ready for the public site.",
     back: "Back to About",
   },
   zh: {
     title: "关于我",
-    heroLine: "关于我平时在学什么、做什么，以及还在折腾些什么。",
-    role: "商业分析 · 供应链 · 决策建模",
-    location: "新西兰奥克兰",
     nav: "本页导航",
     about: "关于我",
-    aboutTitle: "商业分析、实用模型，以及一些停不下来的好奇心",
     summary:
       "目前就读于奥克兰大学商业分析硕士项目，主要关注供应链分析、决策建模和数据分析。我比较关心的是怎样把数据和模型真正放进实际业务问题里，用来比较方案、理解取舍并支持决策。",
     curiosity:
@@ -81,14 +69,10 @@ const copy = {
       "很多时候我的学习并不是从头到尾读完一本教程，而是先碰到一个具体问题，再顺着资料往下找、动手试，最后把真正有用的部分留下来。",
     courses:
       "平时也会在 Coursera 和 DataCamp 上选择一些课程和练习，主要用于补充 SQL、Python、R、Power BI、统计、商业分析和建模中当前项目正好需要的那一块知识。",
-    notesLink:
-      "这些外部资料解决的是“我从哪里学”，网站里的笔记更多是在记录“我最后留下了什么”。",
     websiteBody:
       "这个网站既是作品集，也是一份持续整理的工作记录。Projects 用来放模型、Dashboard 和分析项目；笔记用来留下以后还会回来看的方法、解释和小结。",
     websiteBody2:
       "比起把一个页面做完以后就永远不动，我更愿意让真正有用的内容随着项目一起继续更新，所以这里大概会一直处在“还能再改一点”的状态。",
-    connectBody:
-      "这里只显示确认可以公开的职业联系渠道。LinkedIn、WeChat 等信息会在准备好并确认适合公开后再加入。",
     back: "返回关于我",
   },
 }[locale];
@@ -231,9 +215,7 @@ const sections = [
   />
   <span aria-hidden="true"></span>
   <div>
-    <p class="status">{locale === "en" ? "Profile, interests & notes" : "个人、兴趣与记录"}</p>
     <h1 id="about-title">{copy.title}</h1>
-    <p>{copy.heroLine}</p>
   </div>
 </section>
 
@@ -254,9 +236,6 @@ const sections = [
 
   <article class="profile-card" id="about-profile" data-reveal>
     <header class="profile-card__header">
-      <p class="status">{copy.role}</p>
-      <h2>{copy.aboutTitle}</h2>
-      <p>{copy.location}</p>
       <p class="profile-card__summary">{copy.summary}</p>
       <p>{copy.curiosity}</p>
       <SocialLinks locale={locale} />
@@ -326,7 +305,6 @@ const sections = [
         {" · "}
         <a href="https://www.datacamp.com/" target="_blank" rel="noreferrer">DataCamp ↗</a>
       </p>
-      <p>{copy.notesLink}</p>
       <a class="button button--secondary" href={withBase(locale === "zh" ? "/zh/notes/" : "/notes/")}>
         {locale === "en" ? "Browse Notes" : "查看笔记"}
       </a>
@@ -350,7 +328,6 @@ const sections = [
 
     <section class="about-section" id="connect" aria-labelledby="connect-title">
       <h2 id="connect-title">{copy.connect}</h2>
-      <p>{copy.connectBody}</p>
       <SocialLinks locale={locale} />
       <ContextBack locale={locale} fallbackPath="/about/#about-profile" label={{ en: copy.back, zh: copy.back }} />
     </section>
