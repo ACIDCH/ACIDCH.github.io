@@ -13,6 +13,7 @@ const component = read("src/components/GeospatialAdvancedVisuals.astro");
 const controller = read("src/scripts/geospatial-advanced-visuals-v2.js");
 const roadNetwork = read("src/scripts/geospatial-road-network-visuals.js");
 const networkCoverage = read("src/scripts/geospatial-network-coverage.js");
+const logisticsMotion = read("src/scripts/geospatial-logistics-motion.js");
 const visualState = read("src/scripts/geospatial-visual-state.js");
 const nodeStatus = read("src/scripts/geospatial-node-status.js");
 const layerVisuals = read("src/scripts/geospatial-layer-visuals.js");
@@ -32,6 +33,7 @@ for (const [token, label] of [
   ["geospatial-road-network-visuals.js", "real OSM road-network visual import"],
   ["geospatial-network-coverage.js", "true OSM network coverage import"],
   ["geospatial-advanced-visuals-v2.js", "advanced visual controller import"],
+  ["geospatial-logistics-motion.js", "fleet/transshipment motion semantics import"],
   ["geospatial-visual-state.js", "network-event visual state import"],
   ["geospatial-node-status.js", "node-status visual layer import"],
   ["geospatial-layer-visuals.js", "analysis-layer visual mode import"],
@@ -83,6 +85,15 @@ for (const [token, label] of [
   ["latLngToContainerPoint", "Leaflet map projection coupling"],
   ["Flow:\\s*", "flow extraction from verified route tooltip"],
 ]) requireText(controller, token, label);
+
+for (const [token, label] of [
+  ["geo4__fleet-route", "fleet tour motion"],
+  ["geo4__transshipment-route.stage-fw", "Factory→Warehouse motion"],
+  ["geo4__transshipment-route.stage-wd", "Warehouse→Demand motion"],
+  ["geo4__logistics-state", "logistics layer status badge"],
+  ["geo4__legend", "logistics legend integration"],
+  ["prefers-reduced-motion", "logistics reduced-motion safety"],
+]) requireText(logisticsMotion, token, label);
 
 for (const [token, label] of [
   ["geo4__scenario-ribbon", "network event ribbon"],
@@ -137,5 +148,5 @@ if (!midpoint || Math.abs(midpoint.x - 30) > 1e-9 || Math.abs(midpoint.y - 40) >
 if (particleCountForFlow(1000, 1000, 4) <= particleCountForFlow(100, 1000, 4)) fail("Particle count does not scale with route flow");
 
 console.log(
-  "[geospatial-visual] PASS: real OSM road hierarchy, disruption states, bounded-Dijkstra network coverage, route flow, node status, analysis layers, desktop viewport shell, reduced-motion and geometry checks passed.",
+  "[geospatial-visual] PASS: real OSM road hierarchy, disruption states, bounded-Dijkstra network coverage, verified route flow, fleet/transshipment motion, node status, analysis layers, desktop viewport shell and reduced-motion checks passed.",
 );
