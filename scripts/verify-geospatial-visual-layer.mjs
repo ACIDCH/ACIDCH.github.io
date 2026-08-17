@@ -12,6 +12,7 @@ const read = (relative) => fs.readFileSync(path.join(root, relative), "utf8");
 const component = read("src/components/GeospatialAdvancedVisuals.astro");
 const controller = read("src/scripts/geospatial-advanced-visuals-v2.js");
 const roadNetwork = read("src/scripts/geospatial-road-network-visuals.js");
+const networkCoverage = read("src/scripts/geospatial-network-coverage.js");
 const visualState = read("src/scripts/geospatial-visual-state.js");
 const nodeStatus = read("src/scripts/geospatial-node-status.js");
 const layerVisuals = read("src/scripts/geospatial-layer-visuals.js");
@@ -29,6 +30,7 @@ const requireText = (source, token, label = token) => {
 
 for (const [token, label] of [
   ["geospatial-road-network-visuals.js", "real OSM road-network visual import"],
+  ["geospatial-network-coverage.js", "true OSM network coverage import"],
   ["geospatial-advanced-visuals-v2.js", "advanced visual controller import"],
   ["geospatial-visual-state.js", "network-event visual state import"],
   ["geospatial-node-status.js", "node-status visual layer import"],
@@ -52,6 +54,20 @@ for (const [token, label] of [
   ["geo4-engine", "OSM engine visibility coupling"],
   ["geo4-layer", "analysis-layer road emphasis coupling"],
 ]) requireText(roadNetwork, token, label);
+
+for (const [token, label] of [
+  ["geo4__coverage-canvas", "network service-area canvas"],
+  ["SERVICE AREA / DIJKSTRA", "network coverage HUD"],
+  ["nearestGraphNode", "facility-to-road graph snapping"],
+  ["boundedReachable", "bounded Dijkstra service-area traversal"],
+  ["edge.travelTimeMin", "travel-time weighted reachability"],
+  ["scenario.disabled", "coverage respects road closures"],
+  ["scenario.factors", "coverage respects congestion"],
+  ["scenario.shortcuts", "coverage respects new-road links"],
+  ["#geo4-open-list strong", "selected facility coupling"],
+  ["count >= 2", "overlapping network coverage emphasis"],
+  ["geo4-threshold", "service-time threshold coupling"],
+]) requireText(networkCoverage, token, label);
 
 for (const [token, label] of [
   ["geo4__flow-canvas", "canvas route-flow overlay"],
@@ -121,5 +137,5 @@ if (!midpoint || Math.abs(midpoint.x - 30) > 1e-9 || Math.abs(midpoint.y - 40) >
 if (particleCountForFlow(1000, 1000, 4) <= particleCountForFlow(100, 1000, 4)) fail("Particle count does not scale with route flow");
 
 console.log(
-  "[geospatial-visual] PASS: real OSM road hierarchy, disruption states, route flow, node status, analysis layers, desktop viewport shell, reduced-motion and geometry checks passed.",
+  "[geospatial-visual] PASS: real OSM road hierarchy, disruption states, bounded-Dijkstra network coverage, route flow, node status, analysis layers, desktop viewport shell, reduced-motion and geometry checks passed.",
 );
