@@ -5,7 +5,9 @@ function boot() {
   const baseSd = D?.getElementById("geo4-inv-sd");
   const mean = D?.getElementById("geo4-inv-mean");
   const lead = D?.getElementById("geo4-lead-time");
-  if (!root || !baseSd || !mean || !lead) {
+  const service = D?.getElementById("geo4-service");
+  const holding = D?.getElementById("geo4-holding-cost");
+  if (!root || !baseSd || !mean || !lead || !service || !holding) {
     globalThis.setTimeout(boot, 80);
     return;
   }
@@ -78,8 +80,15 @@ function boot() {
 
   [mean, baseSd, lead, leadSd].forEach((input) => input.addEventListener("input", sync));
   D.getElementById("geo4-reset")?.addEventListener("click", () => {
+    mean.value = "120";
+    baseSd.value = "25";
+    lead.value = "2";
     leadSd.value = "0";
-    globalThis.setTimeout(sync, 0);
+    service.value = "1.645";
+    holding.value = "1";
+    // V4 reset reaches an async solve() and yields; synchronising here ensures
+    // the hidden effective SD is already restored before that solve resumes.
+    sync();
   });
   sync();
 }
