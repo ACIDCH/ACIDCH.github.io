@@ -23,6 +23,9 @@ const fail = (message) => {
 const requireText = (source, token, label = token) => {
   if (!source.includes(token)) fail(`Missing ${label}`);
 };
+const requirePattern = (source, pattern, label) => {
+  if (!pattern.test(source)) fail(`Missing ${label}`);
+};
 
 const componentRequirements = [
   ["geo4-engine", "network engine selector"],
@@ -67,8 +70,6 @@ const controllerRequirements = [
   ["graphOdMatrix", "Dijkstra-derived OD matrix"],
   ["reconstructGraphPath", "exact scenario-path reconstruction"],
   ["activeGraph.scenario", "route uses the same road scenario as optimisation"],
-  ["[5,10,15,25]", "honest edge-level Monte Carlo run options"],
-  ["[50,100,250,500,1000]", "high-run OD Monte Carlo options"],
   ["data-policy", "must/exclude facility policies"],
   ["runMonteCarlo", "Monte Carlo engine"],
   ["compareScenarioResults", "A/B comparison engine"],
@@ -76,6 +77,16 @@ const controllerRequirements = [
 for (const [token, label] of controllerRequirements) {
   requireText(controller, token, label);
 }
+requirePattern(
+  controller,
+  /\[\s*5\s*,\s*10\s*,\s*15\s*,\s*25\s*\]/,
+  "honest edge-level Monte Carlo run options",
+);
+requirePattern(
+  controller,
+  /\[\s*50\s*,\s*100\s*,\s*250\s*,\s*500\s*,\s*1000\s*\]/,
+  "high-run OD Monte Carlo options",
+);
 
 const engineRequirements = [
   "solveTransportation",
