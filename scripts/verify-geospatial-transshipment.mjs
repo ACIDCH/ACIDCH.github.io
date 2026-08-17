@@ -19,7 +19,8 @@ for (const [token, label] of [
   ["solveTwoEchelon", "two-echelon min-cost flow solver"],
   ["wi0", "warehouse-in node set"],
   ["wo0", "warehouse-out node set"],
-  ["warehouseCapacity, 0, { stage: \"throughput\"", "strict warehouse throughput arc"],
+  ["stage: \"throughput\"", "strict warehouse throughput arc"],
+  ["warehouseCapacity", "warehouse throughput capacity"],
   ["factoryCapacity", "factory supply capacity"],
   ["graphOdMatrix", "current OSM road-cost matrix"],
   ["scenarioParams: scenarioParams()", "active road scenario parameters"],
@@ -72,7 +73,11 @@ if (!feasible.feasible || Math.abs(feasible.flow - 8) > 1e-6) {
 const fwFlow = feasible.fw.reduce((sum, arc) => sum + arc.flow, 0);
 const wdFlow = feasible.wd.reduce((sum, arc) => sum + arc.flow, 0);
 const throughput = feasible.throughput.reduce((sum, arc) => sum + arc.flow, 0);
-if (Math.abs(fwFlow - 8) > 1e-6 || Math.abs(wdFlow - 8) > 1e-6 || Math.abs(throughput - 8) > 1e-6) {
+if (
+  Math.abs(fwFlow - 8) > 1e-6 ||
+  Math.abs(wdFlow - 8) > 1e-6 ||
+  Math.abs(throughput - 8) > 1e-6
+) {
   fail("Factory→Warehouse, warehouse throughput and Warehouse→Demand flow conservation failed");
 }
 
