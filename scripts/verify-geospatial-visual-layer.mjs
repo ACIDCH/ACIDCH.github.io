@@ -11,6 +11,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const read = (relative) => fs.readFileSync(path.join(root, relative), "utf8");
 const component = read("src/components/GeospatialAdvancedVisuals.astro");
 const controller = read("src/scripts/geospatial-advanced-visuals-v2.js");
+const roadNetwork = read("src/scripts/geospatial-road-network-visuals.js");
 const visualState = read("src/scripts/geospatial-visual-state.js");
 const nodeStatus = read("src/scripts/geospatial-node-status.js");
 const layerVisuals = read("src/scripts/geospatial-layer-visuals.js");
@@ -27,6 +28,7 @@ const requireText = (source, token, label = token) => {
 };
 
 for (const [token, label] of [
+  ["geospatial-road-network-visuals.js", "real OSM road-network visual import"],
   ["geospatial-advanced-visuals-v2.js", "advanced visual controller import"],
   ["geospatial-visual-state.js", "network-event visual state import"],
   ["geospatial-node-status.js", "node-status visual layer import"],
@@ -35,6 +37,21 @@ for (const [token, label] of [
 ]) requireText(component, token, label);
 requireText(enPage, "GeospatialAdvancedVisuals", "English advanced visual mount");
 requireText(zhPage, "GeospatialAdvancedVisuals", "Chinese advanced visual mount");
+
+for (const [token, label] of [
+  ["geo4__road-canvas", "real road-network canvas"],
+  ["geo4__road-hud", "real road-network HUD"],
+  ["parseOverpassGraph", "OSM graph parser coupling"],
+  ["buildEdgeScenario", "edge-level road scenario coupling"],
+  ["scenario.factors", "congestion edge rendering"],
+  ["scenario.disabled", "closed-edge rendering"],
+  ["scenario.shortcuts", "new-road rendering"],
+  ["motorway|trunk", "road hierarchy classification"],
+  ["latLngToContainerPoint", "road graph map projection"],
+  ["overpass", "live Overpass response capture"],
+  ["geo4-engine", "OSM engine visibility coupling"],
+  ["geo4-layer", "analysis-layer road emphasis coupling"],
+]) requireText(roadNetwork, token, label);
 
 for (const [token, label] of [
   ["geo4__flow-canvas", "canvas route-flow overlay"],
@@ -80,11 +97,14 @@ for (const [token, label] of [
 ]) requireText(layerVisuals, token, label);
 
 for (const [token, label] of [
+  ["geo-lab-page", "desktop lab page-shell compaction"],
+  ["geo-lab-container", "desktop full-width lab container"],
   [".geo4__console", "right-side function console layout"],
   [".geo4__results", "right-lower result module layout"],
   ["right:.7rem", "shared right alignment"],
   ["height:calc(61% - .7rem)", "upper console height"],
   ["height:calc(39% - .7rem)", "lower result height"],
+  ["calc(100vh - 8.2rem)", "viewport-led desktop map height"],
 ]) requireText(layoutPolish, token, label);
 
 requireText(routeController, "reconstructGraphPath", "exact Dijkstra path reconstruction in functional route controller");
@@ -101,5 +121,5 @@ if (!midpoint || Math.abs(midpoint.x - 30) > 1e-9 || Math.abs(midpoint.y - 40) >
 if (particleCountForFlow(1000, 1000, 4) <= particleCountForFlow(100, 1000, 4)) fail("Particle count does not scale with route flow");
 
 console.log(
-  "[geospatial-visual] PASS: route flow, event-state, node-status, analysis layers, desktop right-stack, reduced-motion and geometry checks passed.",
+  "[geospatial-visual] PASS: real OSM road hierarchy, disruption states, route flow, node status, analysis layers, desktop viewport shell, reduced-motion and geometry checks passed.",
 );
