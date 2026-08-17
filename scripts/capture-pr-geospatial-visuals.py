@@ -52,8 +52,28 @@ def capture(browser: object, mobile: bool) -> None:
     browser.require("#geo4-layer")
     browser.wait_for_text(".geo4__identity", "基于地理空间的供应链优化")
 
-    # Baseline shell proof: map-first layout + scrollable control console + result module.
+    # Baseline shell proof. Mobile defaults to the map-first view.
+    if mobile:
+        browser.require(".geo4__mobile-nav")
+        current = browser.execute(
+            "const s=document.querySelector('.geo4__shell');return s?.dataset.mobileView||'';"
+        )
+        if current != "map":
+            raise RuntimeError(f"Expected mobile map-first default, got {current!r}.")
     browser.screenshot(f"geospatial-baseline-{suffix}.png")
+
+    if mobile:
+        # Verify users can reveal the scrollable parameter console without permanently covering the map.
+        browser.click('[data-mobile-view="controls"]')
+        time.sleep(0.25)
+        current = browser.execute(
+            "const s=document.querySelector('.geo4__shell');return s?.dataset.mobileView||'';"
+        )
+        if current != "controls":
+            raise RuntimeError(f"Expected mobile controls view, got {current!r}.")
+        browser.screenshot("geospatial-controls-mobile.png")
+        browser.click('[data-mobile-view="map"]')
+        time.sleep(0.2)
 
     # Verify the advanced analysis-layer visual state is interactive and mounted.
     set_select(browser, "#geo4-layer", "risk")
@@ -117,7 +137,7 @@ def main() -> None:
         server.shutdown()
         server.server_close()
 
-    expected = 6
+    expected = 7
     actual = len(list(OUTPUT.glob("*.png")))
     if actual != expected:
         raise RuntimeError(f"Expected {expected} geospatial visual proofs, generated {actual}.")
