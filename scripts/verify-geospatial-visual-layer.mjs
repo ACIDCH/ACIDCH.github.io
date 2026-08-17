@@ -13,6 +13,7 @@ const component = read("src/components/GeospatialAdvancedVisuals.astro");
 const controller = read("src/scripts/geospatial-advanced-visuals-v2.js");
 const visualState = read("src/scripts/geospatial-visual-state.js");
 const nodeStatus = read("src/scripts/geospatial-node-status.js");
+const layerVisuals = read("src/scripts/geospatial-layer-visuals.js");
 const enPage = read("src/pages/lab/geospatial-supply-chain.astro");
 const zhPage = read("src/pages/zh/lab/geospatial-supply-chain.astro");
 const routeController = read("src/scripts/geospatial-v4.js");
@@ -24,9 +25,12 @@ const requireText = (source, token, label = token) => {
   if (!source.includes(token)) fail(`Missing ${label}`);
 };
 
-requireText(component, "geospatial-advanced-visuals-v2.js", "advanced visual controller import");
-requireText(component, "geospatial-visual-state.js", "network-event visual state import");
-requireText(component, "geospatial-node-status.js", "node-status visual layer import");
+for (const [token, label] of [
+  ["geospatial-advanced-visuals-v2.js", "advanced visual controller import"],
+  ["geospatial-visual-state.js", "network-event visual state import"],
+  ["geospatial-node-status.js", "node-status visual layer import"],
+  ["geospatial-layer-visuals.js", "analysis-layer visual mode import"],
+]) requireText(component, token, label);
 requireText(enPage, "GeospatialAdvancedVisuals", "English advanced visual mount");
 requireText(zhPage, "GeospatialAdvancedVisuals", "Chinese advanced visual mount");
 
@@ -43,9 +47,7 @@ for (const [token, label] of [
   ["pointAlongPolyline", "route particle interpolation"],
   ["latLngToContainerPoint", "Leaflet map projection coupling"],
   ["Flow:\\s*", "flow extraction from verified route tooltip"],
-]) {
-  requireText(controller, token, label);
-}
+]) requireText(controller, token, label);
 
 for (const [token, label] of [
   ["geo4__scenario-ribbon", "network event ribbon"],
@@ -53,9 +55,7 @@ for (const [token, label] of [
   ["geo4-congestion", "congestion severity coupling"],
   ["geo4-closure", "closure severity coupling"],
   ["data-level", "visual intensity state"],
-]) {
-  requireText(visualState, token, label);
-}
+]) requireText(visualState, token, label);
 
 for (const [token, label] of [
   ["geo4__flow-tier", "flow hierarchy legend"],
@@ -64,9 +64,18 @@ for (const [token, label] of [
   ["Demand inflow", "sink node semantics"],
   ["routeState.routes", "verified route node aggregation"],
   ["latLngToContainerPoint", "node status map projection"],
-]) {
-  requireText(nodeStatus, token, label);
-}
+]) requireText(nodeStatus, token, label);
+
+for (const [token, label] of [
+  ["geo4__layer-chip", "analysis layer chip"],
+  ["geo4__layer-tint", "analysis layer tint"],
+  ["data-analysis-layer", "analysis layer state"],
+  ["geo4-layer", "functional layer coupling"],
+  ["coverage", "coverage visual mode"],
+  ["utilisation", "utilisation visual mode"],
+  ["inventory", "inventory visual mode"],
+  ["risk", "risk visual mode"],
+]) requireText(layerVisuals, token, label);
 
 requireText(routeController, "reconstructGraphPath", "exact Dijkstra path reconstruction in functional route controller");
 requireText(routeController, "activeGraph.scenario", "route geometry tied to the active OSM disruption scenario");
@@ -78,13 +87,9 @@ const metrics = buildPolylineMetrics([
 ]);
 if (Math.abs(metrics.total - 100) > 1e-9) fail("Unexpected route metric length");
 const midpoint = pointAlongPolyline(metrics, 50);
-if (!midpoint || Math.abs(midpoint.x - 30) > 1e-9 || Math.abs(midpoint.y - 40) > 1e-9) {
-  fail("Particle interpolation is not deterministic");
-}
-if (particleCountForFlow(1000, 1000, 4) <= particleCountForFlow(100, 1000, 4)) {
-  fail("Particle count does not scale with route flow");
-}
+if (!midpoint || Math.abs(midpoint.x - 30) > 1e-9 || Math.abs(midpoint.y - 40) > 1e-9) fail("Particle interpolation is not deterministic");
+if (particleCountForFlow(1000, 1000, 4) <= particleCountForFlow(100, 1000, 4)) fail("Particle count does not scale with route flow");
 
 console.log(
-  "[geospatial-visual] PASS: optimal-route flow, event-state, node-status, flow-tier, reduced-motion and geometry checks passed.",
+  "[geospatial-visual] PASS: route flow, event-state, node-status, flow-tier, analysis-layer modes, reduced-motion and geometry checks passed.",
 );
