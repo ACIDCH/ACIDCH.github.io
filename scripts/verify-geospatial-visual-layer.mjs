@@ -15,6 +15,7 @@ const visualState = read("src/scripts/geospatial-visual-state.js");
 const nodeStatus = read("src/scripts/geospatial-node-status.js");
 const layerVisuals = read("src/scripts/geospatial-layer-visuals.js");
 const layoutPolish = read("src/scripts/geospatial-layout-polish.js");
+const mobileView = read("src/scripts/geospatial-mobile-view.js");
 const enPage = read("src/pages/lab/geospatial-supply-chain.astro");
 const zhPage = read("src/pages/zh/lab/geospatial-supply-chain.astro");
 const routeController = read("src/scripts/geospatial-v4.js");
@@ -32,6 +33,7 @@ for (const [token, label] of [
   ["geospatial-node-status.js", "node-status visual layer import"],
   ["geospatial-layer-visuals.js", "analysis-layer visual mode import"],
   ["geospatial-layout-polish.js", "map-first layout polish import"],
+  ["geospatial-mobile-view.js", "mobile map view switcher import"],
 ]) requireText(component, token, label);
 requireText(enPage, "GeospatialAdvancedVisuals", "English advanced visual mount");
 requireText(zhPage, "GeospatialAdvancedVisuals", "Chinese advanced visual mount");
@@ -87,6 +89,15 @@ for (const [token, label] of [
   ["height:calc(39% - .7rem)", "lower result height"],
 ]) requireText(layoutPolish, token, label);
 
+for (const [token, label] of [
+  ["geo4__mobile-nav", "mobile view navigation"],
+  ["data-mobile-view=\"map\"", "mobile map mode button"],
+  ["data-mobile-view=\"controls\"", "mobile controls mode button"],
+  ["data-mobile-view=\"results\"", "mobile results mode button"],
+  ["data-mobile-view=\"map\"] .geo4__console", "map-first hidden console state"],
+  ["setView(\"map\")", "map-first mobile default"],
+]) requireText(mobileView, token, label);
+
 requireText(routeController, "reconstructGraphPath", "exact Dijkstra path reconstruction in functional route controller");
 requireText(routeController, "activeGraph.scenario", "route geometry tied to the active OSM disruption scenario");
 
@@ -101,5 +112,5 @@ if (!midpoint || Math.abs(midpoint.x - 30) > 1e-9 || Math.abs(midpoint.y - 40) >
 if (particleCountForFlow(1000, 1000, 4) <= particleCountForFlow(100, 1000, 4)) fail("Particle count does not scale with route flow");
 
 console.log(
-  "[geospatial-visual] PASS: route flow, event-state, node-status, analysis-layer modes, map-first right-side modules, reduced-motion and geometry checks passed.",
+  "[geospatial-visual] PASS: route flow, event-state, node-status, analysis layers, desktop right-stack, mobile map-first switching, reduced-motion and geometry checks passed.",
 );
