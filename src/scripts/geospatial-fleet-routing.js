@@ -1,5 +1,4 @@
 import {
-  buildEdgeScenario,
   graphOdMatrix,
   nearestGraphNode,
   parseOverpassGraph,
@@ -9,26 +8,55 @@ import { reconstructGraphPath } from "../lib/geospatial/pathTools.js";
 const D = globalThis.document;
 const F = (...args) => globalThis.fetch(...args);
 
+function nearestNeighbour(matrix) {
+  const remaining = new Set(matrix.slice(1).map((_, index) => index + 1));
+  const order = [0];
+  let current = 0;
+  let cost = 0;
+  while (remaining.size) {
+    let next = -1;
+    let best = Infinity;
+    for (const node of remaining) {
+      if (matrix[current][node] < best) {
+        next = node;
+        best = matrix[current][node];
+      }
+    }
+    if (next < 0 || !Number.isFinite(best)) break;
+    order.push(next);
+    remaining.delete(next);
+    cost += best;
+    current = next;
+  }
+  if (order.length > 1 && Number.isFinite(matrix[current][0])) {
+    order.push(0);
+    cost += matrix[current][0];
+  }
+  return { order, cost, method: "nearest-neighbour" };
+}
+
 function exactTsp(matrix) {
   const n = matrix.length;
-  if (n <= 1) return { order: [0], cost: 0 };
-  const m = n - 1;
-  if (m > 11) return nearestNeighbour(matrix);
-  const size = 1 << m;
+  if (n <= 1) return { order: [0], cost: 0, method: "exact" };
+  if (n - 1 > 11) return nearestNeighbour(matrix);
+  const bits = n - 1;
+  const size = 1 << bits;
   const dp = Array.from({ length: size }, () => Array(n).fill(Infinity));
-  const prev = Array.from({ length: size }, () => Array(n).fill(-1));
-  for (let j = 1; j < n; j += 1) dp[1 << (j - 1)][j] = matrix[0][j];
+  const previous = Array.from({ length: size }, () => Array(n).fill(-1));
+  for (let node = 1; node < n; node += 1) {
+    dp[1 << (node - 1)][node] = matrix[0][node];
+  }
   for (let mask = 1; mask < size; mask += 1) {
-    for (let j = 1; j < n; j += 1) {
-      if (!(mask & (1 << (j - 1)))) continue;
-      const priorMask = mask ^ (1 << (j - 1));
-      if (!priorMask) continue;
-      for (let k = 1; k < n; k += 1) {
-        if (!(priorMask & (1 << (k - 1)))) continue;
-        const candidate = dp[priorMask][k] + matrix[k][j];
-        if (candidate < dp[mask][j]) {
-          dp[mask][j] = candidate;
-          prev[mask][j] = k;
+    for (let end = 1; end < n; end += 1) {
+      if (!(mask & (1 << (end - 1)))) continue;
+      const prior = mask ^ (1 << (end - 1));
+      if (!prior) continue;
+      for (let before = 1; before < n; before += 1) {
+        if (!(prior & (1 << (before - 1)))) continue;
+        const candidate = dp[prior][before] + matrix[before][end];
+        if (candidate < dp[mask][end]) {
+          dp[mask][end] = candidate;
+          previous[mask][end] = before;
         }
       }
     }
@@ -36,80 +64,52 @@ function exactTsp(matrix) {
   const full = size - 1;
   let end = -1;
   let best = Infinity;
-  for (let j = 1; j < n; j += 1) {
-    const candidate = dp[full][j] + matrix[j][0];
+  for (let node = 1; node < n; node += 1) {
+    const candidate = dp[full][node] + matrix[node][0];
     if (candidate < best) {
+      end = node;
       best = candidate;
-      end = j;
     }
   }
-  if (!Number.isFinite(best) || end < 0) return nearestNeighbour(matrix);
+  if (end < 0 || !Number.isFinite(best)) return nearestNeighbour(matrix);
   const reversed = [];
   let mask = full;
   let current = end;
   while (current > 0) {
     reversed.push(current);
-    const next = prev[mask][current];
+    const next = previous[mask][current];
     mask ^= 1 << (current - 1);
     current = next;
   }
   return { order: [0, ...reversed.reverse(), 0], cost: best, method: "exact" };
 }
 
-function nearestNeighbour(matrix) {
-  const n = matrix.length;
-  const remaining = new Set(Array.from({ length: Math.max(0, n - 1) }, (_, i) => i + 1));
-  const order = [0];
-  let current = 0;
-  let cost = 0;
-  while (remaining.size) {
-    let best = null;
-    let bestCost = Infinity;
-    for (const node of remaining) {
-      if (matrix[current][node] < bestCost) {
-        best = node;
-        bestCost = matrix[current][node];
-      }
-    }
-    if (best == null || !Number.isFinite(bestCost)) break;
-    order.push(best);
-    remaining.delete(best);
-    cost += bestCost;
-    current = best;
-  }
-  if (order.length > 1 && Number.isFinite(matrix[current][0])) {
-    cost += matrix[current][0];
-    order.push(0);
-  }
-  return { order, cost, method: "nearest-neighbour" };
-}
-
-function splitByCapacity(sequence, deliveries, capacity) {
+function splitByCapacity(order, deliveries, capacity) {
   const trips = [];
-  let trip = [];
+  let currentTrip = [];
   let remaining = Math.max(1, capacity);
-  for (const index of sequence) {
-    if (index === 0) continue;
-    const delivery = deliveries[index - 1];
+  for (const node of order) {
+    if (node === 0) continue;
+    const delivery = deliveries[node - 1];
     let flow = Math.max(0, delivery.flow);
     while (flow > 1e-9) {
       if (remaining <= 1e-9) {
-        if (trip.length) trips.push(trip);
-        trip = [];
+        if (currentTrip.length) trips.push(currentTrip);
+        currentTrip = [];
         remaining = capacity;
       }
       const amount = Math.min(flow, remaining);
-      trip.push({ ...delivery, amount });
+      currentTrip.push({ ...delivery, amount });
       flow -= amount;
       remaining -= amount;
       if (remaining <= 1e-9) {
-        trips.push(trip);
-        trip = [];
+        trips.push(currentTrip);
+        currentTrip = [];
         remaining = capacity;
       }
     }
   }
-  if (trip.length) trips.push(trip);
+  if (currentTrip.length) trips.push(currentTrip);
   return trips;
 }
 
@@ -129,10 +129,10 @@ function boot() {
     ? {
         title: "车队道路计划",
         build: "生成车队路线",
-        note: "TSP 道路访问顺序 + 单车容量拆分；用于课程方法组合，不宣称为完整 CVRP。",
+        note: "TSP 道路访问顺序 + 单车容量拆分；组合课程方法，不宣称为完整 CVRP。",
         need: "请先初始化 GIS、运行优化并加载当前最优路径。",
         running: "正在计算道路 TSP 顺序与容量 trips…",
-        ready: "车队计划已生成。",
+        ready: "车队计划已生成",
         unavailable: "当前路线或道路服务不可用。",
         trips: "需要 Trips",
         available: "可用 Trips",
@@ -146,10 +146,10 @@ function boot() {
     : {
         title: "Fleet Road Planner",
         build: "Build fleet tours",
-        note: "Road-based TSP visit order + vehicle-capacity trip splitting; a course-method combination, not a claim of full CVRP optimisation.",
+        note: "Road-based TSP visit order + vehicle-capacity trip splitting; a course-method combination, not a full CVRP claim.",
         need: "Initialise GIS, run optimisation and load current optimal paths first.",
         running: "Calculating road TSP sequence and capacity trips…",
-        ready: "Fleet plan generated.",
+        ready: "Fleet plan generated",
         unavailable: "Current route or road service is unavailable.",
         trips: "Trips required",
         available: "Trips available",
@@ -181,29 +181,27 @@ function boot() {
     distance: panel.querySelector("[data-fleet-distance]"),
     time: panel.querySelector("[data-fleet-time]"),
   };
+  const state = { map: null, graph: null, layers: [], routeCache: new Map() };
 
-  const state = { map: null, graph: null, fleetLayers: [], routeCache: new Map() };
-
-  function captureMapFromLayer(layer) {
-    if (state.map || !layer) return;
+  function captureMap(layer) {
+    if (state.map || typeof layer?.addTo !== "function") return;
     const originalAdd = layer.addTo;
-    if (typeof originalAdd !== "function") return;
-    layer.addTo = function fleetMapCaptureAddTo(target) {
+    layer.addTo = function fleetCaptureAddTo(target) {
       const result = originalAdd.call(this, target);
       if (!state.map && target?._map) state.map = target._map;
       return result;
     };
   }
   if (!L.circleMarker.__acidchFleetWrapped) {
-    const originalCircleMarker = L.circleMarker;
-    const wrappedCircleMarker = (...args) => {
-      const layer = originalCircleMarker.apply(L, args);
-      captureMapFromLayer(layer);
+    const original = L.circleMarker;
+    const wrapped = (...args) => {
+      const layer = original.apply(L, args);
+      captureMap(layer);
       return layer;
     };
-    wrappedCircleMarker.__acidchFleetWrapped = true;
-    wrappedCircleMarker.__acidchFleetOriginal = originalCircleMarker;
-    L.circleMarker = wrappedCircleMarker;
+    wrapped.__acidchFleetWrapped = true;
+    wrapped.__acidchFleetOriginal = original;
+    L.circleMarker = wrapped;
   }
 
   const originalFetch = globalThis.fetch;
@@ -226,12 +224,16 @@ function boot() {
     globalThis.fetch = wrappedFetch;
   }
 
-  function clearFleetLayers() {
-    state.fleetLayers.forEach((layer) => {
-      try { layer.remove(); } catch { /* presentation cleanup */ }
+  const clearLayers = () => {
+    state.layers.forEach((layer) => {
+      try {
+        layer.remove();
+      } catch {
+        // Presentation-only cleanup.
+      }
     });
-    state.fleetLayers = [];
-  }
+    state.layers = [];
+  };
 
   function verifiedAssignments() {
     if (!state.map) return [];
@@ -244,33 +246,29 @@ function boot() {
       if (!match) continue;
       const points = layer.getLatLngs().flat?.(Infinity) || [];
       if (points.length < 2) continue;
-      const a = points[0];
-      const b = points.at(-1);
       assignments.push({
         hub: match[1].trim(),
         demand: match[2].trim(),
         flow: Number(match[3].replaceAll(",", "")) || 0,
-        hubPoint: { lat: a.lat, lon: a.lng },
-        demandPoint: { lat: b.lat, lon: b.lng },
+        hubPoint: { lat: points[0].lat, lon: points[0].lng },
+        demandPoint: { lat: points.at(-1).lat, lon: points.at(-1).lng },
       });
     }
     return assignments;
   }
 
-  function scenarioParams() {
-    return {
-      mode: D.getElementById("geo4-road-mode")?.value || "baseline",
-      congestionSeverity: Number(D.getElementById("geo4-congestion")?.value || 0) / 100,
-      congestionShare: Number(D.getElementById("geo4-congestion-share")?.value || 0) / 100,
-      closureShare: Number(D.getElementById("geo4-closure")?.value || 0) / 100,
-      improvement: 0.25,
-      improvementShare: 0.3,
-      newRoadLinks: Number(D.getElementById("geo4-new-roads-out")?.textContent || 0),
-      maxNewRoadKm: 0.65,
-      newRoadSpeedKph: 50,
-      seed: Number(D.getElementById("geo4-seed")?.value || 708709),
-    };
-  }
+  const scenarioParams = () => ({
+    mode: D.getElementById("geo4-road-mode")?.value || "baseline",
+    congestionSeverity: Number(D.getElementById("geo4-congestion")?.value || 0) / 100,
+    congestionShare: Number(D.getElementById("geo4-congestion-share")?.value || 0) / 100,
+    closureShare: Number(D.getElementById("geo4-closure")?.value || 0) / 100,
+    improvement: 0.25,
+    improvementShare: 0.3,
+    newRoadLinks: Number(D.getElementById("geo4-new-roads-out")?.textContent || 0),
+    maxNewRoadKm: 0.65,
+    newRoadSpeedKph: 50,
+    seed: Number(D.getElementById("geo4-seed")?.value || 708709),
+  });
 
   async function osrmMatrix(points) {
     const coords = points.map((point) => `${point.lon},${point.lat}`).join(";");
@@ -280,67 +278,87 @@ function boot() {
     return {
       matrix: data.durations.map((row) => row.map((value) => Number.isFinite(value) ? value / 60 : Infinity)),
       distance: data.distances?.map((row) => row.map((value) => Number.isFinite(value) ? value / 1000 : Infinity)) || null,
+      scenario: null,
     };
   }
 
-  function osmMatrix(points) {
-    const scenario = scenarioParams();
-    const result = graphOdMatrix({ graph: state.graph, sources: points, destinations: points, scenarioParams: scenario, metric: "time" });
-    return { matrix: result.matrix, distance: null, scenario: result.scenario, snaps: result.sourceSnaps };
+  function currentMatrix(points) {
+    if (D.getElementById("geo4-engine")?.value !== "osm" || !state.graph) return null;
+    const result = graphOdMatrix({
+      graph: state.graph,
+      sources: points,
+      destinations: points,
+      scenarioParams: scenarioParams(),
+      metric: "time",
+    });
+    return { matrix: result.matrix, distance: null, scenario: result.scenario };
   }
 
-  function tripMetrics(trip, indexByDemand, matrix, distanceMatrix) {
-    let time = 0;
-    let distance = 0;
+  function tripMatrixMetrics(trip, indexByDemand, matrix, distance) {
+    let minutes = 0;
+    let km = 0;
     let current = 0;
     for (const stop of trip) {
       const next = indexByDemand.get(stop.demand);
       if (next == null) continue;
-      time += matrix[current]?.[next] ?? 0;
-      if (distanceMatrix) distance += distanceMatrix[current]?.[next] ?? 0;
+      minutes += matrix[current]?.[next] ?? 0;
+      if (distance) km += distance[current]?.[next] ?? 0;
       current = next;
     }
-    time += matrix[current]?.[0] ?? 0;
-    if (distanceMatrix) distance += distanceMatrix[current]?.[0] ?? 0;
-    return { time, distance };
+    minutes += matrix[current]?.[0] ?? 0;
+    if (distance) km += distance[current]?.[0] ?? 0;
+    return { minutes, km };
   }
 
-  async function osrmTripGeometry(points) {
-    const key = points.map((p) => `${p.lon.toFixed(5)},${p.lat.toFixed(5)}`).join(";");
+  async function osrmGeometry(points) {
+    const key = points.map((point) => `${point.lon.toFixed(5)},${point.lat.toFixed(5)}`).join(";");
     if (state.routeCache.has(key)) return state.routeCache.get(key);
-    const response = await F(`https://router.project-osrm.org/route/v1/driving/${points.map((p) => `${p.lon},${p.lat}`).join(";")}?overview=full&geometries=geojson&steps=false`);
+    const coords = points.map((point) => `${point.lon},${point.lat}`).join(";");
+    const response = await F(`https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson&steps=false`);
     const data = await response.json();
     if (!response.ok || !data.routes?.[0]) throw new Error("OSRM route unavailable");
     const route = {
       coords: data.routes[0].geometry.coordinates.map(([lon, lat]) => [lat, lon]),
-      distance: data.routes[0].distance / 1000,
-      time: data.routes[0].duration / 60,
+      km: data.routes[0].distance / 1000,
+      minutes: data.routes[0].duration / 60,
     };
     state.routeCache.set(key, route);
     return route;
   }
 
-  function osmTripGeometry(points, matrixData) {
-    const routeCoords = [];
-    let distance = 0;
-    let time = 0;
-    for (let i = 0; i < points.length - 1; i += 1) {
-      const a = nearestGraphNode(state.graph, points[i]);
-      const b = nearestGraphNode(state.graph, points[i + 1]);
-      if (!a?.nodeId || !b?.nodeId) continue;
-      const path = reconstructGraphPath(state.graph, a.nodeId, b.nodeId, matrixData.scenario, "time");
+  function graphGeometry(points, scenario) {
+    const coords = [];
+    let km = 0;
+    let minutes = 0;
+    for (let index = 0; index < points.length - 1; index += 1) {
+      const source = nearestGraphNode(state.graph, points[index]);
+      const target = nearestGraphNode(state.graph, points[index + 1]);
+      if (!source?.nodeId || !target?.nodeId) continue;
+      const path = reconstructGraphPath(state.graph, source.nodeId, target.nodeId, scenario, "time");
       if (!path) continue;
-      const coords = path.coordinates.map((point) => [point.lat, point.lon]);
-      if (routeCoords.length && coords.length) coords.shift();
-      routeCoords.push(...coords);
-      distance += path.distanceKm || 0;
-      time += path.travelTimeMin || 0;
+      const leg = path.coordinates.map((point) => [point.lat, point.lon]);
+      if (coords.length && leg.length) leg.shift();
+      coords.push(...leg);
+      km += path.distanceKm || 0;
+      minutes += path.travelTimeMin || 0;
     }
-    return { coords: routeCoords, distance, time };
+    return { coords, km, minutes };
+  }
+
+  function renderRoute(route, hubName, names, count, colour) {
+    if (!state.map || route.coords.length < 2) return;
+    const layer = L.polyline(route.coords, {
+      color: colour,
+      weight: 2.05,
+      opacity: 0.74,
+      dashArray: "9 6",
+      className: "geo4__fleet-route",
+    }).bindTooltip(`${hubName}<br>${names}<br>${count}× trip · ${route.km.toFixed(1)} km · ${route.minutes.toFixed(0)} min`).addTo(state.map);
+    state.layers.push(layer);
   }
 
   async function build() {
-    clearFleetLayers();
+    clearLayers();
     const assignments = verifiedAssignments();
     if (!assignments.length || !state.map) {
       status.textContent = copy.need;
@@ -354,86 +372,69 @@ function boot() {
       const capacity = Math.max(1, Number(D.getElementById("geo4-vehicle-capacity")?.value || 1));
       const fleet = Math.max(0, Number(D.getElementById("geo4-fleet-out")?.textContent || 0));
       const tripsPerVehicle = Math.max(0, Number(D.getElementById("geo4-trips")?.value || 0));
-      const engine = D.getElementById("geo4-engine")?.value || "od";
-      const byHub = new Map();
+      const groups = new Map();
       for (const assignment of assignments) {
-        if (!byHub.has(assignment.hub)) byHub.set(assignment.hub, []);
-        byHub.get(assignment.hub).push(assignment);
+        if (!groups.has(assignment.hub)) groups.set(assignment.hub, new Map());
+        const hub = groups.get(assignment.hub);
+        const prior = hub.get(assignment.demand);
+        if (prior) prior.flow += assignment.flow;
+        else hub.set(assignment.demand, { ...assignment });
       }
 
       let totalTrips = 0;
-      let totalDistance = 0;
-      let totalTime = 0;
+      let totalKm = 0;
+      let totalMinutes = 0;
       const summaries = [];
-      let colourIndex = 0;
-      for (const [hubName, deliveriesRaw] of byHub) {
-        const deliveries = [];
-        const grouped = new Map();
-        for (const item of deliveriesRaw) {
-          const existing = grouped.get(item.demand);
-          if (existing) existing.flow += item.flow;
-          else grouped.set(item.demand, { ...item });
-        }
-        deliveries.push(...grouped.values());
+      let groupIndex = 0;
+      for (const [hubName, demandMap] of groups) {
+        const deliveries = [...demandMap.values()];
         const points = [deliveries[0].hubPoint, ...deliveries.map((item) => item.demandPoint)];
-        const matrixData = engine === "osm" && state.graph ? osmMatrix(points) : await osrmMatrix(points);
+        const matrixData = currentMatrix(points) || await osrmMatrix(points);
         const tsp = exactTsp(matrixData.matrix);
         const trips = splitByCapacity(tsp.order, deliveries, capacity);
-        totalTrips += trips.length;
         const indexByDemand = new Map(deliveries.map((item, index) => [item.demand, index + 1]));
-        let hubDistance = 0;
-        let hubTime = 0;
         const signatures = new Map();
+        let hubKm = 0;
+        let hubMinutes = 0;
         for (const trip of trips) {
-          const stops = [deliveries[0].hubPoint, ...trip.map((stop) => stop.demandPoint), deliveries[0].hubPoint];
           const names = trip.map((stop) => stop.demand).join(" → ");
-          const signature = `${hubName}|${names}`;
-          if (!signatures.has(signature)) signatures.set(signature, { stops, names, count: 0 });
-          signatures.get(signature).count += 1;
-          const metrics = tripMetrics(trip, indexByDemand, matrixData.matrix, matrixData.distance);
-          hubTime += metrics.time;
-          hubDistance += metrics.distance;
-        }
-        const geometryEntries = [...signatures.values()].slice(0, 18);
-        for (const entry of geometryEntries) {
-          let route;
-          if (engine === "osm" && state.graph) route = osmTripGeometry(entry.stops, matrixData);
-          else route = await osrmTripGeometry(entry.stops);
-          if (route.coords.length >= 2) {
-            const layer = L.polyline(route.coords, {
-              color: colourIndex % 2 ? "#ffcc66" : "#ffb85c",
-              weight: 2.05,
-              opacity: 0.72,
-              dashArray: "9 6",
-              className: "geo4__fleet-route",
-            }).bindTooltip(`${hubName}<br>${entry.names}<br>${entry.count}× trip · ${route.distance.toFixed(1)} km · ${route.time.toFixed(0)} min`).addTo(state.map);
-            state.fleetLayers.push(layer);
+          const key = `${hubName}|${names}`;
+          if (!signatures.has(key)) {
+            signatures.set(key, {
+              names,
+              count: 0,
+              points: [deliveries[0].hubPoint, ...trip.map((stop) => stop.demandPoint), deliveries[0].hubPoint],
+            });
           }
+          signatures.get(key).count += 1;
+          const metrics = tripMatrixMetrics(trip, indexByDemand, matrixData.matrix, matrixData.distance);
+          hubMinutes += metrics.minutes;
+          hubKm += metrics.km;
         }
-        colourIndex += 1;
-        if (!matrixData.distance) {
-          for (const entry of geometryEntries) {
-            const route = engine === "osm" && state.graph ? osmTripGeometry(entry.stops, matrixData) : null;
-            if (route) {
-              hubDistance += route.distance * entry.count;
-              // hubTime is already calculated from the graph matrix.
-            }
-          }
+
+        for (const entry of [...signatures.values()].slice(0, 18)) {
+          const route = matrixData.scenario
+            ? graphGeometry(entry.points, matrixData.scenario)
+            : await osrmGeometry(entry.points);
+          renderRoute(route, hubName, entry.names, entry.count, groupIndex % 2 ? "#ffcc66" : "#ffb85c");
+          if (!matrixData.distance) hubKm += route.km * entry.count;
         }
-        totalDistance += hubDistance;
-        totalTime += hubTime;
-        summaries.push({ hubName, trips: trips.length, method: tsp.method, cost: tsp.cost });
+        totalTrips += trips.length;
+        totalKm += hubKm;
+        totalMinutes += hubMinutes;
+        summaries.push({ hubName, trips: trips.length, method: tsp.method, objective: tsp.cost });
+        groupIndex += 1;
       }
 
       const available = fleet * tripsPerVehicle;
       const feasible = totalTrips <= available;
       outputs.trips.textContent = String(totalTrips);
       outputs.available.textContent = String(available);
-      outputs.distance.textContent = totalDistance > 0 ? `${totalDistance.toFixed(1)} km` : "—";
-      outputs.time.textContent = `${(totalTime / 60).toFixed(1)} h`;
-      status.textContent = `${copy.ready} ${feasible ? copy.feasible : copy.infeasible}.`;
+      outputs.distance.textContent = totalKm > 0 ? `${totalKm.toFixed(1)} km` : "—";
+      outputs.time.textContent = `${(totalMinutes / 60).toFixed(1)} h`;
+      status.textContent = `${copy.ready}. ${feasible ? copy.feasible : copy.infeasible}.`;
       status.className = `geo4__fleet-status ${feasible ? "ok" : "bad"}`;
-      list.innerHTML = summaries.map((item) => `<div><strong>${item.hubName}</strong>${item.trips} trips · ${item.method === "exact" ? copy.exact : copy.heuristic} · ${item.cost.toFixed(0)} min road-tour objective</div>`).join("");
+      list.innerHTML = summaries.map((item) => `<div><strong>${item.hubName}</strong>${item.trips} trips · ${item.method === "exact" ? copy.exact : copy.heuristic} · ${item.objective.toFixed(0)} min road-tour objective</div>`).join("");
     } catch (error) {
       globalThis.console?.warn("[Fleet planner]", error);
       status.textContent = copy.unavailable;
@@ -444,12 +445,10 @@ function boot() {
   }
 
   button.addEventListener("click", build);
-  for (const id of ["geo4-run", "geo4-routes", "geo4-reset", "geo4-engine", "geo4-road-mode", "geo4-vehicle-capacity", "geo4-trips"]) {
+  for (const id of ["geo4-run", "geo4-reset", "geo4-engine", "geo4-road-mode", "geo4-vehicle-capacity", "geo4-trips"]) {
     const element = D.getElementById(id);
-    element?.addEventListener("click", () => {
-      if (id !== "geo4-routes") clearFleetLayers();
-    });
-    element?.addEventListener("change", clearFleetLayers);
+    element?.addEventListener("click", clearLayers);
+    element?.addEventListener("change", clearLayers);
   }
 }
 
