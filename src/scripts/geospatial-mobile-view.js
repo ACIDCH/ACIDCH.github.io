@@ -50,9 +50,14 @@ function boot() {
   const setView = (view) => {
     shell.dataset.mobileView = view;
     buttons.forEach((button) => button.classList.toggle("is-active", button.dataset.mobileView === view));
-    globalThis.setTimeout(() => globalThis.dispatchEvent(new Event("resize")), 0);
+    globalThis.setTimeout(
+      () => globalThis.dispatchEvent(new globalThis.Event("resize")),
+      0,
+    );
   };
-  buttons.forEach((button) => button.addEventListener("click", () => setView(button.dataset.mobileView || "map")));
+  buttons.forEach((button) =>
+    button.addEventListener("click", () => setView(button.dataset.mobileView || "map")),
+  );
   setView("map");
 }
 
