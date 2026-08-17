@@ -3,7 +3,7 @@ translationKey: geospatial-supply-chain-optimisation
 locale: en
 slug: geospatial-supply-chain-optimisation
 title: Geospatial Supply Chain Optimisation
-summary: An Auckland-focused spatial decision project combining real road networks with facility location, service coverage, capacity constraints, logistics allocation and route analysis.
+summary: An Auckland-focused spatial decision project combining real road networks with facility location, service coverage, fleet routing, two-echelon transshipment, inventory and road uncertainty.
 tools:
   - Python
   - PuLP
@@ -27,26 +27,34 @@ updatedAt: 2026-08-18
 
 ## Project overview
 
-This project places supply-chain optimisation back into real geographic space. The first release focuses on Auckland, retaining the demand, capacity, service-level and fixed-cost logic of facility-location models while replacing straight-line assumptions with network distances on traversable roads.
+This project places supply-chain optimisation back into real geographic space. The study area is Auckland: a verified 6×10 road-distance matrix remains available as a fast regression baseline, while an OSM edge-level mode builds a directed road graph, reruns Dijkstra under the active congestion, temporary-closure and hypothetical new-road scenario, and renders the optimal road path produced by that same scenario.
 
-[Open the interactive GIS prototype →](/lab/geospatial-supply-chain/)
+[Open the interactive GIS decision sandbox →](/lab/geospatial-supply-chain/)
 
-## Current V1
+## From baseline model to real road network
 
-V1 implements two auditable layers. The first is road-network coverage: a verified matrix generated from OSMnx and NetworkX shortest paths links candidate facilities to demand areas, and the browser recomputes the minimum number of facilities as service thresholds change. The second is a capacity-and-cost baseline that preserves capacity limits, an 85% utilisation buffer, minimum area service, overall system service and fixed lease costs for later comparison with GIS-enhanced scenarios.
+The facility layer retains demand, capacity, service threshold, minimum coverage count, maximum open facilities, fixed cost and Auto / Must open / Exclude decision constraints. Course OD mode supports fast reproduction and high-run scenario simulation; OSM mode snaps facilities and demand points to a directed road graph and regenerates the OD matrix using travel time. Network / Flow / Coverage / Utilisation / Cost / Inventory / Risk map views all consume the same solved result rather than changing optimisation decisions themselves.
 
-## Why GIS matters
+## Road uncertainty and service coverage
 
-A coordinate-distance model implicitly assumes that two locations can be connected directly. A real urban network contains water, bridges, directional streets, road hierarchies and disconnected links. This project therefore separates the geographic layer from the optimisation layer: the road network determines feasible distance, time and path geometry, while the supply-chain model determines which facilities open, which areas they serve and how flow is allocated.
+Road scenarios include Baseline, Congestion, Temporary Closure, New Road / Access Improvement and Mixed uncertainty. In OSM mode, congestion modifies edge travel time, closures make affected edges unavailable, and hypothetical new links enter the same road graph before shortest paths are recomputed. Coverage does not present a straight-line radius as a road service area: it runs bounded Dijkstra from the currently open facilities, renders the roads that are actually reachable within the service-time threshold, and distinguishes single coverage from 2×+ overlap.
 
-## Method structure
+## Fleet and two-echelon logistics
 
-The current prototype follows a geographic-network → distance-matrix → coverage-matrix → optimisation-decision → map-explanation pipeline. The baseline keeps the OSMnx, NetworkX and PuLP logic used in the verified learning model. The web layer performs fast scenario calculations on the checked matrix and places facilities, demand areas and allocation links back on an Auckland map. Future versions will add travel-time service areas, transportation flow, inventory and service-level decisions, demand and lead-time uncertainty, and disruption scenarios.
+The fleet module converts solved Hub → Demand flows into a road-based TSP visit order, then splits the flow into actual trips using vehicle capacity. It checks both Fleet Size × Trips per Vehicle and the aggregate Fleet Size × Shift Hours capacity. Small networks use Exact TSP; larger custom networks use an explicitly labelled heuristic fallback. This module does not claim to be a full CVRP or per-vehicle time-window scheduler.
 
-## Data and validation
+A separate Factory → Warehouse → Demand transshipment module is also available. Factory nodes are created through address input or map click, while Warehouse nodes use the warehouses currently opened by the main model. The network-flow formulation uses Warehouse-In → Warehouse-Out node splitting to impose a strict total throughput capacity, then solves a two-echelon minimum-cost flow using the active road-scenario costs. Factory-to-warehouse and warehouse-to-demand routes use separate semantics and visual encoding.
 
-Candidate facilities, demand areas and the current capacity/service constraints come from a verified learning model; the basemap uses OpenStreetMap. The interface does not present straight allocation links as street routes: allocation and routed geometry are separate layers, and an actual road path is only shown after a routing service returns road geometry successfully.
+## Inventory and uncertainty
 
-## Development status
+The inventory layer places mean demand, demand SD, lead time, service level and holding cost in the same scenario console as the spatial network. In addition to fixed lead time, Lead-time SD can be entered; the model combines demand variability and lead-time variability into a combined lead-time demand SD, then updates safety stock, ROP, holding-cost contribution and stockout simulation. Monte Carlo outputs include expected cost, P95 cost, infeasibility rate, average network cost, stockout probability and facility-selection stability, with a retained random seed for reproducibility.
 
-The project is in development. Before production release it will pass model reproduction, GIS data checks, route-reachability checks, bilingual parity, mobile validation, production build and regression testing.
+## Geographic editing and scenario comparison
+
+Natural-language addresses can be geocoded to real coordinates and inserted as Factory, Warehouse or Demand nodes. Locations can also be added by clicking the map, after which a batched road matrix updates the network input; custom nodes remain removable. Scenario A / B stores two parameter-and-solution states for comparison of facility count, cost and average network cost.
+
+## Visual system and validation
+
+The map remains the primary interface, with a scrollable parameter console in the upper right and a compact result module in the lower right. The real road layer reflects road hierarchy; Congestion, Closure and proposed links have distinct event semantics; verified optimal routes use flow-scaled directional particles, glow and node pulses, while Fleet Tour and two-echelon transshipment use separate line styles. Advanced visuals only consume verified model and route output.
+
+The project remains in-development and the formal release target is Desktop Web only. Before publication it must pass geospatial functional gates, numerical transshipment tests, fleet routing checks, advanced visual checks, Astro/TypeScript, ESLint, unit tests, security scan, bilingual parity, production build and repository-wide regression checks; nothing is deployed to the live site before the release decision.
