@@ -42,6 +42,153 @@ def set_select(browser: object, selector: str, value: str) -> None:
     time.sleep(0.25)
 
 
+def set_input(browser: object, selector: str, value: str) -> None:
+    browser.require(selector)
+    browser.execute(
+        "const e=document.querySelector(%r);e.value=%r;e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));"
+        % (selector, value)
+    )
+    time.sleep(0.2)
+
+
+def read_text(browser: object, selector: str) -> str:
+    browser.require(selector)
+    value = browser.execute(
+        "return (document.querySelector(%r)?.textContent || '').trim();" % selector
+    )
+    if not isinstance(value, str):
+        raise RuntimeError(f"Unable to read text from {selector}.")
+    return value
+
+
+def read_value(browser: object, selector: str) -> str:
+    browser.require(selector)
+    value = browser.execute("return String(document.querySelector(%r)?.value ?? '');" % selector)
+    if not isinstance(value, str):
+        raise RuntimeError(f"Unable to read value from {selector}.")
+    return value
+
+
+def wait_dataset(browser: object, key: str, expected: str, timeout: float = 8) -> None:
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        value = browser.execute(
+            "const r=document.querySelector('#geo-v4');return r?.dataset[%r] || '';" % key
+        )
+        if value == expected:
+            return
+        time.sleep(0.2)
+    raise RuntimeError(f"Timed out waiting for #geo-v4 data-{key}={expected!r}.")
+
+
+def assert_single_mounts(browser: object) -> None:
+    selectors = [
+        ".geo4__service-health",
+        ".geo4__capacity-buffer",
+        ".geo4__lead-variability",
+        ".geo4__fleet-planner",
+        ".geo4__transshipment",
+        ".geo4__flow-panel",
+        ".geo4__layer-chip",
+    ]
+    duplicates = browser.execute(
+        "return Object.fromEntries(%r.map(s=>[s,document.querySelectorAll(s).length]));" % selectors
+    )
+    if not isinstance(duplicates, dict):
+        raise RuntimeError("Unable to inspect geospatial extension mount counts.")
+    invalid = {key: value for key, value in duplicates.items() if value != 1}
+    if invalid:
+        raise RuntimeError(f"Geospatial extensions are not idempotently mounted: {invalid}")
+
+
+def assert_state_cycle(browser: object) -> None:
+    browser.require(".geo4__service-health")
+    browser.require("#geo4-utilisation-buffer")
+    browser.require("#geo4-lead-time-sd")
+    browser.require(".geo4__fleet-planner")
+    browser.require(".geo4__transshipment")
+    assert_single_mounts(browser)
+
+    # Normalise once so the recorded baseline is independent of module boot timing.
+    browser.click("#geo4-reset")
+    browser.wait_for_text("#geo4-status", "当前情景已完成重新优化", timeout=12)
+    baseline = {
+        "hubs": read_text(browser, "#geo4-kpi-hubs"),
+        "cost": read_text(browser, "#geo4-kpi-cost"),
+        "ss": read_text(browser, "#geo4-kpi-ss"),
+        "rop": read_text(browser, "#geo4-kpi-rop"),
+    }
+
+    set_input(browser, "#geo4-demand-multiplier", "1.25")
+    set_input(browser, "#geo4-lead-time-sd", "0.6")
+    set_input(browser, "#geo4-utilisation-buffer", "75")
+    browser.click('[data-step="fleet"][data-delta="-1"]')
+    browser.click("#geo4-run")
+    browser.wait_for_text("#geo4-status", "当前情景已完成重新优化", timeout=12)
+    browser.click("#geo4-save-a")
+    browser.wait_for_text("#geo4-status", "已保存情景 A", timeout=5)
+
+    set_select(browser, "#geo4-road-mode", "congestion")
+    set_input(browser, "#geo4-congestion", "55")
+    browser.click("#geo4-run")
+    browser.wait_for_text("#geo4-status", "当前情景已完成重新优化", timeout=12)
+    browser.click("#geo4-save-b")
+    browser.wait_for_text("#geo4-status", "已保存情景 B", timeout=5)
+    browser.click("#geo4-compare")
+    browser.wait_for_text("#geo4-ab", "Δ Facilities", timeout=5)
+
+    browser.click("#geo4-reset")
+    browser.wait_for_text("#geo4-status", "当前情景已完成重新优化", timeout=12)
+
+    expected_values = {
+        "#geo4-demand-multiplier": "1",
+        "#geo4-lead-time-sd": "0",
+        "#geo4-utilisation-buffer": "85",
+        "#geo4-road-mode": "baseline",
+        "#geo4-layer": "network",
+        "#geo4-service": "1.645",
+        "#geo4-holding-cost": "1",
+        "#geo4-facility-capacity-base": "6000",
+        "#geo4-facility-capacity": "5100",
+    }
+    wrong = {
+        selector: (read_value(browser, selector), expected)
+        for selector, expected in expected_values.items()
+        if read_value(browser, selector) != expected
+    }
+    if wrong:
+        raise RuntimeError(f"Reset left stale geospatial scenario state: {wrong}")
+    if read_text(browser, "#geo4-ab"):
+        raise RuntimeError("Scenario A/B comparison survived Reset.")
+
+    restored = {
+        "hubs": read_text(browser, "#geo4-kpi-hubs"),
+        "cost": read_text(browser, "#geo4-kpi-cost"),
+        "ss": read_text(browser, "#geo4-kpi-ss"),
+        "rop": read_text(browser, "#geo4-kpi-rop"),
+    }
+    if restored != baseline:
+        raise RuntimeError(f"Baseline KPI state was not restored: before={baseline}, after={restored}")
+    assert_single_mounts(browser)
+
+
+def assert_service_degradation(browser: object) -> None:
+    # Do not hit a public routing service in CI. Redirect the runtime endpoint to a
+    # deliberately unreachable local port and verify that the service-health layer
+    # records the failure without changing the current optimisation result.
+    before = read_text(browser, "#geo4-kpi-cost")
+    browser.execute(
+        "globalThis.__ACIDCH_GIS_ENDPOINTS__={osrm:'http://127.0.0.1:9'};"
+        "globalThis.fetch('https://router.project-osrm.org/table/v1/driving/0,0;1,1')"
+        ".catch(()=>{});return true;"
+    )
+    wait_dataset(browser, "serviceOsrm", "degraded", timeout=8)
+    after = read_text(browser, "#geo4-kpi-cost")
+    if after != before:
+        raise RuntimeError("External GIS service failure mutated the current optimisation result.")
+    browser.execute("globalThis.__ACIDCH_GIS_ENDPOINTS__={};return true;")
+
+
 def capture_desktop(browser: object) -> None:
     navigate_path(browser, "/zh/lab/geospatial-supply-chain/")
     browser.require("#geo-v4")
@@ -53,6 +200,9 @@ def capture_desktop(browser: object) -> None:
 
     # Desktop web is the release target: map-first shell with right-side controls and results.
     browser.screenshot("geospatial-baseline-desktop.png")
+
+    # Exercise a full edit / optimise / A-B compare / reset cycle before visual states.
+    assert_state_cycle(browser)
 
     # Verify the advanced analysis-layer visual state is interactive and mounted.
     set_select(browser, "#geo4-layer", "risk")
@@ -75,6 +225,8 @@ def capture_desktop(browser: object) -> None:
     if road_mode != "mixed":
         raise RuntimeError(f"Expected mixed road visual mode, got {road_mode!r}.")
     browser.screenshot("geospatial-mixed-event-desktop.png")
+
+    assert_service_degradation(browser)
 
 
 def main() -> None:
@@ -118,7 +270,9 @@ def main() -> None:
     actual = len(list(OUTPUT.glob("*.png")))
     if actual != expected:
         raise RuntimeError(f"Expected {expected} desktop geospatial visual proofs, generated {actual}.")
-    print(f"Captured {actual} desktop geospatial decision-sandbox visual proofs in {OUTPUT}.")
+    print(
+        f"Captured {actual} desktop geospatial proofs and passed state-cycle / service-degradation acceptance in {OUTPUT}."
+    )
 
 
 if __name__ == "__main__":
