@@ -30,7 +30,10 @@ function boot() {
       .geo4__identity p{max-width:490px}
       .geo4__scenario-ribbon{max-width:390px}
       .geo4__flow-panel{width:min(540px,calc(100% - 840px))!important;min-width:380px!important}
-      .geo4__legend{background:rgba(4,18,27,.92)!important;border-color:rgba(116,190,213,.26)!important}
+      .geo4__legend{left:1rem!important;right:auto!important;bottom:.7rem!important;width:390px!important;max-width:390px!important;box-sizing:border-box!important;row-gap:.42rem!important;background:rgba(4,18,27,.92)!important;border-color:rgba(116,190,213,.26)!important}
+      .geo4__logistics-state{left:1rem!important;bottom:4.8rem!important}
+      .geo4__flow-tier{left:1rem!important;bottom:7.35rem!important;max-width:245px!important;box-sizing:border-box!important}
+      .geo4__layer-chip{left:1rem!important;bottom:12.15rem!important;max-width:245px!important;box-sizing:border-box!important}
       .geo4 .leaflet-control-zoom{margin-top:12px!important;margin-left:12px!important}
     }
     @media (min-width:821px) and (max-width:1180px){
