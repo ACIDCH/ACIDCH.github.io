@@ -1,0 +1,1177 @@
+---
+interface Props {
+  locale?: "en" | "zh";
+}
+
+const { locale = "zh" } = Astro.props;
+const copy =
+  locale === "zh"
+    ? {
+        eyebrow: "AUCKLAND / SPATIAL DECISION LAB",
+        title: "基于地理空间的供应链优化",
+        intro:
+          "V1 将 BUSINFO 708 的奥克兰设施覆盖模型放回真实道路地图。优化计算使用已核验的 OSMnx + NetworkX 道路距离矩阵；地图端再用公开路由服务尝试加载真实道路几何。",
+        course: "课程道路基线",
+        coverage: "道路覆盖模型",
+        capacity: "容量与成本基线",
+        threshold: "最大服务距离",
+        redundancy: "最低覆盖次数",
+        selected: "选择设施",
+        loadGis: "初始化 GIS 点位",
+        loadRoutes: "加载道路路径",
+        reset: "重置",
+        hubs: "开启设施",
+        coverageRate: "需求区覆盖",
+        maxDistance: "服务阈值",
+        matrix: "距离矩阵",
+        mapStatus: "地图状态",
+        sourceTitle: "模型边界",
+        sourceBody:
+          "当前 V1 的优化输入采用已核验的课程道路距离矩阵。地图上的虚线表示分配关系，不冒充真实道路；只有路由服务成功返回后，实线才表示道路几何。",
+        a3Title: "A3 容量与成本核验基线",
+        a3Body:
+          "已核验解开启 322 Great North Road、214 Green Lane West 与 151 Beach Road；总三年固定租赁成本 NZ$1,042,500。V1 先把这组结果作为容量/服务约束的验证基线，下一阶段再把实时道路时间重新接入完整 MILP。",
+        statusReady: "已加载课程道路矩阵，可直接运行覆盖情景。",
+        noSolution: "当前阈值与覆盖要求下无可行方案。",
+      }
+    : {
+        eyebrow: "AUCKLAND / SPATIAL DECISION LAB",
+        title: "Geospatial Supply Chain Optimisation",
+        intro:
+          "V1 places the Auckland facility-coverage model on a real road map. Optimisation uses the verified OSMnx + NetworkX road-distance matrix; the map can then request road geometry from a public routing service.",
+        course: "Course road baseline",
+        coverage: "Road coverage model",
+        capacity: "Capacity & cost baseline",
+        threshold: "Maximum service distance",
+        redundancy: "Minimum coverage count",
+        selected: "Selected facilities",
+        loadGis: "Initialise GIS points",
+        loadRoutes: "Load road routes",
+        reset: "Reset",
+        hubs: "Open facilities",
+        coverageRate: "Demand areas covered",
+        maxDistance: "Service threshold",
+        matrix: "Distance matrix",
+        mapStatus: "Map status",
+        sourceTitle: "Model boundary",
+        sourceBody:
+          "V1 optimises on the verified course road-distance matrix. Dashed map links show allocation only and are not presented as road routes. A solid line is only drawn after the routing service returns road geometry.",
+        a3Title: "A3 capacity & cost verification baseline",
+        a3Body:
+          "The verified solution opens 322 Great North Road, 214 Green Lane West and 151 Beach Road, with a three-year fixed lease total of NZ$1,042,500. V1 keeps this as the capacity/service benchmark before reconnecting live travel time to the full MILP.",
+        statusReady: "Verified road matrix loaded; coverage scenarios are ready.",
+        noSolution: "No feasible solution under the current threshold and coverage requirement.",
+      };
+---
+
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  crossorigin=""
+/>
+
+<section id="geo-supply-lab" class="geo-lab" data-locale={locale}>
+  <header class="geo-lab__hero">
+    <div>
+      <p class="geo-lab__eyebrow">{copy.eyebrow}</p>
+      <h1>{copy.title}</h1>
+      <p>{copy.intro}</p>
+    </div>
+    <div class="geo-lab__hero-badge">
+      <span>V1</span>
+      <strong>{copy.course}</strong>
+    </div>
+  </header>
+
+  <div class="geo-lab__workspace">
+    <aside class="geo-panel geo-panel--controls">
+      <div class="geo-panel__section">
+        <span class="geo-label">MODEL</span>
+        <div class="geo-segmented" role="group" aria-label="Model mode">
+          <button class="is-active" type="button" data-model-mode="coverage">{copy.coverage}</button>
+          <button type="button" data-model-mode="capacity">{copy.capacity}</button>
+        </div>
+      </div>
+
+      <div class="geo-panel__section" data-coverage-controls>
+        <label class="geo-control">
+          <span>{copy.threshold}</span>
+          <strong><output id="geo-threshold-output">6.0 km</output></strong>
+          <input id="geo-threshold" type="range" min="4" max="12" step="0.5" value="6" />
+        </label>
+
+        <label class="geo-control">
+          <span>{copy.redundancy}</span>
+          <select id="geo-redundancy">
+            <option value="1" selected>1×</option>
+            <option value="2">2×</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="geo-panel__section">
+        <span class="geo-label">GIS</span>
+        <div class="geo-actions">
+          <button id="geo-load-points" type="button">{copy.loadGis}</button>
+          <button id="geo-load-routes" type="button" disabled>{copy.loadRoutes}</button>
+          <button id="geo-reset" class="geo-button--ghost" type="button">{copy.reset}</button>
+        </div>
+        <p id="geo-map-status" class="geo-status">{copy.statusReady}</p>
+      </div>
+
+      <div class="geo-panel__section">
+        <span class="geo-label">{copy.selected}</span>
+        <div id="geo-selected-hubs" class="geo-selected"></div>
+      </div>
+    </aside>
+
+    <div class="geo-map-shell">
+      <div id="geo-map" aria-label="Auckland supply chain GIS map"></div>
+      <div class="geo-map-key" aria-hidden="true">
+        <span><i class="hub"></i> Hub</span>
+        <span><i class="demand"></i> Demand</span>
+        <span><i class="allocation"></i> Allocation</span>
+        <span><i class="route"></i> Road route</span>
+      </div>
+    </div>
+
+    <aside class="geo-panel geo-panel--metrics">
+      <div class="geo-metric-grid">
+        <div class="geo-metric">
+          <span>{copy.hubs}</span>
+          <strong id="geo-kpi-hubs">2</strong>
+        </div>
+        <div class="geo-metric">
+          <span>{copy.coverageRate}</span>
+          <strong id="geo-kpi-coverage">100%</strong>
+        </div>
+        <div class="geo-metric">
+          <span>{copy.maxDistance}</span>
+          <strong id="geo-kpi-threshold">6.0 km</strong>
+        </div>
+        <div class="geo-metric">
+          <span>{copy.matrix}</span>
+          <strong>6 × 10</strong>
+        </div>
+      </div>
+
+      <div class="geo-panel__section geo-panel__section--compact">
+        <span class="geo-label">{copy.sourceTitle}</span>
+        <p>{copy.sourceBody}</p>
+      </div>
+
+      <div id="geo-capacity-note" class="geo-capacity-note" hidden>
+        <span class="geo-label">BASELINE</span>
+        <h2>{copy.a3Title}</h2>
+        <p>{copy.a3Body}</p>
+        <dl>
+          <div><dt>Service</dt><dd>≥ 95%</dd></div>
+          <div><dt>Suburb floor</dt><dd>≥ 90%</dd></div>
+          <div><dt>Utilisation</dt><dd>≤ 85%</dd></div>
+          <div><dt>Lease</dt><dd>NZ$1.043M</dd></div>
+        </dl>
+      </div>
+    </aside>
+  </div>
+
+  <div class="geo-matrix-wrap">
+    <div class="geo-matrix-head">
+      <div>
+        <span class="geo-label">OSMnx + NetworkX</span>
+        <h2>{copy.matrix}</h2>
+      </div>
+      <p>km</p>
+    </div>
+    <div class="geo-table-scroll">
+      <table id="geo-distance-table"></table>
+    </div>
+  </div>
+</section>
+
+<script
+  is:inline
+  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  crossorigin=""
+></script>
+<script is:inline>
+  (() => {
+    const root = document.getElementById("geo-supply-lab");
+    if (!root) return;
+
+    const locale = root.dataset.locale || "zh";
+    const text = locale === "zh"
+      ? {
+          geocoding: "正在按课程方法使用 Nominatim 获取真实奥克兰点位…",
+          geocoded: "GIS 点位已加载。虚线为分配关系；可继续加载真实道路路径。",
+          geocodeFail: "部分点位未能在线地理编码；优化计算仍可使用已核验道路矩阵。",
+          routing: "正在从公开 OSRM 服务加载道路几何…",
+          routed: "道路路径已加载。实线沿路网显示，虚线仅保留未成功路由的分配关系。",
+          routeFail: "部分道路路径请求失败，已保留分配虚线作为降级显示。",
+          capacity: "当前显示 A3 已核验容量与成本基线。",
+          ready: "已加载课程道路矩阵，可直接运行覆盖情景。",
+          covers: "覆盖",
+          areas: "个需求区",
+          noSolution: "当前参数无可行方案",
+        }
+      : {
+          geocoding: "Geocoding real Auckland locations through Nominatim using the course workflow…",
+          geocoded: "GIS points loaded. Dashed links are allocations; road geometry can now be requested.",
+          geocodeFail: "Some locations could not be geocoded online; optimisation still uses the verified road matrix.",
+          routing: "Loading road geometry from the public OSRM service…",
+          routed: "Road routes loaded. Solid lines follow road geometry; dashed links remain only where routing failed.",
+          routeFail: "Some road requests failed; dashed allocation links remain as the fallback.",
+          capacity: "Showing the verified A3 capacity and cost baseline.",
+          ready: "Verified road matrix loaded; coverage scenarios are ready.",
+          covers: "covers",
+          areas: "demand areas",
+          noSolution: "No feasible solution",
+        };
+
+    const hubNames = [
+      "328 Ponsonby Road",
+      "322 Great North Road",
+      "214 Green Lane West",
+      "151 Beach Road",
+      "76 Coates Avenue",
+      "151 Neilson Street",
+    ];
+
+    const hubQueries = [
+      "328 Ponsonby Road, Ponsonby, Auckland, New Zealand",
+      "322 Great North Road, Grey Lynn, Auckland, New Zealand",
+      "214 Green Lane West, Epsom, Auckland, New Zealand",
+      "151 Beach Road, Auckland CBD, Auckland, New Zealand",
+      "76 Coates Avenue, Orakei, Auckland, New Zealand",
+      "151 Neilson Street, Onehunga, Auckland, New Zealand",
+    ];
+
+    const suburbNames = [
+      "Auckland CBD",
+      "Epsom",
+      "Grey Lynn",
+      "Mount Eden",
+      "Newmarket",
+      "Onehunga",
+      "Orakei",
+      "Ponsonby",
+      "Remuera",
+      "Three Kings",
+    ];
+
+    const suburbQueries = suburbNames.map((name) => `${name}, Auckland, New Zealand`);
+    const demands = [4000, 600, 700, 800, 500, 600, 400, 700, 900, 400];
+
+    const courseDistances = [
+      [2.07, 5.80, 2.04, 4.66, 4.12, 10.66, 7.50, 0.31, 7.70, 7.89],
+      [4.20, 5.62, 1.29, 4.26, 4.94, 10.03, 9.50, 3.22, 8.51, 6.91],
+      [6.45, 1.92, 6.76, 2.79, 3.44, 4.19, 7.26, 7.27, 4.42, 3.23],
+      [1.45, 4.95, 4.85, 4.11, 2.47, 9.25, 4.48, 3.52, 4.89, 7.33],
+      [5.56, 6.79, 8.98, 7.29, 5.05, 9.13, 0.00, 7.63, 2.87, 9.60],
+      [10.70, 6.17, 10.99, 7.03, 7.69, 1.04, 9.48, 11.52, 6.62, 4.27],
+    ];
+
+    const a3Selected = [1, 2, 3];
+    const a3Flows = [
+      [1, 0, 2275],
+      [1, 2, 700],
+      [1, 7, 700],
+      [2, 1, 600],
+      [2, 3, 800],
+      [2, 4, 500],
+      [2, 5, 600],
+      [2, 8, 900],
+      [2, 9, 400],
+      [3, 0, 1725],
+      [3, 6, 400],
+    ];
+
+    const thresholdInput = document.getElementById("geo-threshold");
+    const thresholdOutput = document.getElementById("geo-threshold-output");
+    const redundancyInput = document.getElementById("geo-redundancy");
+    const selectedBox = document.getElementById("geo-selected-hubs");
+    const kpiHubs = document.getElementById("geo-kpi-hubs");
+    const kpiCoverage = document.getElementById("geo-kpi-coverage");
+    const kpiThreshold = document.getElementById("geo-kpi-threshold");
+    const status = document.getElementById("geo-map-status");
+    const pointsButton = document.getElementById("geo-load-points");
+    const routesButton = document.getElementById("geo-load-routes");
+    const resetButton = document.getElementById("geo-reset");
+    const capacityNote = document.getElementById("geo-capacity-note");
+    const coverageControls = document.querySelector("[data-coverage-controls]");
+    const modeButtons = [...document.querySelectorAll("[data-model-mode]")];
+
+    const table = document.getElementById("geo-distance-table");
+    table.innerHTML = `
+      <thead>
+        <tr>
+          <th>Hub</th>
+          ${suburbNames.map((name) => `<th>${name}</th>`).join("")}
+        </tr>
+      </thead>
+      <tbody>
+        ${hubNames.map((hub, i) => `
+          <tr>
+            <th>${hub}</th>
+            ${courseDistances[i].map((d) => `<td>${d.toFixed(2)}</td>`).join("")}
+          </tr>
+        `).join("")}
+      </tbody>
+    `;
+
+    const combinations = (items, choose) => {
+      const out = [];
+      const walk = (start, picked) => {
+        if (picked.length === choose) {
+          out.push([...picked]);
+          return;
+        }
+        for (let i = start; i < items.length; i += 1) {
+          picked.push(items[i]);
+          walk(i + 1, picked);
+          picked.pop();
+        }
+      };
+      walk(0, []);
+      return out;
+    };
+
+    const solveCoverage = (threshold, redundancy) => {
+      const ids = hubNames.map((_, i) => i);
+      for (let k = 1; k <= ids.length; k += 1) {
+        const candidates = combinations(ids, k);
+        for (const selected of candidates) {
+          const workloadOk = selected.every(
+            (i) => courseDistances[i].filter((d) => d <= threshold).length >= 2,
+          );
+          if (!workloadOk) continue;
+
+          const coverCounts = suburbNames.map((_, j) =>
+            selected.reduce(
+              (sum, i) => sum + (courseDistances[i][j] <= threshold ? 1 : 0),
+              0,
+            ),
+          );
+
+          if (coverCounts.every((count) => count >= redundancy)) {
+            return { selected, coverCounts };
+          }
+        }
+      }
+      return null;
+    };
+
+    let mode = "coverage";
+    let solution = solveCoverage(6, 1);
+    let map = null;
+    let hubMarkers = [];
+    let suburbMarkers = [];
+    let allocationLayer = null;
+    let routeLayer = null;
+    let hubCoords = [];
+    let suburbCoords = [];
+
+    const assignmentForSolution = () => {
+      if (mode === "capacity") {
+        return a3Flows.map(([hub, suburb, flow]) => ({ hub, suburb, flow }));
+      }
+      if (!solution) return [];
+      return suburbNames.map((_, suburb) => {
+        const eligible = solution.selected
+          .filter((hub) => courseDistances[hub][suburb] <= Number(thresholdInput.value))
+          .sort((a, b) => courseDistances[a][suburb] - courseDistances[b][suburb]);
+        return { hub: eligible[0], suburb, flow: demands[suburb] };
+      }).filter((item) => Number.isInteger(item.hub));
+    };
+
+    const updateMarkerStyles = (selected) => {
+      hubMarkers.forEach((marker, i) => {
+        if (!marker) return;
+        const active = selected.includes(i);
+        marker.setStyle({
+          radius: active ? 9 : 6,
+          weight: active ? 3 : 1.5,
+          color: active ? "#d8ff6b" : "#4dd6e8",
+          fillColor: active ? "#d8ff6b" : "#0e5363",
+          fillOpacity: active ? 0.95 : 0.68,
+        });
+      });
+    };
+
+    const drawAllocationLinks = () => {
+      if (!map || !window.L || !hubCoords.length || !suburbCoords.length) return;
+      if (allocationLayer) allocationLayer.clearLayers();
+      const assignments = assignmentForSolution();
+      assignments.forEach(({ hub, suburb }) => {
+        const h = hubCoords[hub];
+        const s = suburbCoords[suburb];
+        if (!h || !s) return;
+        window.L.polyline(
+          [
+            [h.lat, h.lon],
+            [s.lat, s.lon],
+          ],
+          {
+            color: "#52d9e8",
+            weight: 1.4,
+            opacity: 0.55,
+            dashArray: "4 8",
+          },
+        ).addTo(allocationLayer);
+      });
+    };
+
+    const renderSelection = () => {
+      const selected =
+        mode === "capacity"
+          ? a3Selected
+          : solution
+            ? solution.selected
+            : [];
+
+      if (!selected.length) {
+        selectedBox.innerHTML = `<p class="geo-empty">${text.noSolution}</p>`;
+        kpiHubs.textContent = "—";
+        kpiCoverage.textContent = "0%";
+        updateMarkerStyles([]);
+        drawAllocationLinks();
+        return;
+      }
+
+      selectedBox.innerHTML = selected
+        .map((i) => {
+          const coverCount = courseDistances[i].filter(
+            (d) => d <= Number(thresholdInput.value),
+          ).length;
+          return `
+            <div class="geo-hub-row">
+              <span>${String(i + 1).padStart(2, "0")}</span>
+              <div>
+                <strong>${hubNames[i]}</strong>
+                <small>${text.covers} ${coverCount} ${text.areas}</small>
+              </div>
+            </div>
+          `;
+        })
+        .join("");
+
+      kpiHubs.textContent = String(selected.length);
+      kpiCoverage.textContent =
+        mode === "capacity"
+          ? "≥95%"
+          : solution && solution.coverCounts.every((count) => count > 0)
+            ? "100%"
+            : "0%";
+      updateMarkerStyles(selected);
+      drawAllocationLinks();
+    };
+
+    const recalc = () => {
+      const threshold = Number(thresholdInput.value);
+      const redundancy = Number(redundancyInput.value);
+      thresholdOutput.textContent = `${threshold.toFixed(1)} km`;
+      kpiThreshold.textContent = `${threshold.toFixed(1)} km`;
+      solution = solveCoverage(threshold, redundancy);
+      routeLayer?.clearLayers();
+      renderSelection();
+      status.textContent = solution ? text.ready : text.noSolution;
+    };
+
+    thresholdInput.addEventListener("input", recalc);
+    redundancyInput.addEventListener("change", recalc);
+
+    modeButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        mode = button.dataset.modelMode;
+        modeButtons.forEach((item) => item.classList.toggle("is-active", item === button));
+        const isCapacity = mode === "capacity";
+        coverageControls.hidden = isCapacity;
+        capacityNote.hidden = !isCapacity;
+        routeLayer?.clearLayers();
+        status.textContent = isCapacity ? text.capacity : text.ready;
+        renderSelection();
+      });
+    });
+
+    const sleep = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
+
+    const geocodeOne = async (query) => {
+      const url = new URL("https://nominatim.openstreetmap.org/search");
+      url.searchParams.set("q", query);
+      url.searchParams.set("format", "jsonv2");
+      url.searchParams.set("limit", "1");
+      url.searchParams.set("countrycodes", "nz");
+      const response = await fetch(url.toString(), {
+        headers: { "Accept-Language": locale === "zh" ? "zh,en;q=0.8" : "en" },
+      });
+      if (!response.ok) throw new Error(`Nominatim ${response.status}`);
+      const data = await response.json();
+      if (!data.length) throw new Error(`No geocode result for ${query}`);
+      return { lat: Number(data[0].lat), lon: Number(data[0].lon) };
+    };
+
+    const loadCoordinates = async () => {
+      const cacheKey = "acidch-geospatial-supply-chain-v1";
+      try {
+        const cached = JSON.parse(localStorage.getItem(cacheKey) || "null");
+        if (
+          cached &&
+          Array.isArray(cached.hubs) &&
+          cached.hubs.length === hubQueries.length &&
+          Array.isArray(cached.suburbs) &&
+          cached.suburbs.length === suburbQueries.length
+        ) {
+          hubCoords = cached.hubs;
+          suburbCoords = cached.suburbs;
+          return true;
+        }
+      } catch {
+        // Ignore invalid cache and refresh.
+      }
+
+      status.textContent = text.geocoding;
+      hubCoords = [];
+      suburbCoords = [];
+
+      try {
+        for (const query of hubQueries) {
+          hubCoords.push(await geocodeOne(query));
+          await sleep(1100);
+        }
+        for (const query of suburbQueries) {
+          suburbCoords.push(await geocodeOne(query));
+          await sleep(1100);
+        }
+        localStorage.setItem(
+          cacheKey,
+          JSON.stringify({ hubs: hubCoords, suburbs: suburbCoords }),
+        );
+        return true;
+      } catch (error) {
+        console.warn("[Geospatial Supply Chain] geocoding failed", error);
+        status.textContent = text.geocodeFail;
+        return false;
+      }
+    };
+
+    const initMap = () => {
+      if (map || !window.L) return;
+      map = window.L.map("geo-map", {
+        zoomControl: true,
+        attributionControl: true,
+      }).setView([-36.873, 174.766], 12);
+
+      window.L.tileLayer(
+        "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+        {
+          maxZoom: 20,
+          subdomains: "abcd",
+          attribution:
+            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; CARTO',
+        },
+      ).addTo(map);
+
+      allocationLayer = window.L.layerGroup().addTo(map);
+      routeLayer = window.L.layerGroup().addTo(map);
+    };
+
+    const plotPoints = () => {
+      initMap();
+      hubMarkers.forEach((marker) => marker?.remove());
+      suburbMarkers.forEach((marker) => marker?.remove());
+      hubMarkers = [];
+      suburbMarkers = [];
+
+      hubCoords.forEach((coord, i) => {
+        const marker = window.L.circleMarker([coord.lat, coord.lon], {
+          radius: 6,
+          color: "#4dd6e8",
+          weight: 1.5,
+          fillColor: "#0e5363",
+          fillOpacity: 0.68,
+        })
+          .bindTooltip(`<strong>${hubNames[i]}</strong><br>${hubQueries[i]}`)
+          .addTo(map);
+        hubMarkers.push(marker);
+      });
+
+      suburbCoords.forEach((coord, i) => {
+        const marker = window.L.circleMarker([coord.lat, coord.lon], {
+          radius: Math.max(4, Math.min(9, 3 + demands[i] / 900)),
+          color: "#ff759a",
+          weight: 1.2,
+          fillColor: "#ff3d78",
+          fillOpacity: 0.62,
+        })
+          .bindTooltip(`<strong>${suburbNames[i]}</strong><br>Demand: ${demands[i].toLocaleString()}`)
+          .addTo(map);
+        suburbMarkers.push(marker);
+      });
+
+      const all = [...hubCoords, ...suburbCoords].map((coord) => [coord.lat, coord.lon]);
+      if (all.length) map.fitBounds(all, { padding: [28, 28] });
+      renderSelection();
+      routesButton.disabled = false;
+    };
+
+    pointsButton.addEventListener("click", async () => {
+      pointsButton.disabled = true;
+      initMap();
+      const loaded = await loadCoordinates();
+      if (loaded) {
+        plotPoints();
+        status.textContent = text.geocoded;
+      }
+      pointsButton.disabled = false;
+    });
+
+    const loadRoutes = async () => {
+      if (!map || !hubCoords.length || !suburbCoords.length) return;
+      routeLayer.clearLayers();
+      status.textContent = text.routing;
+      routesButton.disabled = true;
+      const assignments = assignmentForSolution();
+      let failures = 0;
+
+      for (const { hub, suburb, flow } of assignments) {
+        const h = hubCoords[hub];
+        const s = suburbCoords[suburb];
+        if (!h || !s) {
+          failures += 1;
+          continue;
+        }
+
+        const url =
+          `https://router.project-osrm.org/route/v1/driving/` +
+          `${h.lon},${h.lat};${s.lon},${s.lat}` +
+          "?overview=simplified&geometries=geojson&steps=false";
+
+        try {
+          const response = await fetch(url);
+          if (!response.ok) throw new Error(`OSRM ${response.status}`);
+          const data = await response.json();
+          const coords = data.routes?.[0]?.geometry?.coordinates;
+          if (!coords?.length) throw new Error("No route geometry");
+          const latLngs = coords.map(([lon, lat]) => [lat, lon]);
+          window.L.polyline(latLngs, {
+            color: mode === "capacity" ? "#d8ff6b" : "#62ecff",
+            weight: mode === "capacity" ? 2.6 : 2.1,
+            opacity: 0.86,
+          })
+            .bindTooltip(
+              `${hubNames[hub]} → ${suburbNames[suburb]}` +
+                (flow ? `<br>Flow: ${Number(flow).toLocaleString()}` : ""),
+            )
+            .addTo(routeLayer);
+        } catch (error) {
+          failures += 1;
+          console.warn("[Geospatial Supply Chain] route failed", error);
+        }
+        await sleep(150);
+      }
+
+      status.textContent = failures ? text.routeFail : text.routed;
+      routesButton.disabled = false;
+    };
+
+    routesButton.addEventListener("click", loadRoutes);
+
+    resetButton.addEventListener("click", () => {
+      mode = "coverage";
+      thresholdInput.value = "6";
+      redundancyInput.value = "1";
+      modeButtons.forEach((button) =>
+        button.classList.toggle("is-active", button.dataset.modelMode === "coverage"),
+      );
+      coverageControls.hidden = false;
+      capacityNote.hidden = true;
+      routeLayer?.clearLayers();
+      recalc();
+      if (map) map.setView([-36.873, 174.766], 12);
+    });
+
+    initMap();
+    recalc();
+  })();
+</script>
+
+<style>
+  .geo-lab {
+    --geo-bg: #07131d;
+    --geo-panel: rgba(8, 25, 36, 0.94);
+    --geo-line: rgba(129, 190, 211, 0.2);
+    --geo-cyan: #62ecff;
+    --geo-acid: #d8ff6b;
+    --geo-pink: #ff759a;
+    --geo-muted: #8ca9b6;
+    width: min(1520px, calc(100vw - 2rem));
+    margin: 0 auto 4rem;
+    color: #e9f7fb;
+  }
+
+  .geo-lab__hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 2rem;
+    align-items: end;
+    padding: 1.5rem 0 1.25rem;
+  }
+
+  .geo-lab__hero h1 {
+    margin: 0.2rem 0 0.55rem;
+    color: #eefcff;
+    font-size: clamp(2rem, 4vw, 4.4rem);
+    letter-spacing: -0.045em;
+    line-height: 0.98;
+  }
+
+  .geo-lab__hero p {
+    max-width: 930px;
+    margin: 0;
+    color: #718f9d;
+  }
+
+  .geo-lab__eyebrow,
+  .geo-label {
+    color: var(--geo-cyan);
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .geo-lab__hero-badge {
+    display: grid;
+    gap: 0.25rem;
+    min-width: 160px;
+    padding: 0.8rem 1rem;
+    border: 1px solid var(--geo-line);
+    background: rgba(8, 25, 36, 0.72);
+  }
+
+  .geo-lab__hero-badge span {
+    color: var(--geo-acid);
+    font: 700 0.72rem/1 monospace;
+  }
+
+  .geo-lab__hero-badge strong {
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .geo-lab__workspace {
+    display: grid;
+    grid-template-columns: 280px minmax(0, 1fr) 290px;
+    min-height: 720px;
+    overflow: hidden;
+    border: 1px solid rgba(97, 166, 190, 0.24);
+    background: var(--geo-bg);
+    box-shadow: 0 28px 90px rgba(0, 0, 0, 0.2);
+  }
+
+  .geo-panel {
+    position: relative;
+    z-index: 500;
+    padding: 1rem;
+    background: var(--geo-panel);
+    backdrop-filter: blur(14px);
+  }
+
+  .geo-panel--controls {
+    border-right: 1px solid var(--geo-line);
+  }
+
+  .geo-panel--metrics {
+    border-left: 1px solid var(--geo-line);
+  }
+
+  .geo-panel__section {
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--geo-line);
+  }
+
+  .geo-panel__section--compact p,
+  .geo-capacity-note p {
+    margin: 0.5rem 0 0;
+    color: var(--geo-muted);
+    font-size: 0.78rem;
+    line-height: 1.55;
+  }
+
+  .geo-segmented {
+    display: grid;
+    gap: 0.45rem;
+    margin-top: 0.65rem;
+  }
+
+  .geo-segmented button,
+  .geo-actions button {
+    width: 100%;
+    border: 1px solid var(--geo-line);
+    background: rgba(18, 48, 62, 0.72);
+    color: #d7eef5;
+    padding: 0.66rem 0.7rem;
+    text-align: left;
+    cursor: pointer;
+    transition: 140ms ease;
+  }
+
+  .geo-segmented button:hover,
+  .geo-actions button:hover:not(:disabled) {
+    border-color: rgba(98, 236, 255, 0.55);
+  }
+
+  .geo-segmented button.is-active {
+    border-color: var(--geo-cyan);
+    background: rgba(41, 130, 151, 0.25);
+    color: #fff;
+  }
+
+  .geo-actions {
+    display: grid;
+    gap: 0.45rem;
+    margin-top: 0.65rem;
+  }
+
+  .geo-actions button:disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+  }
+
+  .geo-actions .geo-button--ghost {
+    background: transparent;
+    color: var(--geo-muted);
+  }
+
+  .geo-control {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.55rem;
+    align-items: center;
+    margin-top: 0.75rem;
+    color: var(--geo-muted);
+    font-size: 0.78rem;
+  }
+
+  .geo-control strong {
+    color: #f2fbff;
+  }
+
+  .geo-control input {
+    grid-column: 1 / -1;
+    width: 100%;
+    accent-color: var(--geo-cyan);
+  }
+
+  .geo-control select {
+    min-width: 70px;
+    border: 1px solid var(--geo-line);
+    background: #0b202c;
+    color: #eefbff;
+    padding: 0.4rem;
+  }
+
+  .geo-status {
+    min-height: 3.9em;
+    margin: 0.65rem 0 0;
+    color: #6d8d99;
+    font-size: 0.72rem;
+    line-height: 1.4;
+  }
+
+  .geo-selected {
+    display: grid;
+    gap: 0.5rem;
+    margin-top: 0.65rem;
+  }
+
+  .geo-hub-row {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 0.55rem;
+    align-items: start;
+    padding: 0.55rem;
+    border: 1px solid rgba(98, 236, 255, 0.14);
+    background: rgba(11, 41, 54, 0.55);
+  }
+
+  .geo-hub-row > span {
+    color: var(--geo-acid);
+    font: 700 0.7rem/1.3 monospace;
+  }
+
+  .geo-hub-row strong,
+  .geo-hub-row small {
+    display: block;
+  }
+
+  .geo-hub-row strong {
+    font-size: 0.78rem;
+    line-height: 1.25;
+  }
+
+  .geo-hub-row small {
+    margin-top: 0.22rem;
+    color: #6f909e;
+    font-size: 0.66rem;
+  }
+
+  .geo-empty {
+    color: var(--geo-pink);
+    font-size: 0.78rem;
+  }
+
+  .geo-map-shell {
+    position: relative;
+    min-width: 0;
+    background: #07131d;
+  }
+
+  #geo-map {
+    width: 100%;
+    height: 100%;
+    min-height: 720px;
+    background: #07131d;
+  }
+
+  .geo-map-key {
+    position: absolute;
+    z-index: 600;
+    left: 1rem;
+    bottom: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+    padding: 0.55rem 0.7rem;
+    border: 1px solid var(--geo-line);
+    background: rgba(6, 20, 29, 0.86);
+    color: #8da9b6;
+    font-size: 0.66rem;
+    backdrop-filter: blur(12px);
+  }
+
+  .geo-map-key span {
+    display: inline-flex;
+    gap: 0.35rem;
+    align-items: center;
+  }
+
+  .geo-map-key i {
+    display: inline-block;
+    width: 12px;
+    height: 4px;
+    border-radius: 999px;
+  }
+
+  .geo-map-key .hub {
+    height: 8px;
+    background: var(--geo-acid);
+  }
+
+  .geo-map-key .demand {
+    height: 8px;
+    background: var(--geo-pink);
+  }
+
+  .geo-map-key .allocation {
+    border-top: 1px dashed var(--geo-cyan);
+  }
+
+  .geo-map-key .route {
+    background: var(--geo-cyan);
+  }
+
+  .geo-metric-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+
+  .geo-metric {
+    min-height: 86px;
+    padding: 0.7rem;
+    border: 1px solid var(--geo-line);
+    background: rgba(12, 38, 50, 0.58);
+  }
+
+  .geo-metric span {
+    display: block;
+    color: #7294a2;
+    font-size: 0.65rem;
+  }
+
+  .geo-metric strong {
+    display: block;
+    margin-top: 0.5rem;
+    color: #f3fbfd;
+    font: 700 1.25rem/1 monospace;
+  }
+
+  .geo-capacity-note {
+    margin-top: 1rem;
+    padding: 0.8rem;
+    border: 1px solid rgba(216, 255, 107, 0.22);
+    background: rgba(47, 65, 31, 0.13);
+  }
+
+  .geo-capacity-note h2 {
+    margin: 0.45rem 0 0;
+    font-size: 1rem;
+  }
+
+  .geo-capacity-note dl {
+    display: grid;
+    gap: 0.25rem;
+    margin: 0.75rem 0 0;
+  }
+
+  .geo-capacity-note dl div {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    color: var(--geo-muted);
+    font-size: 0.72rem;
+  }
+
+  .geo-capacity-note dd {
+    margin: 0;
+    color: var(--geo-acid);
+  }
+
+  .geo-matrix-wrap {
+    margin-top: 1rem;
+    padding: 1rem;
+    border: 1px solid var(--geo-line);
+    background: #091720;
+  }
+
+  .geo-matrix-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: end;
+    margin-bottom: 0.75rem;
+  }
+
+  .geo-matrix-head h2 {
+    margin: 0.25rem 0 0;
+    color: #eefdff;
+    font-size: 1.15rem;
+  }
+
+  .geo-matrix-head p {
+    margin: 0;
+    color: var(--geo-muted);
+    font: 0.75rem monospace;
+  }
+
+  .geo-table-scroll {
+    overflow-x: auto;
+  }
+
+  #geo-distance-table {
+    width: 100%;
+    min-width: 1120px;
+    border-collapse: collapse;
+    font-size: 0.7rem;
+  }
+
+  #geo-distance-table th,
+  #geo-distance-table td {
+    padding: 0.55rem;
+    border: 1px solid rgba(129, 190, 211, 0.12);
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  #geo-distance-table th {
+    color: #9db8c4;
+    font-weight: 600;
+  }
+
+  #geo-distance-table tbody th {
+    text-align: left;
+    color: #e4f7fb;
+  }
+
+  #geo-distance-table td {
+    color: #7fa2b0;
+    font-family: monospace;
+  }
+
+  :global(.geo-lab .leaflet-control-zoom a) {
+    border-color: rgba(129, 190, 211, 0.24);
+    background: rgba(7, 24, 34, 0.9);
+    color: #e7f8fb;
+  }
+
+  :global(.geo-lab .leaflet-control-attribution) {
+    background: rgba(7, 24, 34, 0.72);
+    color: #78929c;
+  }
+
+  :global(.geo-lab .leaflet-control-attribution a) {
+    color: #9fcbd5;
+  }
+
+  :global(.geo-lab .leaflet-tooltip) {
+    border: 1px solid rgba(98, 236, 255, 0.24);
+    background: rgba(6, 21, 30, 0.95);
+    color: #e9f9fb;
+    box-shadow: none;
+    font-size: 0.72rem;
+  }
+
+  @media (max-width: 1120px) {
+    .geo-lab__workspace {
+      grid-template-columns: 240px minmax(0, 1fr);
+    }
+
+    .geo-panel--metrics {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1rem;
+      border-top: 1px solid var(--geo-line);
+      border-left: 0;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .geo-lab {
+      width: min(100%, calc(100vw - 1rem));
+    }
+
+    .geo-lab__hero {
+      grid-template-columns: 1fr;
+    }
+
+    .geo-lab__hero-badge {
+      width: fit-content;
+    }
+
+    .geo-lab__workspace {
+      display: flex;
+      min-height: 0;
+      flex-direction: column;
+    }
+
+    .geo-panel--controls,
+    .geo-panel--metrics {
+      border: 0;
+      border-bottom: 1px solid var(--geo-line);
+    }
+
+    .geo-panel--metrics {
+      display: block;
+    }
+
+    #geo-map {
+      min-height: 62vh;
+    }
+
+    .geo-map-key {
+      right: 0.6rem;
+      bottom: 0.6rem;
+      left: 0.6rem;
+    }
+  }
+</style>
