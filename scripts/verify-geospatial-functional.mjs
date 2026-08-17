@@ -12,6 +12,8 @@ import { reconstructGraphPath } from "../src/lib/geospatial/pathTools.js";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const read = (relative) => fs.readFileSync(path.join(root, relative), "utf8");
 const component = read("src/components/GeospatialSupplyChainLabV4.astro");
+const functionalExtensions = read("src/components/GeospatialFunctionalExtensions.astro");
+const inventoryVariability = read("src/scripts/geospatial-inventory-variability.js");
 const controller = read("src/scripts/geospatial-v4.js");
 const engine = read("src/lib/geospatial/decisionEngine.js");
 const enPage = read("src/pages/lab/geospatial-supply-chain.astro");
@@ -63,6 +65,21 @@ for (const [token, label] of componentRequirements) {
   requireText(component, token, label);
 }
 
+requireText(
+  functionalExtensions,
+  "geospatial-inventory-variability.js",
+  "lead-time variability extension mount",
+);
+for (const [token, label] of [
+  ["geo4-lead-time-sd", "lead-time standard deviation control"],
+  ["geo4-inv-sd-base", "raw demand-SD preservation"],
+  ["averageLead * sigmaD ** 2 + mu ** 2 * sigmaL ** 2", "BUSINFO 709 combined lead-time variance"],
+  ["combinedSd / Math.sqrt(averageLead)", "inventory-engine equivalent SD adapter"],
+  ["data-combined-sd", "combined lead-time demand SD feedback"],
+]) {
+  requireText(inventoryVariability, token, label);
+}
+
 const controllerRequirements = [
   ["/table/v1/driving/", "OSRM Table matrix update"],
   ["overpass-api.de", "Overpass road-graph source"],
@@ -104,6 +121,8 @@ for (const token of engineRequirements) {
 }
 requireText(enPage, "GeospatialSupplyChainLabV4", "English V4 route");
 requireText(zhPage, "GeospatialSupplyChainLabV4", "Chinese V4 route");
+requireText(enPage, "GeospatialFunctionalExtensions", "English functional extension mount");
+requireText(zhPage, "GeospatialFunctionalExtensions", "Chinese functional extension mount");
 
 const matrix = [
   [2.07, 5.8, 2.04, 4.66, 4.12, 10.66, 7.5, 0.31, 7.7, 7.89],
@@ -138,6 +157,21 @@ if (
 const policy = inventoryPolicy({ mean: 120, sd: 25, leadTime: 2, z: 1.645 });
 if (!(policy.safetyStock > 0 && policy.reorderPoint > policy.leadTimeMean)) {
   fail("Inventory policy relationship is invalid");
+}
+const combinedLeadSd = Math.sqrt(2 * 25 ** 2 + 120 ** 2 * 0.5 ** 2);
+const fixedLeadSd = 25 * Math.sqrt(2);
+if (!(combinedLeadSd > fixedLeadSd)) {
+  fail("Lead-time variability must increase combined lead-time demand uncertainty");
+}
+const equivalentDailySd = combinedLeadSd / Math.sqrt(2);
+const variablePolicy = inventoryPolicy({
+  mean: 120,
+  sd: equivalentDailySd,
+  leadTime: 2,
+  z: 1.645,
+});
+if (Math.abs(variablePolicy.safetyStock - 1.645 * combinedLeadSd) > 1e-9) {
+  fail("709 lead-time variability adapter does not preserve combined safety-stock variance");
 }
 
 const monteCarlo = runMonteCarlo({
@@ -184,5 +218,5 @@ if (!exactPath || exactPath.coordinates.length !== 3 || exactPath.edges.length !
 }
 
 console.log(
-  "[geospatial-functional] PASS: V4 UI modules, bilingual routes, capacitated solver, inventory, Monte Carlo, edge-level graph and exact-path consistency checks passed.",
+  "[geospatial-functional] PASS: V4 UI modules, bilingual routes, capacitated solver, 709 demand/lead-time inventory variability, Monte Carlo, edge-level graph and exact-path consistency checks passed.",
 );
