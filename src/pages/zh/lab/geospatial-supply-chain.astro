@@ -1,5 +1,6 @@
 ---
 import GeospatialSupplyChainLabV4 from "../../../components/GeospatialSupplyChainLabV4.astro";
+import GeospatialFunctionalExtensions from "../../../components/GeospatialFunctionalExtensions.astro";
 import GeospatialAdvancedVisuals from "../../../components/GeospatialAdvancedVisuals.astro";
 import ContextBack from "../../../components/ContextBack.astro";
 import BaseLayout from "../../../layouts/BaseLayout.astro";
@@ -7,7 +8,7 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
 
 <BaseLayout
   title="基于地理空间的供应链优化"
-  description="以奥克兰真实地理位置与道路网络为基础，结合路网情景、容量设施分配、车队运力、库存策略、Monte Carlo 稳健性、情景对比、地址网络编辑与真实最优道路流动动画的交互式供应链决策沙盘。"
+  description="以奥克兰真实地理位置与道路网络为基础，结合路网情景、容量设施分配、车队运力、库存与提前期不确定性、Monte Carlo 稳健性、情景对比、地址网络编辑与真实最优道路流动动画的交互式供应链决策沙盘。"
   locale="zh"
   alternatePath="/lab/geospatial-supply-chain/"
   noindex
@@ -20,5 +21,6 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
     />
   </div>
   <GeospatialSupplyChainLabV4 locale="zh" />
+  <GeospatialFunctionalExtensions />
   <GeospatialAdvancedVisuals />
 </BaseLayout>
