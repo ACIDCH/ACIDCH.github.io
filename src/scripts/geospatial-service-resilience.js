@@ -84,12 +84,13 @@ function boot() {
   }
 
   function runtimeOverrides() {
-    let stored = {};
-    try {
-      stored = JSON.parse(globalThis.localStorage?.getItem("acidch-gis-endpoints") || "{}") || {};
-    } catch {
-      stored = {};
-    }
+    const stored = (() => {
+      try {
+        return JSON.parse(globalThis.localStorage?.getItem("acidch-gis-endpoints") || "{}") || {};
+      } catch {
+        return {};
+      }
+    })();
     return normalizeGisEndpoints({
       ...stored,
       ...(globalThis.__ACIDCH_GIS_ENDPOINTS__ || {}),
