@@ -12,9 +12,9 @@ const LEGACY_SECONDARY_OVERPASS_HOSTS = new Set([
 
 function asUrl(input) {
   try {
-    if (input instanceof URL) return input;
-    if (typeof input === "string") return new URL(input);
-    if (input && typeof input.url === "string") return new URL(input.url);
+    if (input instanceof globalThis.URL) return input;
+    if (typeof input === "string") return new globalThis.URL(input);
+    if (input && typeof input.url === "string") return new globalThis.URL(input.url);
   } catch {
     return null;
   }
@@ -23,7 +23,7 @@ function asUrl(input) {
 
 function safeEndpoint(value, fallback) {
   try {
-    const url = new URL(String(value || fallback));
+    const url = new globalThis.URL(String(value || fallback));
     if (url.protocol !== "https:" && url.protocol !== "http:") return fallback;
     return url.toString().replace(/\/$/, "");
   } catch {
@@ -82,7 +82,7 @@ export function rewriteServiceUrl(input, overrides = {}) {
   if (service === "overpass") {
     const secondary = LEGACY_SECONDARY_OVERPASS_HOSTS.has(url.hostname.toLowerCase());
     const endpoint = secondary ? endpoints.overpassSecondary : endpoints.overpassPrimary;
-    const base = new URL(endpoint);
+    const base = new globalThis.URL(endpoint);
     base.search = url.search;
     return base.toString();
   }
