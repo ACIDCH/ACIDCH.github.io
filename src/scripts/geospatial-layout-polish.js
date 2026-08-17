@@ -11,6 +11,9 @@ function boot() {
 
   const style = D.createElement("style");
   style.textContent = `
+    .geo4__open-list>div>div{display:grid;gap:.22rem;min-width:0}
+    .geo4__open-list strong{line-height:1.35;overflow-wrap:anywhere}
+    .geo4__open-list small{margin-top:0!important;line-height:1.35;overflow-wrap:anywhere}
     @media (min-width:1181px){
       .geo4__console{top:.7rem!important;right:.7rem!important;left:auto!important;width:390px!important;height:calc(61% - .7rem)!important;max-height:none!important}
       .geo4__results{position:absolute!important;z-index:699!important;top:auto!important;left:auto!important;right:.7rem!important;bottom:.7rem!important;width:390px!important;max-width:390px!important;height:calc(39% - .7rem)!important;max-height:none!important;overflow-y:auto!important;box-sizing:border-box!important;border:1px solid rgba(116,190,213,.2)!important;background:rgba(7,24,34,.95)!important;backdrop-filter:blur(14px)!important;box-shadow:0 18px 60px rgba(0,0,0,.24)!important}
