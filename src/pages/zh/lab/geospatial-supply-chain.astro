@@ -1,0 +1,22 @@
+---
+import GeospatialSupplyChainLab from "../../../components/GeospatialSupplyChainLab.astro";
+import ContextBack from "../../../components/ContextBack.astro";
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+  title="基于地理空间的供应链优化"
+  description="以奥克兰真实道路网络为基础的设施覆盖与供应链优化交互式 GIS 原型。"
+  locale="zh"
+  alternatePath="/lab/geospatial-supply-chain/"
+  noindex
+>
+  <div style="width:min(1520px,calc(100vw - 2rem));margin:1rem auto 0;">
+    <ContextBack
+      locale="zh"
+      fallbackPath="/zh/projects/geospatial-supply-chain-optimisation/"
+      label={{ en: "Back to project", zh: "返回项目" }}
+    />
+  </div>
+  <GeospatialSupplyChainLab locale="zh" />
+</BaseLayout>
