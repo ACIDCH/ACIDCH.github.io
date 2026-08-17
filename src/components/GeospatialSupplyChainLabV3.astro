@@ -1,0 +1,1488 @@
+---
+interface Props {
+  locale?: "en" | "zh";
+}
+
+const { locale = "zh" } = Astro.props;
+const zh = locale === "zh";
+const c = zh
+  ? {
+      title: "基于地理空间的供应链优化",
+      subtitle: "Auckland / Geospatial Supply Chain Decision Sandbox",
+      intro:
+        "先完成模型与交互，再进入高级视觉。当前版本把设施、车队、库存、地址编辑、随机路网、Monte Carlo 与情景比较放在同一个可验证的决策层。",
+      scenario: "情景与计算引擎",
+      road: "路网不确定性",
+      facilities: "设施、覆盖与约束",
+      fleet: "车队与运输",
+      inventory: "库存策略",
+      edit: "网络实体编辑",
+      simulation: "Monte Carlo 稳健性",
+      compare: "情景 A / B",
+      layers: "地图功能层",
+      run: "运行优化",
+      routes: "加载真实道路路径",
+      reset: "恢复基线",
+      loadGraph: "加载 OSM 道路图",
+      graphCourse: "课程 OD 矩阵",
+      graphOsm: "OSM edge-level 图",
+      baseline: "基线",
+      congestion: "交通拥堵",
+      closure: "临时封路",
+      newRoad: "新增道路 / 通行改善",
+      mixed: "混合不确定性",
+      minHubs: "最少设施",
+      minCost: "最低固定 + 运输成本",
+      threshold: "最大服务阈值",
+      redundancy: "最低覆盖次数",
+      maxOpen: "最多开启设施",
+      facilityCapacity: "单设施容量",
+      fixedCost: "单设施固定成本",
+      enforceFleet: "将车队运力作为硬约束",
+      fleetSize: "车队数量",
+      vehicleCapacity: "单车容量",
+      trips: "每车每日趟数",
+      transportCost: "运输成本 / 网络单位",
+      demandMultiplier: "需求倍率",
+      meanDemand: "日均库存需求",
+      demandSd: "需求标准差",
+      leadTime: "提前期（天）",
+      serviceLevel: "服务水平",
+      holdingCost: "安全库存持有成本 / 单位",
+      role: "地点类型",
+      warehouse: "仓库候选点",
+      factory: "工厂候选点",
+      demand: "需求点",
+      demandQty: "需求量",
+      address: "自然语言地址",
+      addAddress: "解析地址并加入",
+      mapAdd: "地图点击添加",
+      mapAddOn: "地图添加：开启",
+      mapAddOff: "地图添加：关闭",
+      custom: "自定义实体",
+      policy: "设施决策状态",
+      auto: "自动",
+      must: "必须开启",
+      exclude: "排除",
+      runs: "模拟次数",
+      runSimulation: "运行 Monte Carlo",
+      saveA: "保存为 A",
+      saveB: "保存为 B",
+      compareAB: "比较 A / B",
+      network: "网络",
+      flow: "货物流",
+      coverage: "覆盖",
+      utilisation: "利用率",
+      cost: "成本",
+      inventoryLayer: "库存",
+      risk: "风险",
+      results: "优化结果",
+      hubs: "开启设施",
+      coverageRate: "覆盖率",
+      avgNetwork: "平均网络成本",
+      fleetCoverage: "车队运力",
+      safetyStock: "安全库存",
+      rop: "再订货点",
+      totalCost: "情景总成本",
+      robust: "稳健性结果",
+      expectedCost: "期望成本",
+      p95Cost: "P95 成本",
+      failureRate: "不可行概率",
+      avgTravel: "平均网络成本",
+      stockout: "缺货概率",
+      stability: "设施选择稳定性",
+      graphReady: "课程 OD 基线已就绪。",
+      graphLoading: "正在加载并构建 OSM 可驾驶道路图…",
+      graphLoaded: "OSM edge-level 路网已加载，可进行真实 edge 封闭、拥堵与假设新增连接。",
+      graphFail: "OSM 道路图加载失败，已保留课程 OD 模式作为安全降级。",
+      geocoding: "正在解析地址并更新道路矩阵…",
+      addFailed: "地点添加失败，请检查地址或网络服务。",
+      noSolution: "当前设施、覆盖、容量或车队约束下没有可行方案。",
+      solved: "当前情景已完成重新优化。",
+      simRunning: "正在运行稳健性模拟…",
+      simDone: "Monte Carlo 稳健性模拟完成。",
+      routeLoading: "正在加载当前分配对应的真实道路几何…",
+      routeDone: "道路路径已加载。",
+      routePartial: "部分道路路径不可用，已保留直线分配作为降级。",
+      abMissing: "需要先分别保存 A 和 B。",
+      abReady: "A / B 对比已生成。",
+      note:
+        "OSM 模式会在浏览器中构建道路 edge 图并运行 Dijkstra；课程 OD 模式继续保留用于快速模拟和回归核验。高次数 Monte Carlo 默认使用 OD 层，edge-level 模拟会自动限制次数以避免浏览器长时间阻塞。",
+    }
+  : {
+      title: "Geospatial Supply Chain Optimisation",
+      subtitle: "Auckland / Geospatial Supply Chain Decision Sandbox",
+      intro:
+        "Model and interaction completeness comes first. This version unifies facilities, fleet, inventory, network editing, road uncertainty, Monte Carlo and A/B comparison in a testable decision layer before advanced visuals.",
+      scenario: "Scenario & engine",
+      road: "Road uncertainty",
+      facilities: "Facilities, coverage & constraints",
+      fleet: "Fleet & transport",
+      inventory: "Inventory policy",
+      edit: "Network entity editor",
+      simulation: "Monte Carlo robustness",
+      compare: "Scenario A / B",
+      layers: "Map functional layer",
+      run: "Run optimisation",
+      routes: "Load real road routes",
+      reset: "Reset baseline",
+      loadGraph: "Load OSM road graph",
+      graphCourse: "Course OD matrix",
+      graphOsm: "OSM edge-level graph",
+      baseline: "Baseline",
+      congestion: "Traffic congestion",
+      closure: "Temporary closure",
+      newRoad: "New road / access improvement",
+      mixed: "Mixed uncertainty",
+      minHubs: "Minimum facilities",
+      minCost: "Minimum fixed + transport cost",
+      threshold: "Maximum service threshold",
+      redundancy: "Minimum coverage count",
+      maxOpen: "Maximum open facilities",
+      facilityCapacity: "Capacity per facility",
+      fixedCost: "Fixed cost per facility",
+      enforceFleet: "Enforce fleet capacity",
+      fleetSize: "Fleet size",
+      vehicleCapacity: "Vehicle capacity",
+      trips: "Trips per vehicle / day",
+      transportCost: "Transport cost / network unit",
+      demandMultiplier: "Demand multiplier",
+      meanDemand: "Mean daily inventory demand",
+      demandSd: "Demand standard deviation",
+      leadTime: "Lead time (days)",
+      serviceLevel: "Service level",
+      holdingCost: "Safety-stock holding cost / unit",
+      role: "Location type",
+      warehouse: "Warehouse candidate",
+      factory: "Factory candidate",
+      demand: "Demand node",
+      demandQty: "Demand quantity",
+      address: "Natural-language address",
+      addAddress: "Geocode and add",
+      mapAdd: "Map-click add",
+      mapAddOn: "Map add: on",
+      mapAddOff: "Map add: off",
+      custom: "Custom entities",
+      policy: "Facility decision policy",
+      auto: "Auto",
+      must: "Must open",
+      exclude: "Exclude",
+      runs: "Simulation runs",
+      runSimulation: "Run Monte Carlo",
+      saveA: "Save as A",
+      saveB: "Save as B",
+      compareAB: "Compare A / B",
+      network: "Network",
+      flow: "Flow",
+      coverage: "Coverage",
+      utilisation: "Utilisation",
+      cost: "Cost",
+      inventoryLayer: "Inventory",
+      risk: "Risk",
+      results: "Optimisation results",
+      hubs: "Open facilities",
+      coverageRate: "Coverage",
+      avgNetwork: "Average network cost",
+      fleetCoverage: "Fleet capacity",
+      safetyStock: "Safety stock",
+      rop: "Reorder point",
+      totalCost: "Scenario total cost",
+      robust: "Robustness results",
+      expectedCost: "Expected cost",
+      p95Cost: "P95 cost",
+      failureRate: "Infeasibility rate",
+      avgTravel: "Average network cost",
+      stockout: "Stockout probability",
+      stability: "Facility selection stability",
+      graphReady: "Course OD baseline is ready.",
+      graphLoading: "Loading and building the OSM drivable road graph…",
+      graphLoaded: "OSM edge-level network loaded. Edge closures, congestion and hypothetical new links are available.",
+      graphFail: "OSM road-graph loading failed; the course OD mode remains available as a safe fallback.",
+      geocoding: "Geocoding the location and updating the road matrix…",
+      addFailed: "Location add failed. Check the address or network service.",
+      noSolution: "No feasible solution under the current facility, coverage, capacity or fleet constraints.",
+      solved: "Scenario re-optimised.",
+      simRunning: "Running robustness simulation…",
+      simDone: "Monte Carlo robustness simulation complete.",
+      routeLoading: "Loading real road geometry for the current allocation…",
+      routeDone: "Road routes loaded.",
+      routePartial: "Some routes were unavailable; straight allocation links remain as fallback.",
+      abMissing: "Save both A and B first.",
+      abReady: "A / B comparison generated.",
+      note:
+        "OSM mode builds a road-edge graph in the browser and runs Dijkstra. Course OD mode remains for fast simulation and regression checks. High-run Monte Carlo uses the OD layer by default; edge-level simulation is capped to prevent long browser blocking.",
+    };
+---
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+
+<section id="geo-v3" class="geo3" data-locale={locale}>
+  <div class="geo3__map-shell">
+    <div id="geo3-map" aria-label="Auckland geospatial supply chain decision map"></div>
+
+    <div class="geo3__identity">
+      <span>{c.subtitle}</span>
+      <h1>{c.title}</h1>
+      <p>{c.intro}</p>
+    </div>
+
+    <div class="geo3__legend">
+      <span><i class="facility"></i> Facility</span>
+      <span><i class="demand"></i> Demand</span>
+      <span><i class="allocation"></i> Allocation</span>
+      <span><i class="route"></i> Road route</span>
+    </div>
+
+    <aside class="geo3__console" aria-label="Scenario console">
+      <div class="geo3__scroll">
+        <section class="geo3__block">
+          <div class="geo3__block-title"><span>01</span><strong>{c.scenario}</strong></div>
+          <label class="geo3__field"><span>Objective</span><select id="geo3-objective"><option value="minHubs">{c.minHubs}</option><option value="minCost">{c.minCost}</option></select></label>
+          <label class="geo3__field"><span>Network engine</span><select id="geo3-engine"><option value="od">{c.graphCourse}</option><option value="osm">{c.graphOsm}</option></select></label>
+          <button id="geo3-load-graph" type="button" class="geo3__secondary">{c.loadGraph}</button>
+          <p id="geo3-graph-status" class="geo3__micro">{c.graphReady}</p>
+        </section>
+
+        <section class="geo3__block">
+          <div class="geo3__block-title"><span>02</span><strong>{c.road}</strong></div>
+          <label class="geo3__field"><span>Scenario</span><select id="geo3-road-mode"><option value="baseline">{c.baseline}</option><option value="congestion">{c.congestion}</option><option value="closure">{c.closure}</option><option value="newroad">{c.newRoad}</option><option value="mixed">{c.mixed}</option></select></label>
+          <label class="geo3__range"><span>{c.congestion}</span><output id="geo3-congestion-out">35%</output><input id="geo3-congestion" type="range" min="0" max="100" step="5" value="35" /></label>
+          <label class="geo3__range"><span>Congested edges</span><output id="geo3-congestion-share-out">35%</output><input id="geo3-congestion-share" type="range" min="0" max="100" step="5" value="35" /></label>
+          <label class="geo3__range"><span>{c.closure}</span><output id="geo3-closure-out">1%</output><input id="geo3-closure" type="range" min="0" max="15" step="0.5" value="1" /></label>
+          <div class="geo3__stepper-row"><span>Hypothetical new links</span><div class="geo3__stepper"><button type="button" data-step="newRoads" data-delta="-1">−</button><output id="geo3-new-roads-out">4</output><button type="button" data-step="newRoads" data-delta="1">+</button></div></div>
+          <label class="geo3__field geo3__field--inline"><span>Random seed</span><input id="geo3-seed" type="number" value="708709" /></label>
+        </section>
+
+        <section class="geo3__block">
+          <div class="geo3__block-title"><span>03</span><strong>{c.facilities}</strong></div>
+          <label class="geo3__range"><span>{c.threshold}</span><output id="geo3-threshold-out">6.0 km</output><input id="geo3-threshold" type="range" min="3" max="15" step="0.5" value="6" /></label>
+          <label class="geo3__field"><span>{c.redundancy}</span><select id="geo3-redundancy"><option value="1">1×</option><option value="2">2×</option></select></label>
+          <div class="geo3__stepper-row"><span>{c.maxOpen}</span><div class="geo3__stepper"><button type="button" data-step="maxOpen" data-delta="-1">−</button><output id="geo3-max-open-out">4</output><button type="button" data-step="maxOpen" data-delta="1">+</button></div></div>
+          <label class="geo3__field geo3__field--inline"><span>{c.facilityCapacity}</span><input id="geo3-facility-capacity" type="number" min="100" step="100" value="6000" /></label>
+          <label class="geo3__field geo3__field--inline"><span>{c.fixedCost}</span><input id="geo3-fixed-cost" type="number" min="0" step="10000" value="350000" /></label>
+          <label class="geo3__check"><input id="geo3-enforce-fleet" type="checkbox" checked /><span>{c.enforceFleet}</span></label>
+          <div class="geo3__subhead"><span>{c.policy}</span><strong id="geo3-facility-count">6</strong></div>
+          <div id="geo3-policy-list" class="geo3__policy-list"></div>
+        </section>
+
+        <section class="geo3__block">
+          <div class="geo3__block-title"><span>04</span><strong>{c.fleet}</strong></div>
+          <div class="geo3__stepper-row"><span>{c.fleetSize}</span><div class="geo3__stepper"><button type="button" data-step="fleet" data-delta="-1">−</button><output id="geo3-fleet-out">20</output><button type="button" data-step="fleet" data-delta="1">+</button></div></div>
+          <label class="geo3__field geo3__field--inline"><span>{c.vehicleCapacity}</span><input id="geo3-vehicle-capacity" type="number" min="1" value="120" /></label>
+          <label class="geo3__field geo3__field--inline"><span>{c.trips}</span><input id="geo3-trips" type="number" min="1" value="5" /></label>
+          <label class="geo3__field geo3__field--inline"><span>{c.transportCost}</span><input id="geo3-transport-cost" type="number" min="0" step="0.01" value="0.72" /></label>
+          <label class="geo3__range"><span>{c.demandMultiplier}</span><output id="geo3-demand-multiplier-out">1.00×</output><input id="geo3-demand-multiplier" type="range" min="0.5" max="1.8" step="0.05" value="1" /></label>
+        </section>
+
+        <section class="geo3__block">
+          <div class="geo3__block-title"><span>05</span><strong>{c.inventory}</strong></div>
+          <label class="geo3__field geo3__field--inline"><span>{c.meanDemand}</span><input id="geo3-inv-mean" type="number" min="0" value="120" /></label>
+          <label class="geo3__field geo3__field--inline"><span>{c.demandSd}</span><input id="geo3-inv-sd" type="number" min="0" value="25" /></label>
+          <label class="geo3__field geo3__field--inline"><span>{c.leadTime}</span><input id="geo3-lead-time" type="number" min="0.1" step="0.1" value="2" /></label>
+          <label class="geo3__field"><span>{c.serviceLevel}</span><select id="geo3-service"><option value="1.282">90%</option><option value="1.645" selected>95%</option><option value="1.960">97.5%</option><option value="2.326">99%</option></select></label>
+          <label class="geo3__field geo3__field--inline"><span>{c.holdingCost}</span><input id="geo3-holding-cost" type="number" min="0" step="0.1" value="1" /></label>
+        </section>
+
+        <section class="geo3__block">
+          <div class="geo3__block-title"><span>06</span><strong>{c.edit}</strong></div>
+          <label class="geo3__field"><span>{c.role}</span><select id="geo3-role"><option value="warehouse">{c.warehouse}</option><option value="factory">{c.factory}</option><option value="demand">{c.demand}</option></select></label>
+          <label class="geo3__field"><span>{c.address}</span><input id="geo3-address" type="text" placeholder="20 Symonds Street, Auckland" /></label>
+          <label class="geo3__field geo3__field--inline"><span>{c.demandQty}</span><input id="geo3-demand-qty" type="number" min="0" value="500" /></label>
+          <div class="geo3__button-pair"><button id="geo3-add-address" type="button" class="geo3__secondary">{c.addAddress}</button><button id="geo3-map-add" type="button" class="geo3__ghost">{c.mapAddOff}</button></div>
+          <div class="geo3__subhead"><span>{c.custom}</span><strong id="geo3-custom-count">0</strong></div>
+          <div id="geo3-custom-list" class="geo3__custom-list"></div>
+        </section>
+
+        <section class="geo3__block">
+          <div class="geo3__block-title"><span>07</span><strong>{c.simulation}</strong></div>
+          <label class="geo3__field"><span>{c.runs}</span><select id="geo3-runs"><option value="50">50</option><option value="100" selected>100</option><option value="250">250</option><option value="500">500</option><option value="1000">1000</option></select></label>
+          <button id="geo3-simulate" type="button" class="geo3__secondary">{c.runSimulation}</button>
+        </section>
+
+        <section class="geo3__block">
+          <div class="geo3__block-title"><span>08</span><strong>{c.compare}</strong></div>
+          <div class="geo3__button-trio"><button id="geo3-save-a" type="button" class="geo3__ghost">{c.saveA}</button><button id="geo3-save-b" type="button" class="geo3__ghost">{c.saveB}</button><button id="geo3-compare" type="button" class="geo3__secondary">{c.compareAB}</button></div>
+          <div id="geo3-ab" class="geo3__ab"></div>
+        </section>
+
+        <section class="geo3__block">
+          <div class="geo3__block-title"><span>09</span><strong>{c.layers}</strong></div>
+          <label class="geo3__field"><span>Layer</span><select id="geo3-layer"><option value="network">{c.network}</option><option value="flow">{c.flow}</option><option value="coverage">{c.coverage}</option><option value="utilisation">{c.utilisation}</option><option value="cost">{c.cost}</option><option value="inventory">{c.inventoryLayer}</option><option value="risk">{c.risk}</option></select></label>
+          <p class="geo3__micro">{c.note}</p>
+        </section>
+      </div>
+
+      <div class="geo3__actions">
+        <button id="geo3-run" type="button">{c.run}</button>
+        <button id="geo3-routes" type="button" disabled>{c.routes}</button>
+        <button id="geo3-reset" type="button" class="geo3__ghost">{c.reset}</button>
+      </div>
+    </aside>
+
+    <aside class="geo3__results">
+      <div class="geo3__results-head"><span>RESULT</span><strong>{c.results}</strong></div>
+      <div class="geo3__kpis">
+        <div><span>{c.hubs}</span><strong id="geo3-kpi-hubs">—</strong></div>
+        <div><span>{c.coverageRate}</span><strong id="geo3-kpi-coverage">—</strong></div>
+        <div><span>{c.avgNetwork}</span><strong id="geo3-kpi-network">—</strong></div>
+        <div><span>{c.fleetCoverage}</span><strong id="geo3-kpi-fleet">—</strong></div>
+        <div><span>{c.safetyStock}</span><strong id="geo3-kpi-ss">—</strong></div>
+        <div><span>{c.rop}</span><strong id="geo3-kpi-rop">—</strong></div>
+      </div>
+      <div class="geo3__cost"><span>{c.totalCost}</span><strong id="geo3-kpi-cost">—</strong></div>
+      <p id="geo3-status" class="geo3__status">{c.graphReady}</p>
+      <div id="geo3-open-list" class="geo3__open-list"></div>
+
+      <div id="geo3-robust" class="geo3__robust" hidden>
+        <div class="geo3__results-head"><span>MONTE CARLO</span><strong>{c.robust}</strong></div>
+        <div class="geo3__robust-grid">
+          <div><span>{c.expectedCost}</span><strong id="geo3-mc-expected">—</strong></div>
+          <div><span>{c.p95Cost}</span><strong id="geo3-mc-p95">—</strong></div>
+          <div><span>{c.failureRate}</span><strong id="geo3-mc-failure">—</strong></div>
+          <div><span>{c.avgTravel}</span><strong id="geo3-mc-travel">—</strong></div>
+          <div><span>{c.stockout}</span><strong id="geo3-mc-stockout">—</strong></div>
+        </div>
+        <div class="geo3__subhead"><span>{c.stability}</span></div>
+        <div id="geo3-stability" class="geo3__stability"></div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script>
+  import {
+    applyOdScenario,
+    compareScenarioResults,
+    graphOdMatrix,
+    inventoryPolicy,
+    parseOverpassGraph,
+    runMonteCarlo,
+    simulateInventoryStockout,
+    solveFacilityNetwork,
+  } from "../lib/geospatial/decisionEngine.js";
+
+  const root = document.getElementById("geo-v3");
+  if (root && window.L) {
+    const locale = root.dataset.locale || "zh";
+    const zh = locale === "zh";
+    const t = zh
+      ? {
+          graphReady: "课程 OD 基线已就绪。",
+          graphLoading: "正在加载并构建 OSM 可驾驶道路图…",
+          graphLoaded: "OSM edge-level 路网已加载。",
+          graphFail: "OSM 道路图加载失败，已保留课程 OD 模式。",
+          geocoding: "正在解析地点并更新道路矩阵…",
+          addFailed: "地点添加失败，请检查地址或网络服务。",
+          noSolution: "当前设施、覆盖、容量或车队约束下没有可行方案。",
+          solved: "当前情景已完成重新优化。",
+          simRunning: "正在运行稳健性模拟…",
+          simDone: "Monte Carlo 稳健性模拟完成。",
+          routeLoading: "正在加载当前分配对应的真实道路几何…",
+          routeDone: "道路路径已加载。",
+          routePartial: "部分道路路径不可用，已保留直线分配。",
+          remove: "删除",
+          auto: "自动",
+          must: "必须开启",
+          exclude: "排除",
+          mapOn: "地图添加：开启",
+          mapOff: "地图添加：关闭",
+          abMissing: "需要先分别保存 A 和 B。",
+          abReady: "A / B 对比已生成。",
+          savedA: "已保存情景 A。",
+          savedB: "已保存情景 B。",
+          facility: "设施",
+          demand: "需求",
+          warehouse: "仓库",
+          factory: "工厂",
+        }
+      : {
+          graphReady: "Course OD baseline is ready.",
+          graphLoading: "Loading and building the OSM drivable road graph…",
+          graphLoaded: "OSM edge-level road graph loaded.",
+          graphFail: "OSM road graph failed; course OD mode remains available.",
+          geocoding: "Resolving the location and updating the road matrix…",
+          addFailed: "Location add failed. Check the address or network service.",
+          noSolution: "No feasible solution under the current facility, coverage, capacity or fleet constraints.",
+          solved: "Scenario re-optimised.",
+          simRunning: "Running robustness simulation…",
+          simDone: "Monte Carlo robustness simulation complete.",
+          routeLoading: "Loading real road geometry for the current allocation…",
+          routeDone: "Road routes loaded.",
+          routePartial: "Some routes were unavailable; straight allocations remain.",
+          remove: "Remove",
+          auto: "Auto",
+          must: "Must open",
+          exclude: "Exclude",
+          mapOn: "Map add: on",
+          mapOff: "Map add: off",
+          abMissing: "Save both A and B first.",
+          abReady: "A / B comparison generated.",
+          savedA: "Scenario A saved.",
+          savedB: "Scenario B saved.",
+          facility: "Facility",
+          demand: "Demand",
+          warehouse: "Warehouse",
+          factory: "Factory",
+        };
+
+    const baseHubNames = [
+      "328 Ponsonby Road",
+      "322 Great North Road",
+      "214 Green Lane West",
+      "151 Beach Road",
+      "76 Coates Avenue",
+      "151 Neilson Street",
+    ];
+    const baseHubQueries = [
+      "328 Ponsonby Road, Ponsonby, Auckland, New Zealand",
+      "322 Great North Road, Grey Lynn, Auckland, New Zealand",
+      "214 Green Lane West, Epsom, Auckland, New Zealand",
+      "151 Beach Road, Auckland CBD, Auckland, New Zealand",
+      "76 Coates Avenue, Orakei, Auckland, New Zealand",
+      "151 Neilson Street, Onehunga, Auckland, New Zealand",
+    ];
+    const baseDemandNames = [
+      "Auckland CBD",
+      "Epsom",
+      "Grey Lynn",
+      "Mount Eden",
+      "Newmarket",
+      "Onehunga",
+      "Orakei",
+      "Ponsonby",
+      "Remuera",
+      "Three Kings",
+    ];
+    const baseDemandQueries = baseDemandNames.map(
+      (name) => `${name}, Auckland, New Zealand`,
+    );
+    const baseDemands = [4000, 600, 700, 800, 500, 600, 400, 700, 900, 400];
+    const baseDistances = [
+      [2.07, 5.8, 2.04, 4.66, 4.12, 10.66, 7.5, 0.31, 7.7, 7.89],
+      [4.2, 5.62, 1.29, 4.26, 4.94, 10.03, 9.5, 3.22, 8.51, 6.91],
+      [6.45, 1.92, 6.76, 2.79, 3.44, 4.19, 7.26, 7.27, 4.42, 3.23],
+      [1.45, 4.95, 4.85, 4.11, 2.47, 9.25, 4.48, 3.52, 4.89, 7.33],
+      [5.56, 6.79, 8.98, 7.29, 5.05, 9.13, 0, 7.63, 2.87, 9.6],
+      [10.7, 6.17, 10.99, 7.03, 7.69, 1.04, 9.48, 11.52, 6.62, 4.27],
+    ];
+
+    let hubNames = [...baseHubNames];
+    let hubQueries = [...baseHubQueries];
+    let hubTypes = baseHubNames.map(() => "warehouse");
+    let demandNames = [...baseDemandNames];
+    let demandQueries = [...baseDemandQueries];
+    let demands = [...baseDemands];
+    let matrix = baseDistances.map((row) => [...row]);
+    let hubCoords = [];
+    let demandCoords = [];
+    let custom = [];
+    let policies = baseHubNames.map(() => "auto");
+    let maxOpen = 4;
+    let fleet = 20;
+    let newRoads = 4;
+    let solution = null;
+    let activeMatrix = matrix.map((row) => [...row]);
+    let roadGraph = null;
+    let lastMonteCarlo = null;
+    let mapAddMode = false;
+    const slots = { A: null, B: null };
+
+    const $ = (id) => document.getElementById(id);
+    const map = window.L.map("geo3-map", { zoomControl: true }).setView(
+      [-36.873, 174.766],
+      12,
+    );
+    window.L.tileLayer(
+      "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+      {
+        maxZoom: 20,
+        subdomains: "abcd",
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; CARTO',
+      },
+    ).addTo(map);
+    const facilityLayer = window.L.layerGroup().addTo(map);
+    const demandLayer = window.L.layerGroup().addTo(map);
+    const allocationLayer = window.L.layerGroup().addTo(map);
+    const coverageLayer = window.L.layerGroup().addTo(map);
+    const routeLayer = window.L.layerGroup().addTo(map);
+
+    const sleep = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
+    const money = (value) =>
+      Number.isFinite(value)
+        ? `NZ$${Number(value).toLocaleString(undefined, { maximumFractionDigits: 0 })}`
+        : "—";
+    const percentage = (value) =>
+      Number.isFinite(value) ? `${(value * 100).toFixed(1)}%` : "—";
+
+    const geocodeOne = async (query) => {
+      const url = new URL("https://nominatim.openstreetmap.org/search");
+      url.searchParams.set("q", query);
+      url.searchParams.set("format", "jsonv2");
+      url.searchParams.set("limit", "1");
+      url.searchParams.set("countrycodes", "nz");
+      const response = await fetch(url.toString(), {
+        headers: { "Accept-Language": zh ? "zh,en;q=0.8" : "en" },
+      });
+      if (!response.ok) throw new Error(`Nominatim ${response.status}`);
+      const data = await response.json();
+      if (!data.length) throw new Error("No geocode result");
+      return {
+        lat: Number(data[0].lat),
+        lon: Number(data[0].lon),
+        label: data[0].display_name || query,
+      };
+    };
+
+    const reverseGeocode = async (point) => {
+      const url = new URL("https://nominatim.openstreetmap.org/reverse");
+      url.searchParams.set("lat", String(point.lat));
+      url.searchParams.set("lon", String(point.lon));
+      url.searchParams.set("format", "jsonv2");
+      const response = await fetch(url.toString(), {
+        headers: { "Accept-Language": zh ? "zh,en;q=0.8" : "en" },
+      });
+      if (!response.ok) return `${point.lat.toFixed(5)}, ${point.lon.toFixed(5)}`;
+      const data = await response.json();
+      return data.display_name || `${point.lat.toFixed(5)}, ${point.lon.toFixed(5)}`;
+    };
+
+    const ensureBaseCoords = async () => {
+      const key = "acidch-geo-v3-base-coords";
+      try {
+        const cached = JSON.parse(localStorage.getItem(key) || "null");
+        if (
+          cached?.hubs?.length === baseHubNames.length &&
+          cached?.demands?.length === baseDemandNames.length
+        ) {
+          hubCoords = [...cached.hubs, ...hubCoords.slice(baseHubNames.length)];
+          demandCoords = [
+            ...cached.demands,
+            ...demandCoords.slice(baseDemandNames.length),
+          ];
+          return;
+        }
+      } catch {
+        // Refresh invalid cache.
+      }
+      const hubs = [];
+      const demandPoints = [];
+      for (const query of baseHubQueries) {
+        hubs.push(await geocodeOne(query));
+        await sleep(1050);
+      }
+      for (const query of baseDemandQueries) {
+        demandPoints.push(await geocodeOne(query));
+        await sleep(1050);
+      }
+      hubCoords = [...hubs, ...hubCoords.slice(baseHubNames.length)];
+      demandCoords = [
+        ...demandPoints,
+        ...demandCoords.slice(baseDemandNames.length),
+      ];
+      localStorage.setItem(key, JSON.stringify({ hubs, demands: demandPoints }));
+    };
+
+    const osrmTable = async (sources, destinations) => {
+      const points = [...sources, ...destinations];
+      const coords = points.map((p) => `${p.lon},${p.lat}`).join(";");
+      const sourceIds = sources.map((_, i) => i).join(";");
+      const destinationIds = destinations
+        .map((_, i) => i + sources.length)
+        .join(";");
+      const url =
+        `https://router.project-osrm.org/table/v1/driving/${coords}` +
+        `?sources=${sourceIds}&destinations=${destinationIds}&annotations=distance,duration`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`OSRM table ${response.status}`);
+      const data = await response.json();
+      if (!Array.isArray(data.distances)) throw new Error("No OSRM table");
+      return {
+        distances: data.distances.map((row) =>
+          row.map((value) => (Number.isFinite(value) ? value / 1000 : Infinity)),
+        ),
+        durations: data.durations.map((row) =>
+          row.map((value) => (Number.isFinite(value) ? value / 60 : Infinity)),
+        ),
+      };
+    };
+
+    const scenarioParams = (seedOffset = 0) => ({
+      mode: $("geo3-road-mode").value,
+      congestionSeverity: Number($("geo3-congestion").value) / 100,
+      congestionShare: Number($("geo3-congestion-share").value) / 100,
+      closureShare: Number($("geo3-closure").value) / 100,
+      improvement: 0.25,
+      improvementShare: 0.3,
+      newRoadLinks: newRoads,
+      maxNewRoadKm: 0.65,
+      newRoadSpeedKph: 50,
+      seed: Number($("geo3-seed").value) + seedOffset,
+    });
+
+    const solverParams = (scenarioMatrix) => {
+      const totalDemand = demands.reduce((a, b) => a + b, 0);
+      const multiplier = Number($("geo3-demand-multiplier").value);
+      const fleetCapacity =
+        fleet *
+        Number($("geo3-vehicle-capacity").value) *
+        Number($("geo3-trips").value);
+      return {
+        matrix: scenarioMatrix,
+        demands,
+        policies,
+        maxOpen,
+        redundancy: Number($("geo3-redundancy").value),
+        threshold: Number($("geo3-threshold").value),
+        facilityCapacity: Number($("geo3-facility-capacity").value),
+        fixedCost: Number($("geo3-fixed-cost").value),
+        transportCost: Number($("geo3-transport-cost").value),
+        objective: $("geo3-objective").value,
+        demandMultiplier: multiplier,
+        fleetCapacity,
+        enforceFleet: $("geo3-enforce-fleet").checked,
+        totalDemand: totalDemand * multiplier,
+      };
+    };
+
+    const inventoryInputs = () => ({
+      mean: Number($("geo3-inv-mean").value),
+      sd: Number($("geo3-inv-sd").value),
+      leadTime: Number($("geo3-lead-time").value),
+      z: Number($("geo3-service").value),
+    });
+
+    const updateLabels = () => {
+      $("geo3-congestion-out").textContent = `${$("geo3-congestion").value}%`;
+      $("geo3-congestion-share-out").textContent = `${$("geo3-congestion-share").value}%`;
+      $("geo3-closure-out").textContent = `${$("geo3-closure").value}%`;
+      $("geo3-new-roads-out").textContent = String(newRoads);
+      $("geo3-demand-multiplier-out").textContent = `${Number($("geo3-demand-multiplier").value).toFixed(2)}×`;
+      $("geo3-max-open-out").textContent = String(maxOpen);
+      $("geo3-fleet-out").textContent = String(fleet);
+      const osm = $("geo3-engine").value === "osm";
+      const threshold = $("geo3-threshold");
+      if (osm) {
+        threshold.min = "5";
+        threshold.max = "60";
+        threshold.step = "1";
+        if (Number(threshold.value) < 5) threshold.value = "30";
+        $("geo3-threshold-out").textContent = `${Number(threshold.value).toFixed(0)} min`;
+      } else {
+        threshold.min = "3";
+        threshold.max = "15";
+        threshold.step = "0.5";
+        if (Number(threshold.value) > 15) threshold.value = "6";
+        $("geo3-threshold-out").textContent = `${Number(threshold.value).toFixed(1)} km`;
+      }
+    };
+
+    const renderPolicies = () => {
+      $("geo3-facility-count").textContent = String(hubNames.length);
+      $("geo3-policy-list").innerHTML = hubNames
+        .map(
+          (name, index) => `
+            <div class="geo3__policy-row">
+              <div><strong>${name}</strong><small>${hubTypes[index] === "factory" ? t.factory : t.warehouse}</small></div>
+              <select data-policy="${index}">
+                <option value="auto" ${policies[index] === "auto" ? "selected" : ""}>${t.auto}</option>
+                <option value="must" ${policies[index] === "must" ? "selected" : ""}>${t.must}</option>
+                <option value="exclude" ${policies[index] === "exclude" ? "selected" : ""}>${t.exclude}</option>
+              </select>
+            </div>`,
+        )
+        .join("");
+      document.querySelectorAll("[data-policy]").forEach((select) => {
+        select.addEventListener("change", () => {
+          policies[Number(select.dataset.policy)] = select.value;
+        });
+      });
+    };
+
+    const renderCustom = () => {
+      $("geo3-custom-count").textContent = String(custom.length);
+      $("geo3-custom-list").innerHTML = custom.length
+        ? custom
+            .map(
+              (item) => `
+                <div class="geo3__custom-row">
+                  <div><strong>${item.name}</strong><small>${item.type} · ${item.lat.toFixed(5)}, ${item.lon.toFixed(5)}</small></div>
+                  <button type="button" data-remove-custom="${item.id}">${t.remove}</button>
+                </div>`,
+            )
+            .join("")
+        : `<p>—</p>`;
+      document.querySelectorAll("[data-remove-custom]").forEach((button) => {
+        button.addEventListener("click", () => removeCustom(button.dataset.removeCustom));
+      });
+    };
+
+    const currentInventory = () => inventoryPolicy(inventoryInputs());
+
+    const renderMap = () => {
+      facilityLayer.clearLayers();
+      demandLayer.clearLayers();
+      allocationLayer.clearLayers();
+      coverageLayer.clearLayers();
+      const layer = $("geo3-layer").value;
+      const inv = currentInventory();
+      const stability = new Map(
+        (lastMonteCarlo?.facilityStability || []).map((x) => [x.index, x.probability]),
+      );
+      const utilisation = new Map();
+      if (solution?.selected && solution?.utilisation) {
+        solution.selected.forEach((hub, local) => utilisation.set(hub, solution.utilisation[local]));
+      }
+
+      hubCoords.forEach((point, index) => {
+        if (!point) return;
+        const active = solution?.selected?.includes(index);
+        let radius = active ? 9 : 6;
+        if (layer === "utilisation" && active) radius = 6 + 10 * (utilisation.get(index) || 0);
+        if (layer === "risk") radius = 5 + 12 * (stability.get(index) || 0);
+        const baseColor = hubTypes[index] === "factory" ? "#ffcc66" : "#62ecff";
+        const color = active ? "#d8ff6b" : baseColor;
+        let detail = hubTypes[index];
+        if (layer === "utilisation" && active) detail += `<br>Utilisation: ${percentage(utilisation.get(index))}`;
+        if (layer === "inventory" && active) detail += `<br>SS: ${inv.safetyStock.toFixed(0)} · ROP: ${inv.reorderPoint.toFixed(0)}`;
+        if (layer === "risk") detail += `<br>Selection: ${percentage(stability.get(index) || 0)}`;
+        window.L.circleMarker([point.lat, point.lon], {
+          radius,
+          weight: active ? 3 : 1.4,
+          color,
+          fillColor: color,
+          fillOpacity: active ? 0.92 : 0.5,
+        })
+          .bindTooltip(`<strong>${hubNames[index]}</strong><br>${detail}`)
+          .addTo(facilityLayer);
+      });
+
+      demandCoords.forEach((point, index) => {
+        if (!point) return;
+        window.L.circleMarker([point.lat, point.lon], {
+          radius: Math.max(4, Math.min(10, 4 + (demands[index] || 0) / 900)),
+          color: "#ff759a",
+          weight: 1.2,
+          fillColor: "#ff3d78",
+          fillOpacity: 0.62,
+        })
+          .bindTooltip(`<strong>${demandNames[index]}</strong><br>Demand: ${(demands[index] || 0).toLocaleString()}`)
+          .addTo(demandLayer);
+      });
+
+      if (solution?.assignments && hubCoords.length && demandCoords.length) {
+        const maxFlow = Math.max(1, ...solution.assignments.map((x) => x.flow));
+        solution.assignments.forEach((item) => {
+          const a = hubCoords[item.hub];
+          const b = demandCoords[item.demand];
+          if (!a || !b) return;
+          const weight = layer === "flow" ? 1.2 + (item.flow / maxFlow) * 6 : 1.5;
+          const opacity = layer === "network" ? 0.42 : 0.7;
+          const label =
+            layer === "cost"
+              ? `${money(item.flow * item.networkCost * Number($("geo3-transport-cost").value))}`
+              : `Flow: ${item.flow.toFixed(0)}`;
+          window.L.polyline(
+            [
+              [a.lat, a.lon],
+              [b.lat, b.lon],
+            ],
+            {
+              color: layer === "cost" ? "#ffcc66" : "#62ecff",
+              weight,
+              opacity,
+              dashArray: layer === "network" ? "4 8" : undefined,
+            },
+          )
+            .bindTooltip(label)
+            .addTo(allocationLayer);
+        });
+      }
+
+      if (layer === "coverage" && solution && $("geo3-engine").value === "od") {
+        const radiusMeters = Number($("geo3-threshold").value) * 1000;
+        solution.selected.forEach((index) => {
+          const p = hubCoords[index];
+          if (!p) return;
+          window.L.circle([p.lat, p.lon], {
+            radius: radiusMeters,
+            color: "#d8ff6b",
+            weight: 1,
+            fillOpacity: 0.035,
+            opacity: 0.45,
+          }).addTo(coverageLayer);
+        });
+      }
+    };
+
+    const renderResults = () => {
+      const inv = currentInventory();
+      const totalDemand =
+        demands.reduce((a, b) => a + b, 0) * Number($("geo3-demand-multiplier").value);
+      const fleetCapacity =
+        fleet * Number($("geo3-vehicle-capacity").value) * Number($("geo3-trips").value);
+      $("geo3-kpi-fleet").textContent = `${Math.min(999, (fleetCapacity / Math.max(1, totalDemand)) * 100).toFixed(0)}%`;
+      $("geo3-kpi-ss").textContent = inv.safetyStock.toFixed(0);
+      $("geo3-kpi-rop").textContent = inv.reorderPoint.toFixed(0);
+      if (!solution) {
+        $("geo3-kpi-hubs").textContent = "—";
+        $("geo3-kpi-coverage").textContent = "0%";
+        $("geo3-kpi-network").textContent = "—";
+        $("geo3-kpi-cost").textContent = "—";
+        $("geo3-open-list").innerHTML = "";
+        $("geo3-status").textContent = t.noSolution;
+        return;
+      }
+      const holding =
+        inv.safetyStock *
+        Number($("geo3-holding-cost").value) *
+        solution.selected.length;
+      solution.totalScenarioCost = solution.score + holding;
+      $("geo3-kpi-hubs").textContent = String(solution.selected.length);
+      $("geo3-kpi-coverage").textContent = "100%";
+      $("geo3-kpi-network").textContent = `${solution.averageNetworkCost.toFixed(2)} ${$("geo3-engine").value === "osm" ? "min" : "km"}`;
+      $("geo3-kpi-cost").textContent = money(solution.totalScenarioCost);
+      $("geo3-open-list").innerHTML = solution.selected
+        .map(
+          (index, local) => `
+            <div><span>${String(index + 1).padStart(2, "0")}</span><div><strong>${hubNames[index]}</strong><small>Utilisation ${percentage(solution.utilisation[local])}</small></div></div>`,
+        )
+        .join("");
+      $("geo3-status").textContent = t.solved;
+    };
+
+    const buildActiveMatrix = async (seedOffset = 0) => {
+      if ($("geo3-engine").value === "osm") {
+        if (!roadGraph) throw new Error("OSM graph not loaded");
+        await ensureBaseCoords();
+        return graphOdMatrix({
+          graph: roadGraph,
+          sources: hubCoords,
+          destinations: demandCoords,
+          scenarioParams: scenarioParams(seedOffset),
+          metric: "time",
+        }).matrix;
+      }
+      return applyOdScenario(matrix, scenarioParams(seedOffset));
+    };
+
+    const runScenario = async () => {
+      $("geo3-status").textContent = zh ? "正在计算当前情景…" : "Calculating scenario…";
+      routeLayer.clearLayers();
+      try {
+        activeMatrix = await buildActiveMatrix();
+        solution = solveFacilityNetwork(solverParams(activeMatrix));
+      } catch (error) {
+        console.warn("[Geo V3] scenario failed", error);
+        solution = null;
+      }
+      renderResults();
+      renderMap();
+      $("geo3-routes").disabled = !solution;
+    };
+
+    const renderRobustness = (result) => {
+      lastMonteCarlo = result;
+      $("geo3-robust").hidden = false;
+      $("geo3-mc-expected").textContent = money(result.expectedCost);
+      $("geo3-mc-p95").textContent = money(result.p95Cost);
+      $("geo3-mc-failure").textContent = percentage(result.failureRate);
+      $("geo3-mc-travel").textContent = Number.isFinite(result.averageNetworkCost)
+        ? `${result.averageNetworkCost.toFixed(2)} ${$("geo3-engine").value === "osm" ? "min" : "km"}`
+        : "—";
+      $("geo3-mc-stockout").textContent = percentage(result.stockoutProbability);
+      $("geo3-stability").innerHTML = result.facilityStability
+        .slice(0, 8)
+        .map(
+          (item) => `<div><span>${item.name}</span><strong>${percentage(item.probability)}</strong><i style="--p:${Math.min(1, item.probability)}"></i></div>`,
+        )
+        .join("");
+      renderMap();
+    };
+
+    const runEdgeMonteCarlo = async (runs) => {
+      const n = Math.min(25, runs);
+      const costs = [];
+      const travel = [];
+      const counts = Array(hubNames.length).fill(0);
+      let failures = 0;
+      for (let i = 0; i < n; i += 1) {
+        const scenarioMatrix = await buildActiveMatrix(i * 7919);
+        const candidate = solveFacilityNetwork(solverParams(scenarioMatrix));
+        if (!candidate) failures += 1;
+        else {
+          costs.push(candidate.score);
+          travel.push(candidate.averageNetworkCost);
+          candidate.selected.forEach((index) => {
+            counts[index] += 1;
+          });
+        }
+        if (i % 3 === 0) await sleep(0);
+      }
+      const sorted = [...costs].sort((a, b) => a - b);
+      const inv = simulateInventoryStockout({
+        ...inventoryInputs(),
+        runs: Math.max(200, n * 10),
+        seed: Number($("geo3-seed").value) + 104729,
+      });
+      return {
+        runs: n,
+        successfulRuns: n - failures,
+        expectedCost: costs.length ? costs.reduce((a, b) => a + b, 0) / costs.length : null,
+        p95Cost: sorted.length ? sorted[Math.min(sorted.length - 1, Math.ceil(sorted.length * 0.95) - 1)] : null,
+        failureRate: failures / n,
+        averageNetworkCost: travel.length ? travel.reduce((a, b) => a + b, 0) / travel.length : null,
+        stockoutProbability: inv.stockoutProbability,
+        facilityStability: counts
+          .map((count, index) => ({ index, name: hubNames[index], probability: count / n }))
+          .sort((a, b) => b.probability - a.probability),
+      };
+    };
+
+    const runSimulation = async () => {
+      $("geo3-status").textContent = t.simRunning;
+      $("geo3-simulate").disabled = true;
+      try {
+        const runs = Number($("geo3-runs").value);
+        let result;
+        if ($("geo3-engine").value === "osm") {
+          if (!roadGraph) throw new Error("OSM graph not loaded");
+          result = await runEdgeMonteCarlo(runs);
+        } else {
+          result = runMonteCarlo({
+            baseMatrix: matrix,
+            solverParams: solverParams(matrix),
+            scenarioParams: scenarioParams(),
+            runs,
+            seed: Number($("geo3-seed").value),
+            facilityNames: hubNames,
+            inventory: inventoryInputs(),
+          });
+        }
+        renderRobustness(result);
+        $("geo3-status").textContent = t.simDone;
+      } catch (error) {
+        console.warn("[Geo V3] Monte Carlo failed", error);
+        $("geo3-status").textContent = t.noSolution;
+      } finally {
+        $("geo3-simulate").disabled = false;
+      }
+    };
+
+    const updateMatrixForNewPoint = async (point, type) => {
+      await ensureBaseCoords();
+      if (type === "demand") {
+        const table = await osrmTable(hubCoords, [point]);
+        matrix.forEach((row, index) => row.push(table.distances[index][0]));
+        demandCoords.push(point);
+      } else {
+        const table = await osrmTable([point], demandCoords);
+        matrix.push(table.distances[0]);
+        hubCoords.push(point);
+      }
+    };
+
+    const addPoint = async ({ point, name, type, demandQty }) => {
+      await updateMatrixForNewPoint(point, type);
+      const id = `custom-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      if (type === "demand") {
+        demandNames.push(name);
+        demandQueries.push(name);
+        demands.push(Math.max(0, Number(demandQty) || 0));
+      } else {
+        hubNames.push(name);
+        hubQueries.push(name);
+        hubTypes.push(type);
+        policies.push("auto");
+        maxOpen = Math.min(Math.max(1, maxOpen), hubNames.length);
+      }
+      custom.push({ id, name, type, lat: point.lat, lon: point.lon });
+      roadGraph = null;
+      $("geo3-engine").value = "od";
+      $("geo3-graph-status").textContent = t.graphReady;
+      renderCustom();
+      renderPolicies();
+      updateLabels();
+      await runScenario();
+    };
+
+    const removeCustom = async (id) => {
+      const item = custom.find((x) => x.id === id);
+      if (!item) return;
+      if (item.type === "demand") {
+        const index = demandNames.indexOf(item.name);
+        if (index >= baseDemandNames.length) {
+          demandNames.splice(index, 1);
+          demandQueries.splice(index, 1);
+          demands.splice(index, 1);
+          demandCoords.splice(index, 1);
+          matrix.forEach((row) => row.splice(index, 1));
+        }
+      } else {
+        const index = hubNames.indexOf(item.name);
+        if (index >= baseHubNames.length) {
+          hubNames.splice(index, 1);
+          hubQueries.splice(index, 1);
+          hubTypes.splice(index, 1);
+          hubCoords.splice(index, 1);
+          policies.splice(index, 1);
+          matrix.splice(index, 1);
+          maxOpen = Math.min(maxOpen, hubNames.length);
+        }
+      }
+      custom = custom.filter((x) => x.id !== id);
+      roadGraph = null;
+      $("geo3-engine").value = "od";
+      renderCustom();
+      renderPolicies();
+      updateLabels();
+      await runScenario();
+    };
+
+    const bboxForPoints = (points) => {
+      const lats = points.map((p) => p.lat);
+      const lons = points.map((p) => p.lon);
+      const pad = 0.008;
+      return [
+        Math.min(...lats) - pad,
+        Math.min(...lons) - pad,
+        Math.max(...lats) + pad,
+        Math.max(...lons) + pad,
+      ];
+    };
+
+    const loadRoadGraph = async () => {
+      $("geo3-graph-status").textContent = t.graphLoading;
+      $("geo3-load-graph").disabled = true;
+      try {
+        await ensureBaseCoords();
+        const points = [...hubCoords, ...demandCoords];
+        const [south, west, north, east] = bboxForPoints(points);
+        const query = `[out:json][timeout:35];way["highway"]["highway"!~"footway|path|cycleway|steps|pedestrian|track"](${south},${west},${north},${east});(._;>;);out body;`;
+        const endpoints = [
+          "https://overpass-api.de/api/interpreter",
+          "https://overpass.kumi.systems/api/interpreter",
+        ];
+        let data = null;
+        for (const endpoint of endpoints) {
+          try {
+            const response = await fetch(endpoint, {
+              method: "POST",
+              headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+              body: `data=${encodeURIComponent(query)}`,
+            });
+            if (!response.ok) throw new Error(`Overpass ${response.status}`);
+            data = await response.json();
+            break;
+          } catch (error) {
+            console.warn("[Geo V3] Overpass endpoint failed", endpoint, error);
+          }
+        }
+        if (!data?.elements?.length) throw new Error("No Overpass graph");
+        roadGraph = parseOverpassGraph(data.elements);
+        if (roadGraph.edges.length < 100) throw new Error("Road graph too small");
+        $("geo3-engine").value = "osm";
+        $("geo3-graph-status").textContent = `${t.graphLoaded} ${roadGraph.nodeList.length.toLocaleString()} nodes / ${roadGraph.edges.length.toLocaleString()} directed edges.`;
+        updateLabels();
+        await runScenario();
+      } catch (error) {
+        console.warn("[Geo V3] OSM graph load failed", error);
+        roadGraph = null;
+        $("geo3-engine").value = "od";
+        $("geo3-graph-status").textContent = t.graphFail;
+        updateLabels();
+      } finally {
+        $("geo3-load-graph").disabled = false;
+      }
+    };
+
+    const snapshot = () => ({
+      result: solution ? JSON.parse(JSON.stringify(solution)) : null,
+      settings: {
+        engine: $("geo3-engine").value,
+        roadMode: $("geo3-road-mode").value,
+        threshold: Number($("geo3-threshold").value),
+        redundancy: Number($("geo3-redundancy").value),
+        fleet,
+        maxOpen,
+        demandMultiplier: Number($("geo3-demand-multiplier").value),
+      },
+    });
+
+    const compareSlots = () => {
+      if (!slots.A?.result || !slots.B?.result) {
+        $("geo3-ab").textContent = t.abMissing;
+        return;
+      }
+      const delta = compareScenarioResults(slots.A.result, slots.B.result);
+      $("geo3-ab").innerHTML = `
+        <div><span>Δ Facilities</span><strong>${delta.hubs > 0 ? "+" : ""}${delta.hubs ?? "—"}</strong></div>
+        <div><span>Δ Cost</span><strong>${delta.cost == null ? "—" : `${delta.cost >= 0 ? "+" : "−"}${money(Math.abs(delta.cost))}`}</strong></div>
+        <div><span>Δ Network</span><strong>${delta.averageNetworkCost == null ? "—" : `${delta.averageNetworkCost >= 0 ? "+" : ""}${delta.averageNetworkCost.toFixed(2)}`}</strong></div>`;
+      $("geo3-status").textContent = t.abReady;
+    };
+
+    const loadRoutes = async () => {
+      if (!solution) return;
+      $("geo3-status").textContent = t.routeLoading;
+      $("geo3-routes").disabled = true;
+      routeLayer.clearLayers();
+      try {
+        await ensureBaseCoords();
+        let failures = 0;
+        for (const item of solution.assignments) {
+          const a = hubCoords[item.hub];
+          const b = demandCoords[item.demand];
+          if (!a || !b) {
+            failures += 1;
+            continue;
+          }
+          const url =
+            `https://router.project-osrm.org/route/v1/driving/${a.lon},${a.lat};${b.lon},${b.lat}` +
+            "?overview=simplified&geometries=geojson&steps=false";
+          try {
+            const response = await fetch(url);
+            const data = await response.json();
+            const coords = data.routes?.[0]?.geometry?.coordinates;
+            if (!coords?.length) throw new Error("No geometry");
+            window.L.polyline(
+              coords.map(([lon, lat]) => [lat, lon]),
+              { color: "#d8ff6b", weight: 2.6, opacity: 0.82 },
+            )
+              .bindTooltip(`Flow: ${item.flow.toFixed(0)}`)
+              .addTo(routeLayer);
+          } catch {
+            failures += 1;
+          }
+          await sleep(90);
+        }
+        $("geo3-status").textContent = failures ? t.routePartial : t.routeDone;
+      } finally {
+        $("geo3-routes").disabled = false;
+      }
+    };
+
+    const reset = async () => {
+      hubNames = [...baseHubNames];
+      hubQueries = [...baseHubQueries];
+      hubTypes = baseHubNames.map(() => "warehouse");
+      demandNames = [...baseDemandNames];
+      demandQueries = [...baseDemandQueries];
+      demands = [...baseDemands];
+      matrix = baseDistances.map((row) => [...row]);
+      hubCoords = hubCoords.slice(0, baseHubNames.length);
+      demandCoords = demandCoords.slice(0, baseDemandNames.length);
+      custom = [];
+      policies = baseHubNames.map(() => "auto");
+      maxOpen = 4;
+      fleet = 20;
+      newRoads = 4;
+      solution = null;
+      roadGraph = null;
+      lastMonteCarlo = null;
+      mapAddMode = false;
+      slots.A = null;
+      slots.B = null;
+      $("geo3-engine").value = "od";
+      $("geo3-road-mode").value = "baseline";
+      $("geo3-objective").value = "minHubs";
+      $("geo3-threshold").value = "6";
+      $("geo3-redundancy").value = "1";
+      $("geo3-congestion").value = "35";
+      $("geo3-congestion-share").value = "35";
+      $("geo3-closure").value = "1";
+      $("geo3-seed").value = "708709";
+      $("geo3-demand-multiplier").value = "1";
+      $("geo3-facility-capacity").value = "6000";
+      $("geo3-fixed-cost").value = "350000";
+      $("geo3-enforce-fleet").checked = true;
+      $("geo3-vehicle-capacity").value = "120";
+      $("geo3-trips").value = "5";
+      $("geo3-transport-cost").value = "0.72";
+      $("geo3-layer").value = "network";
+      $("geo3-robust").hidden = true;
+      $("geo3-ab").innerHTML = "";
+      $("geo3-map-add").textContent = t.mapOff;
+      $("geo3-graph-status").textContent = t.graphReady;
+      routeLayer.clearLayers();
+      renderCustom();
+      renderPolicies();
+      updateLabels();
+      await runScenario();
+      map.setView([-36.873, 174.766], 12);
+    };
+
+    [
+      "geo3-congestion",
+      "geo3-congestion-share",
+      "geo3-closure",
+      "geo3-threshold",
+      "geo3-demand-multiplier",
+    ].forEach((id) => $(id).addEventListener("input", updateLabels));
+
+    document.querySelectorAll("[data-step]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const delta = Number(button.dataset.delta || 0);
+        if (button.dataset.step === "maxOpen") {
+          maxOpen = Math.max(1, Math.min(hubNames.length, maxOpen + delta));
+        } else if (button.dataset.step === "fleet") {
+          fleet = Math.max(0, fleet + delta);
+        } else if (button.dataset.step === "newRoads") {
+          newRoads = Math.max(0, Math.min(40, newRoads + delta));
+        }
+        updateLabels();
+      });
+    });
+
+    $("geo3-engine").addEventListener("change", () => {
+      if ($("geo3-engine").value === "osm" && !roadGraph) {
+        $("geo3-engine").value = "od";
+        $("geo3-graph-status").textContent = t.graphFail;
+      }
+      updateLabels();
+    });
+    $("geo3-layer").addEventListener("change", renderMap);
+    $("geo3-load-graph").addEventListener("click", loadRoadGraph);
+    $("geo3-run").addEventListener("click", runScenario);
+    $("geo3-simulate").addEventListener("click", runSimulation);
+    $("geo3-routes").addEventListener("click", loadRoutes);
+    $("geo3-reset").addEventListener("click", reset);
+    $("geo3-save-a").addEventListener("click", () => {
+      slots.A = snapshot();
+      $("geo3-status").textContent = t.savedA;
+    });
+    $("geo3-save-b").addEventListener("click", () => {
+      slots.B = snapshot();
+      $("geo3-status").textContent = t.savedB;
+    });
+    $("geo3-compare").addEventListener("click", compareSlots);
+
+    $("geo3-add-address").addEventListener("click", async () => {
+      const query = $("geo3-address").value.trim();
+      if (!query) return;
+      $("geo3-status").textContent = t.geocoding;
+      $("geo3-add-address").disabled = true;
+      try {
+        const point = await geocodeOne(
+          query.toLowerCase().includes("new zealand")
+            ? query
+            : `${query}, Auckland, New Zealand`,
+        );
+        await addPoint({
+          point,
+          name: query,
+          type: $("geo3-role").value,
+          demandQty: Number($("geo3-demand-qty").value),
+        });
+        $("geo3-address").value = "";
+      } catch (error) {
+        console.warn("[Geo V3] address add failed", error);
+        $("geo3-status").textContent = t.addFailed;
+      } finally {
+        $("geo3-add-address").disabled = false;
+      }
+    });
+
+    $("geo3-map-add").addEventListener("click", () => {
+      mapAddMode = !mapAddMode;
+      $("geo3-map-add").textContent = mapAddMode ? t.mapOn : t.mapOff;
+      $("geo3-map-add").classList.toggle("is-active", mapAddMode);
+    });
+
+    map.on("click", async (event) => {
+      if (!mapAddMode) return;
+      const point = { lat: event.latlng.lat, lon: event.latlng.lng };
+      $("geo3-status").textContent = t.geocoding;
+      try {
+        const name = await reverseGeocode(point);
+        await addPoint({
+          point,
+          name,
+          type: $("geo3-role").value,
+          demandQty: Number($("geo3-demand-qty").value),
+        });
+      } catch (error) {
+        console.warn("[Geo V3] map add failed", error);
+        $("geo3-status").textContent = t.addFailed;
+      }
+    });
+
+    try {
+      const cached = JSON.parse(localStorage.getItem("acidch-geo-v3-base-coords") || "null");
+      if (
+        cached?.hubs?.length === baseHubNames.length &&
+        cached?.demands?.length === baseDemandNames.length
+      ) {
+        hubCoords = cached.hubs;
+        demandCoords = cached.demands;
+      }
+    } catch {
+      // Ignore invalid cache.
+    }
+
+    renderCustom();
+    renderPolicies();
+    updateLabels();
+    runScenario();
+  }
+</script>
+
+<style>
+  .geo3 {
+    --bg: #06131d;
+    --panel: rgba(7, 24, 34, 0.95);
+    --line: rgba(116, 190, 213, 0.2);
+    --cyan: #62ecff;
+    --acid: #d8ff6b;
+    --pink: #ff759a;
+    --amber: #ffcc66;
+    --muted: #83a3b0;
+    width: min(1720px, calc(100vw - 1rem));
+    margin: 0 auto 3rem;
+    color: #eafaff;
+  }
+  .geo3__map-shell {
+    position: relative;
+    min-height: 900px;
+    overflow: hidden;
+    border: 1px solid rgba(95, 174, 201, 0.28);
+    background: var(--bg);
+    box-shadow: 0 30px 100px rgba(0, 0, 0, 0.24);
+  }
+  #geo3-map { position: absolute; inset: 0; background: var(--bg); }
+  .geo3__identity {
+    position: absolute;
+    z-index: 600;
+    top: 1rem;
+    left: 1rem;
+    width: min(470px, calc(100% - 780px));
+    padding: 1rem 1.1rem;
+    border-left: 2px solid var(--cyan);
+    background: linear-gradient(90deg, rgba(3,16,24,.92), rgba(3,16,24,.58), transparent);
+    pointer-events: none;
+  }
+  .geo3__identity span, .geo3__results-head span { color: var(--cyan); font: 700 .68rem/1.2 monospace; letter-spacing: .12em; }
+  .geo3__identity h1 { margin: .35rem 0; color: #f2fdff; font-size: clamp(1.6rem, 3vw, 3rem); letter-spacing: -.035em; }
+  .geo3__identity p { margin: 0; color: #8aa6b1; font-size: .78rem; line-height: 1.55; }
+  .geo3__legend {
+    position: absolute;
+    z-index: 620;
+    left: 1rem;
+    bottom: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .7rem;
+    padding: .55rem .7rem;
+    border: 1px solid var(--line);
+    background: rgba(4,18,27,.88);
+    color: #91acb7;
+    font-size: .66rem;
+    backdrop-filter: blur(12px);
+  }
+  .geo3__legend span { display: inline-flex; gap: .35rem; align-items: center; }
+  .geo3__legend i { width: 12px; height: 4px; border-radius: 999px; display: inline-block; }
+  .geo3__legend .facility { height: 8px; background: var(--acid); }
+  .geo3__legend .demand { height: 8px; background: var(--pink); }
+  .geo3__legend .allocation { border-top: 1px dashed var(--cyan); }
+  .geo3__legend .route { background: var(--acid); }
+  .geo3__console {
+    position: absolute;
+    z-index: 700;
+    top: .7rem;
+    right: .7rem;
+    width: 390px;
+    height: calc(100% - 1.4rem);
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    backdrop-filter: blur(14px);
+    box-shadow: 0 20px 70px rgba(0,0,0,.25);
+  }
+  .geo3__scroll { overflow-y: auto; scrollbar-width: thin; scrollbar-color: #2d6676 transparent; }
+  .geo3__block { padding: .85rem .9rem; border-bottom: 1px solid var(--line); }
+  .geo3__block-title { display: flex; gap: .55rem; align-items: center; margin-bottom: .65rem; }
+  .geo3__block-title span { color: var(--acid); font: 700 .66rem monospace; }
+  .geo3__block-title strong { font-size: .76rem; letter-spacing: .04em; }
+  .geo3__field, .geo3__range { display: grid; gap: .35rem; margin: .58rem 0; color: var(--muted); font-size: .7rem; }
+  .geo3__field--inline { grid-template-columns: minmax(0,1fr) 120px; align-items: center; }
+  .geo3__field input, .geo3__field select { width: 100%; box-sizing: border-box; border: 1px solid var(--line); background: #0b202c; color: #eefcff; padding: .43rem .48rem; }
+  .geo3__range { grid-template-columns: minmax(0,1fr) auto; }
+  .geo3__range input { grid-column: 1/-1; width: 100%; accent-color: var(--cyan); }
+  .geo3__range output { color: #eefcff; font-family: monospace; }
+  .geo3__check { display: flex; gap: .5rem; align-items: center; margin: .65rem 0; color: var(--muted); font-size: .7rem; }
+  .geo3__check input { accent-color: var(--cyan); }
+  .geo3__stepper-row { display: flex; justify-content: space-between; gap: 1rem; align-items: center; margin: .58rem 0; color: var(--muted); font-size: .7rem; }
+  .geo3__stepper { display: flex; align-items: center; border: 1px solid var(--line); }
+  .geo3__stepper button { width: 30px; height: 30px; border: 0; background: #0b2633; color: var(--cyan); cursor: pointer; }
+  .geo3__stepper output { min-width: 38px; text-align: center; color: #fff; font: .72rem monospace; }
+  .geo3__secondary, .geo3__ghost, .geo3__actions button, .geo3__custom-row button { border: 1px solid var(--line); background: rgba(15,48,62,.8); color: #e8f9fc; padding: .55rem .62rem; cursor: pointer; }
+  .geo3__secondary:hover, .geo3__ghost:hover, .geo3__actions button:hover { border-color: rgba(98,236,255,.6); }
+  .geo3__ghost { background: transparent; color: #8ba8b3; }
+  .geo3__ghost.is-active { border-color: var(--acid); color: var(--acid); }
+  .geo3__button-pair { display: grid; grid-template-columns: 1fr 1fr; gap: .45rem; }
+  .geo3__button-trio { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: .35rem; }
+  .geo3__micro { margin: .5rem 0 0; color: #6f8e9a; font-size: .64rem; line-height: 1.45; }
+  .geo3__subhead { display: flex; justify-content: space-between; margin: .8rem 0 .45rem; color: #73929e; font-size: .64rem; text-transform: uppercase; letter-spacing: .08em; }
+  .geo3__policy-list, .geo3__custom-list { display: grid; gap: .38rem; }
+  .geo3__policy-row, .geo3__custom-row { display: grid; grid-template-columns: minmax(0,1fr) 105px; gap: .5rem; align-items: center; padding: .48rem; border: 1px solid rgba(98,236,255,.12); background: rgba(11,39,51,.5); }
+  .geo3__policy-row strong, .geo3__policy-row small, .geo3__custom-row strong, .geo3__custom-row small { display: block; }
+  .geo3__policy-row strong, .geo3__custom-row strong { font-size: .67rem; line-height: 1.25; }
+  .geo3__policy-row small, .geo3__custom-row small { margin-top: .15rem; color: #6f909d; font-size: .58rem; }
+  .geo3__policy-row select { width: 100%; border: 1px solid var(--line); background: #0b202c; color: #e8f9fc; padding: .35rem; font-size: .62rem; }
+  .geo3__custom-row button { font-size: .6rem; }
+  .geo3__actions { display: grid; grid-template-columns: 1fr 1fr; gap: .45rem; padding: .75rem; border-top: 1px solid var(--line); background: rgba(5,19,28,.98); }
+  .geo3__actions #geo3-run { grid-column: 1/-1; border-color: rgba(216,255,107,.45); background: rgba(78,98,36,.28); color: var(--acid); }
+  .geo3__actions button:disabled, .geo3__secondary:disabled { opacity: .4; cursor: not-allowed; }
+  .geo3__results {
+    position: absolute;
+    z-index: 650;
+    top: 8.6rem;
+    left: 1rem;
+    width: 310px;
+    max-height: calc(100% - 13rem);
+    overflow-y: auto;
+    padding: .85rem;
+    border: 1px solid var(--line);
+    background: rgba(5,21,31,.91);
+    backdrop-filter: blur(14px);
+  }
+  .geo3__results-head { display: flex; justify-content: space-between; gap: .7rem; align-items: center; }
+  .geo3__results-head strong { font-size: .74rem; }
+  .geo3__kpis, .geo3__robust-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .38rem; margin-top: .65rem; }
+  .geo3__kpis > div, .geo3__robust-grid > div { padding: .52rem; border: 1px solid rgba(116,190,213,.15); background: rgba(9,36,48,.55); }
+  .geo3__kpis span, .geo3__robust-grid span, .geo3__cost span { display: block; color: #7897a3; font-size: .58rem; }
+  .geo3__kpis strong, .geo3__robust-grid strong { display: block; margin-top: .35rem; color: #f0fbfd; font: 700 .9rem monospace; }
+  .geo3__cost { margin-top: .42rem; padding: .62rem; border: 1px solid rgba(216,255,107,.22); background: rgba(70,90,33,.14); }
+  .geo3__cost strong { display: block; margin-top: .4rem; color: var(--acid); font: 700 1rem monospace; }
+  .geo3__status { margin: .65rem 0 0; color: #7796a2; font-size: .65rem; line-height: 1.45; }
+  .geo3__open-list { display: grid; gap: .34rem; margin-top: .65rem; }
+  .geo3__open-list > div { display: grid; grid-template-columns: 28px minmax(0,1fr); gap: .45rem; padding: .42rem; border: 1px solid rgba(216,255,107,.13); }
+  .geo3__open-list > div > span { color: var(--acid); font: 700 .62rem monospace; }
+  .geo3__open-list strong, .geo3__open-list small { display: block; }
+  .geo3__open-list strong { font-size: .65rem; }
+  .geo3__open-list small { margin-top: .12rem; color: #6f8e99; font-size: .56rem; }
+  .geo3__robust { margin-top: .9rem; padding-top: .8rem; border-top: 1px solid var(--line); }
+  .geo3__stability { display: grid; gap: .35rem; }
+  .geo3__stability > div { position: relative; display: grid; grid-template-columns: minmax(0,1fr) auto; gap: .5rem; padding-bottom: .34rem; color: #87a3ae; font-size: .59rem; }
+  .geo3__stability i { position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: linear-gradient(90deg, var(--acid) calc(var(--p) * 100%), rgba(116,190,213,.12) 0); }
+  .geo3__ab { display: grid; gap: .35rem; margin-top: .55rem; color: #809eaa; font-size: .62rem; }
+  .geo3__ab > div { display: flex; justify-content: space-between; gap: .5rem; }
+  .geo3__ab strong { color: #effbfd; }
+  :global(.geo3 .leaflet-control-zoom a) { border-color: rgba(129,190,211,.24); background: rgba(7,24,34,.9); color: #e7f8fb; }
+  :global(.geo3 .leaflet-control-attribution) { background: rgba(7,24,34,.72); color: #78929c; }
+  :global(.geo3 .leaflet-tooltip) { border: 1px solid rgba(98,236,255,.24); background: rgba(6,21,30,.96); color: #e9f9fb; box-shadow: none; font-size: .68rem; }
+  @media (max-width: 1180px) {
+    .geo3__identity { width: min(430px, calc(100% - 410px)); }
+    .geo3__results { top: auto; bottom: 4rem; width: 280px; max-height: 52%; }
+  }
+  @media (max-width: 820px) {
+    .geo3 { width: min(100%, calc(100vw - .5rem)); }
+    .geo3__map-shell { min-height: 1260px; }
+    .geo3__identity { top: .5rem; left: .5rem; width: calc(100% - 1rem); box-sizing: border-box; }
+    .geo3__console { top: 190px; right: .5rem; left: .5rem; width: auto; height: 620px; }
+    .geo3__results { top: 820px; bottom: auto; left: .5rem; right: .5rem; width: auto; max-height: 360px; }
+    .geo3__legend { left: .5rem; right: .5rem; bottom: .5rem; }
+  }
+</style>
