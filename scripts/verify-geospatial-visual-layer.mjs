@@ -11,6 +11,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const read = (relative) => fs.readFileSync(path.join(root, relative), "utf8");
 const component = read("src/components/GeospatialAdvancedVisuals.astro");
 const controller = read("src/scripts/geospatial-advanced-visuals-v2.js");
+const scenarioVisual = read("src/scripts/geospatial-visual-state.js");
 const enPage = read("src/pages/lab/geospatial-supply-chain.astro");
 const zhPage = read("src/pages/zh/lab/geospatial-supply-chain.astro");
 const routeController = read("src/scripts/geospatial-v4.js");
@@ -23,6 +24,7 @@ const requireText = (source, token, label = token) => {
 };
 
 requireText(component, "geospatial-advanced-visuals-v2.js", "advanced visual controller import");
+requireText(component, "geospatial-visual-state.js", "scenario visual-state import");
 requireText(enPage, "GeospatialAdvancedVisuals", "English advanced visual mount");
 requireText(zhPage, "GeospatialAdvancedVisuals", "Chinese advanced visual mount");
 
@@ -41,6 +43,18 @@ for (const [token, label] of [
   ["Flow:\\s*", "flow extraction from verified route tooltip"],
 ]) {
   requireText(controller, token, label);
+}
+
+for (const [token, label] of [
+  ["geo4__scenario-ribbon", "scenario-state ribbon"],
+  ["geo4__event-vignette", "network-event vignette"],
+  ["data-road-visual", "road-event visual state"],
+  ["geo4-congestion", "congestion visual coupling"],
+  ["geo4-closure", "closure visual coupling"],
+  ["geo4-new-roads-out", "new-road visual coupling"],
+  ["mixed", "mixed-event visual state"],
+]) {
+  requireText(scenarioVisual, token, label);
 }
 
 requireText(
@@ -69,5 +83,5 @@ if (particleCountForFlow(1000, 1000, 4) <= particleCountForFlow(100, 1000, 4)) {
 }
 
 console.log(
-  "[geospatial-visual] PASS: real optimal-route capture, flow animation controls, reduced-motion handling and geometry interpolation checks passed.",
+  "[geospatial-visual] PASS: optimal-route flow, event-state encoding, reduced-motion handling and deterministic geometry checks passed.",
 );
