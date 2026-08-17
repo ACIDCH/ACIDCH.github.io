@@ -390,8 +390,8 @@ function boot() {
   });
 
   const status = D.getElementById("geo4-graph-status");
-  const observer = status
-    ? new MutationObserver(() => globalThis.setTimeout(scheduleDraw, 50))
+  const observer = status && globalThis.MutationObserver
+    ? new globalThis.MutationObserver(() => globalThis.setTimeout(scheduleDraw, 50))
     : null;
   observer?.observe(status, { childList: true, characterData: true, subtree: true });
   const resizeObserver = globalThis.ResizeObserver
