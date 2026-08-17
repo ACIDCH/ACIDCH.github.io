@@ -42,6 +42,16 @@ def set_select(browser: object, selector: str, value: str) -> None:
     time.sleep(0.25)
 
 
+def mobile_view(browser: object, view: str) -> None:
+    browser.click(f'[data-mobile-view="{view}"]')
+    time.sleep(0.25)
+    current = browser.execute(
+        "const s=document.querySelector('.geo4__shell');return s?.dataset.mobileView||'';"
+    )
+    if current != view:
+        raise RuntimeError(f"Expected mobile {view} view, got {current!r}.")
+
+
 def capture(browser: object, mobile: bool) -> None:
     suffix = "mobile" if mobile else "desktop"
     navigate_path(browser, "/zh/lab/geospatial-supply-chain/")
@@ -63,17 +73,16 @@ def capture(browser: object, mobile: bool) -> None:
     browser.screenshot(f"geospatial-baseline-{suffix}.png")
 
     if mobile:
-        # Verify users can reveal the scrollable parameter console without permanently covering the map.
-        browser.click('[data-mobile-view="controls"]')
-        time.sleep(0.25)
-        current = browser.execute(
-            "const s=document.querySelector('.geo4__shell');return s?.dataset.mobileView||'';"
-        )
-        if current != "controls":
-            raise RuntimeError(f"Expected mobile controls view, got {current!r}.")
+        # Parameter and result modules must be independently reachable without permanently covering the map.
+        mobile_view(browser, "controls")
+        browser.require(".geo4__scroll")
         browser.screenshot("geospatial-controls-mobile.png")
-        browser.click('[data-mobile-view="map"]')
-        time.sleep(0.2)
+
+        mobile_view(browser, "results")
+        browser.require("#geo4-kpi-cost")
+        browser.screenshot("geospatial-results-mobile.png")
+
+        mobile_view(browser, "map")
 
     # Verify the advanced analysis-layer visual state is interactive and mounted.
     set_select(browser, "#geo4-layer", "risk")
@@ -137,7 +146,7 @@ def main() -> None:
         server.shutdown()
         server.server_close()
 
-    expected = 7
+    expected = 8
     actual = len(list(OUTPUT.glob("*.png")))
     if actual != expected:
         raise RuntimeError(f"Expected {expected} geospatial visual proofs, generated {actual}.")
