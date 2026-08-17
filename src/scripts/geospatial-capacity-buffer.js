@@ -61,7 +61,7 @@ function boot() {
   D.getElementById("geo4-reset")?.addEventListener("click", () => {
     capacity.value = "6000";
     slider.value = "85";
-    globalThis.setTimeout(sync, 0);
+    sync();
   });
   sync();
 }
