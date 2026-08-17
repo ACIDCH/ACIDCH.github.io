@@ -1,22 +1,22 @@
 ---
-import GeospatialSupplyChainLab from "../../components/GeospatialSupplyChainLab.astro";
+import GeospatialSupplyChainLabV2 from "../../components/GeospatialSupplyChainLabV2.astro";
 import ContextBack from "../../components/ContextBack.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 ---
 
 <BaseLayout
   title="Geospatial Supply Chain Optimisation"
-  description="Interactive Auckland GIS prototype for road-network facility coverage and supply-chain optimisation."
+  description="Interactive Auckland geospatial supply-chain decision sandbox for road-network uncertainty, facility coverage, fleet capacity, inventory policy and address-based network editing."
   locale="en"
   alternatePath="/zh/lab/geospatial-supply-chain/"
   noindex
 >
-  <div style="width:min(1520px,calc(100vw - 2rem));margin:1rem auto 0;">
+  <div style="width:min(1680px,calc(100vw - 1rem));margin:.65rem auto 0;position:relative;z-index:10;">
     <ContextBack
       locale="en"
       fallbackPath="/projects/geospatial-supply-chain-optimisation/"
       label={{ en: "Back to project", zh: "返回项目" }}
     />
   </div>
-  <GeospatialSupplyChainLab locale="en" />
+  <GeospatialSupplyChainLabV2 locale="en" />
 </BaseLayout>
