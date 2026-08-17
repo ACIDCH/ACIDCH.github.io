@@ -6,15 +6,17 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const read = (relative) => fs.readFileSync(path.join(root, relative), "utf8");
 const extension = read("src/components/GeospatialFunctionalExtensions.astro");
 const source = read("src/scripts/geospatial-fleet-routing.js");
+const shift = read("src/scripts/geospatial-fleet-shift.js");
 
 const fail = (message) => {
   throw new Error(`[geospatial-fleet] ${message}`);
 };
-const requireText = (token, label = token) => {
-  if (!source.includes(token)) fail(`Missing ${label}`);
+const requireText = (subject, token, label = token) => {
+  if (!subject.includes(token)) fail(`Missing ${label}`);
 };
 
-if (!extension.includes("geospatial-fleet-routing.js")) fail("Fleet routing extension is not mounted");
+requireText(extension, "geospatial-fleet-routing.js", "fleet routing extension mount");
+requireText(extension, "geospatial-fleet-shift.js", "fleet shift-hour extension mount");
 
 for (const [token, label] of [
   ["exactTsp", "exact small-network TSP sequencing"],
@@ -32,8 +34,15 @@ for (const [token, label] of [
   ["Flow:\\s*", "verified assignment-flow extraction"],
   ["CVRP", "honest non-CVRP modelling boundary"],
   ["totalTrips <= available", "fleet trip-capacity feasibility check"],
-]) requireText(token, label);
+]) requireText(source, token, label);
+
+for (const [token, label] of [
+  ["geo4-shift-hours", "editable per-vehicle shift hours"],
+  ["fleet * hoursPerVehicle", "aggregate shift-hour capacity"],
+  ["planned <= capacity", "route-hour feasibility check"],
+  ["time-window scheduling", "honest non-time-window boundary"],
+]) requireText(shift, token, label);
 
 console.log(
-  "[geospatial-fleet] PASS: road-based TSP sequencing, capacity trip splitting, fleet feasibility and scenario-consistent OSM geometry acceptance checks passed.",
+  "[geospatial-fleet] PASS: road-based TSP sequencing, capacity trip splitting, fleet trip/shift-hour feasibility and scenario-consistent OSM geometry acceptance checks passed.",
 );
