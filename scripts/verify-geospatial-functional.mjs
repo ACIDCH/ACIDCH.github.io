@@ -3,13 +3,16 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   inventoryPolicy,
+  parseOverpassGraph,
   runMonteCarlo,
   solveFacilityNetwork,
 } from "../src/lib/geospatial/decisionEngine.js";
+import { reconstructGraphPath } from "../src/lib/geospatial/pathTools.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const read = (relative) => fs.readFileSync(path.join(root, relative), "utf8");
-const component = read("src/components/GeospatialSupplyChainLabV3.astro");
+const component = read("src/components/GeospatialSupplyChainLabV4.astro");
+const controller = read("src/scripts/geospatial-v4.js");
 const engine = read("src/lib/geospatial/decisionEngine.js");
 const enPage = read("src/pages/lab/geospatial-supply-chain.astro");
 const zhPage = read("src/pages/zh/lab/geospatial-supply-chain.astro");
@@ -21,41 +24,58 @@ const requireText = (source, token, label = token) => {
   if (!source.includes(token)) fail(`Missing ${label}`);
 };
 
-const uiRequirements = [
-  ["geo3-engine", "network engine selector"],
-  ["geo3-load-graph", "OSM graph loader"],
-  ["geo3-road-mode", "road uncertainty selector"],
-  ["geo3-congestion", "congestion control"],
-  ["geo3-closure", "road closure control"],
-  ["geo3-new-roads-out", "new-road control"],
-  ["geo3-policy-list", "facility policy editor"],
-  ["data-policy", "must/exclude facility policies"],
-  ["geo3-max-open-out", "facility-count control"],
-  ["geo3-fleet-out", "fleet-count control"],
-  ["geo3-enforce-fleet", "hard fleet-capacity constraint"],
-  ["geo3-inv-mean", "inventory demand control"],
-  ["geo3-service", "inventory service level"],
-  ["geo3-address", "natural-language address input"],
-  ["geo3-map-add", "map-click entity editor"],
-  ["/table/v1/driving/", "OSRM Table matrix update"],
-  ["geo3-simulate", "Monte Carlo trigger"],
-  ["geo3-mc-p95", "P95 robustness result"],
-  ["geo3-stability", "facility-selection stability"],
-  ["geo3-save-a", "scenario A save"],
-  ["geo3-save-b", "scenario B save"],
-  ["geo3-compare", "A/B comparison"],
-  ["geo3-layer", "functional map layer selector"],
+const componentRequirements = [
+  ["geo4-engine", "network engine selector"],
+  ["geo4-init", "explicit GIS initialisation"],
+  ["geo4-load-graph", "OSM graph loader"],
+  ["geo4-road-mode", "road uncertainty selector"],
+  ["geo4-congestion", "congestion control"],
+  ["geo4-closure", "road closure control"],
+  ["geo4-new-roads-out", "new-road control"],
+  ["geo4-policy-list", "facility policy editor"],
+  ["geo4-max-open-out", "facility-count control"],
+  ["geo4-fleet-out", "fleet-count control"],
+  ["geo4-enforce-fleet", "hard fleet-capacity constraint"],
+  ["geo4-inv-mean", "inventory demand control"],
+  ["geo4-service", "inventory service level"],
+  ["geo4-address", "natural-language address input"],
+  ["geo4-map-add", "map-click entity editor"],
+  ["geo4-simulate", "Monte Carlo trigger"],
+  ["geo4-mc-runs", "actual Monte Carlo run count"],
+  ["geo4-mc-p95", "P95 robustness result"],
+  ["geo4-stability", "facility-selection stability"],
+  ["geo4-save-a", "scenario A save"],
+  ["geo4-save-b", "scenario B save"],
+  ["geo4-compare", "A/B comparison"],
+  ["geo4-layer", "functional map layer selector"],
   ["value=\"flow\"", "flow layer"],
   ["value=\"coverage\"", "coverage layer"],
   ["value=\"utilisation\"", "utilisation layer"],
   ["value=\"cost\"", "cost layer"],
   ["value=\"inventory\"", "inventory layer"],
   ["value=\"risk\"", "risk layer"],
+  ["Factory → Warehouse → Demand", "honest facility-role boundary"],
+];
+for (const [token, label] of componentRequirements) {
+  requireText(component, token, label);
+}
+
+const controllerRequirements = [
+  ["/table/v1/driving/", "OSRM Table matrix update"],
   ["overpass-api.de", "Overpass road-graph source"],
   ["parseOverpassGraph", "edge-graph parsing"],
   ["graphOdMatrix", "Dijkstra-derived OD matrix"],
+  ["reconstructGraphPath", "exact scenario-path reconstruction"],
+  ["activeGraph.scenario", "route uses the same road scenario as optimisation"],
+  ["[5,10,15,25]", "honest edge-level Monte Carlo run options"],
+  ["[50,100,250,500,1000]", "high-run OD Monte Carlo options"],
+  ["data-policy", "must/exclude facility policies"],
+  ["runMonteCarlo", "Monte Carlo engine"],
+  ["compareScenarioResults", "A/B comparison engine"],
 ];
-for (const [token, label] of uiRequirements) requireText(component, token, label);
+for (const [token, label] of controllerRequirements) {
+  requireText(controller, token, label);
+}
 
 const engineRequirements = [
   "solveTransportation",
@@ -68,9 +88,11 @@ const engineRequirements = [
   "graphOdMatrix",
   "compareScenarioResults",
 ];
-for (const token of engineRequirements) requireText(engine, `export function ${token}`, token);
-requireText(enPage, "GeospatialSupplyChainLabV3", "English V3 route");
-requireText(zhPage, "GeospatialSupplyChainLabV3", "Chinese V3 route");
+for (const token of engineRequirements) {
+  requireText(engine, `export function ${token}`, token);
+}
+requireText(enPage, "GeospatialSupplyChainLabV4", "English V4 route");
+requireText(zhPage, "GeospatialSupplyChainLabV4", "Chinese V4 route");
 
 const matrix = [
   [2.07, 5.8, 2.04, 4.66, 4.12, 10.66, 7.5, 0.31, 7.7, 7.89],
@@ -95,7 +117,10 @@ const baseline = solveFacilityNetwork({
 if (!baseline || baseline.selected.length !== 2) {
   fail("Verified 6 km baseline must remain feasible with two facilities");
 }
-if (Math.abs(baseline.allocatedDemand - demands.reduce((a, b) => a + b, 0)) > 1e-6) {
+if (
+  Math.abs(baseline.allocatedDemand - demands.reduce((a, b) => a + b, 0)) >
+  1e-6
+) {
   fail("Capacitated transport did not allocate all baseline demand");
 }
 
@@ -131,6 +156,22 @@ if (monteCarlo.runs !== 12 || monteCarlo.facilityStability.length !== 6) {
   fail("Monte Carlo acceptance result is incomplete");
 }
 
+const graph = parseOverpassGraph([
+  { type: "node", id: 1, lat: -36.87, lon: 174.76 },
+  { type: "node", id: 2, lat: -36.87, lon: 174.77 },
+  { type: "node", id: 3, lat: -36.87, lon: 174.78 },
+  {
+    type: "way",
+    id: 10,
+    nodes: [1, 2, 3],
+    tags: { highway: "primary", maxspeed: "50" },
+  },
+]);
+const exactPath = reconstructGraphPath(graph, "1", "3", {}, "distance");
+if (!exactPath || exactPath.coordinates.length !== 3 || exactPath.edges.length !== 2) {
+  fail("Dijkstra path reconstruction is incomplete");
+}
+
 console.log(
-  `[geospatial-functional] PASS: V3 UI modules, bilingual routes, capacitated solver, inventory policy and Monte Carlo acceptance checks passed.`,
+  "[geospatial-functional] PASS: V4 UI modules, bilingual routes, capacitated solver, inventory, Monte Carlo, edge-level graph and exact-path consistency checks passed.",
 );
