@@ -48,7 +48,7 @@ for (const [token, label] of [
 }
 
 for (const [token, label] of [
-  ["geo4__visual-state", "network event state pill"],
+  ["geo4__scenario-ribbon", "network event ribbon"],
   ["geo4-road-mode", "road scenario coupling"],
   ["geo4-congestion", "congestion severity coupling"],
   ["geo4-closure", "closure severity coupling"],
@@ -58,7 +58,6 @@ for (const [token, label] of [
 }
 
 for (const [token, label] of [
-  ["geo4__scenario-status", "scenario status module"],
   ["geo4__flow-tier", "flow hierarchy legend"],
   ["geo4__node-canvas", "node status canvas"],
   ["Facility outflow", "source node semantics"],
@@ -69,16 +68,8 @@ for (const [token, label] of [
   requireText(nodeStatus, token, label);
 }
 
-requireText(
-  routeController,
-  "reconstructGraphPath",
-  "exact Dijkstra path reconstruction in functional route controller",
-);
-requireText(
-  routeController,
-  "activeGraph.scenario",
-  "route geometry tied to the active OSM disruption scenario",
-);
+requireText(routeController, "reconstructGraphPath", "exact Dijkstra path reconstruction in functional route controller");
+requireText(routeController, "activeGraph.scenario", "route geometry tied to the active OSM disruption scenario");
 
 const metrics = buildPolylineMetrics([
   { x: 0, y: 0 },
