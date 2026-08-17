@@ -42,18 +42,7 @@ def set_select(browser: object, selector: str, value: str) -> None:
     time.sleep(0.25)
 
 
-def mobile_view(browser: object, view: str) -> None:
-    browser.click(f'[data-mobile-view="{view}"]')
-    time.sleep(0.25)
-    current = browser.execute(
-        "const s=document.querySelector('.geo4__shell');return s?.dataset.mobileView||'';"
-    )
-    if current != view:
-        raise RuntimeError(f"Expected mobile {view} view, got {current!r}.")
-
-
-def capture(browser: object, mobile: bool) -> None:
-    suffix = "mobile" if mobile else "desktop"
+def capture_desktop(browser: object) -> None:
     navigate_path(browser, "/zh/lab/geospatial-supply-chain/")
     browser.require("#geo-v4")
     browser.require("#geo4-map")
@@ -62,27 +51,8 @@ def capture(browser: object, mobile: bool) -> None:
     browser.require("#geo4-layer")
     browser.wait_for_text(".geo4__identity", "基于地理空间的供应链优化")
 
-    # Baseline shell proof. Mobile defaults to the map-first view.
-    if mobile:
-        browser.require(".geo4__mobile-nav")
-        current = browser.execute(
-            "const s=document.querySelector('.geo4__shell');return s?.dataset.mobileView||'';"
-        )
-        if current != "map":
-            raise RuntimeError(f"Expected mobile map-first default, got {current!r}.")
-    browser.screenshot(f"geospatial-baseline-{suffix}.png")
-
-    if mobile:
-        # Parameter and result modules must be independently reachable without permanently covering the map.
-        mobile_view(browser, "controls")
-        browser.require(".geo4__scroll")
-        browser.screenshot("geospatial-controls-mobile.png")
-
-        mobile_view(browser, "results")
-        browser.require("#geo4-kpi-cost")
-        browser.screenshot("geospatial-results-mobile.png")
-
-        mobile_view(browser, "map")
+    # Desktop web is the release target: map-first shell with right-side controls and results.
+    browser.screenshot("geospatial-baseline-desktop.png")
 
     # Verify the advanced analysis-layer visual state is interactive and mounted.
     set_select(browser, "#geo4-layer", "risk")
@@ -93,7 +63,7 @@ def capture(browser: object, mobile: bool) -> None:
     )
     if mode != "risk":
         raise RuntimeError(f"Expected risk analysis visual mode, got {mode!r}.")
-    browser.screenshot(f"geospatial-risk-layer-{suffix}.png")
+    browser.screenshot("geospatial-risk-layer-desktop.png")
 
     # Verify road-event visual state reacts to a scenario change.
     set_select(browser, "#geo4-road-mode", "mixed")
@@ -104,7 +74,7 @@ def capture(browser: object, mobile: bool) -> None:
     )
     if road_mode != "mixed":
         raise RuntimeError(f"Expected mixed road visual mode, got {road_mode!r}.")
-    browser.screenshot(f"geospatial-mixed-event-{suffix}.png")
+    browser.screenshot("geospatial-mixed-event-desktop.png")
 
 
 def main() -> None:
@@ -132,9 +102,7 @@ def main() -> None:
         base.wait_for_driver(driver_base, driver)
         browser = base.BrowserSession(driver_base, f"http://127.0.0.1:{site_port}")
         browser.set_viewport(1440, 1000, mobile=False)
-        capture(browser, mobile=False)
-        browser.set_viewport(390, 844, mobile=True)
-        capture(browser, mobile=True)
+        capture_desktop(browser)
     finally:
         if browser is not None:
             browser.close()
@@ -146,11 +114,11 @@ def main() -> None:
         server.shutdown()
         server.server_close()
 
-    expected = 8
+    expected = 3
     actual = len(list(OUTPUT.glob("*.png")))
     if actual != expected:
-        raise RuntimeError(f"Expected {expected} geospatial visual proofs, generated {actual}.")
-    print(f"Captured {actual} geospatial decision-sandbox visual proofs in {OUTPUT}.")
+        raise RuntimeError(f"Expected {expected} desktop geospatial visual proofs, generated {actual}.")
+    print(f"Captured {actual} desktop geospatial decision-sandbox visual proofs in {OUTPUT}.")
 
 
 if __name__ == "__main__":
