@@ -26,21 +26,29 @@ function boot() {
         title: "真实路线流动",
         waiting: "运行优化后加载当前最优路径",
         live: "条真实最优路径正在流动",
+        flowUnit: "总流量",
         animation: "流动",
         speed: "速度",
         density: "密度",
         glow: "辉光",
         ambient: "环境层",
+        low: "低",
+        medium: "中",
+        high: "高",
       }
     : {
         title: "Real Route Flow",
         waiting: "Load current optimal paths after optimisation",
         live: "real optimal paths in motion",
+        flowUnit: "Total flow",
         animation: "Flow",
         speed: "Speed",
         density: "Density",
         glow: "Glow",
         ambient: "Ambient",
+        low: "Low",
+        medium: "Medium",
+        high: "High",
       };
 
   const reducedMotion = Boolean(
@@ -57,18 +65,20 @@ function boot() {
 
   const style = D.createElement("style");
   style.textContent = `
-  .geo4__flow-canvas{position:absolute;inset:0;z-index:425;width:100%;height:100%;pointer-events:none;mix-blend-mode:screen}
-  .geo4__ambient{position:absolute;inset:0;z-index:510;pointer-events:none;opacity:0;transition:opacity .3s;background:radial-gradient(circle at 50% 45%,transparent 24%,rgba(3,13,20,.14) 64%,rgba(0,5,9,.58) 100%)}
+  .geo4__flow-canvas{position:absolute;inset:0;z-index:425;width:100%;height:100%;pointer-events:none;mix-blend-mode:screen;transition:opacity .25s}
+  .geo4__ambient{position:absolute;inset:0;z-index:510;pointer-events:none;opacity:0;transition:opacity .3s;background:radial-gradient(circle at 46% 45%,transparent 22%,rgba(3,13,20,.12) 62%,rgba(0,5,9,.58) 100%)}
+  .geo4__ambient:before{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 0 44%,rgba(98,236,255,.018) 49%,transparent 54%);opacity:.7}
   .geo4__ambient:after{content:"";position:absolute;inset:0;opacity:.14;background:repeating-linear-gradient(0deg,rgba(98,236,255,.025) 0,rgba(98,236,255,.025) 1px,transparent 1px,transparent 5px);animation:geo-flow-scan 12s linear infinite}
   .geo4__shell.is-flow-ambient .geo4__ambient{opacity:1}
-  .geo4__flow-panel{position:absolute;z-index:680;left:50%;bottom:12px;transform:translateX(-50%);width:min(520px,calc(100% - 760px));min-width:390px;padding:.62rem .72rem;border:1px solid rgba(98,236,255,.24);background:rgba(4,19,28,.88);backdrop-filter:blur(14px);box-shadow:0 14px 50px rgba(0,0,0,.26);color:#dff9fd}
-  .geo4__flow-head{display:flex;justify-content:space-between;gap:.8rem;align-items:center}.geo4__flow-head b{font-size:.68rem}.geo4__flow-head small{color:#7897a3;font-size:.56rem;text-align:right}.geo4__flow-head em{display:block;color:#62ecff;font:700 .54rem monospace;letter-spacing:.13em;font-style:normal}
-  .geo4__flow-controls{display:grid;grid-template-columns:auto 1fr 1fr 1fr auto;gap:.5rem;align-items:end;margin-top:.5rem}.geo4__flow-controls label{display:grid;gap:.18rem;color:#7e9ba7;font-size:.54rem}.geo4__flow-controls label:first-child{grid-auto-flow:column;align-items:center;white-space:nowrap}.geo4__flow-controls input[type=range]{width:100%;accent-color:#62ecff}.geo4__flow-controls input[type=checkbox]{accent-color:#d8ff6b}.geo4__flow-ambient{border:1px solid rgba(116,190,213,.2);background:transparent;color:#8ba8b3;padding:.34rem .42rem;font-size:.54rem;cursor:pointer}.geo4__flow-ambient.is-active{border-color:rgba(216,255,107,.5);color:#d8ff6b}
-  .geo4__flow-live{position:absolute;z-index:615;top:1rem;left:50%;transform:translateX(-50%);display:none;align-items:center;gap:.38rem;padding:.3rem .48rem;border:1px solid rgba(216,255,107,.26);background:rgba(5,20,27,.8);color:#a9c4cc;font:600 .55rem monospace;pointer-events:none}.geo4__flow-live.is-live{display:flex}.geo4__flow-live i{width:6px;height:6px;border-radius:50%;background:#d8ff6b;box-shadow:0 0 12px rgba(216,255,107,.9);animation:geo-flow-pulse 1.4s ease-in-out infinite}
+  .geo4__flow-panel{position:absolute;z-index:680;left:50%;bottom:12px;transform:translateX(-50%);width:min(540px,calc(100% - 760px));min-width:390px;padding:.62rem .72rem .58rem;border:1px solid rgba(98,236,255,.28);background:linear-gradient(135deg,rgba(4,19,28,.93),rgba(4,19,28,.78));backdrop-filter:blur(15px);box-shadow:0 14px 50px rgba(0,0,0,.3);color:#dff9fd;overflow:hidden}
+  .geo4__flow-panel:before{content:"";position:absolute;top:0;left:0;width:42%;height:1px;background:linear-gradient(90deg,#62ecff,rgba(98,236,255,0));box-shadow:0 0 12px rgba(98,236,255,.55)}
+  .geo4__flow-head{display:flex;justify-content:space-between;gap:.8rem;align-items:center}.geo4__flow-head b{font-size:.69rem}.geo4__flow-head small{color:#7897a3;font-size:.55rem;text-align:right;line-height:1.35}.geo4__flow-head em{display:block;color:#62ecff;font:700 .54rem monospace;letter-spacing:.13em;font-style:normal}
+  .geo4__flow-controls{display:grid;grid-template-columns:auto 1fr 1fr 1fr auto;gap:.5rem;align-items:end;margin-top:.48rem}.geo4__flow-controls label{display:grid;gap:.18rem;color:#7e9ba7;font-size:.54rem}.geo4__flow-controls label:first-child{grid-auto-flow:column;align-items:center;white-space:nowrap}.geo4__flow-controls input[type=range]{width:100%;accent-color:#62ecff}.geo4__flow-controls input[type=checkbox]{accent-color:#d8ff6b}.geo4__flow-ambient{border:1px solid rgba(116,190,213,.2);background:transparent;color:#8ba8b3;padding:.34rem .42rem;font-size:.54rem;cursor:pointer}.geo4__flow-ambient.is-active{border-color:rgba(216,255,107,.5);color:#d8ff6b}
+  .geo4__flow-scale{display:grid;grid-template-columns:auto 1fr auto;gap:.42rem;align-items:center;margin-top:.42rem;color:#668591;font:600 .48rem monospace}.geo4__flow-scale i{display:block;height:4px;border-radius:99px;background:linear-gradient(90deg,rgba(98,236,255,.45),#62ecff 55%,#d8ff6b);box-shadow:0 0 12px rgba(98,236,255,.15)}
+  .geo4__flow-live{position:absolute;z-index:615;top:1rem;left:50%;transform:translateX(-50%);display:none;align-items:center;gap:.38rem;padding:.3rem .48rem;border:1px solid rgba(216,255,107,.3);background:rgba(5,20,27,.84);color:#a9c4cc;font:600 .55rem monospace;pointer-events:none}.geo4__flow-live.is-live{display:flex}.geo4__flow-live i{width:6px;height:6px;border-radius:50%;background:#d8ff6b;box-shadow:0 0 12px rgba(216,255,107,.9);animation:geo-flow-pulse 1.4s ease-in-out infinite}
   @keyframes geo-flow-pulse{0%,100%{opacity:.35;transform:scale(.75)}50%{opacity:1;transform:scale(1.3)}}@keyframes geo-flow-scan{to{transform:translateY(24px)}}
   @media(prefers-reduced-motion:reduce){.geo4__ambient:after,.geo4__flow-live i{animation:none}}
   @media(max-width:1180px){.geo4__flow-panel{left:auto;right:1rem;bottom:1rem;transform:none;width:350px;min-width:0}.geo4__flow-controls{grid-template-columns:1fr 1fr 1fr}}
-  @media(max-width:820px){.geo4__flow-panel{right:.5rem;left:.5rem;bottom:3rem;width:auto;min-width:0;transform:none}.geo4__flow-controls{grid-template-columns:1fr 1fr}.geo4__flow-live{top:176px}}
   `;
   D.head.appendChild(style);
 
@@ -99,7 +109,8 @@ function boot() {
       <label><span>${text.density}</span><input id="geo4-flow-density" type="range" min="1" max="8" step="1" value="4"></label>
       <label><span>${text.glow}</span><input id="geo4-flow-glow" type="range" min="0" max="2" step="0.25" value="1"></label>
       <button id="geo4-flow-ambient" class="geo4__flow-ambient is-active" type="button">${text.ambient}</button>
-    </div>`;
+    </div>
+    <div class="geo4__flow-scale"><span>${text.low}</span><i></i><span>${text.high}</span></div>`;
   shell.appendChild(panel);
 
   const status = panel.querySelector("#geo4-flow-state");
@@ -115,7 +126,8 @@ function boot() {
       badge.classList.remove("is-live");
       return;
     }
-    status.textContent = `${state.routes.length} ${text.live}`;
+    const totalFlow = state.routes.reduce((sum, route) => sum + route.flow, 0);
+    status.textContent = `${state.routes.length} ${text.live} · ${text.flowUnit} ${Math.round(totalFlow).toLocaleString()}`;
     badge.classList.toggle("is-live", state.enabled);
   };
   const clear = () => {
@@ -136,12 +148,15 @@ function boot() {
         const stride = Math.max(1, Math.ceil(all.length / 700));
         const points = all.filter((_, index) => index % stride === 0);
         if (all.length && points.at(-1) !== all.at(-1)) points.push(all.at(-1));
-        const record = { layer, points, flow: 1 };
+        const record = { layer, points, flow: 1, travelMin: null };
         state.routes.push(record);
         const bind = layer.bindTooltip;
         layer.bindTooltip = function bindFlowTooltip(content, ...args) {
-          const match = String(content).match(/Flow:\s*([\d,.]+)/i);
+          const source = String(content);
+          const match = source.match(/Flow:\s*([\d,.]+)/i);
+          const minutes = source.match(/·\s*([\d.]+)\s*min/i);
           if (match) record.flow = Number(match[1].replaceAll(",", "")) || 1;
+          if (minutes) record.travelMin = Number(minutes[1]) || null;
           updateStatus();
           return bind.call(this, content, ...args);
         };
@@ -168,6 +183,23 @@ function boot() {
     return { dpr, rect };
   }
 
+  function drawPath(projected, colour, width, alpha, blur = 0) {
+    ctx.beginPath();
+    projected.forEach((point, index) =>
+      index ? ctx.lineTo(point.x, point.y) : ctx.moveTo(point.x, point.y),
+    );
+    ctx.strokeStyle = colour;
+    ctx.globalAlpha = alpha;
+    ctx.lineWidth = width;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.shadowColor = colour;
+    ctx.shadowBlur = blur;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.globalAlpha = 1;
+  }
+
   function animate(now) {
     frame(animate);
     if (!ctx) return;
@@ -190,48 +222,69 @@ function boot() {
       const metrics = buildPolylineMetrics(projected);
       if (metrics.total < 2) return;
       const ratio = Math.max(0.08, Math.min(1, route.flow / maxFlow));
+      const hot = ratio > 0.68;
+      const core = hot ? "rgba(216,255,107,.96)" : "rgba(98,236,255,.96)";
 
-      ctx.beginPath();
-      projected.forEach((point, index) =>
-        index ? ctx.lineTo(point.x, point.y) : ctx.moveTo(point.x, point.y),
+      drawPath(
+        projected,
+        "rgba(98,236,255,.72)",
+        3.4 + ratio * 5.2 * state.glow,
+        0.045 + state.glow * 0.055,
+        12 * state.glow,
       );
-      ctx.strokeStyle = `rgba(98,236,255,${0.06 + state.glow * 0.08})`;
-      ctx.lineWidth = 2.5 + ratio * 4 * state.glow;
-      ctx.shadowColor = "rgba(98,236,255,.75)";
-      ctx.shadowBlur = 8 * state.glow;
-      ctx.stroke();
-      ctx.shadowBlur = 0;
+      drawPath(
+        projected,
+        core,
+        0.7 + ratio * 1.15,
+        0.28 + ratio * 0.38,
+        3.5 * state.glow,
+      );
 
       const count = particleCountForFlow(route.flow, maxFlow, state.density);
+      const traversalSeconds = route.travelMin
+        ? Math.max(4.5, Math.min(18, route.travelMin / 2.2))
+        : 9.5;
       for (let index = 0; index < count; index += 1) {
         const phase = (index / count + routeIndex * 0.137) % 1;
-        const p = pointAlongPolyline(
-          metrics,
-          elapsed * 62 * state.speed + phase * metrics.total,
-        );
+        const distance =
+          (elapsed * state.speed * metrics.total) / traversalSeconds + phase * metrics.total;
+        const p = pointAlongPolyline(metrics, distance);
         if (!p) continue;
-        const r = 1.2 + ratio * 1.7;
+        const r = 1.15 + ratio * 1.65;
+        const tail = 5 + ratio * 8;
         ctx.save();
         ctx.translate(p.x, p.y);
         ctx.rotate(p.angle);
+        const gradient = ctx.createLinearGradient(-tail, 0, r * 3, 0);
+        gradient.addColorStop(0, hot ? "rgba(216,255,107,0)" : "rgba(98,236,255,0)");
+        gradient.addColorStop(0.68, hot ? "rgba(216,255,107,.38)" : "rgba(98,236,255,.34)");
+        gradient.addColorStop(1, hot ? "rgba(216,255,107,.98)" : "rgba(98,236,255,.98)");
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 1 + ratio * 1.2;
+        ctx.shadowColor = hot ? "rgba(216,255,107,.9)" : "rgba(98,236,255,.9)";
+        ctx.shadowBlur = 5 + state.glow * 7;
         ctx.beginPath();
-        ctx.moveTo(r * 2.8, 0);
-        ctx.lineTo(-r * 1.7, r * 1.2);
-        ctx.lineTo(-r * 1.1, 0);
-        ctx.lineTo(-r * 1.7, -r * 1.2);
+        ctx.moveTo(-tail, 0);
+        ctx.lineTo(r * 2.4, 0);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(r * 3, 0);
+        ctx.lineTo(-r * 1.2, r * 1.15);
+        ctx.lineTo(-r * 0.6, 0);
+        ctx.lineTo(-r * 1.2, -r * 1.15);
         ctx.closePath();
-        ctx.fillStyle = ratio > 0.7 ? "rgba(216,255,107,.96)" : "rgba(98,236,255,.93)";
-        ctx.shadowColor = ratio > 0.7 ? "rgba(216,255,107,.9)" : "rgba(98,236,255,.9)";
-        ctx.shadowBlur = 5 + state.glow * 6;
+        ctx.fillStyle = hot ? "rgba(216,255,107,.98)" : "rgba(98,236,255,.98)";
         ctx.fill();
         ctx.restore();
       }
 
       const pulse = (elapsed * 0.8 + routeIndex * 0.19) % 1;
-      for (const node of [projected[0], projected.at(-1)]) {
+      for (const [nodeIndex, node] of [projected[0], projected.at(-1)].entries()) {
         ctx.beginPath();
-        ctx.arc(node.x, node.y, 4 + pulse * 10, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(216,255,107,${0.42 * (1 - pulse)})`;
+        ctx.arc(node.x, node.y, 4 + pulse * (nodeIndex ? 11 : 8), 0, Math.PI * 2);
+        ctx.strokeStyle = nodeIndex
+          ? `rgba(255,117,154,${0.36 * (1 - pulse)})`
+          : `rgba(216,255,107,${0.42 * (1 - pulse)})`;
         ctx.lineWidth = 1;
         ctx.stroke();
       }
