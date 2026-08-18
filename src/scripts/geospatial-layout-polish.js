@@ -25,9 +25,6 @@ function boot() {
       #geo4-map{filter:saturate(1.08) contrast(1.06)}
       .geo4__console{top:.7rem!important;right:.7rem!important;left:auto!important;width:390px!important;height:calc(61% - .7rem)!important;max-height:none!important;border-color:rgba(116,190,213,.28)!important;box-shadow:0 22px 70px rgba(0,0,0,.34)!important}
       .geo4__results{position:absolute!important;z-index:699!important;top:auto!important;left:auto!important;right:.7rem!important;bottom:.7rem!important;width:390px!important;max-width:390px!important;height:calc(39% - .7rem)!important;max-height:none!important;overflow-y:auto!important;box-sizing:border-box!important;border:1px solid rgba(116,190,213,.26)!important;background:linear-gradient(180deg,rgba(7,24,34,.97),rgba(5,19,28,.95))!important;backdrop-filter:blur(16px)!important;box-shadow:0 18px 60px rgba(0,0,0,.32)!important}
-      .geo4__identity{width:min(560px,calc(100% - 430px))!important;padding:.88rem 1.05rem!important;background:linear-gradient(90deg,rgba(3,16,24,.95),rgba(3,16,24,.62) 70%,transparent)!important}
-      .geo4__identity h1{font-size:clamp(1.65rem,2.65vw,2.75rem)!important;line-height:1.02!important;max-width:500px}
-      .geo4__identity p{max-width:490px}
       .geo4__scenario-ribbon{max-width:390px}
       .geo4__flow-panel{width:min(540px,calc(100% - 840px))!important;min-width:380px!important}
       .geo4__legend{left:1rem!important;right:auto!important;bottom:.7rem!important;width:390px!important;max-width:390px!important;box-sizing:border-box!important;row-gap:.42rem!important;background:rgba(4,18,27,.92)!important;border-color:rgba(116,190,213,.26)!important}

@@ -129,7 +129,7 @@ function boot() {
     ? {
         title: "车队道路计划",
         build: "生成车队路线",
-        note: "TSP 道路访问顺序 + 单车容量拆分；组合课程方法，不宣称为完整 CVRP。",
+        note: "道路 TSP 访问顺序与单车容量拆分共同形成车队行程；聚合班次检查用于识别运力不足。",
         need: "请先初始化 GIS、运行优化并加载当前最优路径。",
         running: "正在计算道路 TSP 顺序与容量 trips…",
         ready: "车队计划已生成",
@@ -211,11 +211,15 @@ function boot() {
       const input = args[0];
       const url = typeof input === "string" ? input : input?.url || "";
       if (response.ok && /overpass.*api\/interpreter|api\/interpreter/i.test(url)) {
-        response.clone().json().then((payload) => {
-          if (!Array.isArray(payload?.elements) || !payload.elements.length) return;
-          const graph = parseOverpassGraph(payload.elements);
-          if (graph?.edges?.length) state.graph = graph;
-        }).catch(() => {});
+        response
+          .clone()
+          .json()
+          .then((payload) => {
+            if (!Array.isArray(payload?.elements) || !payload.elements.length) return;
+            const graph = parseOverpassGraph(payload.elements);
+            if (graph?.edges?.length) state.graph = graph;
+          })
+          .catch(() => {});
       }
       return response;
     };
@@ -239,7 +243,11 @@ function boot() {
     if (!state.map) return [];
     const assignments = [];
     for (const layer of Object.values(state.map._layers || {})) {
-      if (typeof layer?.getLatLngs !== "function" || typeof layer?.getTooltip !== "function") continue;
+      if (
+        typeof layer?.getLatLngs !== "function" ||
+        typeof layer?.getTooltip !== "function"
+      )
+        continue;
       const content = String(layer.getTooltip()?.getContent?.() || "");
       if (!content.includes("→") || !/Flow:\s*[\d,.]+/i.test(content)) continue;
       const match = content.match(/^([^<]+?)\s*→\s*([^<]+)<br>Flow:\s*([\d,.]+)/i);
@@ -260,7 +268,8 @@ function boot() {
   const scenarioParams = () => ({
     mode: D.getElementById("geo4-road-mode")?.value || "baseline",
     congestionSeverity: Number(D.getElementById("geo4-congestion")?.value || 0) / 100,
-    congestionShare: Number(D.getElementById("geo4-congestion-share")?.value || 0) / 100,
+    congestionShare:
+      Number(D.getElementById("geo4-congestion-share")?.value || 0) / 100,
     closureShare: Number(D.getElementById("geo4-closure")?.value || 0) / 100,
     improvement: 0.25,
     improvementShare: 0.3,
@@ -272,12 +281,20 @@ function boot() {
 
   async function osrmMatrix(points) {
     const coords = points.map((point) => `${point.lon},${point.lat}`).join(";");
-    const response = await F(`https://router.project-osrm.org/table/v1/driving/${coords}?annotations=distance,duration`);
+    const response = await F(
+      `https://router.project-osrm.org/table/v1/driving/${coords}?annotations=distance,duration`,
+    );
     const data = await response.json();
-    if (!response.ok || !Array.isArray(data.durations)) throw new Error("OSRM table unavailable");
+    if (!response.ok || !Array.isArray(data.durations))
+      throw new Error("OSRM table unavailable");
     return {
-      matrix: data.durations.map((row) => row.map((value) => Number.isFinite(value) ? value / 60 : Infinity)),
-      distance: data.distances?.map((row) => row.map((value) => Number.isFinite(value) ? value / 1000 : Infinity)) || null,
+      matrix: data.durations.map((row) =>
+        row.map((value) => (Number.isFinite(value) ? value / 60 : Infinity)),
+      ),
+      distance:
+        data.distances?.map((row) =>
+          row.map((value) => (Number.isFinite(value) ? value / 1000 : Infinity)),
+        ) || null,
       scenario: null,
     };
   }
@@ -311,10 +328,14 @@ function boot() {
   }
 
   async function osrmGeometry(points) {
-    const key = points.map((point) => `${point.lon.toFixed(5)},${point.lat.toFixed(5)}`).join(";");
+    const key = points
+      .map((point) => `${point.lon.toFixed(5)},${point.lat.toFixed(5)}`)
+      .join(";");
     if (state.routeCache.has(key)) return state.routeCache.get(key);
     const coords = points.map((point) => `${point.lon},${point.lat}`).join(";");
-    const response = await F(`https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson&steps=false`);
+    const response = await F(
+      `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson&steps=false`,
+    );
     const data = await response.json();
     if (!response.ok || !data.routes?.[0]) throw new Error("OSRM route unavailable");
     const route = {
@@ -334,7 +355,13 @@ function boot() {
       const source = nearestGraphNode(state.graph, points[index]);
       const target = nearestGraphNode(state.graph, points[index + 1]);
       if (!source?.nodeId || !target?.nodeId) continue;
-      const path = reconstructGraphPath(state.graph, source.nodeId, target.nodeId, scenario, "time");
+      const path = reconstructGraphPath(
+        state.graph,
+        source.nodeId,
+        target.nodeId,
+        scenario,
+        "time",
+      );
       if (!path) continue;
       const leg = path.coordinates.map((point) => [point.lat, point.lon]);
       if (coords.length && leg.length) leg.shift();
@@ -353,7 +380,11 @@ function boot() {
       opacity: 0.74,
       dashArray: "9 6",
       className: "geo4__fleet-route",
-    }).bindTooltip(`${hubName}<br>${names}<br>${count}× trip · ${route.km.toFixed(1)} km · ${route.minutes.toFixed(0)} min`).addTo(state.map);
+    })
+      .bindTooltip(
+        `${hubName}<br>${names}<br>${count}× trip · ${route.km.toFixed(1)} km · ${route.minutes.toFixed(0)} min`,
+      )
+      .addTo(state.map);
     state.layers.push(layer);
   }
 
@@ -369,9 +400,18 @@ function boot() {
     status.textContent = copy.running;
     status.className = "geo4__fleet-status";
     try {
-      const capacity = Math.max(1, Number(D.getElementById("geo4-vehicle-capacity")?.value || 1));
-      const fleet = Math.max(0, Number(D.getElementById("geo4-fleet-out")?.textContent || 0));
-      const tripsPerVehicle = Math.max(0, Number(D.getElementById("geo4-trips")?.value || 0));
+      const capacity = Math.max(
+        1,
+        Number(D.getElementById("geo4-vehicle-capacity")?.value || 1),
+      );
+      const fleet = Math.max(
+        0,
+        Number(D.getElementById("geo4-fleet-out")?.textContent || 0),
+      );
+      const tripsPerVehicle = Math.max(
+        0,
+        Number(D.getElementById("geo4-trips")?.value || 0),
+      );
       const groups = new Map();
       for (const assignment of assignments) {
         if (!groups.has(assignment.hub)) groups.set(assignment.hub, new Map());
@@ -388,11 +428,16 @@ function boot() {
       let groupIndex = 0;
       for (const [hubName, demandMap] of groups) {
         const deliveries = [...demandMap.values()];
-        const points = [deliveries[0].hubPoint, ...deliveries.map((item) => item.demandPoint)];
-        const matrixData = currentMatrix(points) || await osrmMatrix(points);
+        const points = [
+          deliveries[0].hubPoint,
+          ...deliveries.map((item) => item.demandPoint),
+        ];
+        const matrixData = currentMatrix(points) || (await osrmMatrix(points));
         const tsp = exactTsp(matrixData.matrix);
         const trips = splitByCapacity(tsp.order, deliveries, capacity);
-        const indexByDemand = new Map(deliveries.map((item, index) => [item.demand, index + 1]));
+        const indexByDemand = new Map(
+          deliveries.map((item, index) => [item.demand, index + 1]),
+        );
         const signatures = new Map();
         let hubKm = 0;
         let hubMinutes = 0;
@@ -403,11 +448,20 @@ function boot() {
             signatures.set(key, {
               names,
               count: 0,
-              points: [deliveries[0].hubPoint, ...trip.map((stop) => stop.demandPoint), deliveries[0].hubPoint],
+              points: [
+                deliveries[0].hubPoint,
+                ...trip.map((stop) => stop.demandPoint),
+                deliveries[0].hubPoint,
+              ],
             });
           }
           signatures.get(key).count += 1;
-          const metrics = tripMatrixMetrics(trip, indexByDemand, matrixData.matrix, matrixData.distance);
+          const metrics = tripMatrixMetrics(
+            trip,
+            indexByDemand,
+            matrixData.matrix,
+            matrixData.distance,
+          );
           hubMinutes += metrics.minutes;
           hubKm += metrics.km;
         }
@@ -416,13 +470,24 @@ function boot() {
           const route = matrixData.scenario
             ? graphGeometry(entry.points, matrixData.scenario)
             : await osrmGeometry(entry.points);
-          renderRoute(route, hubName, entry.names, entry.count, groupIndex % 2 ? "#ffcc66" : "#ffb85c");
+          renderRoute(
+            route,
+            hubName,
+            entry.names,
+            entry.count,
+            groupIndex % 2 ? "#ffcc66" : "#ffb85c",
+          );
           if (!matrixData.distance) hubKm += route.km * entry.count;
         }
         totalTrips += trips.length;
         totalKm += hubKm;
         totalMinutes += hubMinutes;
-        summaries.push({ hubName, trips: trips.length, method: tsp.method, objective: tsp.cost });
+        summaries.push({
+          hubName,
+          trips: trips.length,
+          method: tsp.method,
+          objective: tsp.cost,
+        });
         groupIndex += 1;
       }
 
@@ -434,7 +499,12 @@ function boot() {
       outputs.time.textContent = `${(totalMinutes / 60).toFixed(1)} h`;
       status.textContent = `${copy.ready}. ${feasible ? copy.feasible : copy.infeasible}.`;
       status.className = `geo4__fleet-status ${feasible ? "ok" : "bad"}`;
-      list.innerHTML = summaries.map((item) => `<div><strong>${item.hubName}</strong>${item.trips} trips · ${item.method === "exact" ? copy.exact : copy.heuristic} · ${item.objective.toFixed(0)} min road-tour objective</div>`).join("");
+      list.innerHTML = summaries
+        .map(
+          (item) =>
+            `<div><strong>${item.hubName}</strong>${item.trips} trips · ${item.method === "exact" ? copy.exact : copy.heuristic} · ${item.objective.toFixed(0)} min road-tour objective</div>`,
+        )
+        .join("");
     } catch (error) {
       globalThis.console?.warn("[Fleet planner]", error);
       status.textContent = copy.unavailable;
@@ -445,7 +515,14 @@ function boot() {
   }
 
   button.addEventListener("click", build);
-  for (const id of ["geo4-run", "geo4-reset", "geo4-engine", "geo4-road-mode", "geo4-vehicle-capacity", "geo4-trips"]) {
+  for (const id of [
+    "geo4-run",
+    "geo4-reset",
+    "geo4-engine",
+    "geo4-road-mode",
+    "geo4-vehicle-capacity",
+    "geo4-trips",
+  ]) {
     const element = D.getElementById(id);
     element?.addEventListener("click", clearLayers);
     element?.addEventListener("change", clearLayers);

@@ -19,12 +19,12 @@ function boot() {
     ? {
         label: "提前期标准差（天）",
         formula: "联合提前期需求标准差",
-        note: "按 709 的随机提前期逻辑，将需求波动与提前期波动合并后再计算安全库存、ROP 与缺货风险。",
+        note: "将需求波动与提前期波动合并后，再计算安全库存、ROP 与缺货风险。",
       }
     : {
         label: "Lead-time SD (days)",
         formula: "Combined lead-time demand SD",
-        note: "BUSINFO 709 logic combines demand variability and lead-time variability before safety stock, ROP and stockout risk are calculated.",
+        note: "Demand variability and lead-time variability are combined before safety stock, ROP and stockout risk are calculated.",
       };
 
   // V4 reads #geo4-inv-sd dynamically. Keep the visible course input as the
@@ -66,9 +66,7 @@ function boot() {
     const sigmaD = Math.max(0, Number(baseSd.value) || 0);
     const averageLead = Math.max(0.000001, Number(lead.value) || 0.000001);
     const sigmaL = Math.max(0, Number(leadSd.value) || 0);
-    const combinedSd = Math.sqrt(
-      averageLead * sigmaD ** 2 + mu ** 2 * sigmaL ** 2,
-    );
+    const combinedSd = Math.sqrt(averageLead * sigmaD ** 2 + mu ** 2 * sigmaL ** 2);
     // The existing policy computes sigma_eff * sqrt(L). This equivalent
     // sigma_eff makes that term exactly equal to the 709 combined SD.
     const effectiveSd = combinedSd / Math.sqrt(averageLead);
@@ -78,7 +76,9 @@ function boot() {
     root.dataset.leadTimeVariability = sigmaL > 0 ? "variable" : "fixed";
   }
 
-  [mean, baseSd, lead, leadSd].forEach((input) => input.addEventListener("input", sync));
+  [mean, baseSd, lead, leadSd].forEach((input) =>
+    input.addEventListener("input", sync),
+  );
   D.getElementById("geo4-reset")?.addEventListener("click", () => {
     mean.value = "120";
     baseSd.value = "25";

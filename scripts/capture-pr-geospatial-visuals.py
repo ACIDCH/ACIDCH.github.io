@@ -231,15 +231,28 @@ def capture_desktop(browser: object) -> None:
     browser.require(".geo4__console")
     browser.require(".geo4__results")
     browser.require("#geo4-layer")
-    browser.wait_for_text(".geo4__identity", "基于地理空间的供应链优化")
+    browser.wait_for_selector("#geo4-map .leaflet-map-pane")
 
-    # The screenshot is taken after the one-time capacity-buffer synchronisation,
-    # so it represents the actual first result a desktop user should see.
+    # Exercise initial-baseline parity plus a full infeasible -> feasible -> A/B compare -> reset cycle
+    # before any external GIS request is made.
     browser.wait_for_text("#geo4-status", "当前情景已完成重新优化", timeout=12)
+    assert_state_cycle(browser)
+
+    # Initialise real geocoded points through the same explicit user action exposed by the UI.
+    # This keeps the production page idle on first load while giving the visual proof real geometry.
+    browser.click("#geo4-init")
+    browser.wait_for_text("#geo4-graph-status", "GIS 点位已加载并缓存。", timeout=35)
+    browser.require(".geo4-demand-node")
     browser.screenshot("geospatial-baseline-desktop.png")
 
-    # Exercise initial-baseline parity plus a full infeasible -> feasible -> A/B compare -> reset cycle.
-    assert_state_cycle(browser)
+    set_select(browser, "#geo4-layer", "coverage")
+    browser.require(".geo4-coverage-pulse")
+    browser.require(".geo4-demand-node.is-covered")
+    browser.screenshot("geospatial-coverage-layer-desktop.png")
+
+    set_select(browser, "#geo4-layer", "flow")
+    browser.wait_for_text(".geo4__layer-chip", "货物流")
+    browser.screenshot("geospatial-flow-layer-desktop.png")
 
     # Verify the advanced analysis-layer visual state is interactive and mounted.
     set_select(browser, "#geo4-layer", "risk")
@@ -303,7 +316,7 @@ def main() -> None:
         server.shutdown()
         server.server_close()
 
-    expected = 3
+    expected = 5
     actual = len(list(OUTPUT.glob("*.png")))
     if actual != expected:
         raise RuntimeError(f"Expected {expected} desktop geospatial visual proofs, generated {actual}.")

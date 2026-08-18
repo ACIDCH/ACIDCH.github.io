@@ -5,14 +5,12 @@ import Pagination from "../../../components/Pagination.astro";
 import ProjectList from "../../../components/ProjectList.astro";
 import BaseLayout from "../../../layouts/BaseLayout.astro";
 import { getPaginationPath, paginate } from "../../../utils/pagination";
+import { sortProjects } from "../../../utils/projects";
 
-const projects = (await getCollection("projects"))
-  .filter((entry) => entry.data.locale === "zh")
-  .sort(
-    (left, right) =>
-      Number(right.data.featured) - Number(left.data.featured) ||
-      left.data.title.localeCompare(right.data.title, "zh-CN"),
-  );
+const projects = sortProjects(
+  (await getCollection("projects")).filter((entry) => entry.data.locale === "zh"),
+  "zh",
+);
 const page = paginate(projects, 1, 6);
 ---
 

@@ -26,7 +26,8 @@ function boot() {
         pending: "请求中",
         ok: "正常",
         degraded: "降级",
-        policy: "仅由用户操作触发；不做后台轮询。失败时保留课程 OD 基线或现有结果。",
+        policy:
+          "仅由用户操作触发；不做后台轮询。服务不可用时保留快速 OD 网络或现有结果。",
       }
     : {
         title: "External GIS services",
@@ -34,7 +35,8 @@ function boot() {
         pending: "Requesting",
         ok: "Healthy",
         degraded: "Degraded",
-        policy: "User-triggered only; no background polling. Failures preserve the course OD baseline or existing result.",
+        policy:
+          "User-triggered only; no background polling. Service failures preserve the Fast OD Network or the existing result.",
       };
 
   const style = D.createElement("style");
@@ -72,7 +74,9 @@ function boot() {
     chip.dataset.state = state.state;
     const detail = chip.querySelector("small");
     const label = copy[state.state] || copy.idle;
-    const latency = Number.isFinite(state.latencyMs) ? ` · ${Math.round(state.latencyMs)} ms` : "";
+    const latency = Number.isFinite(state.latencyMs)
+      ? ` · ${Math.round(state.latencyMs)} ms`
+      : "";
     const status = Number.isFinite(state.status) ? ` · HTTP ${state.status}` : "";
     detail.textContent = `${label}${status}${latency}`;
     root.dataset[`service${service[0].toUpperCase()}${service.slice(1)}`] = state.state;
@@ -87,7 +91,11 @@ function boot() {
   function runtimeOverrides() {
     const stored = (() => {
       try {
-        return JSON.parse(globalThis.localStorage?.getItem("acidch-gis-endpoints") || "{}") || {};
+        return (
+          JSON.parse(
+            globalThis.localStorage?.getItem("acidch-gis-endpoints") || "{}",
+          ) || {}
+        );
       } catch {
         return {};
       }
@@ -99,7 +107,11 @@ function boot() {
   }
 
   const originalFetch = globalThis.fetch;
-  if (typeof originalFetch !== "function" || originalFetch.__acidchServiceResilienceWrapped) return;
+  if (
+    typeof originalFetch !== "function" ||
+    originalFetch.__acidchServiceResilienceWrapped
+  )
+    return;
 
   const wrappedFetch = async (input, init = {}) => {
     const sourceUrl = typeof input === "string" ? input : input?.url || "";
@@ -109,19 +121,27 @@ function boot() {
     const rewritten = rewriteServiceUrl(sourceUrl, runtimeOverrides());
     const timeoutMs = timeoutForService(service);
     const controller = new globalThis.AbortController();
-    const inheritedSignal = init?.signal || (typeof input !== "string" ? input?.signal : null);
+    const inheritedSignal =
+      init?.signal || (typeof input !== "string" ? input?.signal : null);
     const inheritedAbort = () => controller.abort(inheritedSignal?.reason);
     if (inheritedSignal?.aborted) inheritedAbort();
     else inheritedSignal?.addEventListener?.("abort", inheritedAbort, { once: true });
     const timer = globalThis.setTimeout(
-      () => controller.abort(new globalThis.DOMException("GIS service timeout", "TimeoutError")),
+      () =>
+        controller.abort(
+          new globalThis.DOMException("GIS service timeout", "TimeoutError"),
+        ),
       timeoutMs,
     );
     const started = globalThis.performance?.now?.() || Date.now();
     update(service, { state: "pending", latencyMs: null, status: null });
 
     let requestInput = rewritten;
-    if (typeof input !== "string" && globalThis.Request && input instanceof globalThis.Request) {
+    if (
+      typeof input !== "string" &&
+      globalThis.Request &&
+      input instanceof globalThis.Request
+    ) {
       requestInput = new globalThis.Request(rewritten, input);
     }
 
@@ -136,7 +156,9 @@ function boot() {
         latencyMs: ended - started,
         status: response.status,
       });
-      return service === "overpass" && response.ok ? shareJsonResponse(response) : response;
+      return service === "overpass" && response.ok
+        ? shareJsonResponse(response)
+        : response;
     } catch (error) {
       const ended = globalThis.performance?.now?.() || Date.now();
       update(service, {

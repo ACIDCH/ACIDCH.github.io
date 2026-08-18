@@ -5,11 +5,11 @@ interface Props {
 
 const { locale = "zh" } = Astro.props;
 const zh = locale === "zh";
+const pageTitle = zh
+  ? "基于地理空间的供应链优化"
+  : "Geospatial Supply Chain Optimisation";
 const c = zh
   ? {
-      title: "基于地理空间的供应链优化",
-      subtitle: "Auckland / Geospatial Supply Chain Decision Sandbox",
-      intro: "功能完整性优先：设施、车队、库存、真实地址、路网扰动、容量分配、Monte Carlo 与 A/B 情景比较统一在同一个决策层。",
       scenario: "情景与计算引擎",
       road: "路网不确定性",
       facility: "设施与覆盖",
@@ -25,8 +25,8 @@ const c = zh
       run: "运行优化",
       routes: "加载当前最优路径",
       reset: "恢复基线",
-      graphCourse: "课程 OD 矩阵",
-      graphOsm: "OSM edge-level 图",
+      graphFast: "快速 OD 网络",
+      graphOsm: "OSM 实时路网",
       baseline: "基线",
       congestion: "交通拥堵",
       closure: "临时封路",
@@ -77,7 +77,10 @@ const c = zh
       risk: "风险",
       hubs: "开启设施",
       coverageRate: "覆盖率",
-      avgNetwork: "平均网络成本",
+      avgDistance: "平均配送距离",
+      avgTime: "平均行程时间",
+      transportCostKpi: "运输成本",
+      baselineDelta: "较基线",
       fleetCoverage: "车队运力",
       safetyStock: "安全库存",
       rop: "再订货点",
@@ -89,13 +92,12 @@ const c = zh
       failureRate: "不可行概率",
       stockout: "缺货概率",
       stability: "设施选择稳定性",
-      facilityRoleNote: "当前模型中 Factory 与 Warehouse 都是可选服务设施角色；本版本不声称已经建立两级 Factory → Warehouse → Demand 网络。",
-      simulationNote: "课程 OD 模式支持 50–1000 次快速模拟；OSM edge-level 模式使用 5–25 次受控模拟，避免浏览器长时间阻塞。",
+      facilityRoleNote:
+        "设施分配与两级转运分别求解：主模型负责 Facility → Demand，Transshipment 模块负责 Factory → Warehouse → Demand，并共享当前道路情景。",
+      simulationNote:
+        "快速 OD 模式支持 50–1000 次模拟；OSM 路网模式使用较小运行批次以保持浏览器交互流畅。",
     }
   : {
-      title: "Geospatial Supply Chain Optimisation",
-      subtitle: "Auckland / Geospatial Supply Chain Decision Sandbox",
-      intro: "Functional completeness first: facilities, fleet, inventory, real addresses, network disruption, capacitated allocation, Monte Carlo and A/B comparison share one decision layer.",
       scenario: "Scenario & engine",
       road: "Road uncertainty",
       facility: "Facilities & coverage",
@@ -111,8 +113,8 @@ const c = zh
       run: "Run optimisation",
       routes: "Load current optimal paths",
       reset: "Reset baseline",
-      graphCourse: "Course OD matrix",
-      graphOsm: "OSM edge-level graph",
+      graphFast: "Fast OD Network",
+      graphOsm: "OSM Road Network",
       baseline: "Baseline",
       congestion: "Traffic congestion",
       closure: "Temporary closure",
@@ -163,7 +165,10 @@ const c = zh
       risk: "Risk",
       hubs: "Open facilities",
       coverageRate: "Coverage",
-      avgNetwork: "Average network cost",
+      avgDistance: "Average delivery distance",
+      avgTime: "Average travel time",
+      transportCostKpi: "Transport cost",
+      baselineDelta: "vs baseline",
       fleetCoverage: "Fleet capacity",
       safetyStock: "Safety stock",
       rop: "Reorder point",
@@ -175,107 +180,361 @@ const c = zh
       failureRate: "Infeasibility rate",
       stockout: "Stockout probability",
       stability: "Facility selection stability",
-      facilityRoleNote: "Factory and Warehouse are selectable service-facility roles in the current model; this version does not claim a two-echelon Factory → Warehouse → Demand network.",
-      simulationNote: "Course OD mode supports 50–1000 fast runs; OSM edge-level mode uses 5–25 controlled runs to avoid long browser blocking.",
+      facilityRoleNote:
+        "Facility allocation and two-echelon transshipment are solved separately: the main model handles Facility → Demand, while the Transshipment module handles Factory → Warehouse → Demand under the same road scenario.",
+      simulationNote:
+        "Fast OD mode supports 50–1000 runs; OSM Road Network mode uses smaller batches to keep browser interaction responsive.",
     };
 ---
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  crossorigin=""
+/>
 
 <section id="geo-v4" class="geo4" data-locale={locale}>
+  <h1 class="geo4__sr-only">{pageTitle}</h1>
   <div class="geo4__shell">
     <div id="geo4-map" aria-label="Auckland geospatial supply chain decision map"></div>
-
-    <header class="geo4__identity">
-      <span>{c.subtitle}</span>
-      <h1>{c.title}</h1>
-      <p>{c.intro}</p>
-    </header>
 
     <div class="geo4__legend" aria-hidden="true">
       <span><i class="facility"></i> Facility</span>
       <span><i class="demand"></i> Demand</span>
       <span><i class="allocation"></i> Allocation</span>
       <span><i class="route"></i> Optimal path</span>
+      <span class="coverage-only"><i class="covered"></i> Covered</span>
+      <span class="coverage-only"><i class="redundant"></i> 2×+ coverage</span>
     </div>
 
     <aside class="geo4__console" aria-label="Scenario console">
       <div class="geo4__scroll">
         <section class="geo4__block">
-          <div class="geo4__block-title"><span>01</span><strong>{c.scenario}</strong></div>
-          <label class="geo4__field"><span>Objective</span><select id="geo4-objective"><option value="minHubs">{c.minHubs}</option><option value="minCost">{c.minCost}</option></select></label>
-          <label class="geo4__field"><span>Network engine</span><select id="geo4-engine"><option value="od">{c.graphCourse}</option><option value="osm">{c.graphOsm}</option></select></label>
-          <div class="geo4__buttons"><button id="geo4-init" type="button" class="secondary">{c.initialise}</button><button id="geo4-load-graph" type="button" class="secondary">{c.loadGraph}</button></div>
+          <div class="geo4__block-title">
+            <span>01</span><strong>{c.scenario}</strong>
+          </div>
+          <label class="geo4__field"
+            ><span>Objective</span><select id="geo4-objective"
+              ><option value="minHubs">{c.minHubs}</option><option value="minCost"
+                >{c.minCost}</option
+              ></select
+            ></label
+          >
+          <label class="geo4__field"
+            ><span>Network engine</span><select id="geo4-engine"
+              ><option value="od">{c.graphFast}</option><option value="osm"
+                >{c.graphOsm}</option
+              ></select
+            ></label
+          >
+          <div class="geo4__buttons">
+            <button id="geo4-init" type="button" class="secondary"
+              >{c.initialise}</button
+            ><button id="geo4-load-graph" type="button" class="secondary"
+              >{c.loadGraph}</button
+            >
+          </div>
           <p id="geo4-graph-status" class="geo4__micro">—</p>
         </section>
 
         <section class="geo4__block">
           <div class="geo4__block-title"><span>02</span><strong>{c.road}</strong></div>
-          <label class="geo4__field"><span>Scenario</span><select id="geo4-road-mode"><option value="baseline">{c.baseline}</option><option value="congestion">{c.congestion}</option><option value="closure">{c.closure}</option><option value="newroad">{c.newRoad}</option><option value="mixed">{c.mixed}</option></select></label>
-          <label class="geo4__range"><span>{c.congestion}</span><output id="geo4-congestion-out">35%</output><input id="geo4-congestion" type="range" min="0" max="100" step="5" value="35" /></label>
-          <label class="geo4__range"><span>Congested edges / OD pairs</span><output id="geo4-congestion-share-out">35%</output><input id="geo4-congestion-share" type="range" min="0" max="100" step="5" value="35" /></label>
-          <label class="geo4__range"><span>{c.closure}</span><output id="geo4-closure-out">1%</output><input id="geo4-closure" type="range" min="0" max="15" step="0.5" value="1" /></label>
-          <div class="geo4__step-row"><span>Hypothetical new links</span><div class="geo4__stepper"><button type="button" data-step="newRoads" data-delta="-1">−</button><output id="geo4-new-roads-out">4</output><button type="button" data-step="newRoads" data-delta="1">+</button></div></div>
-          <label class="geo4__field inline"><span>Random seed</span><input id="geo4-seed" type="number" value="708709" /></label>
+          <label class="geo4__field"
+            ><span>Scenario</span><select id="geo4-road-mode"
+              ><option value="baseline">{c.baseline}</option><option value="congestion"
+                >{c.congestion}</option
+              ><option value="closure">{c.closure}</option><option value="newroad"
+                >{c.newRoad}</option
+              ><option value="mixed">{c.mixed}</option></select
+            ></label
+          >
+          <label class="geo4__range"
+            ><span>{c.congestion}</span><output id="geo4-congestion-out">35%</output
+            ><input
+              id="geo4-congestion"
+              type="range"
+              min="0"
+              max="100"
+              step="5"
+              value="35"
+            /></label
+          >
+          <label class="geo4__range"
+            ><span>Congested edges / OD pairs</span><output
+              id="geo4-congestion-share-out">35%</output
+            ><input
+              id="geo4-congestion-share"
+              type="range"
+              min="0"
+              max="100"
+              step="5"
+              value="35"
+            /></label
+          >
+          <label class="geo4__range"
+            ><span>{c.closure}</span><output id="geo4-closure-out">1%</output><input
+              id="geo4-closure"
+              type="range"
+              min="0"
+              max="15"
+              step="0.5"
+              value="1"
+            /></label
+          >
+          <div class="geo4__step-row">
+            <span>Hypothetical new links</span><div class="geo4__stepper">
+              <button type="button" data-step="newRoads" data-delta="-1">−</button
+              ><output id="geo4-new-roads-out">4</output><button
+                type="button"
+                data-step="newRoads"
+                data-delta="1">+</button
+              >
+            </div>
+          </div>
+          <label class="geo4__field inline"
+            ><span>Random seed</span><input
+              id="geo4-seed"
+              type="number"
+              value="708709"
+            /></label
+          >
         </section>
 
         <section class="geo4__block">
-          <div class="geo4__block-title"><span>03</span><strong>{c.facility}</strong></div>
-          <label class="geo4__range"><span>{c.threshold}</span><output id="geo4-threshold-out">6.0 km</output><input id="geo4-threshold" type="range" min="3" max="15" step="0.5" value="6" /></label>
-          <label class="geo4__field"><span>{c.redundancy}</span><select id="geo4-redundancy"><option value="1">1×</option><option value="2">2×</option></select></label>
-          <div class="geo4__step-row"><span>{c.maxOpen}</span><div class="geo4__stepper"><button type="button" data-step="maxOpen" data-delta="-1">−</button><output id="geo4-max-open-out">4</output><button type="button" data-step="maxOpen" data-delta="1">+</button></div></div>
-          <label class="geo4__field inline"><span>{c.capacity}</span><input id="geo4-facility-capacity" type="number" min="100" step="100" value="6000" /></label>
-          <label class="geo4__field inline"><span>{c.fixedCost}</span><input id="geo4-fixed-cost" type="number" min="0" step="10000" value="350000" /></label>
-          <label class="geo4__check"><input id="geo4-enforce-fleet" type="checkbox" checked /><span>{c.enforceFleet}</span></label>
-          <div class="geo4__subhead"><span>{c.policy}</span><strong id="geo4-facility-count">6</strong></div>
+          <div class="geo4__block-title">
+            <span>03</span><strong>{c.facility}</strong>
+          </div>
+          <label class="geo4__range"
+            ><span>{c.threshold}</span><output id="geo4-threshold-out">6.0 km</output
+            ><input
+              id="geo4-threshold"
+              type="range"
+              min="3"
+              max="15"
+              step="0.5"
+              value="6"
+            /></label
+          >
+          <label class="geo4__field"
+            ><span>{c.redundancy}</span><select id="geo4-redundancy"
+              ><option value="1">1×</option><option value="2">2×</option></select
+            ></label
+          >
+          <div class="geo4__step-row">
+            <span>{c.maxOpen}</span><div class="geo4__stepper">
+              <button type="button" data-step="maxOpen" data-delta="-1">−</button
+              ><output id="geo4-max-open-out">4</output><button
+                type="button"
+                data-step="maxOpen"
+                data-delta="1">+</button
+              >
+            </div>
+          </div>
+          <label class="geo4__field inline"
+            ><span>{c.capacity}</span><input
+              id="geo4-facility-capacity"
+              type="number"
+              min="100"
+              step="100"
+              value="6000"
+            /></label
+          >
+          <label class="geo4__field inline"
+            ><span>{c.fixedCost}</span><input
+              id="geo4-fixed-cost"
+              type="number"
+              min="0"
+              step="10000"
+              value="350000"
+            /></label
+          >
+          <label class="geo4__check"
+            ><input id="geo4-enforce-fleet" type="checkbox" checked /><span
+              >{c.enforceFleet}</span
+            ></label
+          >
+          <div class="geo4__subhead">
+            <span>{c.policy}</span><strong id="geo4-facility-count">6</strong>
+          </div>
           <div id="geo4-policy-list" class="geo4__list"></div>
         </section>
 
         <section class="geo4__block">
           <div class="geo4__block-title"><span>04</span><strong>{c.fleet}</strong></div>
-          <div class="geo4__step-row"><span>{c.fleetSize}</span><div class="geo4__stepper"><button type="button" data-step="fleet" data-delta="-1">−</button><output id="geo4-fleet-out">20</output><button type="button" data-step="fleet" data-delta="1">+</button></div></div>
-          <label class="geo4__field inline"><span>{c.vehicleCapacity}</span><input id="geo4-vehicle-capacity" type="number" min="1" value="120" /></label>
-          <label class="geo4__field inline"><span>{c.trips}</span><input id="geo4-trips" type="number" min="1" value="5" /></label>
-          <label class="geo4__field inline"><span>{c.transportCost}</span><input id="geo4-transport-cost" type="number" min="0" step="0.01" value="0.72" /></label>
-          <label class="geo4__range"><span>{c.demandMultiplier}</span><output id="geo4-demand-multiplier-out">1.00×</output><input id="geo4-demand-multiplier" type="range" min="0.5" max="1.8" step="0.05" value="1" /></label>
+          <div class="geo4__step-row">
+            <span>{c.fleetSize}</span><div class="geo4__stepper">
+              <button type="button" data-step="fleet" data-delta="-1">−</button><output
+                id="geo4-fleet-out">20</output
+              ><button type="button" data-step="fleet" data-delta="1">+</button>
+            </div>
+          </div>
+          <label class="geo4__field inline"
+            ><span>{c.vehicleCapacity}</span><input
+              id="geo4-vehicle-capacity"
+              type="number"
+              min="1"
+              value="120"
+            /></label
+          >
+          <label class="geo4__field inline"
+            ><span>{c.trips}</span><input
+              id="geo4-trips"
+              type="number"
+              min="1"
+              value="5"
+            /></label
+          >
+          <label class="geo4__field inline"
+            ><span>{c.transportCost}</span><input
+              id="geo4-transport-cost"
+              type="number"
+              min="0"
+              step="0.01"
+              value="0.72"
+            /></label
+          >
+          <label class="geo4__range"
+            ><span>{c.demandMultiplier}</span><output id="geo4-demand-multiplier-out"
+              >1.00×</output
+            ><input
+              id="geo4-demand-multiplier"
+              type="range"
+              min="0.5"
+              max="1.8"
+              step="0.05"
+              value="1"
+            /></label
+          >
         </section>
 
         <section class="geo4__block">
-          <div class="geo4__block-title"><span>05</span><strong>{c.inventory}</strong></div>
-          <label class="geo4__field inline"><span>{c.meanDemand}</span><input id="geo4-inv-mean" type="number" min="0" value="120" /></label>
-          <label class="geo4__field inline"><span>{c.demandSd}</span><input id="geo4-inv-sd" type="number" min="0" value="25" /></label>
-          <label class="geo4__field inline"><span>{c.leadTime}</span><input id="geo4-lead-time" type="number" min="0.1" step="0.1" value="2" /></label>
-          <label class="geo4__field"><span>{c.service}</span><select id="geo4-service"><option value="1.282">90%</option><option value="1.645" selected>95%</option><option value="1.960">97.5%</option><option value="2.326">99%</option></select></label>
-          <label class="geo4__field inline"><span>{c.holdingCost}</span><input id="geo4-holding-cost" type="number" min="0" step="0.1" value="1" /></label>
+          <div class="geo4__block-title">
+            <span>05</span><strong>{c.inventory}</strong>
+          </div>
+          <label class="geo4__field inline"
+            ><span>{c.meanDemand}</span><input
+              id="geo4-inv-mean"
+              type="number"
+              min="0"
+              value="120"
+            /></label
+          >
+          <label class="geo4__field inline"
+            ><span>{c.demandSd}</span><input
+              id="geo4-inv-sd"
+              type="number"
+              min="0"
+              value="25"
+            /></label
+          >
+          <label class="geo4__field inline"
+            ><span>{c.leadTime}</span><input
+              id="geo4-lead-time"
+              type="number"
+              min="0.1"
+              step="0.1"
+              value="2"
+            /></label
+          >
+          <label class="geo4__field"
+            ><span>{c.service}</span><select id="geo4-service"
+              ><option value="1.282">90%</option><option value="1.645" selected
+                >95%</option
+              ><option value="1.960">97.5%</option><option value="2.326">99%</option
+              ></select
+            ></label
+          >
+          <label class="geo4__field inline"
+            ><span>{c.holdingCost}</span><input
+              id="geo4-holding-cost"
+              type="number"
+              min="0"
+              step="0.1"
+              value="1"
+            /></label
+          >
         </section>
 
         <section class="geo4__block">
-          <div class="geo4__block-title"><span>06</span><strong>{c.editor}</strong></div>
-          <label class="geo4__field"><span>{c.role}</span><select id="geo4-role"><option value="warehouse">{c.warehouse}</option><option value="factory">{c.factory}</option><option value="demand">{c.demand}</option></select></label>
-          <label class="geo4__field"><span>{c.address}</span><input id="geo4-address" type="text" placeholder="20 Symonds Street, Auckland" /></label>
-          <label class="geo4__field inline"><span>{c.demandQty}</span><input id="geo4-demand-qty" type="number" min="0" value="500" /></label>
-          <div class="geo4__buttons"><button id="geo4-add-address" type="button" class="secondary">{c.addAddress}</button><button id="geo4-map-add" type="button" class="ghost">{c.mapAdd}</button></div>
+          <div class="geo4__block-title">
+            <span>06</span><strong>{c.editor}</strong>
+          </div>
+          <label class="geo4__field"
+            ><span>{c.role}</span><select id="geo4-role"
+              ><option value="warehouse">{c.warehouse}</option><option value="factory"
+                >{c.factory}</option
+              ><option value="demand">{c.demand}</option></select
+            ></label
+          >
+          <label class="geo4__field"
+            ><span>{c.address}</span><input
+              id="geo4-address"
+              type="text"
+              placeholder="20 Symonds Street, Auckland"
+            /></label
+          >
+          <label class="geo4__field inline"
+            ><span>{c.demandQty}</span><input
+              id="geo4-demand-qty"
+              type="number"
+              min="0"
+              value="500"
+            /></label
+          >
+          <div class="geo4__buttons">
+            <button id="geo4-add-address" type="button" class="secondary"
+              >{c.addAddress}</button
+            ><button id="geo4-map-add" type="button" class="ghost">{c.mapAdd}</button>
+          </div>
           <p class="geo4__micro">{c.facilityRoleNote}</p>
-          <div class="geo4__subhead"><span>{c.custom}</span><strong id="geo4-custom-count">0</strong></div>
+          <div class="geo4__subhead">
+            <span>{c.custom}</span><strong id="geo4-custom-count">0</strong>
+          </div>
           <div id="geo4-custom-list" class="geo4__list"></div>
         </section>
 
         <section class="geo4__block">
-          <div class="geo4__block-title"><span>07</span><strong>{c.simulation}</strong></div>
-          <label class="geo4__field"><span>{c.runs}</span><select id="geo4-runs"></select></label>
-          <button id="geo4-simulate" type="button" class="secondary full">{c.runSimulation}</button>
+          <div class="geo4__block-title">
+            <span>07</span><strong>{c.simulation}</strong>
+          </div>
+          <label class="geo4__field"
+            ><span>{c.runs}</span><select id="geo4-runs"></select></label
+          >
+          <button id="geo4-simulate" type="button" class="secondary full"
+            >{c.runSimulation}</button
+          >
           <p class="geo4__micro">{c.simulationNote}</p>
         </section>
 
         <section class="geo4__block">
-          <div class="geo4__block-title"><span>08</span><strong>{c.compare}</strong></div>
-          <div class="geo4__buttons three"><button id="geo4-save-a" type="button" class="ghost">{c.saveA}</button><button id="geo4-save-b" type="button" class="ghost">{c.saveB}</button><button id="geo4-compare" type="button" class="secondary">{c.compareAB}</button></div>
+          <div class="geo4__block-title">
+            <span>08</span><strong>{c.compare}</strong>
+          </div>
+          <div class="geo4__buttons three">
+            <button id="geo4-save-a" type="button" class="ghost">{c.saveA}</button
+            ><button id="geo4-save-b" type="button" class="ghost">{c.saveB}</button
+            ><button id="geo4-compare" type="button" class="secondary"
+              >{c.compareAB}</button
+            >
+          </div>
           <div id="geo4-ab" class="geo4__ab"></div>
         </section>
 
         <section class="geo4__block">
-          <div class="geo4__block-title"><span>09</span><strong>{c.layers}</strong></div>
-          <label class="geo4__field"><span>Layer</span><select id="geo4-layer"><option value="network">{c.network}</option><option value="flow">{c.flow}</option><option value="coverage">{c.coverage}</option><option value="utilisation">{c.utilisation}</option><option value="cost">{c.cost}</option><option value="inventory">{c.inventoryLayer}</option><option value="risk">{c.risk}</option></select></label>
+          <div class="geo4__block-title">
+            <span>09</span><strong>{c.layers}</strong>
+          </div>
+          <label class="geo4__field"
+            ><span>Layer</span><select id="geo4-layer"
+              ><option value="network">{c.network}</option><option value="flow"
+                >{c.flow}</option
+              ><option value="coverage">{c.coverage}</option><option value="utilisation"
+                >{c.utilisation}</option
+              ><option value="cost">{c.cost}</option><option value="inventory"
+                >{c.inventoryLayer}</option
+              ><option value="risk">{c.risk}</option></select
+            ></label
+          >
         </section>
       </div>
 
@@ -287,27 +546,50 @@ const c = zh
     </aside>
 
     <aside class="geo4__results">
-      <div class="geo4__results-head"><span>RESULT</span><strong>{c.results}</strong></div>
+      <div class="geo4__results-head">
+        <span>RESULT</span><strong>{c.results}</strong>
+      </div>
       <div class="geo4__kpis">
         <div><span>{c.hubs}</span><strong id="geo4-kpi-hubs">—</strong></div>
-        <div><span>{c.coverageRate}</span><strong id="geo4-kpi-coverage">—</strong></div>
-        <div><span>{c.avgNetwork}</span><strong id="geo4-kpi-network">—</strong></div>
+        <div>
+          <span>{c.coverageRate}</span><strong id="geo4-kpi-coverage">—</strong>
+        </div>
+        <div>
+          <span id="geo4-kpi-network-label">{c.avgDistance}</span><strong
+            id="geo4-kpi-network">—</strong
+          >
+        </div>
         <div><span>{c.fleetCoverage}</span><strong id="geo4-kpi-fleet">—</strong></div>
         <div><span>{c.safetyStock}</span><strong id="geo4-kpi-ss">—</strong></div>
         <div><span>{c.rop}</span><strong id="geo4-kpi-rop">—</strong></div>
+        <div>
+          <span>{c.transportCostKpi}</span><strong id="geo4-kpi-transport">—</strong>
+        </div>
       </div>
-      <div class="geo4__cost"><span>{c.totalCost}</span><strong id="geo4-kpi-cost">—</strong></div>
+      <div class="geo4__cost">
+        <span>{c.totalCost}</span><strong id="geo4-kpi-cost">—</strong><small
+          id="geo4-kpi-delta">{c.baselineDelta} —</small
+        >
+      </div>
       <p id="geo4-status" class="geo4__status">—</p>
       <div id="geo4-open-list" class="geo4__open-list"></div>
 
       <div id="geo4-robust" class="geo4__robust" hidden>
-        <div class="geo4__results-head"><span>MONTE CARLO</span><strong>{c.robust}</strong></div>
+        <div class="geo4__results-head">
+          <span>MONTE CARLO</span><strong>{c.robust}</strong>
+        </div>
         <div class="geo4__kpis compact">
           <div><span>{c.actualRuns}</span><strong id="geo4-mc-runs">—</strong></div>
-          <div><span>{c.expectedCost}</span><strong id="geo4-mc-expected">—</strong></div>
+          <div>
+            <span>{c.expectedCost}</span><strong id="geo4-mc-expected">—</strong>
+          </div>
           <div><span>{c.p95Cost}</span><strong id="geo4-mc-p95">—</strong></div>
           <div><span>{c.failureRate}</span><strong id="geo4-mc-failure">—</strong></div>
-          <div><span>{c.avgNetwork}</span><strong id="geo4-mc-network">—</strong></div>
+          <div>
+            <span id="geo4-mc-network-label">{c.avgDistance}</span><strong
+              id="geo4-mc-network">—</strong
+            >
+          </div>
           <div><span>{c.stockout}</span><strong id="geo4-mc-stockout">—</strong></div>
         </div>
         <div class="geo4__subhead"><span>{c.stability}</span></div>
@@ -317,11 +599,584 @@ const c = zh
   </div>
 </section>
 
-<script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""
+></script>
 <script>
   import "../scripts/geospatial-v4.js";
 </script>
 
 <style>
-  .geo4{--bg:#06131d;--panel:rgba(7,24,34,.95);--line:rgba(116,190,213,.2);--cyan:#62ecff;--acid:#d8ff6b;--pink:#ff759a;--amber:#ffcc66;--muted:#83a3b0;width:min(1720px,calc(100vw - 1rem));margin:0 auto 3rem;color:#eafaff}.geo4__shell{position:relative;min-height:900px;overflow:hidden;border:1px solid rgba(95,174,201,.28);background:var(--bg);box-shadow:0 30px 100px rgba(0,0,0,.24)}#geo4-map{position:absolute;inset:0;background:var(--bg)}.geo4__identity{position:absolute;z-index:600;top:1rem;left:1rem;width:min(470px,calc(100% - 780px));padding:1rem 1.1rem;border-left:2px solid var(--cyan);background:linear-gradient(90deg,rgba(3,16,24,.92),rgba(3,16,24,.58),transparent);pointer-events:none}.geo4__identity span,.geo4__results-head span{color:var(--cyan);font:700 .68rem/1.2 monospace;letter-spacing:.12em}.geo4__identity h1{margin:.35rem 0;color:#f2fdff;font-size:clamp(1.6rem,3vw,3rem);letter-spacing:-.035em}.geo4__identity p{margin:0;color:#8aa6b1;font-size:.78rem;line-height:1.55}.geo4__legend{position:absolute;z-index:620;left:1rem;bottom:1rem;display:flex;flex-wrap:wrap;gap:.7rem;padding:.55rem .7rem;border:1px solid var(--line);background:rgba(4,18,27,.88);color:#91acb7;font-size:.66rem;backdrop-filter:blur(12px)}.geo4__legend span{display:inline-flex;gap:.35rem;align-items:center}.geo4__legend i{width:12px;height:4px;border-radius:999px;display:inline-block}.geo4__legend .facility{height:8px;background:var(--acid)}.geo4__legend .demand{height:8px;background:var(--pink)}.geo4__legend .allocation{border-top:1px dashed var(--cyan)}.geo4__legend .route{background:var(--acid)}.geo4__console{position:absolute;z-index:700;top:.7rem;right:.7rem;width:390px;height:calc(100% - 1.4rem);display:grid;grid-template-rows:minmax(0,1fr) auto;border:1px solid var(--line);background:var(--panel);backdrop-filter:blur(14px);box-shadow:0 20px 70px rgba(0,0,0,.25)}.geo4__scroll{overflow-y:auto;scrollbar-width:thin;scrollbar-color:#2d6676 transparent}.geo4__block{padding:.85rem .9rem;border-bottom:1px solid var(--line)}.geo4__block-title{display:flex;gap:.55rem;align-items:center;margin-bottom:.65rem}.geo4__block-title span{color:var(--acid);font:700 .66rem monospace}.geo4__block-title strong{font-size:.76rem;letter-spacing:.04em}.geo4__field,.geo4__range{display:grid;gap:.35rem;margin:.58rem 0;color:var(--muted);font-size:.7rem}.geo4__field.inline{grid-template-columns:minmax(0,1fr) 120px;align-items:center}.geo4__field input,.geo4__field select{width:100%;box-sizing:border-box;border:1px solid var(--line);background:#0b202c;color:#eefcff;padding:.43rem .48rem}.geo4__range{grid-template-columns:minmax(0,1fr) auto}.geo4__range input{grid-column:1/-1;width:100%;accent-color:var(--cyan)}.geo4__range output{color:#eefcff;font-family:monospace}.geo4__check{display:flex;gap:.5rem;align-items:center;margin:.65rem 0;color:var(--muted);font-size:.7rem}.geo4__check input{accent-color:var(--cyan)}.geo4__step-row{display:flex;justify-content:space-between;gap:1rem;align-items:center;margin:.58rem 0;color:var(--muted);font-size:.7rem}.geo4__stepper{display:flex;align-items:center;border:1px solid var(--line)}.geo4__stepper button{width:30px;height:30px;border:0;background:#0b2633;color:var(--cyan);cursor:pointer}.geo4__stepper output{min-width:38px;text-align:center;color:#fff;font:.72rem monospace}.geo4 button{border:1px solid var(--line);background:rgba(15,48,62,.8);color:#e8f9fc;padding:.55rem .62rem;cursor:pointer}.geo4 button:hover:not(:disabled){border-color:rgba(98,236,255,.6)}.geo4 button.ghost{background:transparent;color:#8ba8b3}.geo4 button.is-active{border-color:var(--acid);color:var(--acid)}.geo4 button:disabled{opacity:.4;cursor:not-allowed}.geo4__buttons{display:grid;grid-template-columns:1fr 1fr;gap:.45rem}.geo4__buttons.three{grid-template-columns:1fr 1fr 1fr}.geo4__buttons .full,.geo4 button.full{width:100%}.geo4__micro{margin:.5rem 0 0;color:#6f8e9a;font-size:.64rem;line-height:1.45}.geo4__subhead{display:flex;justify-content:space-between;margin:.8rem 0 .45rem;color:#73929e;font-size:.64rem;text-transform:uppercase;letter-spacing:.08em}.geo4__list{display:grid;gap:.38rem}.geo4__policy-row,.geo4__custom-row{display:grid;grid-template-columns:minmax(0,1fr) 105px;gap:.5rem;align-items:center;padding:.48rem;border:1px solid rgba(98,236,255,.12);background:rgba(11,39,51,.5)}.geo4__policy-row strong,.geo4__policy-row small,.geo4__custom-row strong,.geo4__custom-row small{display:block}.geo4__policy-row strong,.geo4__custom-row strong{font-size:.67rem;line-height:1.25}.geo4__policy-row small,.geo4__custom-row small{margin-top:.15rem;color:#6f909d;font-size:.58rem}.geo4__policy-row select{width:100%;border:1px solid var(--line);background:#0b202c;color:#e8f9fc;padding:.35rem;font-size:.62rem}.geo4__actions{display:grid;grid-template-columns:1fr 1fr;gap:.45rem;padding:.75rem;border-top:1px solid var(--line);background:rgba(5,19,28,.98)}.geo4__actions #geo4-run{grid-column:1/-1;border-color:rgba(216,255,107,.45);background:rgba(78,98,36,.28);color:var(--acid)}.geo4__results{position:absolute;z-index:650;top:8.6rem;left:1rem;width:310px;max-height:calc(100% - 13rem);overflow-y:auto;padding:.85rem;border:1px solid var(--line);background:rgba(5,21,31,.91);backdrop-filter:blur(14px)}.geo4__results-head{display:flex;justify-content:space-between;gap:.7rem;align-items:center}.geo4__results-head strong{font-size:.74rem}.geo4__kpis{display:grid;grid-template-columns:1fr 1fr;gap:.38rem;margin-top:.65rem}.geo4__kpis>div{padding:.52rem;border:1px solid rgba(116,190,213,.15);background:rgba(9,36,48,.55)}.geo4__kpis span,.geo4__cost span{display:block;color:#7897a3;font-size:.58rem}.geo4__kpis strong{display:block;margin-top:.35rem;color:#f0fbfd;font:700 .9rem monospace}.geo4__kpis.compact strong{font-size:.76rem}.geo4__cost{margin-top:.42rem;padding:.62rem;border:1px solid rgba(216,255,107,.22);background:rgba(70,90,33,.14)}.geo4__cost strong{display:block;margin-top:.4rem;color:var(--acid);font:700 1rem monospace}.geo4__status{margin:.65rem 0 0;color:#7796a2;font-size:.65rem;line-height:1.45}.geo4__open-list{display:grid;gap:.34rem;margin-top:.65rem}.geo4__open-list>div{display:grid;grid-template-columns:28px minmax(0,1fr);gap:.45rem;padding:.42rem;border:1px solid rgba(216,255,107,.13)}.geo4__open-list>div>span{color:var(--acid);font:700 .62rem monospace}.geo4__open-list strong,.geo4__open-list small{display:block}.geo4__open-list strong{font-size:.65rem}.geo4__open-list small{margin-top:.12rem;color:#6f8e99;font-size:.56rem}.geo4__robust{margin-top:.9rem;padding-top:.8rem;border-top:1px solid var(--line)}.geo4__stability{display:grid;gap:.35rem}.geo4__stability>div{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.5rem;padding-bottom:.34rem;color:#87a3ae;font-size:.59rem}.geo4__stability i{position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,var(--acid) calc(var(--p)*100%),rgba(116,190,213,.12) 0)}.geo4__ab{display:grid;gap:.35rem;margin-top:.55rem;color:#809eaa;font-size:.62rem}.geo4__ab>div{display:flex;justify-content:space-between;gap:.5rem}.geo4__ab strong{color:#effbfd}:global(.geo4 .leaflet-control-zoom a){border-color:rgba(129,190,211,.24);background:rgba(7,24,34,.9);color:#e7f8fb}:global(.geo4 .leaflet-control-attribution){background:rgba(7,24,34,.72);color:#78929c}:global(.geo4 .leaflet-tooltip){border:1px solid rgba(98,236,255,.24);background:rgba(6,21,30,.96);color:#e9f9fb;box-shadow:none;font-size:.68rem}@media(max-width:1180px){.geo4__identity{width:min(430px,calc(100% - 410px))}.geo4__results{top:auto;bottom:4rem;width:280px;max-height:52%}}@media(max-width:820px){.geo4{width:min(100%,calc(100vw - .5rem))}.geo4__shell{min-height:1260px}.geo4__identity{top:.5rem;left:.5rem;width:calc(100% - 1rem);box-sizing:border-box}.geo4__console{top:190px;right:.5rem;left:.5rem;width:auto;height:620px}.geo4__results{top:820px;bottom:auto;left:.5rem;right:.5rem;width:auto;max-height:360px}.geo4__legend{left:.5rem;right:.5rem;bottom:.5rem}}
+  .geo4 {
+    --bg: #06131d;
+    --panel: rgba(7, 24, 34, 0.95);
+    --line: rgba(116, 190, 213, 0.2);
+    --cyan: #62ecff;
+    --acid: #d8ff6b;
+    --pink: #ff759a;
+    --amber: #ffcc66;
+    --muted: #83a3b0;
+    width: min(1720px, calc(100vw - 1rem));
+    margin: 0 auto 3rem;
+    color: #eafaff;
+  }
+  .geo4__sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  .geo4__shell {
+    position: relative;
+    min-height: 900px;
+    overflow: hidden;
+    border: 1px solid rgba(95, 174, 201, 0.28);
+    background: var(--bg);
+    box-shadow: 0 30px 100px rgba(0, 0, 0, 0.24);
+  }
+  #geo4-map {
+    position: absolute;
+    inset: 0;
+    background: var(--bg);
+  }
+  .geo4__results-head span {
+    color: var(--cyan);
+    font: 700 0.68rem/1.2 monospace;
+    letter-spacing: 0.12em;
+  }
+  .geo4__legend {
+    position: absolute;
+    z-index: 620;
+    left: 1rem;
+    bottom: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+    padding: 0.55rem 0.7rem;
+    border: 1px solid var(--line);
+    background: rgba(4, 18, 27, 0.88);
+    color: #91acb7;
+    font-size: 0.66rem;
+    backdrop-filter: blur(12px);
+  }
+  .geo4__legend span {
+    display: inline-flex;
+    gap: 0.35rem;
+    align-items: center;
+  }
+  .geo4__legend i {
+    width: 12px;
+    height: 4px;
+    border-radius: 999px;
+    display: inline-block;
+  }
+  .geo4__legend .facility {
+    height: 8px;
+    background: var(--acid);
+  }
+  .geo4__legend .demand {
+    height: 8px;
+    background: var(--pink);
+  }
+  .geo4__legend .allocation {
+    border-top: 1px dashed var(--cyan);
+  }
+  .geo4__legend .route {
+    background: var(--acid);
+  }
+  .geo4__console {
+    position: absolute;
+    z-index: 700;
+    top: 0.7rem;
+    right: 0.7rem;
+    width: 390px;
+    height: calc(100% - 1.4rem);
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    backdrop-filter: blur(14px);
+    box-shadow: 0 20px 70px rgba(0, 0, 0, 0.25);
+  }
+  .geo4__scroll {
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #2d6676 transparent;
+  }
+  .geo4__block {
+    padding: 0.85rem 0.9rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .geo4__block-title {
+    display: flex;
+    gap: 0.55rem;
+    align-items: center;
+    margin-bottom: 0.65rem;
+  }
+  .geo4__block-title span {
+    color: var(--acid);
+    font: 700 0.66rem monospace;
+  }
+  .geo4__block-title strong {
+    font-size: 0.76rem;
+    letter-spacing: 0.04em;
+  }
+  .geo4__field,
+  .geo4__range {
+    display: grid;
+    gap: 0.35rem;
+    margin: 0.58rem 0;
+    color: var(--muted);
+    font-size: 0.7rem;
+  }
+  .geo4__field.inline {
+    grid-template-columns: minmax(0, 1fr) 120px;
+    align-items: center;
+  }
+  .geo4__field input,
+  .geo4__field select {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid var(--line);
+    background: #0b202c;
+    color: #eefcff;
+    padding: 0.43rem 0.48rem;
+  }
+  .geo4__range {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .geo4__range input {
+    grid-column: 1/-1;
+    width: 100%;
+    accent-color: var(--cyan);
+  }
+  .geo4__range output {
+    color: #eefcff;
+    font-family: monospace;
+  }
+  .geo4__check {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin: 0.65rem 0;
+    color: var(--muted);
+    font-size: 0.7rem;
+  }
+  .geo4__check input {
+    accent-color: var(--cyan);
+  }
+  .geo4__step-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: center;
+    margin: 0.58rem 0;
+    color: var(--muted);
+    font-size: 0.7rem;
+  }
+  .geo4__stepper {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--line);
+  }
+  .geo4__stepper button {
+    width: 30px;
+    height: 30px;
+    border: 0;
+    background: #0b2633;
+    color: var(--cyan);
+    cursor: pointer;
+  }
+  .geo4__stepper output {
+    min-width: 38px;
+    text-align: center;
+    color: #fff;
+    font: 0.72rem monospace;
+  }
+  .geo4 button {
+    border: 1px solid var(--line);
+    background: rgba(15, 48, 62, 0.8);
+    color: #e8f9fc;
+    padding: 0.55rem 0.62rem;
+    cursor: pointer;
+  }
+  .geo4 button:hover:not(:disabled) {
+    border-color: rgba(98, 236, 255, 0.6);
+  }
+  .geo4 button.ghost {
+    background: transparent;
+    color: #8ba8b3;
+  }
+  .geo4 button.is-active {
+    border-color: var(--acid);
+    color: var(--acid);
+  }
+  .geo4 button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .geo4__buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.45rem;
+  }
+  .geo4__buttons.three {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+  .geo4__buttons .full,
+  .geo4 button.full {
+    width: 100%;
+  }
+  .geo4__micro {
+    margin: 0.5rem 0 0;
+    color: #6f8e9a;
+    font-size: 0.64rem;
+    line-height: 1.45;
+  }
+  .geo4__subhead {
+    display: flex;
+    justify-content: space-between;
+    margin: 0.8rem 0 0.45rem;
+    color: #73929e;
+    font-size: 0.64rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .geo4__list {
+    display: grid;
+    gap: 0.38rem;
+  }
+  .geo4__policy-row,
+  .geo4__custom-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 105px;
+    gap: 0.5rem;
+    align-items: center;
+    padding: 0.48rem;
+    border: 1px solid rgba(98, 236, 255, 0.12);
+    background: rgba(11, 39, 51, 0.5);
+  }
+  .geo4__policy-row strong,
+  .geo4__policy-row small,
+  .geo4__custom-row strong,
+  .geo4__custom-row small {
+    display: block;
+  }
+  .geo4__policy-row strong,
+  .geo4__custom-row strong {
+    font-size: 0.67rem;
+    line-height: 1.25;
+  }
+  .geo4__policy-row small,
+  .geo4__custom-row small {
+    margin-top: 0.15rem;
+    color: #6f909d;
+    font-size: 0.58rem;
+  }
+  .geo4__policy-row select {
+    width: 100%;
+    border: 1px solid var(--line);
+    background: #0b202c;
+    color: #e8f9fc;
+    padding: 0.35rem;
+    font-size: 0.62rem;
+  }
+  .geo4__actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.45rem;
+    padding: 0.75rem;
+    border-top: 1px solid var(--line);
+    background: rgba(5, 19, 28, 0.98);
+  }
+  .geo4__actions #geo4-run {
+    grid-column: 1/-1;
+    border-color: rgba(216, 255, 107, 0.45);
+    background: rgba(78, 98, 36, 0.28);
+    color: var(--acid);
+  }
+  .geo4__results {
+    position: absolute;
+    z-index: 650;
+    top: 8.6rem;
+    left: 1rem;
+    width: 310px;
+    max-height: calc(100% - 13rem);
+    overflow-y: auto;
+    padding: 0.85rem;
+    border: 1px solid var(--line);
+    background: rgba(5, 21, 31, 0.91);
+    backdrop-filter: blur(14px);
+  }
+  .geo4__results-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.7rem;
+    align-items: center;
+  }
+  .geo4__results-head strong {
+    font-size: 0.74rem;
+  }
+  .geo4__kpis {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.38rem;
+    margin-top: 0.65rem;
+  }
+  .geo4__kpis > div {
+    padding: 0.52rem;
+    border: 1px solid rgba(116, 190, 213, 0.15);
+    background: rgba(9, 36, 48, 0.55);
+  }
+  .geo4__kpis span,
+  .geo4__cost span {
+    display: block;
+    color: #7897a3;
+    font-size: 0.58rem;
+  }
+  .geo4__kpis strong {
+    display: block;
+    margin-top: 0.35rem;
+    color: #f0fbfd;
+    font: 700 0.9rem monospace;
+  }
+  .geo4__kpis.compact strong {
+    font-size: 0.76rem;
+  }
+  .geo4__cost {
+    margin-top: 0.42rem;
+    padding: 0.62rem;
+    border: 1px solid rgba(216, 255, 107, 0.22);
+    background: rgba(70, 90, 33, 0.14);
+  }
+  .geo4__cost strong {
+    display: block;
+    margin-top: 0.4rem;
+    color: var(--acid);
+    font: 700 1rem monospace;
+  }
+  .geo4__status {
+    margin: 0.65rem 0 0;
+    color: #7796a2;
+    font-size: 0.65rem;
+    line-height: 1.45;
+  }
+  .geo4__open-list {
+    display: grid;
+    gap: 0.34rem;
+    margin-top: 0.65rem;
+  }
+  .geo4__open-list > div {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 0.45rem;
+    padding: 0.42rem;
+    border: 1px solid rgba(216, 255, 107, 0.13);
+  }
+  .geo4__open-list > div > span {
+    color: var(--acid);
+    font: 700 0.62rem monospace;
+  }
+  .geo4__open-list strong,
+  .geo4__open-list small {
+    display: block;
+  }
+  .geo4__open-list strong {
+    font-size: 0.65rem;
+  }
+  .geo4__open-list small {
+    margin-top: 0.12rem;
+    color: #6f8e99;
+    font-size: 0.56rem;
+  }
+  .geo4__robust {
+    margin-top: 0.9rem;
+    padding-top: 0.8rem;
+    border-top: 1px solid var(--line);
+  }
+  .geo4__stability {
+    display: grid;
+    gap: 0.35rem;
+  }
+  .geo4__stability > div {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.5rem;
+    padding-bottom: 0.34rem;
+    color: #87a3ae;
+    font-size: 0.59rem;
+  }
+  .geo4__stability i {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    background: linear-gradient(
+      90deg,
+      var(--acid) calc(var(--p) * 100%),
+      rgba(116, 190, 213, 0.12) 0
+    );
+  }
+  .geo4__ab {
+    display: grid;
+    gap: 0.35rem;
+    margin-top: 0.55rem;
+    color: #809eaa;
+    font-size: 0.62rem;
+  }
+  .geo4__ab > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+  .geo4__ab strong {
+    color: #effbfd;
+  }
+  :global(.geo4 .leaflet-control-zoom a) {
+    border-color: rgba(129, 190, 211, 0.24);
+    background: rgba(7, 24, 34, 0.9);
+    color: #e7f8fb;
+  }
+  :global(.geo4 .leaflet-control-attribution) {
+    background: rgba(7, 24, 34, 0.72);
+    color: #78929c;
+  }
+  :global(.geo4 .leaflet-tooltip) {
+    border: 1px solid rgba(98, 236, 255, 0.24);
+    background: rgba(6, 21, 30, 0.96);
+    color: #e9f9fb;
+    box-shadow: none;
+    font-size: 0.68rem;
+  }
+  @media (max-width: 1180px) {
+    .geo4__results {
+      top: auto;
+      bottom: 4rem;
+      width: 280px;
+      max-height: 52%;
+    }
+  }
+  @media (max-width: 820px) {
+    .geo4 {
+      width: min(100%, calc(100vw - 0.5rem));
+    }
+    .geo4__shell {
+      min-height: 1260px;
+    }
+    .geo4__console {
+      top: 190px;
+      right: 0.5rem;
+      left: 0.5rem;
+      width: auto;
+      height: 620px;
+    }
+    .geo4__results {
+      top: 820px;
+      bottom: auto;
+      left: 0.5rem;
+      right: 0.5rem;
+      width: auto;
+      max-height: 360px;
+    }
+    .geo4__legend {
+      left: 0.5rem;
+      right: 0.5rem;
+      bottom: 0.5rem;
+    }
+  }
+  .geo4__legend .coverage-only {
+    display: none;
+  }
+  .geo4__shell[data-analysis-layer="coverage"] .geo4__legend .coverage-only {
+    display: inline-flex;
+  }
+  .geo4__legend .covered {
+    height: 8px;
+    background: var(--cyan);
+    box-shadow: 0 0 8px rgba(98, 236, 255, 0.7);
+  }
+  .geo4__legend .redundant {
+    height: 8px;
+    background: var(--acid);
+    box-shadow: 0 0 10px rgba(216, 255, 107, 0.75);
+  }
+  .geo4__cost small {
+    display: block;
+    margin-top: 0.3rem;
+    color: #7897a3;
+    font: 600 0.56rem/1.35 monospace;
+  }
+  .geo4__cost small.is-saving {
+    color: var(--acid);
+  }
+  .geo4__cost small.is-increase {
+    color: var(--pink);
+  }
+  :global(.geo4-coverage-pulse) {
+    pointer-events: none;
+    animation: geo4-coverage-pulse 2.6s ease-out infinite;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  :global(.geo4-coverage-pulse.is-delay) {
+    animation-delay: -1.3s;
+  }
+  :global(.geo4-demand-node.is-covered) {
+    filter: drop-shadow(0 0 5px rgba(98, 236, 255, 0.9));
+    animation: geo4-covered-demand 2.2s ease-in-out infinite;
+  }
+  :global(.geo4-demand-node.is-redundant) {
+    filter: drop-shadow(0 0 8px rgba(216, 255, 107, 0.95));
+    stroke: #d8ff6b;
+    stroke-width: 2.4px;
+  }
+  :global(.geo4-demand-node.is-uncovered) {
+    stroke: #ff759a;
+    stroke-width: 2px;
+    filter: drop-shadow(0 0 4px rgba(255, 117, 154, 0.75));
+  }
+  @keyframes geo4-coverage-pulse {
+    0% {
+      stroke-opacity: 0.72;
+      stroke-width: 2px;
+    }
+    75%,
+    100% {
+      stroke-opacity: 0;
+      stroke-width: 16px;
+    }
+  }
+  @keyframes geo4-covered-demand {
+    0%,
+    100% {
+      fill-opacity: 0.62;
+    }
+    50% {
+      fill-opacity: 0.98;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :global(.geo4-coverage-pulse),
+    :global(.geo4-demand-node) {
+      animation: none !important;
+    }
+    :global(.geo4-coverage-pulse) {
+      stroke-opacity: 0.42;
+      stroke-width: 5px;
+    }
+  }
+  @media (max-width: 820px) {
+    .geo4__console {
+      top: 0.5rem;
+    }
+    .geo4__results {
+      top: 640px;
+    }
+  }
 </style>

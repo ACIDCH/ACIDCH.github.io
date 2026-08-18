@@ -20,6 +20,7 @@ const projects = defineCollection({
     topic: z.enum(["inventory", "transportation", "analytics"]),
     status: z.enum(["planned", "in-development", "completed"]),
     featured: z.boolean().default(false),
+    priority: z.number().int().default(0),
     tags: z.array(z.string()).default([]),
     repoSlug: z.string().min(1).optional(),
     reportUrl: z.url().optional(),

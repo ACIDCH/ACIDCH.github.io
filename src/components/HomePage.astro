@@ -4,6 +4,7 @@ import { skillGroups } from "../config/skills";
 import { siteConfig, type Locale } from "../config/site";
 import { sharedUi } from "../i18n/shared-ui";
 import { getLocalizedPath } from "../utils/paths";
+import { sortProjects } from "../utils/projects";
 import Hero from "./hero/Hero.astro";
 import NoteList from "./NoteList.astro";
 import ProjectList from "./ProjectList.astro";
@@ -13,9 +14,12 @@ interface Props {
 }
 
 const { locale } = Astro.props;
-const projects = (await getCollection("projects"))
-  .filter((entry) => entry.data.locale === locale && entry.data.featured)
-  .slice(0, 4);
+const projects = sortProjects(
+  (await getCollection("projects")).filter(
+    (entry) => entry.data.locale === locale && entry.data.featured,
+  ),
+  locale,
+).slice(0, 4);
 const notes = (await getCollection("notes"))
   .filter((entry) => entry.data.locale === locale && !entry.data.draft)
   .slice(0, 3);
@@ -39,6 +43,15 @@ const copy = sharedUi[locale].home;
       {copy.aboutAction}
     </a>
   </div>
+  <a
+    class="home-hero__featured-project"
+    href={getLocalizedPath("/lab/geospatial-supply-chain/", locale)}
+  >
+    <span>{copy.interactiveProject}</span>
+    <strong>{copy.geospatialProject}</strong>
+    <small>{copy.geospatialProjectDescription}</small>
+    <span class="home-hero__featured-arrow" aria-hidden="true">→</span>
+  </a>
 </Hero>
 
 <div class="home-content" id="home-content">
@@ -84,3 +97,73 @@ const copy = sharedUi[locale].home;
     </a>
   </section>
 </div>
+
+<style>
+  .home-hero__featured-project {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.18rem 1rem;
+    width: min(39rem, 100%);
+    margin-top: var(--space-4);
+    padding: 0.82rem 3rem 0.82rem 1rem;
+    border: 1px solid color-mix(in srgb, var(--color-border) 55%, white 25%);
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--color-surface) 22%, transparent);
+    color: white;
+    text-decoration: none;
+    backdrop-filter: blur(12px);
+    transition:
+      transform var(--motion-fast),
+      border-color var(--motion-fast),
+      background var(--motion-fast);
+  }
+
+  .home-hero__featured-project:hover,
+  .home-hero__featured-project:focus-visible {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, white 58%, transparent);
+    background: color-mix(in srgb, var(--color-surface) 32%, transparent);
+  }
+
+  .home-hero__featured-project > span:first-child {
+    color: color-mix(in srgb, white 72%, transparent);
+    font-size: var(--font-size-xs);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .home-hero__featured-project strong,
+  .home-hero__featured-project small {
+    grid-column: 1;
+  }
+
+  .home-hero__featured-project strong {
+    font-size: var(--font-size-md);
+  }
+
+  .home-hero__featured-project small {
+    color: color-mix(in srgb, white 78%, transparent);
+    line-height: 1.45;
+  }
+
+  .home-hero__featured-arrow {
+    position: absolute;
+    top: 50%;
+    right: 1rem;
+    transform: translateY(-50%);
+    font-size: 1.3rem;
+  }
+
+  @media (max-width: 48rem) {
+    .home-hero__featured-project {
+      padding-block: 0.7rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .home-hero__featured-project {
+      transition: none;
+    }
+  }
+</style>
