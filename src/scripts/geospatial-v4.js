@@ -380,10 +380,6 @@ function boot() {
     return d.display_name || `${p.lat.toFixed(5)}, ${p.lon.toFixed(5)}`;
   }
 
-  async function coords() {
-    return HC.length === H.length && NC.length === N.length && HC.length > 0 && NC.length > 0;
-  }
-
   function fit() {
     const a = [...HC, ...NC].filter(Boolean);
     if (a.length)
