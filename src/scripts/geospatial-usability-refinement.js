@@ -3,6 +3,29 @@ const D = globalThis.document;
 const wait = (ms) =>
   new globalThis.Promise((resolve) => globalThis.setTimeout(resolve, ms));
 
+const BUNDLED_AUCKLAND_COORDS = Object.freeze({
+  hubs: [
+    { lat: -36.8552, lon: 174.7465, label: "328 Ponsonby Road" },
+    { lat: -36.8617, lon: 174.7355, label: "322 Great North Road" },
+    { lat: -36.889, lon: 174.797, label: "214 Green Lane West" },
+    { lat: -36.8475, lon: 174.7755, label: "151 Beach Road" },
+    { lat: -36.8585, lon: 174.811, label: "76 Coates Avenue" },
+    { lat: -36.92, lon: 174.786, label: "151 Neilson Street" },
+  ],
+  demands: [
+    { lat: -36.8485, lon: 174.7633, label: "Auckland CBD" },
+    { lat: -36.8875, lon: 174.775, label: "Epsom" },
+    { lat: -36.8617, lon: 174.7355, label: "Grey Lynn" },
+    { lat: -36.8795, lon: 174.7615, label: "Mount Eden" },
+    { lat: -36.871, lon: 174.778, label: "Newmarket" },
+    { lat: -36.921, lon: 174.785, label: "Onehunga" },
+    { lat: -36.86, lon: 174.81, label: "Orakei" },
+    { lat: -36.8552, lon: 174.7465, label: "Ponsonby" },
+    { lat: -36.879, lon: 174.8, label: "Remuera" },
+    { lat: -36.91, lon: 174.756, label: "Three Kings" },
+  ],
+});
+
 function boot() {
   const root = D?.getElementById("geo-v4");
   const shell = root?.querySelector(".geo4__shell");
@@ -27,9 +50,10 @@ function boot() {
         active: "当前候选",
         mapAdd: "点击地图添加",
         osmPreferred:
-          "默认使用 OSM 道路网络。首次运行优化时会自动加载路网；若公共服务暂时不可用，将回退快速 OD 网络。",
+          "默认使用 OSM 道路网络。内置 Auckland 基准点位用于快速启动；首次运行优化会自动加载路网，公共服务暂时不可用时仍可切换快速 OD 网络。",
         loadingOsm: "正在加载 OSM 道路网络，请稍候…",
         reloadGraph: "加载 / 刷新 OSM 路网",
+        initialise: "加载 GIS 基准点位",
       }
     : {
         mergedTitle: "Facilities, coverage & network entities",
@@ -39,9 +63,10 @@ function boot() {
         active: "Active candidates",
         mapAdd: "Click map to add",
         osmPreferred:
-          "OSM Road Network is the default. The first optimisation run loads the graph automatically; Fast OD remains available if the public service is temporarily unavailable.",
+          "OSM Road Network is the default. Bundled Auckland reference points provide a fast start; the first optimisation run loads the road graph automatically, with Fast OD available if the public service is temporarily unavailable.",
         loadingOsm: "Loading the OSM road network…",
         reloadGraph: "Load / refresh OSM graph",
+        initialise: "Load GIS reference points",
       };
 
   const style = D.createElement("style");
@@ -59,7 +84,8 @@ function boot() {
     .geo4 button{font-size:.78rem!important;line-height:1.3!important;padding:.62rem .68rem!important;min-height:38px}
     .geo4__micro{font-size:.71rem!important;line-height:1.55!important;color:#88a6b2!important}
     .geo4__subhead{font-size:.69rem!important;color:#8eabb5!important}
-    .geo4__policy-row,.geo4__custom-row{grid-template-columns:minmax(0,1fr) 108px 66px!important;padding:.56rem!important;gap:.42rem!important}
+    .geo4__policy-row{grid-template-columns:minmax(0,1fr) 108px 66px!important;padding:.56rem!important;gap:.42rem!important}
+    .geo4__custom-row{grid-template-columns:minmax(0,1fr) 78px!important;padding:.56rem!important;gap:.42rem!important}
     .geo4__policy-row strong,.geo4__custom-row strong{font-size:.73rem!important;line-height:1.35!important}
     .geo4__policy-row small,.geo4__custom-row small{font-size:.65rem!important;line-height:1.4!important;color:#86a2ac!important}
     .geo4__policy-row select{font-size:.69rem!important;min-height:34px!important}
@@ -77,6 +103,17 @@ function boot() {
     .geo4__osm-preferred{display:flex;gap:.42rem;align-items:flex-start;margin:.5rem 0 0;padding:.48rem .52rem;border:1px solid rgba(98,236,255,.16);background:rgba(8,38,50,.38);color:#8eabb5;font-size:.67rem;line-height:1.45}.geo4__osm-preferred i{flex:0 0 auto;width:7px;height:7px;margin-top:.28rem;border-radius:50%;background:#62ecff;box-shadow:0 0 10px rgba(98,236,255,.55)}
   `;
   D.head.appendChild(style);
+
+  function seedReferenceCoordinates() {
+    try {
+      const key = "acidch-geo-v4-base-coords";
+      const existing = JSON.parse(globalThis.localStorage?.getItem(key) || "null");
+      if (existing?.hubs?.length === 6 && existing?.demands?.length === 10) return;
+      globalThis.localStorage?.setItem(key, JSON.stringify(BUNDLED_AUCKLAND_COORDS));
+    } catch {
+      // Storage is an acceleration only; normal GIS services remain available.
+    }
+  }
 
   function mergeFacilityEditor() {
     if (root.dataset.entityEditorMerged === "true") return;
@@ -108,6 +145,18 @@ function boot() {
     if (button.textContent?.trim() !== copy.mapAdd) button.textContent = copy.mapAdd;
   }
 
+  function syncExcludedFacilityMarkers() {
+    const selects = [...policyList.querySelectorAll("select[data-policy]")];
+    const markers = [...D.querySelectorAll("#geo4-map path.geo4-facility-node")];
+    selects.forEach((select, index) => {
+      const marker = markers[index];
+      if (!marker) return;
+      const removed = select.value === "exclude";
+      marker.style.display = removed ? "none" : "";
+      marker.setAttribute("aria-hidden", removed ? "true" : "false");
+    });
+  }
+
   function decoratePolicyRows() {
     const rows = [...policyList.querySelectorAll(".geo4__policy-row")];
     let activeCount = 0;
@@ -134,6 +183,7 @@ function boot() {
     });
     const count = D.getElementById("geo4-facility-count");
     if (count) count.textContent = `${activeCount}/${rows.length}`;
+    globalThis.requestAnimationFrame(syncExcludedFacilityMarkers);
   }
 
   function compactFacilityPreset() {
@@ -160,6 +210,10 @@ function boot() {
   });
   policyObserver.observe(policyList, { childList: true, subtree: true });
 
+  const mapBox = D.getElementById("geo4-map");
+  const mapObserver = new globalThis.MutationObserver(syncExcludedFacilityMarkers);
+  if (mapBox) mapObserver.observe(mapBox, { childList: true, subtree: true });
+
   const mapAddButton = D.getElementById("geo4-map-add");
   const mapAddObserver = new globalThis.MutationObserver(setMapAddLabel);
   if (mapAddButton) mapAddObserver.observe(mapAddButton, { childList: true, subtree: true });
@@ -179,7 +233,10 @@ function boot() {
     const runs = D.getElementById("geo4-runs");
     if (runs) {
       runs.innerHTML = [5, 10, 15, 25]
-        .map((value) => `<option value="${value}" ${value === 10 ? "selected" : ""}>${value} edge-level</option>`)
+        .map(
+          (value) =>
+            `<option value="${value}" ${value === 10 ? "selected" : ""}>${value} edge-level</option>`,
+        )
         .join("");
     }
   }
@@ -190,7 +247,9 @@ function boot() {
   preference.innerHTML = `<i></i><span>${copy.osmPreferred}</span>`;
   graphStatus.insertAdjacentElement("afterend", preference);
   const loadButton = D.getElementById("geo4-load-graph");
+  const initButton = D.getElementById("geo4-init");
   if (loadButton) loadButton.textContent = copy.reloadGraph;
+  if (initButton) initButton.textContent = copy.initialise;
 
   engine.addEventListener(
     "change",
@@ -237,8 +296,11 @@ function boot() {
   if (typeof originalFetch === "function" && !originalFetch.__acidchUsabilityCacheWrapped) {
     const wrappedFetch = async (input, init = {}) => {
       const url = typeof input === "string" ? input : input?.url || "";
-      const method = String(init?.method || (typeof input !== "string" ? input?.method : "GET") || "GET").toUpperCase();
-      const overpass = /overpass.*api\/interpreter|api\/interpreter/i.test(url) && method === "POST";
+      const method = String(
+        init?.method || (typeof input !== "string" ? input?.method : "GET") || "GET",
+      ).toUpperCase();
+      const overpass =
+        /overpass.*api\/interpreter|api\/interpreter/i.test(url) && method === "POST";
       const osrm = /router\.project-osrm\.org/i.test(url) && method === "GET";
       const key = overpass
         ? `overpass:${String(init?.body || "")}`
@@ -257,7 +319,8 @@ function boot() {
         try {
           const clone = response.clone();
           const body = await clone.text();
-          if (responseCache.size >= 80) responseCache.delete(responseCache.keys().next().value);
+          if (responseCache.size >= 80)
+            responseCache.delete(responseCache.keys().next().value);
           responseCache.set(key, {
             body,
             status: response.status,
@@ -282,6 +345,7 @@ function boot() {
     setMapAddLabel();
   });
 
+  seedReferenceCoordinates();
   mergeFacilityEditor();
   compactFacilityPreset();
   decoratePolicyRows();
