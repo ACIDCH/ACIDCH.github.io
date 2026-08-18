@@ -3,6 +3,19 @@ import { buildLocalTablePayload } from "../lib/geospatial/localRoutingFallback.j
 
 const root = globalThis.document?.getElementById("geo-v4");
 
+function localResponse(url, graph) {
+  const payload = buildLocalTablePayload(url, graph);
+  return payload
+    ? new globalThis.Response(JSON.stringify(payload), {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "X-ACIDCH-Fallback": "osm-graph",
+        },
+      })
+    : null;
+}
+
 function boot() {
   if (!root) return;
   if (root.dataset.localRoutingFallbackReady === "true") return;
@@ -14,6 +27,15 @@ function boot() {
   const wrappedFetch = async (input, init = {}) => {
     const url = typeof input === "string" ? input : input?.url || "";
     const isTable = url.includes("/table/v1/driving/");
+
+    // Once the OSM graph is in memory, table calculations for entity edits are
+    // deterministic local graph work. Do not wait for the public OSRM service
+    // before using information already available in the browser.
+    if (isTable && state.graph) {
+      const response = localResponse(url, state.graph);
+      if (response) return response;
+    }
+
     try {
       const response = await currentFetch.call(globalThis, input, init);
       if (response.ok && /api\/interpreter/i.test(url)) {
@@ -28,21 +50,12 @@ function boot() {
           .catch(() => {});
       }
       if (!isTable || response.ok || !state.graph) return response;
-      const payload = buildLocalTablePayload(url, state.graph);
-      return payload
-        ? new globalThis.Response(JSON.stringify(payload), {
-            status: 200,
-            headers: { "Content-Type": "application/json", "X-ACIDCH-Fallback": "osm-graph" },
-          })
-        : response;
+      return localResponse(url, state.graph) || response;
     } catch (error) {
       if (!isTable || !state.graph) throw error;
-      const payload = buildLocalTablePayload(url, state.graph);
-      if (!payload) throw error;
-      return new globalThis.Response(JSON.stringify(payload), {
-        status: 200,
-        headers: { "Content-Type": "application/json", "X-ACIDCH-Fallback": "osm-graph" },
-      });
+      const response = localResponse(url, state.graph);
+      if (!response) throw error;
+      return response;
     }
   };
   wrappedFetch.__acidchLocalRoutingFallbackWrapped = true;
