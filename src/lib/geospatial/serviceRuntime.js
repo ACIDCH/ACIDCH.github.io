@@ -63,6 +63,35 @@ export function classifyServiceUrl(input) {
   return null;
 }
 
+function matchesConfiguredEndpoint(inputUrl, endpoint) {
+  const configured = asUrl(endpoint);
+  if (!inputUrl || !configured || inputUrl.origin !== configured.origin) return false;
+  const configuredPath = configured.pathname.replace(/\/$/, "") || "/";
+  const inputPath = inputUrl.pathname.replace(/\/$/, "") || "/";
+  return (
+    inputPath === configuredPath ||
+    configuredPath === "/" ||
+    inputPath.startsWith(`${configuredPath}/`)
+  );
+}
+
+export function classifyRuntimeServiceUrl(input, overrides = {}) {
+  const predefined = classifyServiceUrl(input);
+  if (predefined) return predefined;
+  const url = asUrl(input);
+  if (!url) return null;
+  const endpoints = normalizeGisEndpoints(overrides);
+  if (matchesConfiguredEndpoint(url, endpoints.nominatim)) return "nominatim";
+  if (matchesConfiguredEndpoint(url, endpoints.osrm)) return "osrm";
+  if (
+    matchesConfiguredEndpoint(url, endpoints.overpassPrimary) ||
+    matchesConfiguredEndpoint(url, endpoints.overpassSecondary)
+  ) {
+    return "overpass";
+  }
+  return null;
+}
+
 function joinBase(base, pathname, search) {
   const root = String(base).replace(/\/$/, "");
   const path = pathname.startsWith("/") ? pathname : `/${pathname}`;
