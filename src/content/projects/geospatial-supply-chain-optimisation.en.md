@@ -5,13 +5,13 @@ slug: geospatial-supply-chain-optimisation
 title: Geospatial Supply Chain Optimisation
 summary: An Auckland-focused spatial decision project combining real road networks with facility location, service coverage, fleet routing, two-echelon transshipment, inventory and road uncertainty.
 tools:
-  - Python
-  - PuLP
-  - OSMnx
-  - NetworkX
+  - JavaScript
+  - Astro
   - GIS
   - Leaflet
   - OpenStreetMap
+  - Overpass API
+  - OSRM
 topic: transportation
 status: in-development
 featured: true
