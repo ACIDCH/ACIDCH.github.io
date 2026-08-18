@@ -23,6 +23,10 @@ const zhProject = read(
 const enProject = read(
   "src/content/projects/geospatial-supply-chain-optimisation.en.md",
 );
+const labPages = [
+  read("src/pages/lab/geospatial-supply-chain.astro"),
+  read("src/pages/zh/lab/geospatial-supply-chain.astro"),
+];
 const publicSources = [
   component,
   controller,
@@ -80,6 +84,11 @@ for (const [token, label] of [
   ["solution.transportCost", "calculated transport-cost output"],
   ["baselineSolution", "re-solved baseline snapshot"],
   ["coverCounts", "model-derived demand coverage"],
+  ["scrollWheelZoom: true", "mouse-wheel map zoom"],
+  ["doubleClickZoom: true", "double-click map zoom"],
+  ["touchZoom: true", "touch map zoom"],
+  ["keyboard: true", "keyboard map zoom"],
+  ['q("geo4-threshold").value = "30"', "OSM default service-time threshold"],
 ])
   requireText(controller, token, label);
 
@@ -106,6 +115,13 @@ for (const page of [
   "src/pages/zh/projects/page/[page].astro",
 ])
   requireText(read(page), "sortProjects", `shared ordering in ${page}`);
+
+for (const page of labPages) {
+  requireText(page, "calc(100% - 1rem)", "scrollbar-safe lab width");
+  if (page.includes("calc(100vw - 1rem)")) {
+    fail("Lab shell must not use viewport width that includes the scrollbar");
+  }
+}
 
 console.log(
   "[geospatial-release-polish] PASS: public copy, KPI semantics, model-derived coverage feedback, homepage entry and priority-first project ordering verified.",

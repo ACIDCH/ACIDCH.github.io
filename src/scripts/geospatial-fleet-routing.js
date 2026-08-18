@@ -136,6 +136,7 @@ function boot() {
         unavailable: "当前路线或道路服务不可用。",
         trips: "需要 Trips",
         available: "可用 Trips",
+        minimum: "建议最少车辆",
         distance: "计划距离",
         time: "计划时间",
         feasible: "运力可行",
@@ -146,13 +147,14 @@ function boot() {
     : {
         title: "Fleet Road Planner",
         build: "Build fleet tours",
-        note: "Road-based TSP visit order + vehicle-capacity trip splitting; a course-method combination, not a full CVRP claim.",
+        note: "Road-based TSP visit order and vehicle-capacity trip splitting with aggregate capacity checks; this is not a full CVRP or time-window scheduler.",
         need: "Initialise GIS, run optimisation and load current optimal paths first.",
         running: "Calculating road TSP sequence and capacity trips…",
         ready: "Fleet plan generated",
         unavailable: "Current route or road service is unavailable.",
         trips: "Trips required",
         available: "Trips available",
+        minimum: "Minimum vehicles",
         distance: "Planned distance",
         time: "Planned time",
         feasible: "Fleet feasible",
@@ -169,7 +171,7 @@ function boot() {
 
   const panel = D.createElement("div");
   panel.className = "geo4__fleet-planner";
-  panel.innerHTML = `<div class="geo4__fleet-planner-head"><span>FLEET / TSP</span><strong>${copy.title}</strong></div><button type="button" class="geo4__fleet-build">${copy.build}</button><p class="geo4__fleet-note">${copy.note}</p><div class="geo4__fleet-summary"><div><span>${copy.trips}</span><b data-fleet-trips>—</b></div><div><span>${copy.available}</span><b data-fleet-available>—</b></div><div><span>${copy.distance}</span><b data-fleet-distance>—</b></div><div><span>${copy.time}</span><b data-fleet-time>—</b></div></div><p class="geo4__fleet-status">${copy.need}</p><div class="geo4__fleet-tour-list"></div>`;
+  panel.innerHTML = `<div class="geo4__fleet-planner-head"><span>FLEET / TSP</span><strong>${copy.title}</strong></div><button type="button" class="geo4__fleet-build">${copy.build}</button><p class="geo4__fleet-note">${copy.note}</p><div class="geo4__fleet-summary"><div><span>${copy.trips}</span><b data-fleet-trips>—</b></div><div><span>${copy.available}</span><b data-fleet-available>—</b></div><div><span>${copy.minimum}</span><b data-fleet-minimum>—</b></div><div><span>${copy.distance}</span><b data-fleet-distance>—</b></div><div><span>${copy.time}</span><b data-fleet-time>—</b></div></div><p class="geo4__fleet-status">${copy.need}</p><div class="geo4__fleet-tour-list"></div>`;
   fleetBlock.appendChild(panel);
 
   const button = panel.querySelector(".geo4__fleet-build");
@@ -178,6 +180,7 @@ function boot() {
   const outputs = {
     trips: panel.querySelector("[data-fleet-trips]"),
     available: panel.querySelector("[data-fleet-available]"),
+    minimum: panel.querySelector("[data-fleet-minimum]"),
     distance: panel.querySelector("[data-fleet-distance]"),
     time: panel.querySelector("[data-fleet-time]"),
   };
@@ -492,9 +495,12 @@ function boot() {
       }
 
       const available = fleet * tripsPerVehicle;
+      const minimumFleet =
+        tripsPerVehicle > 0 ? Math.ceil(totalTrips / tripsPerVehicle) : null;
       const feasible = totalTrips <= available;
       outputs.trips.textContent = String(totalTrips);
       outputs.available.textContent = String(available);
+      outputs.minimum.textContent = minimumFleet == null ? "—" : String(minimumFleet);
       outputs.distance.textContent = totalKm > 0 ? `${totalKm.toFixed(1)} km` : "—";
       outputs.time.textContent = `${(totalMinutes / 60).toFixed(1)} h`;
       status.textContent = `${copy.ready}. ${feasible ? copy.feasible : copy.infeasible}.`;

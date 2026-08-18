@@ -136,7 +136,16 @@ function boot() {
       [10.7, 6.17, 10.99, 7.03, 7.69, 1.04, 9.48, 11.52, 6.62, 4.27],
     ];
   const q = (id) => D.getElementById(id),
-    map = L.map("geo4-map", { zoomControl: true }).setView([-36.873, 174.766], 12);
+    map = L.map("geo4-map", {
+      zoomControl: true,
+      scrollWheelZoom: true,
+      doubleClickZoom: true,
+      touchZoom: true,
+      boxZoom: true,
+      keyboard: true,
+      zoomSnap: 0.25,
+      maxZoom: 20,
+    }).setView([-36.873, 174.766], 12);
   L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
     maxZoom: 20,
     subdomains: "abcd",
@@ -780,11 +789,17 @@ function boot() {
       if (!data?.elements?.length) throw Error("graph");
       graph = parseOverpassGraph(data.elements);
       if (graph.edges.length < 100) throw Error("small graph");
+      const useOsmDefaultThreshold =
+        q("geo4-engine").value === "od" && q("geo4-threshold").value === "6";
       q("geo4-engine").value = "osm";
       q("geo4-graph-status").textContent =
         `${T.graphOk} ${graph.nodeList.length.toLocaleString()} nodes / ${graph.edges.length.toLocaleString()} edges.`;
       runs();
       labels();
+      if (useOsmDefaultThreshold) {
+        q("geo4-threshold").value = "30";
+        labels();
+      }
       await solve();
     } catch (e) {
       globalThis.console?.warn("[Geo V4] graph", e);

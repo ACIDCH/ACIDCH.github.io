@@ -16,7 +16,10 @@ export function reconstructGraphPath(
   const edges = [];
   let cursor = target;
   let guard = 0;
-  const maxSteps = Math.max(1, graph.edges.length + (scenario.shortcuts?.length || 0) + 1);
+  const maxSteps = Math.max(
+    1,
+    graph.edges.length + (scenario.shortcuts?.length || 0) + 1,
+  );
   while (cursor !== source) {
     const step = result.previous.get(cursor);
     if (!step || guard++ > maxSteps) return null;
@@ -34,5 +37,11 @@ export function reconstructGraphPath(
     coordinates.push({ lat: point.lat, lon: point.lon });
   }
 
-  return { cost, edges, coordinates };
+  const distanceKm = edges.reduce((total, edge) => total + edge.lengthKm, 0);
+  const travelTimeMin = edges.reduce((total, edge) => {
+    const factor = edge.proposed ? 1 : scenario.factors?.get(edge.segmentKey) || 1;
+    return total + edge.timeMin * factor;
+  }, 0);
+
+  return { cost, edges, coordinates, distanceKm, travelTimeMin };
 }

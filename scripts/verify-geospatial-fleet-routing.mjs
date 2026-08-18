@@ -35,6 +35,10 @@ for (const [token, label] of [
   ["Flow:\\s*", "verified assignment-flow extraction"],
   ["CVRP", "honest non-CVRP modelling boundary"],
   ["totalTrips <= available", "fleet trip-capacity feasibility check"],
+  ["Math.ceil(totalTrips / tripsPerVehicle)", "minimum fleet recommendation"],
+  ["data-fleet-minimum", "minimum fleet output"],
+  ["path.distanceKm", "reconstructed OSM route distance"],
+  ["path.travelTimeMin", "reconstructed OSM route time"],
 ])
   requireText(source, token, label);
 
