@@ -38,10 +38,10 @@ function boot() {
     #geo-v4 button{font-size:.78rem;font-weight:620;line-height:1.25;padding:.64rem .68rem}
     #geo-v4 .geo4__micro{color:#93b0bb;font-size:.70rem;line-height:1.55}
     #geo-v4 .geo4__subhead{color:#91adb7;font-size:.68rem;letter-spacing:.055em}
-    #geo-v4 .geo4__policy-row,#geo-v4 .geo4__custom-row{grid-template-columns:minmax(0,1fr) minmax(120px,auto);padding:.56rem;gap:.58rem}
+    #geo-v4 .geo4__policy-row,#geo-v4 .geo4__custom-row{grid-template-columns:minmax(0,1fr) minmax(138px,auto);padding:.56rem;gap:.58rem}
     #geo-v4 .geo4__policy-row strong,#geo-v4 .geo4__custom-row strong{font-size:.75rem;line-height:1.35}
     #geo-v4 .geo4__policy-row small,#geo-v4 .geo4__custom-row small{color:#8ca8b2;font-size:.66rem;line-height:1.35}
-    #geo-v4 .geo4__policy-row select{font-size:.70rem;padding:.42rem}
+    #geo-v4 .geo4__policy-row select,#geo-v4 .geo4__policy-row input{width:100%;box-sizing:border-box;border:1px solid rgba(116,190,213,.2);background:#0b202c;color:#eefcff;font-size:.70rem;padding:.42rem}
     #geo-v4 .geo4__results-head span{font-size:.72rem}
     #geo-v4 .geo4__results-head strong{font-size:.82rem}
     #geo-v4 .geo4__kpis span,#geo-v4 .geo4__cost span{font-size:.65rem;color:#92aeb8}
@@ -56,9 +56,8 @@ function boot() {
     #geo-v4 .geo4__service-policy{font-size:.54rem;color:#829da7;line-height:1.45}
     #geo-v4 .geo4__entity-editor{margin-top:.85rem;padding-top:.78rem;border-top:1px solid rgba(116,190,213,.18)}
     #geo-v4 .geo4__entity-editor-title{margin:0 0 .6rem;color:#d8ff6b;font-size:.70rem;font-weight:700;letter-spacing:.055em;text-transform:uppercase}
-    #geo-v4 .geo4__entity-actions{display:grid;grid-template-columns:1fr auto;gap:.4rem;align-items:center}
-    #geo-v4 .geo4__entity-remove{border-color:rgba(255,117,154,.3);background:rgba(87,24,43,.24);color:#ff9ab5;padding:.4rem .5rem;font-size:.66rem}
-    #geo-v4 .geo4__entity-kind{color:#8eaab4;font-size:.62rem}
+    #geo-v4 .geo4__entity-actions{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.4rem;align-items:center}
+    #geo-v4 .geo4__entity-remove{border-color:rgba(255,117,154,.3);background:rgba(87,24,43,.24);color:#ff9ab5;padding:.42rem .52rem;font-size:.66rem;white-space:nowrap}
     #geo-v4 .geo4__auto-run-note{display:none;margin:.4rem 0 0;color:#d8ff6b;font-size:.65rem}
     #geo-v4[data-auto-solving="true"] .geo4__auto-run-note{display:block}
     #geo-v4 .geo4__legend{font-size:.66rem}
@@ -91,6 +90,17 @@ function boot() {
     facilityBlock.appendChild(editor);
     editorBlock.remove();
   }
+
+  const customList = D.getElementById("geo4-custom-list");
+  if (customList) {
+    const customSubhead = customList.previousElementSibling;
+    if (customSubhead?.classList.contains("geo4__subhead")) customSubhead.hidden = true;
+    customList.hidden = true;
+  }
+
+  root.querySelectorAll(".geo4__console .geo4__block-title > span").forEach((label, index) => {
+    label.textContent = String(index + 1).padStart(2, "0");
+  });
 
   const initButton = D.getElementById("geo4-init");
   if (initButton) initButton.textContent = copy.initialise;
