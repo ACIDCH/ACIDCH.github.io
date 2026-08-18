@@ -5,13 +5,13 @@ slug: geospatial-supply-chain-optimisation
 title: 基于地理空间的供应链优化
 summary: 以奥克兰真实道路网络为地理基础，把设施选址、服务覆盖、车队路线、两级转运、库存与路网不确定性组织成一个可交互的供应链空间决策项目。
 tools:
-  - Python
-  - PuLP
-  - OSMnx
-  - NetworkX
+  - JavaScript
+  - Astro
   - GIS
   - Leaflet
   - OpenStreetMap
+  - Overpass API
+  - OSRM
 topic: transportation
 status: in-development
 featured: true
