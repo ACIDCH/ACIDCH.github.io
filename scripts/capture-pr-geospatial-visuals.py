@@ -21,17 +21,56 @@ base.OUTPUT = OUTPUT
 
 
 def navigate_path(browser: object, path: str) -> None:
-    base.request_json(
-        "POST",
-        f"{browser.session_base}/url",
-        {"url": f"{browser.site_base}{path}"},
-    )
-    deadline = time.time() + 12
-    while time.time() < deadline:
-        if browser.execute("return document.readyState") == "complete":
-            break
-        time.sleep(0.1)
-    time.sleep(1.0)
+    """Navigate without blocking on slow third-party subresources.
+
+    The geospatial lab intentionally references map/GIS assets that can outlive the
+    local document load. WebDriver's /url command waits for the full page-load
+    event and has intermittently stalled on GitHub-hosted runners before any
+    product assertion runs. CDP Page.navigate returns after navigation is issued;
+    we then explicitly wait for the local document to become interactive.
+    """
+
+    target = f"{browser.site_base}{path}"
+    last_error: Exception | None = None
+    for attempt in range(3):
+        try:
+            base.request_json(
+                "POST",
+                f"{browser.session_base}/goog/cdp/execute",
+                {"cmd": "Page.navigate", "params": {"url": target}},
+                timeout=8,
+            )
+            deadline = time.time() + 15
+            while time.time() < deadline:
+                try:
+                    state = browser.execute(
+                        "return {ready:document.readyState,path:location.pathname};"
+                    )
+                except Exception as error:
+                    last_error = error
+                    time.sleep(0.2)
+                    continue
+                if (
+                    isinstance(state, dict)
+                    and state.get("ready") in {"interactive", "complete"}
+                    and state.get("path") == path
+                ):
+                    time.sleep(0.8)
+                    return
+                time.sleep(0.15)
+        except Exception as error:
+            last_error = error
+        try:
+            base.request_json(
+                "POST",
+                f"{browser.session_base}/goog/cdp/execute",
+                {"cmd": "Page.stopLoading", "params": {}},
+                timeout=4,
+            )
+        except Exception:
+            pass
+        time.sleep(0.5 * (attempt + 1))
+    raise RuntimeError(f"Unable to navigate geospatial proof browser to {target}: {last_error}")
 
 
 def set_select(browser: object, selector: str, value: str) -> None:
