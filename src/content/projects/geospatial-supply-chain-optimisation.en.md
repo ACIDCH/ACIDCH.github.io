@@ -13,7 +13,7 @@ tools:
   - Overpass API
   - OSRM
 topic: transportation
-status: in-development
+status: completed
 featured: true
 tags:
   - supply chain optimisation
@@ -57,4 +57,4 @@ Natural-language addresses can be geocoded to real coordinates and inserted as F
 
 The map remains the primary interface, with a scrollable parameter console in the upper right and a compact result module in the lower right. The real road layer reflects road hierarchy; Congestion, Closure and proposed links have distinct event semantics; verified optimal routes use flow-scaled directional particles, glow and node pulses, while Fleet Tour and two-echelon transshipment use separate line styles. Advanced visuals only consume verified model and route output.
 
-The project remains in-development and the formal release target is Desktop Web only. Before publication it must pass geospatial functional gates, numerical transshipment tests, fleet routing checks, advanced visual checks, Astro/TypeScript, ESLint, unit tests, security scan, bilingual parity, production build and repository-wide regression checks; nothing is deployed to the live site before the release decision.
+The current version is formally delivered for Desktop Web. Core solvers, numerical acceptance, GIS functional checks, advanced visuals, Astro/TypeScript, ESLint, unit tests, security scanning, bilingual parity, production build and repository-wide regression are covered by automated validation; the verified course baseline remains visibly distinct from GIS-enhanced modes, and visual layers never change optimisation decisions.
