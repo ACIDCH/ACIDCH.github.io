@@ -19,12 +19,18 @@ describe("geospatial service runtime", () => {
     expect(classifyServiceUrl("https://overpass.kumi.systems/api/interpreter")).toBe(
       "overpass",
     );
+    expect(classifyServiceUrl("https://maps.mail.ru/osm/tools/overpass/api/interpreter")).toBe(
+      "overpass",
+    );
     expect(classifyServiceUrl("https://example.com/data.json")).toBeNull();
   });
 
-  it("moves the legacy Kumi fallback to the current secondary Overpass endpoint", () => {
+  it("moves legacy Overpass fallbacks to the configured secondary endpoint", () => {
     expect(rewriteServiceUrl("https://overpass.kumi.systems/api/interpreter")).toBe(
-      "https://overpass.private.coffee/api/interpreter",
+      "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
+    );
+    expect(rewriteServiceUrl("https://overpass.private.coffee/api/interpreter")).toBe(
+      "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
     );
   });
 
@@ -64,7 +70,7 @@ describe("geospatial service runtime", () => {
   it("uses finite request budgets without background polling", () => {
     expect(timeoutForService("nominatim")).toBe(12_000);
     expect(timeoutForService("osrm")).toBe(15_000);
-    expect(timeoutForService("overpass")).toBe(45_000);
+    expect(timeoutForService("overpass")).toBe(25_000);
     expect(timeoutForService(null)).toBe(0);
   });
 });
