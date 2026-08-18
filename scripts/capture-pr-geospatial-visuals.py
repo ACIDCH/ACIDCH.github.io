@@ -101,6 +101,17 @@ def assert_single_mounts(browser: object) -> None:
         raise RuntimeError(f"Geospatial extensions are not idempotently mounted: {invalid}")
 
 
+def assert_services_idle_on_load(browser: object) -> None:
+    states = browser.execute(
+        "return Object.fromEntries([...document.querySelectorAll('.geo4__service-chip')].map(e=>[e.dataset.service,e.dataset.state]));"
+    )
+    expected = {"nominatim": "idle", "osrm": "idle", "overpass": "idle"}
+    if states != expected:
+        raise RuntimeError(
+            f"External GIS services must remain idle until a user-triggered action: {states}"
+        )
+
+
 def assert_state_cycle(browser: object) -> None:
     browser.require(".geo4__service-health")
     browser.require("#geo4-utilisation-buffer")
@@ -108,6 +119,7 @@ def assert_state_cycle(browser: object) -> None:
     browser.require(".geo4__fleet-planner")
     browser.require(".geo4__transshipment")
     assert_single_mounts(browser)
+    assert_services_idle_on_load(browser)
 
     # Normalise once so the recorded baseline is independent of module boot timing.
     browser.click("#geo4-reset")
@@ -122,7 +134,20 @@ def assert_state_cycle(browser: object) -> None:
     set_input(browser, "#geo4-demand-multiplier", "1.25")
     set_input(browser, "#geo4-lead-time-sd", "0.6")
     set_input(browser, "#geo4-utilisation-buffer", "75")
+
+    # With demand at 1.25x, reducing the fleet to 19 vehicles gives only
+    # 19 * 120 * 5 = 11,400 units of hard fleet capacity against 12,000 units
+    # of demand. The model must report infeasibility rather than silently relax it.
     browser.click('[data-step="fleet"][data-delta="-1"]')
+    browser.click("#geo4-run")
+    browser.wait_for_text("#geo4-status", "没有可行方案", timeout=12)
+    if read_text(browser, "#geo4-kpi-hubs") != "—":
+        raise RuntimeError("Infeasible hard-fleet scenario retained a stale facility KPI.")
+
+    # Increase to 21 vehicles (12,600 units) and verify recovery from the
+    # infeasible state before continuing the A/B scenario cycle.
+    browser.click('[data-step="fleet"][data-delta="1"]')
+    browser.click('[data-step="fleet"][data-delta="1"]')
     browser.click("#geo4-run")
     browser.wait_for_text("#geo4-status", "当前情景已完成重新优化", timeout=12)
     browser.click("#geo4-save-a")
@@ -201,7 +226,7 @@ def capture_desktop(browser: object) -> None:
     # Desktop web is the release target: map-first shell with right-side controls and results.
     browser.screenshot("geospatial-baseline-desktop.png")
 
-    # Exercise a full edit / optimise / A-B compare / reset cycle before visual states.
+    # Exercise a full infeasible -> feasible -> A/B compare -> reset cycle.
     assert_state_cycle(browser)
 
     # Verify the advanced analysis-layer visual state is interactive and mounted.
