@@ -53,34 +53,90 @@ def find_chromedriver() -> str:
     raise RuntimeError("ChromeDriver was not found on the runner.")
 
 
+def recover_session(driver_base: str) -> str | None:
+    """Recover a session that ChromeDriver finished creating after a client timeout."""
+
+    try:
+        response = request_json("GET", f"{driver_base}/sessions", timeout=4)
+    except Exception:
+        return None
+    value = response.get("value")
+    if not isinstance(value, list):
+        return None
+    for item in reversed(value):
+        if not isinstance(item, dict):
+            continue
+        session_id = item.get("id") or item.get("sessionId")
+        if isinstance(session_id, str) and session_id:
+            return session_id
+    return None
+
+
 class BrowserSession:
     def __init__(self, driver_base: str, site_base: str) -> None:
         self.site_base = site_base
-        response = request_json(
-            "POST",
-            f"{driver_base}/session",
-            {
-                "capabilities": {
-                    "alwaysMatch": {
-                        "browserName": "chrome",
-                        "goog:chromeOptions": {
-                            "args": [
-                                "--headless=new",
-                                "--no-sandbox",
-                                "--disable-gpu",
-                                "--disable-dev-shm-usage",
-                                "--disable-background-networking",
-                                "--window-size=1440,1000",
-                            ]
-                        },
-                    }
+        payload = {
+            "capabilities": {
+                "alwaysMatch": {
+                    "browserName": "chrome",
+                    "pageLoadStrategy": "eager",
+                    "goog:chromeOptions": {
+                        "args": [
+                            "--headless=new",
+                            "--no-sandbox",
+                            "--disable-gpu",
+                            "--disable-dev-shm-usage",
+                            "--disable-background-networking",
+                            "--disable-extensions",
+                            "--no-first-run",
+                            "--no-default-browser-check",
+                            "--disable-features=Translate,MediaRouter,OptimizationHints",
+                            "--window-size=1440,1000",
+                        ]
+                    },
                 }
-            },
-        )
-        value = response.get("value")
-        if not isinstance(value, dict) or not isinstance(value.get("sessionId"), str):
-            raise RuntimeError(f"Unexpected ChromeDriver session response: {response}")
-        self.session_id = value["sessionId"]
+            }
+        }
+
+        response: dict[str, object] | None = None
+        session_id: str | None = None
+        last_error: Exception | None = None
+        for attempt in range(2):
+            try:
+                response = request_json(
+                    "POST",
+                    f"{driver_base}/session",
+                    payload,
+                    timeout=40,
+                )
+                value = response.get("value")
+                if isinstance(value, dict) and isinstance(value.get("sessionId"), str):
+                    session_id = value["sessionId"]
+                    break
+                last_error = RuntimeError(
+                    f"Unexpected ChromeDriver session response: {response}"
+                )
+            except (TimeoutError, urllib.error.URLError) as error:
+                last_error = error
+                # A timed-out HTTP client can leave ChromeDriver completing the
+                # session in the background. Recover that session before issuing
+                # another POST and accidentally launching a second Chrome process.
+                deadline = time.time() + 8
+                while time.time() < deadline and session_id is None:
+                    session_id = recover_session(driver_base)
+                    if session_id is None:
+                        time.sleep(0.5)
+                if session_id is not None:
+                    break
+            if attempt == 0:
+                time.sleep(1.0)
+
+        if session_id is None:
+            raise RuntimeError(
+                f"ChromeDriver session did not start after bounded recovery/retry: {last_error}"
+            )
+
+        self.session_id = session_id
         self.session_base = f"{driver_base}/session/{self.session_id}"
         self.set_viewport(1440, 1000, mobile=False)
 
@@ -114,7 +170,7 @@ class BrowserSession:
         deadline = time.time() + 10
         while time.time() < deadline:
             ready = self.execute("return document.readyState")
-            if ready == "complete":
+            if ready in {"interactive", "complete"}:
                 break
             time.sleep(0.1)
         time.sleep(0.5)
@@ -204,15 +260,18 @@ class BrowserSession:
 
 
 def wait_for_driver(driver_base: str, process: subprocess.Popen[bytes]) -> None:
-    deadline = time.time() + 12
+    deadline = time.time() + 20
     while time.time() < deadline:
         if process.poll() is not None:
             raise RuntimeError("ChromeDriver exited before becoming ready.")
         try:
-            request_json("GET", f"{driver_base}/status", timeout=1)
-            return
+            response = request_json("GET", f"{driver_base}/status", timeout=2)
+            value = response.get("value")
+            if not isinstance(value, dict) or value.get("ready") is not False:
+                return
         except (urllib.error.URLError, TimeoutError):
-            time.sleep(0.2)
+            pass
+        time.sleep(0.25)
     raise RuntimeError("ChromeDriver did not become ready in time.")
 
 
