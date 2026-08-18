@@ -63,7 +63,22 @@ function boot() {
     slider.value = "85";
     sync();
   });
+
+  // V4 is mounted before the functional extensions and performs its first solve
+  // against the visible 6,000-unit capacity input. This extension then converts
+  // that input into a physical capacity and exposes the 85%-buffered 5,100-unit
+  // effective capacity to V4. Run exactly one follow-up solve after the current
+  // boot stack so the first result a user sees already reflects the planning
+  // buffer instead of remaining stale until Run or Reset is clicked.
   sync();
+  if (root.dataset.capacityBufferInitialSolve !== "done") {
+    root.dataset.capacityBufferInitialSolve = "scheduled";
+    globalThis.setTimeout(() => {
+      if (root.dataset.capacityBufferInitialSolve === "done") return;
+      root.dataset.capacityBufferInitialSolve = "done";
+      D.getElementById("geo4-run")?.click();
+    }, 0);
+  }
 }
 
 boot();
