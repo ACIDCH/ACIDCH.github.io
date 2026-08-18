@@ -89,6 +89,29 @@ export function rewriteServiceUrl(input, overrides = {}) {
   return url.toString();
 }
 
+export function shareJsonResponse(response) {
+  if (!response || typeof response.clone !== "function" || typeof response.json !== "function") {
+    return response;
+  }
+  if (response.__acidchSharedJson === true) return response;
+
+  const originalClone = response.clone.bind(response);
+  let sharedJsonPromise = null;
+  const sharedJson = () => {
+    if (!sharedJsonPromise) sharedJsonPromise = originalClone().json();
+    return sharedJsonPromise;
+  };
+
+  response.json = sharedJson;
+  response.clone = () => {
+    const clone = originalClone();
+    clone.json = sharedJson;
+    return clone;
+  };
+  response.__acidchSharedJson = true;
+  return response;
+}
+
 export function timeoutForService(service) {
   if (service === "overpass") return 45_000;
   if (service === "nominatim") return 12_000;
