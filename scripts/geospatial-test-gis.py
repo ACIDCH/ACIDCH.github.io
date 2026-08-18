@@ -53,6 +53,16 @@ class QuietGisHandler(BaseHTTPRequestHandler):
     def log_message(self, format: str, *args: object) -> None:
         return
 
+    def send_cors_headers(self) -> None:
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+
+    def do_OPTIONS(self) -> None:
+        self.send_response(204)
+        self.send_cors_headers()
+        self.end_headers()
+
     def do_POST(self) -> None:
         length = int(self.headers.get("Content-Length", "0") or "0")
         if length:
@@ -61,6 +71,7 @@ class QuietGisHandler(BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.send_header("Content-Length", str(len(_PAYLOAD)))
+            self.send_cors_headers()
             self.end_headers()
             self.wfile.write(_PAYLOAD)
             return
@@ -72,6 +83,7 @@ class QuietGisHandler(BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.send_header("Content-Length", str(len(payload)))
+            self.send_cors_headers()
             self.end_headers()
             self.wfile.write(payload)
             return
