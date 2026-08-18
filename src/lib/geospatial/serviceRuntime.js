@@ -1,8 +1,8 @@
 export const DEFAULT_GIS_ENDPOINTS = Object.freeze({
   nominatim: "https://nominatim.openstreetmap.org",
   osrm: "https://router.project-osrm.org",
-  overpassPrimary: "https://overpass-api.de/api/interpreter",
-  overpassSecondary: "https://overpass.private.coffee/api/interpreter",
+  overpassPrimary: "https://overpass.private.coffee/api/interpreter",
+  overpassSecondary: "https://overpass-api.de/api/interpreter",
 });
 
 const LEGACY_SECONDARY_OVERPASS_HOSTS = new Set([
@@ -80,8 +80,12 @@ export function rewriteServiceUrl(input, overrides = {}) {
     return joinBase(endpoints.osrm, url.pathname, url.search);
   }
   if (service === "overpass") {
-    const secondary = LEGACY_SECONDARY_OVERPASS_HOSTS.has(url.hostname.toLowerCase());
-    const endpoint = secondary ? endpoints.overpassSecondary : endpoints.overpassPrimary;
+    const requestedSecondary = LEGACY_SECONDARY_OVERPASS_HOSTS.has(
+      url.hostname.toLowerCase(),
+    );
+    const endpoint = requestedSecondary
+      ? endpoints.overpassSecondary
+      : endpoints.overpassPrimary;
     const base = new globalThis.URL(endpoint);
     base.search = url.search;
     return base.toString();
@@ -90,7 +94,11 @@ export function rewriteServiceUrl(input, overrides = {}) {
 }
 
 export function shareJsonResponse(response) {
-  if (!response || typeof response.clone !== "function" || typeof response.json !== "function") {
+  if (
+    !response ||
+    typeof response.clone !== "function" ||
+    typeof response.json !== "function"
+  ) {
     return response;
   }
   if (response.__acidchSharedJson === true) return response;
@@ -113,7 +121,7 @@ export function shareJsonResponse(response) {
 }
 
 export function timeoutForService(service) {
-  if (service === "overpass") return 45_000;
+  if (service === "overpass") return 18_000;
   if (service === "nominatim") return 12_000;
   if (service === "osrm") return 15_000;
   return 0;
