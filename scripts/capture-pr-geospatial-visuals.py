@@ -231,7 +231,7 @@ def capture_desktop(browser: object) -> None:
     browser.require(".geo4__console")
     browser.require(".geo4__results")
     browser.require("#geo4-layer")
-    browser.wait_for_selector("#geo4-map .leaflet-map-pane")
+    browser.require("#geo4-map .leaflet-map-pane")
 
     # Exercise initial-baseline parity plus a full infeasible -> feasible -> A/B compare -> reset cycle
     # before any external GIS request is made.
