@@ -91,8 +91,16 @@ def assert_hotfix(browser: object) -> None:
         % TEST_COORDS
     )
     geo.navigate_path(browser, "/zh/lab/geospatial-supply-chain/")
-    browser.wait_for_text("#geo4-status", "当前情景已完成重新优化", timeout=12)
+    browser.require("#geo-v4[data-usability-refinement-ready='true']")
     execute_fetch_stub(browser)
+    geo.install_overpass_fixture(browser)
+
+    if browser.execute("return document.querySelector('#geo4-engine')?.value") != "osm":
+        raise RuntimeError("OSM Road Network is not the default engine in the hotfix gate.")
+
+    browser.click("#geo4-run")
+    browser.wait_for_text("#geo4-graph-status", "nodes /", timeout=12)
+    browser.wait_for_text("#geo4-status", "当前情景已完成重新优化", timeout=12)
 
     osm_label = browser.execute(
         "return document.querySelector('#geo4-engine option[value=\"osm\"]')?.textContent || '';"
@@ -131,9 +139,17 @@ def assert_hotfix(browser: object) -> None:
     browser.click("#geo4-run")
     browser.wait_for_text("#geo4-status", "当前情景已完成重新优化", timeout=12)
 
+    # Fast OD is still available as a fallback, but two-echelon transshipment must
+    # not pretend that baseline OSRM costs represent an active road disruption.
+    geo.set_select(browser, "#geo4-engine", "od")
+    browser.click("#geo4-run")
+    browser.wait_for_text("#geo4-status", "当前情景已完成重新优化", timeout=12)
     browser.click(".geo4__trans-run")
     browser.wait_for_text(".geo4__trans-status", "需要 OSM 道路网络", timeout=4)
 
+    geo.set_select(browser, "#geo4-engine", "osm")
+    browser.click("#geo4-run")
+    browser.wait_for_text("#geo4-status", "当前情景已完成重新优化", timeout=12)
     browser.click("#geo4-routes")
     browser.wait_for_text("#geo4-status", "最优路径已加载", timeout=12)
     browser.click(".geo4__fleet-build")
@@ -187,7 +203,7 @@ def main() -> None:
         server.server_close()
 
     print(
-        "Post-release geospatial browser verification passed: coverage isolation, stale-result guards, OSM-only transshipment and non-duplicated fleet trips are correct."
+        "Post-release geospatial browser verification passed: OSM-first solving, coverage isolation, stale-result guards, OSM-only transshipment and non-duplicated fleet trips are correct."
     )
 
 
