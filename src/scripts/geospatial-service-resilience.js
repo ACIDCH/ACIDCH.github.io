@@ -2,6 +2,7 @@ import {
   classifyServiceUrl,
   normalizeGisEndpoints,
   rewriteServiceUrl,
+  shareJsonResponse,
   timeoutForService,
 } from "../lib/geospatial/serviceRuntime.js";
 
@@ -135,7 +136,7 @@ function boot() {
         latencyMs: ended - started,
         status: response.status,
       });
-      return response;
+      return service === "overpass" && response.ok ? shareJsonResponse(response) : response;
     } catch (error) {
       const ended = globalThis.performance?.now?.() || Date.now();
       update(service, {
