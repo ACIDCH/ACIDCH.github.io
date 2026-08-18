@@ -69,6 +69,15 @@ def read_value(browser: object, selector: str) -> str:
     return value
 
 
+def read_kpis(browser: object) -> dict[str, str]:
+    return {
+        "hubs": read_text(browser, "#geo4-kpi-hubs"),
+        "cost": read_text(browser, "#geo4-kpi-cost"),
+        "ss": read_text(browser, "#geo4-kpi-ss"),
+        "rop": read_text(browser, "#geo4-kpi-rop"),
+    }
+
+
 def wait_dataset(browser: object, key: str, expected: str, timeout: float = 8) -> None:
     deadline = time.time() + timeout
     while time.time() < deadline:
@@ -121,15 +130,21 @@ def assert_state_cycle(browser: object) -> None:
     assert_single_mounts(browser)
     assert_services_idle_on_load(browser)
 
-    # Normalise once so the recorded baseline is independent of module boot timing.
+    # The first visible result must already include the 85% planning-capacity
+    # buffer. A Reset must reproduce the same baseline rather than silently
+    # changing the solution after the page has already been shown to the user.
+    browser.wait_for_text("#geo4-status", "当前情景已完成重新优化", timeout=12)
+    initial = read_kpis(browser)
+    if any(value in {"", "—"} for value in initial.values()):
+        raise RuntimeError(f"Initial geospatial KPIs were not fully solved: {initial}")
+
     browser.click("#geo4-reset")
     browser.wait_for_text("#geo4-status", "当前情景已完成重新优化", timeout=12)
-    baseline = {
-        "hubs": read_text(browser, "#geo4-kpi-hubs"),
-        "cost": read_text(browser, "#geo4-kpi-cost"),
-        "ss": read_text(browser, "#geo4-kpi-ss"),
-        "rop": read_text(browser, "#geo4-kpi-rop"),
-    }
+    baseline = read_kpis(browser)
+    if initial != baseline:
+        raise RuntimeError(
+            f"Initial KPI state does not match the 85%-buffered Reset baseline: initial={initial}, reset={baseline}"
+        )
 
     set_input(browser, "#geo4-demand-multiplier", "1.25")
     set_input(browser, "#geo4-lead-time-sd", "0.6")
@@ -186,12 +201,7 @@ def assert_state_cycle(browser: object) -> None:
     if read_text(browser, "#geo4-ab"):
         raise RuntimeError("Scenario A/B comparison survived Reset.")
 
-    restored = {
-        "hubs": read_text(browser, "#geo4-kpi-hubs"),
-        "cost": read_text(browser, "#geo4-kpi-cost"),
-        "ss": read_text(browser, "#geo4-kpi-ss"),
-        "rop": read_text(browser, "#geo4-kpi-rop"),
-    }
+    restored = read_kpis(browser)
     if restored != baseline:
         raise RuntimeError(f"Baseline KPI state was not restored: before={baseline}, after={restored}")
     assert_single_mounts(browser)
@@ -223,10 +233,12 @@ def capture_desktop(browser: object) -> None:
     browser.require("#geo4-layer")
     browser.wait_for_text(".geo4__identity", "基于地理空间的供应链优化")
 
-    # Desktop web is the release target: map-first shell with right-side controls and results.
+    # The screenshot is taken after the one-time capacity-buffer synchronisation,
+    # so it represents the actual first result a desktop user should see.
+    browser.wait_for_text("#geo4-status", "当前情景已完成重新优化", timeout=12)
     browser.screenshot("geospatial-baseline-desktop.png")
 
-    # Exercise a full infeasible -> feasible -> A/B compare -> reset cycle.
+    # Exercise initial-baseline parity plus a full infeasible -> feasible -> A/B compare -> reset cycle.
     assert_state_cycle(browser)
 
     # Verify the advanced analysis-layer visual state is interactive and mounted.
@@ -296,7 +308,7 @@ def main() -> None:
     if actual != expected:
         raise RuntimeError(f"Expected {expected} desktop geospatial visual proofs, generated {actual}.")
     print(
-        f"Captured {actual} desktop geospatial proofs and passed state-cycle / service-degradation acceptance in {OUTPUT}."
+        f"Captured {actual} desktop geospatial proofs and passed initial-baseline / state-cycle / service-degradation acceptance in {OUTPUT}."
     )
 
 
