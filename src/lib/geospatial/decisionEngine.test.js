@@ -122,6 +122,23 @@ describe("geospatial decision engine", () => {
     expect(a.facilityStability).toHaveLength(6);
   });
 
+  it("memoizes one parsed graph for the exact shared Overpass payload", () => {
+    const elements = [
+      { type: "node", id: 1, lat: -36.87, lon: 174.76 },
+      { type: "node", id: 2, lat: -36.87, lon: 174.77 },
+      {
+        type: "way",
+        id: 10,
+        nodes: [1, 2],
+        tags: { highway: "primary", maxspeed: "50" },
+      },
+    ];
+    const first = parseOverpassGraph(elements);
+    const second = parseOverpassGraph(elements);
+    expect(second).toBe(first);
+    expect(parseOverpassGraph([...elements])).not.toBe(first);
+  });
+
   it("builds and routes a small OSM edge graph", () => {
     const graph = parseOverpassGraph([
       { type: "node", id: 1, lat: -36.87, lon: 174.76 },
