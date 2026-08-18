@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 
 const files = {
   refinement: await readFile("src/scripts/geospatial-usability-refinement.js", "utf8"),
+  queryPolish: await readFile("src/scripts/geospatial-overpass-query-polish.js", "utf8"),
   fallback: await readFile("src/scripts/geospatial-osm-fallback.js", "utf8"),
   advanced: await readFile("src/components/GeospatialAdvancedVisuals.astro", "utf8"),
   service: await readFile("src/lib/geospatial/serviceRuntime.js", "utf8"),
@@ -14,6 +15,7 @@ const requireToken = (source, token, label) => {
 };
 
 requireToken(files.advanced, "geospatial-usability-refinement.js", "refinement mount");
+requireToken(files.advanced, "geospatial-overpass-query-polish.js", "Overpass query-polish mount");
 requireToken(files.advanced, "geospatial-osm-fallback.js", "OSM fallback mount");
 requireToken(
   files.refinement,
@@ -43,6 +45,9 @@ requireToken(
   ".geo4__micro{font-size:.71rem!important",
   "micro-copy readability",
 );
+requireToken(files.queryPolish, "motorway_link|trunk|trunk_link|primary", "drivable Overpass road filter");
+requireToken(files.queryPolish, '.replace("[timeout:35]", "[timeout:16]")', "narrowed Overpass query budget");
+requireToken(files.queryPolish, '.replace("out body;", "out body qt;")', "quick Overpass output");
 requireToken(files.fallback, "run.click()", "automatic Fast OD fallback solve");
 requireToken(
   files.service,
@@ -71,5 +76,5 @@ requireToken(
 );
 
 console.log(
-  "[geospatial-usability] PASS: OSM-first workflow, bundled fast-start coordinates, faster Overpass failover, automatic Fast OD recovery, compact editable facilities, merged entity controls and readability improvements are wired into the release gate.",
+  "[geospatial-usability] PASS: OSM-first workflow, bundled fast-start coordinates, narrower drivable-road Overpass queries, faster endpoint failover, automatic Fast OD recovery, compact editable facilities, merged entity controls and readability improvements are wired into the release gate.",
 );
