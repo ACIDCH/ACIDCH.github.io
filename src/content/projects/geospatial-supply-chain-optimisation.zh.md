@@ -29,7 +29,7 @@ updatedAt: 2026-08-18
 
 这个项目把供应链优化放回真实地理空间。研究区域为 Auckland：一套已经核验的 6×10 道路距离矩阵作为快速回归基线，同时提供 OSM edge-level 道路图模式，在当前拥堵、临时封路和假设新增道路情景下重新运行 Dijkstra，并把同一个情景产生的最优道路路径重新绘制到地图。
 
-[打开交互式 GIS 决策沙盘 →](/zh/lab/geospatial-supply-chain/)
+[打开交互式 GIS 决策沙盘 →](../../lab/geospatial-supply-chain/)
 
 ## 从基线模型到真实路网
 
