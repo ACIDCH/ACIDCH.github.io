@@ -3,6 +3,7 @@ import {
   classifyServiceUrl,
   normalizeGisEndpoints,
   rewriteServiceUrl,
+  shareJsonResponse,
   timeoutForService,
 } from "./serviceRuntime.js";
 
@@ -42,6 +43,22 @@ describe("geospatial service runtime", () => {
     expect(rewriteServiceUrl("https://overpass-api.de/api/interpreter", endpoints)).toBe(
       "https://overpass.example.test/api/interpreter",
     );
+  });
+
+  it("shares one parsed JSON payload across the response and all clones", async () => {
+    const response = shareJsonResponse(
+      new globalThis.Response(JSON.stringify({ elements: [{ type: "node", id: 1 }] }), {
+        headers: { "content-type": "application/json" },
+      }),
+    );
+    const [direct, cloneA, cloneB] = await Promise.all([
+      response.json(),
+      response.clone().json(),
+      response.clone().json(),
+    ]);
+    expect(direct).toBe(cloneA);
+    expect(cloneA).toBe(cloneB);
+    expect(direct.elements).toBe(cloneB.elements);
   });
 
   it("uses finite request budgets without background polling", () => {
