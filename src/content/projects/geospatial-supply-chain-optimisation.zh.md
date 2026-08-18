@@ -13,7 +13,7 @@ tools:
   - Overpass API
   - OSRM
 topic: transportation
-status: in-development
+status: completed
 featured: true
 tags:
   - supply chain optimisation
@@ -57,4 +57,4 @@ updatedAt: 2026-08-18
 
 地图是项目主体，右上为可滚动参数控制台，右下为结果模块。真实道路层按 road hierarchy 显示，Congestion、Closure 和 proposed links 分别使用不同事件视觉；主最优路径根据实际 flow 显示方向性粒子、路线辉光和节点脉冲，Fleet Tour 与两级转运采用独立线型。所有高级视觉只读取已经验证的模型和路径结果。
 
-项目仍保持 in-development，正式发布目标只针对 Desktop Web。上线前必须通过 geospatial functional gates、数值转运测试、fleet routing checks、advanced visual checks、Astro/TypeScript、ESLint、unit tests、安全扫描、双语同步、production build 和全站回归；在发布决定之前不会部署到正式站点。
+当前版本以 Desktop Web 为正式交付目标。核心求解器、数值验收、GIS 功能验收、高级视觉、Astro/TypeScript、ESLint、单元测试、安全扫描、双语同步、production build 与全站回归均纳入自动化验证；课程基线与 GIS 增强模式保持清晰区分，视觉层不会反向改变优化决策。
