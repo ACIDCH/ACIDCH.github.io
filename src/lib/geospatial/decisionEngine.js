@@ -1,4 +1,5 @@
 const EPS = 1e-9;
+const overpassGraphCache = new WeakMap();
 
 export function seededRandom(seed = 1) {
   let x = Math.abs(Math.trunc(Number(seed) || 1)) % 2147483647;
@@ -481,9 +482,13 @@ function segmentKey(a, b) {
 }
 
 export function parseOverpassGraph(elements = []) {
+  const list = Array.isArray(elements) ? elements : [];
+  const cached = overpassGraphCache.get(list);
+  if (cached) return cached;
+
   const nodes = new Map();
   const ways = [];
-  for (const item of elements) {
+  for (const item of list) {
     if (item.type === "node" && Number.isFinite(item.lat) && Number.isFinite(item.lon)) {
       nodes.set(String(item.id), { id: String(item.id), lat: Number(item.lat), lon: Number(item.lon) });
     } else if (item.type === "way" && Array.isArray(item.nodes) && item.nodes.length > 1) {
@@ -532,12 +537,14 @@ export function parseOverpassGraph(elements = []) {
     }
   }
 
-  return {
+  const graph = {
     nodes,
     nodeList: [...nodes.values()],
     edges,
     adjacency,
   };
+  overpassGraphCache.set(list, graph);
+  return graph;
 }
 
 export function nearestGraphNode(graph, point) {
