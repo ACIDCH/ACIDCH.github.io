@@ -104,9 +104,10 @@ const projectStructuredData = {
     }
     <Content />
     {
-      entry.data.topic === "transportation" && (
-        <SupplyChainNetwork locale={entry.data.locale} />
-      )
+      entry.data.topic === "transportation" &&
+        entry.data.translationKey !== "geospatial-supply-chain-optimisation" && (
+          <SupplyChainNetwork locale={entry.data.locale} />
+        )
     }
     <RelatedNotes entries={relatedNotes} locale={entry.data.locale} />
     <ContextBack

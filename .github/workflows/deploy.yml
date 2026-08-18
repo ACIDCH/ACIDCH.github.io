@@ -104,6 +104,10 @@ jobs:
         if: github.event_name == 'pull_request'
         run: python3 scripts/capture-pr-decision-model-visuals.py
 
+      - name: Capture geospatial decision-sandbox visual proofs
+        if: github.event_name == 'pull_request'
+        run: python3 scripts/capture-pr-geospatial-visuals.py
+
       - name: Capture regression and floating-tag visual proofs
         if: github.event_name == 'pull_request'
         run: python3 scripts/capture-pr-regression-visuals.py
@@ -125,6 +129,7 @@ jobs:
             dist
             visual-proofs
             decision-proofs
+            geospatial-proofs
             regression-proofs
             data-science-proofs
             statistics-proofs

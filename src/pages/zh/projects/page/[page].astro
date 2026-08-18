@@ -10,15 +10,13 @@ import {
   getTotalPages,
   paginate,
 } from "../../../../utils/pagination";
+import { sortProjects } from "../../../../utils/projects";
 
 export async function getStaticPaths() {
-  const projects = (await getCollection("projects"))
-    .filter((entry) => entry.data.locale === "zh")
-    .sort(
-      (left, right) =>
-        Number(right.data.featured) - Number(left.data.featured) ||
-        left.data.title.localeCompare(right.data.title, "zh-CN"),
-    );
+  const projects = sortProjects(
+    (await getCollection("projects")).filter((entry) => entry.data.locale === "zh"),
+    "zh",
+  );
 
   return getGeneratedPageNumbers(projects.length, 6).map((page) => ({
     params: { page: String(page) },

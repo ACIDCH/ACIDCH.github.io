@@ -1,0 +1,27 @@
+---
+import GeospatialSupplyChainLabV4 from "../../components/GeospatialSupplyChainLabV4.astro";
+import GeospatialFunctionalExtensions from "../../components/GeospatialFunctionalExtensions.astro";
+import GeospatialAdvancedVisuals from "../../components/GeospatialAdvancedVisuals.astro";
+import ContextBack from "../../components/ContextBack.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+  title="Geospatial Supply Chain Optimisation"
+  description="Interactive Auckland geospatial supply-chain decision sandbox for edge-level road uncertainty, capacitated facility allocation, fleet capacity, inventory and lead-time variability, Monte Carlo robustness, scenario comparison, address-based network editing and animated real optimal-route flow."
+  locale="en"
+  alternatePath="/zh/lab/geospatial-supply-chain/"
+>
+  <div
+    style="width:min(1720px,calc(100% - 1rem));margin:.65rem auto 0;position:relative;z-index:10;"
+  >
+    <ContextBack
+      locale="en"
+      fallbackPath="/projects/geospatial-supply-chain-optimisation/"
+      label={{ en: "Back to project", zh: "返回项目" }}
+    />
+  </div>
+  <GeospatialSupplyChainLabV4 locale="en" />
+  <GeospatialFunctionalExtensions />
+  <GeospatialAdvancedVisuals />
+</BaseLayout>
