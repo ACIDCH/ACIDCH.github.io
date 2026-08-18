@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  classifyRuntimeServiceUrl,
   classifyServiceUrl,
   normalizeGisEndpoints,
   rewriteServiceUrl,
@@ -23,6 +24,28 @@ describe("geospatial service runtime", () => {
       "overpass",
     );
     expect(classifyServiceUrl("https://example.com/data.json")).toBeNull();
+  });
+
+  it("classifies configured and self-hosted GIS endpoints for health reporting", () => {
+    const endpoints = normalizeGisEndpoints({
+      nominatim: "http://127.0.0.1:9101/nominatim",
+      osrm: "http://127.0.0.1:9102/osrm",
+      overpassPrimary: "http://127.0.0.1:9103/api/interpreter",
+      overpassSecondary: "https://overpass.example.test/api/interpreter",
+    });
+    expect(
+      classifyRuntimeServiceUrl("http://127.0.0.1:9101/nominatim/search?q=Auckland", endpoints),
+    ).toBe("nominatim");
+    expect(
+      classifyRuntimeServiceUrl("http://127.0.0.1:9102/osrm/table/v1/driving/1,2;3,4", endpoints),
+    ).toBe("osrm");
+    expect(
+      classifyRuntimeServiceUrl("http://127.0.0.1:9103/api/interpreter", endpoints),
+    ).toBe("overpass");
+    expect(
+      classifyRuntimeServiceUrl("https://overpass.example.test/api/interpreter", endpoints),
+    ).toBe("overpass");
+    expect(classifyRuntimeServiceUrl("https://example.com/data.json", endpoints)).toBeNull();
   });
 
   it("moves legacy Overpass fallbacks to the configured secondary endpoint", () => {
