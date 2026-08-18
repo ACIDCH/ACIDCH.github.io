@@ -114,7 +114,7 @@ export function shareJsonResponse(response) {
 }
 
 export function timeoutForService(service) {
-  if (service === "overpass") return 25_000;
+  if (service === "overpass") return 12_000;
   if (service === "nominatim") return 12_000;
   if (service === "osrm") return 15_000;
   return 0;
