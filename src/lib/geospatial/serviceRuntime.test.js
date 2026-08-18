@@ -70,7 +70,7 @@ describe("geospatial service runtime", () => {
   it("uses finite request budgets without background polling", () => {
     expect(timeoutForService("nominatim")).toBe(12_000);
     expect(timeoutForService("osrm")).toBe(15_000);
-    expect(timeoutForService("overpass")).toBe(25_000);
+    expect(timeoutForService("overpass")).toBe(12_000);
     expect(timeoutForService(null)).toBe(0);
   });
 });
