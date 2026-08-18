@@ -29,7 +29,7 @@ updatedAt: 2026-08-18
 
 This project places supply-chain optimisation back into real geographic space. The study area is Auckland: a verified 6×10 road-distance matrix remains available as a fast regression baseline, while an OSM edge-level mode builds a directed road graph, reruns Dijkstra under the active congestion, temporary-closure and hypothetical new-road scenario, and renders the optimal road path produced by that same scenario.
 
-[Open the interactive GIS decision sandbox →](/lab/geospatial-supply-chain/)
+[Open the interactive GIS decision sandbox →](../../lab/geospatial-supply-chain/)
 
 ## From baseline model to real road network
 
