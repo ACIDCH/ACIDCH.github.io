@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import re
 import subprocess
 import threading
 import time
@@ -78,6 +79,54 @@ def hover(browser: object, selector: str) -> None:
         },
     )
     time.sleep(0.35)
+
+
+def parse_rgb(value: str) -> tuple[float, float, float]:
+    numbers = [float(item) for item in re.findall(r"[\d.]+", value)[:3]]
+    if len(numbers) != 3:
+        raise RuntimeError(f"Unable to parse browser colour: {value!r}")
+    return tuple(numbers)
+
+
+def luminance(rgb: tuple[float, float, float]) -> float:
+    values = []
+    for channel in rgb:
+        value = channel / 255
+        values.append(value / 12.92 if value <= 0.04045 else ((value + 0.055) / 1.055) ** 2.4)
+    return 0.2126 * values[0] + 0.7152 * values[1] + 0.0722 * values[2]
+
+
+def contrast(a: str, b: str) -> float:
+    first, second = luminance(parse_rgb(a)), luminance(parse_rgb(b))
+    light, dark = max(first, second), min(first, second)
+    return (light + 0.05) / (dark + 0.05)
+
+
+def home_light_proof(browser: object) -> None:
+    navigate_path(browser, "/zh/")
+    browser.execute(
+        "localStorage.setItem('acidch-theme','light');document.documentElement.dataset.theme='light';return true;"
+    )
+    time.sleep(0.4)
+    card = ".home-hero__featured-project"
+    browser.require(card)
+    browser.wait_for_text(card, "基于地理空间的供应链优化")
+    computed = browser.execute(
+        "const c=document.querySelector('.home-hero__featured-project');"
+        "const t=c?.querySelector('strong');const s=c?.querySelector('small');"
+        "return {bg:getComputedStyle(c).backgroundColor,title:getComputedStyle(t).color,description:getComputedStyle(s).color,opacity:Number(getComputedStyle(c).opacity)};"
+    )
+    if not isinstance(computed, dict):
+        raise RuntimeError("Unable to inspect light-theme featured project styles.")
+    if float(computed.get("opacity", 0)) < 0.98:
+        raise RuntimeError(f"Featured project entry is unexpectedly translucent: {computed}")
+    title_ratio = contrast(str(computed.get("title", "")), str(computed.get("bg", "")))
+    description_ratio = contrast(str(computed.get("description", "")), str(computed.get("bg", "")))
+    if title_ratio < 4.5 or description_ratio < 3.5:
+        raise RuntimeError(
+            f"Featured project entry remains too faint in light theme: title={title_ratio:.2f}, description={description_ratio:.2f}, styles={computed}"
+        )
+    browser.screenshot("home-featured-project-light-desktop.png")
 
 
 def tag_proofs(browser: object, mobile: bool) -> None:
@@ -203,6 +252,7 @@ def main() -> None:
         base.wait_for_driver(driver_base, driver)
         browser = base.BrowserSession(driver_base, f"http://127.0.0.1:{site_port}")
         browser.set_viewport(1440, 1000, mobile=False)
+        home_light_proof(browser)
         tag_proofs(browser, mobile=False)
         series_proofs(browser, mobile=False)
         desktop_topic_proofs(browser)
@@ -221,11 +271,11 @@ def main() -> None:
         server.shutdown()
         server.server_close()
 
-    expected = 10
+    expected = 11
     actual = len(list(OUTPUT.glob("*.png")))
     if actual != expected:
         raise RuntimeError(f"Expected {expected} regression/tag visual proofs, generated {actual}.")
-    print(f"Captured {actual} regression and floating-tag visual proofs in {OUTPUT}.")
+    print(f"Captured {actual} regression, homepage-light and floating-tag visual proofs in {OUTPUT}.")
 
 
 if __name__ == "__main__":
