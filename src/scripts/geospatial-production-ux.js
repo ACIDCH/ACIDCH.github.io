@@ -149,6 +149,9 @@ function boot() {
     }, 420);
   }
   root.addEventListener("change", scheduleSolve);
+  root.addEventListener("click", (event) => {
+    if (event.target?.closest?.("[data-step]")) scheduleSolve(event);
+  });
 }
 
 boot();
