@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  classifyRuntimeServiceUrl,
   classifyServiceUrl,
   normalizeGisEndpoints,
   rewriteServiceUrl,
@@ -19,12 +20,40 @@ describe("geospatial service runtime", () => {
     expect(classifyServiceUrl("https://overpass.kumi.systems/api/interpreter")).toBe(
       "overpass",
     );
+    expect(classifyServiceUrl("https://maps.mail.ru/osm/tools/overpass/api/interpreter")).toBe(
+      "overpass",
+    );
     expect(classifyServiceUrl("https://example.com/data.json")).toBeNull();
   });
 
-  it("moves the legacy Kumi fallback to the current secondary Overpass endpoint", () => {
+  it("classifies configured and self-hosted GIS endpoints for health reporting", () => {
+    const endpoints = normalizeGisEndpoints({
+      nominatim: "http://127.0.0.1:9101/nominatim",
+      osrm: "http://127.0.0.1:9102/osrm",
+      overpassPrimary: "http://127.0.0.1:9103/api/interpreter",
+      overpassSecondary: "https://overpass.example.test/api/interpreter",
+    });
+    expect(
+      classifyRuntimeServiceUrl("http://127.0.0.1:9101/nominatim/search?q=Auckland", endpoints),
+    ).toBe("nominatim");
+    expect(
+      classifyRuntimeServiceUrl("http://127.0.0.1:9102/osrm/table/v1/driving/1,2;3,4", endpoints),
+    ).toBe("osrm");
+    expect(
+      classifyRuntimeServiceUrl("http://127.0.0.1:9103/api/interpreter", endpoints),
+    ).toBe("overpass");
+    expect(
+      classifyRuntimeServiceUrl("https://overpass.example.test/api/interpreter", endpoints),
+    ).toBe("overpass");
+    expect(classifyRuntimeServiceUrl("https://example.com/data.json", endpoints)).toBeNull();
+  });
+
+  it("moves legacy Overpass fallbacks to the configured secondary endpoint", () => {
     expect(rewriteServiceUrl("https://overpass.kumi.systems/api/interpreter")).toBe(
-      "https://overpass.private.coffee/api/interpreter",
+      "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
+    );
+    expect(rewriteServiceUrl("https://overpass.private.coffee/api/interpreter")).toBe(
+      "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
     );
   });
 
@@ -64,7 +93,7 @@ describe("geospatial service runtime", () => {
   it("uses finite request budgets without background polling", () => {
     expect(timeoutForService("nominatim")).toBe(12_000);
     expect(timeoutForService("osrm")).toBe(15_000);
-    expect(timeoutForService("overpass")).toBe(45_000);
+    expect(timeoutForService("overpass")).toBe(12_000);
     expect(timeoutForService(null)).toBe(0);
   });
 });

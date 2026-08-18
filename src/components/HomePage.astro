@@ -106,30 +106,34 @@ const copy = sharedUi[locale].home;
     gap: 0.18rem 1rem;
     width: min(39rem, 100%);
     margin-top: var(--space-4);
-    padding: 0.82rem 3rem 0.82rem 1rem;
-    border: 1px solid color-mix(in srgb, var(--color-border) 55%, white 25%);
+    padding: 0.9rem 3.15rem 0.9rem 1.05rem;
+    border: 1px solid color-mix(in srgb, var(--color-border) 82%, currentColor 8%);
     border-radius: var(--radius-md);
-    background: color-mix(in srgb, var(--color-surface) 22%, transparent);
-    color: white;
+    background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+    color: var(--color-text);
     text-decoration: none;
+    box-shadow: 0 10px 28px color-mix(in srgb, var(--color-text) 8%, transparent);
     backdrop-filter: blur(12px);
     transition:
       transform var(--motion-fast),
       border-color var(--motion-fast),
-      background var(--motion-fast);
+      background var(--motion-fast),
+      box-shadow var(--motion-fast);
   }
 
   .home-hero__featured-project:hover,
   .home-hero__featured-project:focus-visible {
     transform: translateY(-2px);
-    border-color: color-mix(in srgb, white 58%, transparent);
-    background: color-mix(in srgb, var(--color-surface) 32%, transparent);
+    border-color: color-mix(in srgb, var(--color-accent) 58%, var(--color-border));
+    background: color-mix(in srgb, var(--color-surface) 98%, var(--color-accent) 2%);
+    box-shadow: 0 14px 34px color-mix(in srgb, var(--color-text) 12%, transparent);
   }
 
   .home-hero__featured-project > span:first-child {
-    color: color-mix(in srgb, white 72%, transparent);
-    font-size: var(--font-size-xs);
-    letter-spacing: 0.08em;
+    color: var(--color-muted);
+    font-size: max(var(--font-size-xs), 0.78rem);
+    font-weight: 650;
+    letter-spacing: 0.07em;
     text-transform: uppercase;
   }
 
@@ -139,12 +143,15 @@ const copy = sharedUi[locale].home;
   }
 
   .home-hero__featured-project strong {
-    font-size: var(--font-size-md);
+    color: var(--color-text);
+    font-size: max(var(--font-size-md), 1rem);
+    line-height: 1.35;
   }
 
   .home-hero__featured-project small {
-    color: color-mix(in srgb, white 78%, transparent);
-    line-height: 1.45;
+    color: color-mix(in srgb, var(--color-text) 76%, var(--color-muted));
+    font-size: max(var(--font-size-sm), 0.82rem);
+    line-height: 1.52;
   }
 
   .home-hero__featured-arrow {
@@ -152,12 +159,14 @@ const copy = sharedUi[locale].home;
     top: 50%;
     right: 1rem;
     transform: translateY(-50%);
-    font-size: 1.3rem;
+    color: var(--color-accent);
+    font-size: 1.45rem;
+    font-weight: 700;
   }
 
   @media (max-width: 48rem) {
     .home-hero__featured-project {
-      padding-block: 0.7rem;
+      padding-block: 0.78rem;
     }
   }
 

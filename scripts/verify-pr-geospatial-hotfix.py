@@ -1,14 +1,15 @@
 from __future__ import annotations
 
 import importlib.util
+import math
 import subprocess
 import threading
-import time
 from functools import partial
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 GEO_SCRIPT = ROOT / "scripts" / "capture-pr-geospatial-visuals.py"
+GIS_SCRIPT = ROOT / "scripts" / "geospatial-test-gis.py"
 
 spec = importlib.util.spec_from_file_location("geo_visual_helpers", GEO_SCRIPT)
 if spec is None or spec.loader is None:
@@ -17,88 +18,46 @@ geo = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(geo)
 base = geo.base
 
-TEST_COORDS = {
-    "hubs": [
-        {"lat": -36.8552, "lon": 174.7465},
-        {"lat": -36.8617, "lon": 174.7355},
-        {"lat": -36.8890, "lon": 174.7970},
-        {"lat": -36.8475, "lon": 174.7755},
-        {"lat": -36.8585, "lon": 174.8110},
-        {"lat": -36.9200, "lon": 174.7860},
-    ],
-    "demands": [
-        {"lat": -36.8485, "lon": 174.7633},
-        {"lat": -36.8875, "lon": 174.7750},
-        {"lat": -36.8617, "lon": 174.7355},
-        {"lat": -36.8795, "lon": 174.7615},
-        {"lat": -36.8710, "lon": 174.7780},
-        {"lat": -36.9210, "lon": 174.7850},
-        {"lat": -36.8600, "lon": 174.8100},
-        {"lat": -36.8552, "lon": 174.7465},
-        {"lat": -36.8790, "lon": 174.8000},
-        {"lat": -36.9100, "lon": 174.7560},
-    ],
-}
+gis_spec = importlib.util.spec_from_file_location("geospatial_test_gis_hotfix", GIS_SCRIPT)
+if gis_spec is None or gis_spec.loader is None:
+    raise RuntimeError("Unable to load deterministic GIS fixture server.")
+gis = importlib.util.module_from_spec(gis_spec)
+gis_spec.loader.exec_module(gis)
 
 
-def execute_fetch_stub(browser: object) -> None:
+def configure_gis(browser: object, endpoint: str) -> None:
+    geo.navigate_path(browser, "/")
     browser.execute(
-        r"""
-        const original = globalThis.fetch;
-        globalThis.fetch = async (input, init = {}) => {
-          const url = typeof input === 'string' ? input : input?.url || '';
-          if (url.includes('router.project-osrm.org/route/v1/driving/')) {
-            const raw = decodeURIComponent(url.split('/driving/')[1].split('?')[0]);
-            const coords = raw.split(';').map(pair => pair.split(',').map(Number));
-            let distance = 0;
-            for (let i = 1; i < coords.length; i += 1) {
-              const dx = coords[i][0] - coords[i - 1][0];
-              const dy = coords[i][1] - coords[i - 1][1];
-              distance += Math.sqrt(dx * dx + dy * dy) * 85000;
-            }
-            return new Response(JSON.stringify({
-              routes: [{
-                geometry: { type: 'LineString', coordinates: coords },
-                distance: Math.max(500, distance),
-                duration: Math.max(180, distance / 11),
-              }],
-            }), { status: 200, headers: { 'Content-Type': 'application/json' } });
-          }
-          if (url.includes('router.project-osrm.org/table/v1/driving/')) {
-            const raw = decodeURIComponent(url.split('/driving/')[1].split('?')[0]);
-            const coords = raw.split(';');
-            const n = coords.length;
-            const durations = Array.from({length:n}, (_, i) =>
-              Array.from({length:n}, (_, j) => i === j ? 0 : 240 + Math.abs(i-j) * 75));
-            const distances = durations.map(row => row.map(value => value * 11));
-            return new Response(JSON.stringify({ durations, distances }), {
-              status: 200,
-              headers: { 'Content-Type': 'application/json' },
-            });
-          }
-          return original(input, init);
-        };
-        return true;
-        """
+        "localStorage.setItem('acidch-gis-endpoints', JSON.stringify({overpassPrimary:%r,overpassSecondary:%r}));"
+        "sessionStorage.setItem('acidch-geo-v4-scene-index','0');return true;"
+        % (endpoint, endpoint)
     )
 
 
-def assert_hotfix(browser: object) -> None:
+def wait_solved(browser: object) -> None:
+    browser.wait_for_text("#geo4-status", "当前情景已完成重新优化", timeout=16)
+
+
+def assert_hotfix(browser: object, endpoint: str) -> None:
+    configure_gis(browser, endpoint)
     geo.navigate_path(browser, "/zh/lab/geospatial-supply-chain/")
     browser.require("#geo-v4")
-    browser.execute(
-        "localStorage.setItem('acidch-geo-v4-base-coords', JSON.stringify(%r)); return true;"
-        % TEST_COORDS
-    )
-    geo.navigate_path(browser, "/zh/lab/geospatial-supply-chain/")
-    browser.wait_for_text("#geo4-status", "当前情景已完成重新优化", timeout=12)
-    execute_fetch_stub(browser)
+    browser.wait_for_text("#geo4-graph-status", "OSM 道路网络已加载", timeout=16)
+    wait_solved(browser)
 
     osm_label = browser.execute(
         "return document.querySelector('#geo4-engine option[value=\"osm\"]')?.textContent || '';"
     )
     if osm_label.strip() != "OSM 道路网络":
         raise RuntimeError(f"Unexpected Chinese OSM engine label: {osm_label!r}")
+    if geo.read_value(browser, "#geo4-engine") != "osm":
+        raise RuntimeError("OSM is not the active default engine.")
+    if geo.read_text(browser, "#geo4-map-add") != "点击地图添加":
+        raise RuntimeError("Map-click button wording regressed.")
+
+    rows = browser.execute("return document.querySelectorAll('#geo4-policy-list .geo4__policy-row').length;")
+    if rows != 4:
+        raise RuntimeError(f"Expected compact four-entity scene, found {rows} entity rows.")
 
     network_classes = browser.execute(
         "return [...document.querySelectorAll('path.geo4-demand-node')].map(e=>e.getAttribute('class')||'');"
@@ -124,31 +83,68 @@ def assert_hotfix(browser: object) -> None:
     browser.wait_for_text(".geo4__freshness", "参数已变更", timeout=4)
     browser.click("#geo4-routes")
     browser.wait_for_text("#geo4-status", "请先重新运行优化", timeout=4)
-
     browser.click("#geo4-run")
-    browser.wait_for_text("#geo4-status", "当前情景已完成重新优化", timeout=12)
-    geo.set_select(browser, "#geo4-road-mode", "baseline")
-    browser.click("#geo4-run")
-    browser.wait_for_text("#geo4-status", "当前情景已完成重新优化", timeout=12)
+    wait_solved(browser)
 
+    # Fast OD remains a deliberate fallback, but two-echelon scenario-consistent
+    # transshipment is explicitly OSM-only. Re-solve after changing the engine so
+    # the stale-result guard does not mask the intended model-boundary assertion.
+    geo.set_select(browser, "#geo4-engine", "od")
+    browser.click("#geo4-run")
+    wait_solved(browser)
     browser.click(".geo4__trans-run")
     browser.wait_for_text(".geo4__trans-status", "需要 OSM 道路网络", timeout=4)
 
+    geo.set_select(browser, "#geo4-engine", "osm")
+    browser.click("#geo4-run")
+    wait_solved(browser)
+    geo.set_select(browser, "#geo4-road-mode", "baseline")
+    browser.click("#geo4-run")
+    wait_solved(browser)
+
+    # Load the solved OSM paths first, then build Fleet/TSP. The total flow in the
+    # compact scene is read directly from the editable demand rows, so the test
+    # remains valid across deterministic compact presets and catches any former
+    # ~2x Flow duplication without hard-coding the old 9,600-demand fixture.
     browser.click("#geo4-routes")
     browser.wait_for_text("#geo4-status", "最优路径已加载", timeout=12)
     browser.click(".geo4__fleet-build")
     browser.wait_for_text(".geo4__fleet-status", "车队计划已生成", timeout=12)
 
+    total_demand = float(
+        browser.execute(
+            "return [...document.querySelectorAll('[data-demand-edit]')].reduce((s,e)=>s+(Number(e.value)||0),0);"
+        )
+        or 0
+    )
+    vehicle_capacity = float(geo.read_value(browser, "#geo4-vehicle-capacity"))
+    trips_per_vehicle = int(float(geo.read_value(browser, "#geo4-trips")))
+    fleet_size = int(geo.read_text(browser, "#geo4-fleet-out"))
+    demand_nodes = int(
+        browser.execute("return document.querySelectorAll('[data-demand-edit]').length;") or 0
+    )
+
     trips = int(geo.read_text(browser, "[data-fleet-trips]"))
     available = int(geo.read_text(browser, "[data-fleet-available]"))
     minimum = int(geo.read_text(browser, "[data-fleet-minimum]"))
-    if not (80 <= trips <= 82):
+    lower = max(1, math.ceil(total_demand / max(1, vehicle_capacity)))
+    upper = lower + max(1, demand_nodes + 1)
+    if not (lower <= trips <= upper):
         raise RuntimeError(
-            f"Fleet trip count indicates duplicated or missing allocation flow: trips={trips}, expected 80–82."
+            f"Fleet trip count indicates duplicated or missing allocation flow: trips={trips}, expected {lower}–{upper} for demand={total_demand}."
         )
-    if available != 100 or trips > available or minimum > 20:
+    if trips >= max(lower + 2, math.ceil(lower * 1.5)):
         raise RuntimeError(
-            f"Fleet feasibility outputs are inconsistent: trips={trips}, available={available}, minimum={minimum}."
+            f"Fleet trips are too large relative to solved demand and may contain duplicate Flow metadata: {trips} vs lower bound {lower}."
+        )
+    expected_available = fleet_size * trips_per_vehicle
+    if available != expected_available or trips > available:
+        raise RuntimeError(
+            f"Fleet feasibility outputs are inconsistent: trips={trips}, available={available}, expected_available={expected_available}."
+        )
+    if minimum != math.ceil(trips / max(1, trips_per_vehicle)):
+        raise RuntimeError(
+            f"Minimum-vehicle output is inconsistent with trip capacity: trips={trips}, minimum={minimum}."
         )
 
 
@@ -161,6 +157,7 @@ def main() -> None:
     site_port = server.server_address[1]
     server_thread = threading.Thread(target=server.serve_forever, daemon=True)
     server_thread.start()
+    gis_server, _gis_thread, endpoint = gis.start_fake_overpass()
 
     driver_port = 9531
     driver_base = f"http://127.0.0.1:{driver_port}"
@@ -174,7 +171,7 @@ def main() -> None:
         base.wait_for_driver(driver_base, driver)
         browser = base.BrowserSession(driver_base, f"http://127.0.0.1:{site_port}")
         browser.set_viewport(1440, 1000, mobile=False)
-        assert_hotfix(browser)
+        assert_hotfix(browser, endpoint)
     finally:
         if browser is not None:
             browser.close()
@@ -185,9 +182,11 @@ def main() -> None:
             driver.kill()
         server.shutdown()
         server.server_close()
+        gis_server.shutdown()
+        gis_server.server_close()
 
     print(
-        "Post-release geospatial browser verification passed: coverage isolation, stale-result guards, OSM-only transshipment and non-duplicated fleet trips are correct."
+        "OSM-first geospatial browser verification passed: compact entities, coverage isolation, stale-result guards, OSM-only transshipment and non-duplicated Fleet/TSP trips are correct."
     )
 
 

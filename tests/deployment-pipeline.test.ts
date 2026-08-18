@@ -135,7 +135,7 @@ describe("production deployment contracts", () => {
     expect(capture).toContain("expected = 26");
   });
 
-  it("verifies canonical tags and REG01–07 with ten dedicated browser proofs", async () => {
+  it("verifies canonical tags, REG01–07 and the light-theme homepage with eleven browser proofs", async () => {
     const workflow = await source(".github/workflows/deploy.yml");
     const verifier = await source("scripts/verify-regression-production.mjs");
     const capture = await source("scripts/capture-pr-regression-visuals.py");
@@ -157,9 +157,10 @@ describe("production deployment contracts", () => {
     expect(verifier).toContain("data-logistic-lab");
     expect(capture).toContain('browser.screenshot(f"reg-tag-map-{suffix}.png")');
     expect(capture).toContain('browser.screenshot(f"reg-series-{suffix}.png")');
+    expect(capture).toContain("home-featured-project-light-desktop.png");
     expect(capture).toContain("reg01-outlier-desktop.png");
     expect(capture).toContain("reg07-logistic-threshold-mobile.png");
-    expect(capture).toContain("expected = 10");
+    expect(capture).toContain("expected = 11");
   });
 
   it("verifies English and Chinese statistics routes after deployment", async () => {

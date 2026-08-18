@@ -1,5 +1,5 @@
 import {
-  classifyServiceUrl,
+  classifyRuntimeServiceUrl,
   normalizeGisEndpoints,
   rewriteServiceUrl,
   shareJsonResponse,
@@ -27,7 +27,7 @@ function boot() {
         ok: "正常",
         degraded: "降级",
         policy:
-          "仅由用户操作触发；不做后台轮询。服务不可用时保留快速 OD 网络或现有结果。",
+          "轻量 OSM 基础路网在页面初始化时加载；地址解析由用户触发。无后台轮询，服务不可用时自动保留快速 OD 网络与已有结果。",
       }
     : {
         title: "External GIS services",
@@ -36,7 +36,7 @@ function boot() {
         ok: "Healthy",
         degraded: "Degraded",
         policy:
-          "User-triggered only; no background polling. Service failures preserve the Fast OD Network or the existing result.",
+          "The compact OSM base graph loads at scene start; address geocoding remains user-triggered. No background polling, and Fast OD plus existing results remain available on service failure.",
       };
 
   const style = D.createElement("style");
@@ -115,10 +115,11 @@ function boot() {
 
   const wrappedFetch = async (input, init = {}) => {
     const sourceUrl = typeof input === "string" ? input : input?.url || "";
-    const service = classifyServiceUrl(sourceUrl);
+    const endpoints = runtimeOverrides();
+    const service = classifyRuntimeServiceUrl(sourceUrl, endpoints);
     if (!service) return originalFetch.call(globalThis, input, init);
 
-    const rewritten = rewriteServiceUrl(sourceUrl, runtimeOverrides());
+    const rewritten = rewriteServiceUrl(sourceUrl, endpoints);
     const timeoutMs = timeoutForService(service);
     const controller = new globalThis.AbortController();
     const inheritedSignal =
@@ -177,8 +178,10 @@ function boot() {
   wrappedFetch.__acidchServiceResilienceOriginal = originalFetch;
   globalThis.fetch = wrappedFetch;
   globalThis.__ACIDCH_GIS_RUNTIME__ = {
+    ...(globalThis.__ACIDCH_GIS_RUNTIME__ || {}),
     getEndpoints: runtimeOverrides,
     getHealth: () => Object.fromEntries(states),
+    bootstrap: false,
   };
 }
 

@@ -1,0 +1,27 @@
+<script is:inline>
+  (() => {
+    const defaults = {
+      nominatim: "https://nominatim.openstreetmap.org",
+      osrm: "https://router.project-osrm.org",
+      overpassPrimary: "https://overpass-api.de/api/interpreter",
+      overpassSecondary: "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
+    };
+    let stored = {};
+    try {
+      stored = JSON.parse(globalThis.localStorage?.getItem("acidch-gis-endpoints") || "{}") || {};
+    } catch {
+      stored = {};
+    }
+    const existing = globalThis.__ACIDCH_GIS_RUNTIME__ || {};
+    const getEndpoints = () => ({
+      ...defaults,
+      ...stored,
+      ...(globalThis.__ACIDCH_GIS_ENDPOINTS__ || {}),
+    });
+    globalThis.__ACIDCH_GIS_RUNTIME__ = {
+      ...existing,
+      getEndpoints,
+      bootstrap: true,
+    };
+  })();
+</script>

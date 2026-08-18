@@ -64,18 +64,18 @@ function boot() {
     sync();
   });
 
-  // V4 is mounted before the functional extensions and performs its first solve
-  // against the visible 6,000-unit capacity input. This extension then converts
-  // that input into a physical capacity and exposes the 85%-buffered 5,100-unit
-  // effective capacity to V4. Run exactly one follow-up solve after the current
-  // boot stack so the first result a user sees already reflects the planning
-  // buffer instead of remaining stale until Run or Reset is clicked.
+  // Synchronise the 85%-buffered effective capacity before the first result is
+  // solved. Fast OD still needs one immediate follow-up solve because V4 mounts
+  // first. OSM-first startup is different: the V4 controller owns the initial
+  // graph request and solves once after that graph is ready. Skipping the extra
+  // click here prevents two concurrent Overpass requests on page load.
   sync();
   if (root.dataset.capacityBufferInitialSolve !== "done") {
     root.dataset.capacityBufferInitialSolve = "scheduled";
     globalThis.setTimeout(() => {
       if (root.dataset.capacityBufferInitialSolve === "done") return;
       root.dataset.capacityBufferInitialSolve = "done";
+      if (D.getElementById("geo4-engine")?.value === "osm") return;
       D.getElementById("geo4-run")?.click();
     }, 0);
   }
