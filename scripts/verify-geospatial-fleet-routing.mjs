@@ -7,6 +7,7 @@ const read = (relative) => fs.readFileSync(path.join(root, relative), "utf8");
 const extension = read("src/components/GeospatialFunctionalExtensions.astro");
 const source = read("src/scripts/geospatial-fleet-routing.js");
 const shift = read("src/scripts/geospatial-fleet-shift.js");
+const controller = read("src/scripts/geospatial-v4.js");
 
 const fail = (message) => {
   throw new Error(`[geospatial-fleet] ${message}`);
@@ -34,14 +35,22 @@ for (const [token, label] of [
   ["Flow:\\s*", "verified assignment-flow extraction"],
   ["CVRP", "honest non-CVRP modelling boundary"],
   ["totalTrips <= available", "fleet trip-capacity feasibility check"],
-]) requireText(source, token, label);
+])
+  requireText(source, token, label);
 
 for (const [token, label] of [
   ["geo4-shift-hours", "editable per-vehicle shift hours"],
   ["fleet * hoursPerVehicle", "aggregate shift-hour capacity"],
   ["planned <= capacity", "route-hour feasibility check"],
   ["time-window scheduling", "honest non-time-window boundary"],
-]) requireText(shift, token, label);
+])
+  requireText(shift, token, label);
+
+requireText(
+  controller,
+  "${H[x.hub]} → ${N[x.demand]}<br>Flow:",
+  "facility-to-demand metadata consumed by fleet routing",
+);
 
 console.log(
   "[geospatial-fleet] PASS: road-based TSP sequencing, capacity trip splitting, fleet trip/shift-hour feasibility and scenario-consistent OSM geometry acceptance checks passed.",

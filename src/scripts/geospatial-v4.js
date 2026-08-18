@@ -467,8 +467,8 @@ function boot() {
         )
           .bindTooltip(
             layer === "cost"
-              ? cash(x.flow * x.networkCost * +q("geo4-transport-cost").value)
-              : `Flow: ${x.flow.toFixed(0)}`,
+              ? `${H[x.hub]} → ${N[x.demand]}<br>${cash(x.flow * x.networkCost * +q("geo4-transport-cost").value)}`
+              : `${H[x.hub]} → ${N[x.demand]}<br>Flow: ${x.flow.toFixed(0)}`,
           )
           .addTo(al);
       });
@@ -834,7 +834,9 @@ function boot() {
             p.coordinates.map((v) => [v.lat, v.lon]),
             { color: "#d8ff6b", weight: 2.7, opacity: 0.84 },
           )
-            .bindTooltip(`Flow: ${x.flow.toFixed(0)} · ${p.cost.toFixed(1)} min`)
+            .bindTooltip(
+              `${H[x.hub]} → ${N[x.demand]}<br>Flow: ${x.flow.toFixed(0)} · ${p.cost.toFixed(1)} min`,
+            )
             .addTo(rl);
           continue;
         }
@@ -854,7 +856,7 @@ function boot() {
             cs.map(([lon, lat]) => [lat, lon]),
             { color: "#d8ff6b", weight: 2.5, opacity: 0.82 },
           )
-            .bindTooltip(`Flow: ${x.flow.toFixed(0)}`)
+            .bindTooltip(`${H[x.hub]} → ${N[x.demand]}<br>Flow: ${x.flow.toFixed(0)}`)
             .addTo(rl);
         } catch {
           fails++;
