@@ -47,7 +47,7 @@ export function parseOsrmRouteRequest(input) {
   return parsed ? { points: parsed.points } : null;
 }
 
-export function buildLocalTablePayload(input, graph) {
+export function buildLocalTablePayload(input, graph, scenarioParams = { mode: "baseline" }) {
   const request = parseOsrmTableRequest(input);
   if (!request || !graph?.edges?.length) return null;
   const sources = request.sources.map((index) => request.points[index]);
@@ -56,14 +56,14 @@ export function buildLocalTablePayload(input, graph) {
     graph,
     sources,
     destinations,
-    scenarioParams: { mode: "baseline" },
+    scenarioParams,
     metric: "distance",
   }).matrix;
   const time = graphOdMatrix({
     graph,
     sources,
     destinations,
-    scenarioParams: { mode: "baseline" },
+    scenarioParams,
     metric: "time",
   }).matrix;
   return {
@@ -77,7 +77,7 @@ export function buildLocalTablePayload(input, graph) {
   };
 }
 
-export function buildLocalRoutePayload(input, graph) {
+export function buildLocalRoutePayload(input, graph, scenarioParams = { mode: "baseline" }) {
   const request = parseOsrmRouteRequest(input);
   if (!request || request.points.length < 2 || !graph?.edges?.length) return null;
 
@@ -106,7 +106,7 @@ export function buildLocalRoutePayload(input, graph) {
       graph,
       source.nodeId,
       target.nodeId,
-      { mode: "baseline" },
+      scenarioParams,
       "time",
     );
     if (!path) return null;
