@@ -18,13 +18,43 @@ spec.loader.exec_module(geo)
 base = geo.base
 
 
+def wait_value(browser: object, script: str, expected: object, timeout: float = 10) -> object:
+    deadline = time.time() + timeout
+    last = None
+    while time.time() < deadline:
+        last = browser.execute(script)
+        if last == expected:
+            return last
+        time.sleep(0.2)
+    raise RuntimeError(f"Timed out waiting for {expected!r}; last value was {last!r}.")
+
+
+def wait_nonblank(browser: object, selector: str, timeout: float = 10) -> str:
+    deadline = time.time() + timeout
+    last = ""
+    while time.time() < deadline:
+        last = geo.read_text(browser, selector)
+        if last not in {"", "—"}:
+            return last
+        time.sleep(0.2)
+    raise RuntimeError(f"Timed out waiting for a populated value at {selector}: {last!r}")
+
+
 def assert_osm_failure_fallback(browser: object) -> None:
     geo.navigate_path(browser, "/zh/lab/geospatial-supply-chain/")
-    geo.seed_cached_coordinates(browser)
-    geo.navigate_path(browser, "/zh/lab/geospatial-supply-chain/")
+    geo.wait_leaflet(browser)
     browser.require("#geo-v4[data-usability-refinement-ready='true']")
+    browser.require("#geo-v4[data-leaflet-source='bundle']")
+
     if browser.execute("return document.querySelector('#geo4-engine')?.value") != "osm":
         raise RuntimeError("OSM is not selected before failure-recovery test.")
+    wait_value(
+        browser,
+        "return document.querySelector('#geo-v4')?.dataset.resultFreshness || '';",
+        "stale",
+        timeout=5,
+    )
+    browser.wait_for_text(".geo4__freshness", "默认 OSM 情景已就绪", timeout=5)
 
     browser.execute(
         r"""
@@ -44,14 +74,31 @@ def assert_osm_failure_fallback(browser: object) -> None:
     )
 
     browser.click("#geo4-run")
-    browser.wait_for_text("#geo4-graph-status", "已切换至快速 OD 网络", timeout=8)
-    browser.wait_for_text("#geo4-status", "快速 OD 网络完成优化", timeout=8)
-    engine = browser.execute("return document.querySelector('#geo4-engine')?.value")
-    hubs = geo.read_text(browser, "#geo4-kpi-hubs")
-    if engine != "od":
-        raise RuntimeError(f"OSM outage did not switch to Fast OD: engine={engine!r}")
-    if hubs in {"", "—"}:
-        raise RuntimeError("Fast OD fallback did not produce a fresh optimisation result.")
+    wait_value(
+        browser,
+        "return document.querySelector('#geo4-engine')?.value || '';",
+        "od",
+        timeout=10,
+    )
+    wait_value(
+        browser,
+        "return document.querySelector('#geo-v4')?.dataset.resultFreshness || '';",
+        "fresh",
+        timeout=10,
+    )
+    hubs = wait_nonblank(browser, "#geo4-kpi-hubs", timeout=10)
+    cost = wait_nonblank(browser, "#geo4-kpi-cost", timeout=10)
+    status = geo.read_text(browser, "#geo4-status")
+    graph_status = geo.read_text(browser, "#geo4-graph-status")
+
+    if "快速 OD" not in status and "Fast OD" not in status:
+        raise RuntimeError(f"Fallback solve did not surface its recovery mode: {status!r}")
+    if "OD" not in graph_status:
+        raise RuntimeError(f"Graph status did not record Fast OD recovery: {graph_status!r}")
+    if hubs in {"", "—"} or cost in {"", "—"}:
+        raise RuntimeError(
+            f"Fast OD fallback did not produce a usable optimisation result: hubs={hubs!r}, cost={cost!r}"
+        )
 
 
 def main() -> None:
@@ -88,7 +135,9 @@ def main() -> None:
         server.shutdown()
         server.server_close()
 
-    print("OSM failure recovery browser verification passed: Fast OD solves automatically after an Overpass outage.")
+    print(
+        "OSM failure recovery browser verification passed: bundled Leaflet starts locally, the default OSM result is stale before execution, and Fast OD solves automatically after a synthetic Overpass outage."
+    )
 
 
 if __name__ == "__main__":
