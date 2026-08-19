@@ -112,7 +112,7 @@ jobs:
       - name: Capture geospatial decision-sandbox visual proofs
         if: github.event_name == 'pull_request'
         run: |
-          python3 scripts/capture-pr-geospatial-visuals.py
+          python3 scripts/capture-pr-geospatial-visuals-v2.py
           python3 scripts/verify-pr-geospatial-hotfix.py
           python3 scripts/verify-pr-geospatial-osm-fallback.py
           python3 scripts/verify-pr-geospatial-mobile.py
