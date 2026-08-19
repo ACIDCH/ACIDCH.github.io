@@ -5,6 +5,7 @@ const files = {
   initialState: await readFile("src/scripts/geospatial-osm-initial-state.js", "utf8"),
   queryPolish: await readFile("src/scripts/geospatial-overpass-query-polish.js", "utf8"),
   fallback: await readFile("src/scripts/geospatial-osm-fallback.js", "utf8"),
+  mobile: await readFile("src/scripts/geospatial-mobile-view.js", "utf8"),
   advanced: await readFile("src/components/GeospatialAdvancedVisuals.astro", "utf8"),
   lab: await readFile("src/components/GeospatialSupplyChainLabV4.astro", "utf8"),
   leafletLoader: await readFile("src/scripts/geospatial-leaflet-loader.js", "utf8"),
@@ -23,6 +24,7 @@ requireToken(files.advanced, "geospatial-usability-refinement.js", "refinement m
 requireToken(files.advanced, "geospatial-osm-initial-state.js", "default OSM stale-state mount");
 requireToken(files.advanced, "geospatial-overpass-query-polish.js", "Overpass query-polish mount");
 requireToken(files.advanced, "geospatial-osm-fallback.js", "OSM fallback mount");
+requireToken(files.advanced, "geospatial-mobile-view.js", "mobile workspace mount");
 requireToken(files.lab, "geospatial-leaflet-loader.js", "bundled Leaflet loader mount");
 if (/https:\/\/(?:unpkg\.com|cdn\.jsdelivr\.net).*leaflet/i.test(files.lab)) {
   throw new Error("[geospatial-usability] the lab component must not synchronously depend on a Leaflet CDN");
@@ -78,6 +80,14 @@ requireToken(
   ".geo4__micro{font-size:.71rem!important",
   "micro-copy readability",
 );
+requireToken(files.mobile, 'labels = zh', "bilingual mobile workspace labels");
+requireToken(files.mobile, 'setView("map")', "map-first mobile default");
+requireToken(files.mobile, 'data-geo4-mobile-view="${view}"', "three mobile workspace controls");
+requireToken(files.mobile, 'shell.dataset.mobileView = next', "mobile view state binding");
+requireToken(files.mobile, 'data-mobile-view="controls"', "mobile controls mode styling");
+requireToken(files.mobile, 'data-mobile-view="results"', "mobile results mode styling");
+requireToken(files.mobile, 'new globalThis.Event("resize")', "Leaflet resize refresh after mobile switching");
+requireToken(files.mobile, "ArrowLeft", "keyboard navigation for mobile workspace");
 requireToken(files.queryPolish, "motorway_link|trunk|trunk_link|primary", "drivable Overpass road filter");
 requireToken(files.queryPolish, '.replace("[timeout:35]", "[timeout:16]")', "narrowed Overpass query budget");
 requireToken(files.queryPolish, '.replace("out body;", "out body qt;")', "quick Overpass output");
@@ -109,5 +119,5 @@ requireToken(
 );
 
 console.log(
-  "[geospatial-usability] PASS: OSM-first workflow, locally bundled Leaflet 1.9.4, explicit initial stale-result state, bounded mutation observers, bundled fast-start coordinates, narrower drivable-road Overpass queries, faster endpoint failover, automatic Fast OD recovery, compact editable facilities, merged entity controls and readability improvements are wired into the release gate.",
+  "[geospatial-usability] PASS: OSM-first workflow, locally bundled Leaflet 1.9.4, explicit initial stale-result state, bounded mutation observers, bundled fast-start coordinates, narrower drivable-road Overpass queries, faster endpoint failover, automatic Fast OD recovery, compact editable facilities, merged entity controls, readable mobile Map/Controls/Results switching and desktop readability improvements are wired into the release gate.",
 );
