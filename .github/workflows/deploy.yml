@@ -116,6 +116,7 @@ jobs:
           python3 scripts/verify-pr-geospatial-hotfix.py
           python3 scripts/verify-pr-geospatial-osm-fallback.py
           python3 scripts/verify-pr-geospatial-mobile.py
+          python3 scripts/verify-pr-geospatial-decision-guidance-v3.py
 
       - name: Capture regression and floating-tag visual proofs
         if: github.event_name == 'pull_request'
