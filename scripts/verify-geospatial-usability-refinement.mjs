@@ -9,6 +9,8 @@ const files = {
   leafletLoader: await readFile("src/scripts/geospatial-leaflet-loader.js", "utf8"),
   service: await readFile("src/lib/geospatial/serviceRuntime.js", "utf8"),
   home: await readFile("src/components/HomePage.astro", "utf8"),
+  packageJson: await readFile("package.json", "utf8"),
+  packageLock: await readFile("package-lock.json", "utf8"),
 };
 
 const requireToken = (source, token, label) => {
@@ -19,25 +21,20 @@ const requireToken = (source, token, label) => {
 requireToken(files.advanced, "geospatial-usability-refinement.js", "refinement mount");
 requireToken(files.advanced, "geospatial-overpass-query-polish.js", "Overpass query-polish mount");
 requireToken(files.advanced, "geospatial-osm-fallback.js", "OSM fallback mount");
-requireToken(files.lab, "geospatial-leaflet-loader.js", "resilient Leaflet loader mount");
-if (files.lab.includes('src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"')) {
-  throw new Error("[geospatial-usability] blocking unpkg Leaflet script must not remain in the lab component");
+requireToken(files.lab, "geospatial-leaflet-loader.js", "bundled Leaflet loader mount");
+if (/https:\/\/(?:unpkg\.com|cdn\.jsdelivr\.net).*leaflet/i.test(files.lab)) {
+  throw new Error("[geospatial-usability] the lab component must not synchronously depend on a Leaflet CDN");
 }
-if (files.lab.includes('href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"')) {
-  throw new Error("[geospatial-usability] blocking external Leaflet stylesheet must be owned by the runtime loader");
+if (/https:\/\/(?:unpkg\.com|cdn\.jsdelivr\.net).*leaflet/i.test(files.leafletLoader)) {
+  throw new Error("[geospatial-usability] the Leaflet runtime must be bundled locally rather than loaded from a CDN");
 }
-requireToken(
-  files.leafletLoader,
-  "https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js",
-  "primary Leaflet CDN",
-);
-requireToken(
-  files.leafletLoader,
-  "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js",
-  "fallback Leaflet CDN",
-);
-requireToken(files.leafletLoader, "LOAD_BUDGET_MS = 7_000", "bounded Leaflet source budget");
-requireToken(files.leafletLoader, 'setState("failed")', "visible Leaflet failure state");
+requireToken(files.packageJson, '"leaflet": "1.9.4"', "exact Leaflet package dependency");
+requireToken(files.packageLock, '"leaflet": "1.9.4"', "locked Leaflet package dependency");
+requireToken(files.packageLock, '"node_modules/leaflet"', "Leaflet lockfile package entry");
+requireToken(files.leafletLoader, 'from "leaflet"', "local Leaflet module import");
+requireToken(files.leafletLoader, 'import "leaflet/dist/leaflet.css"', "local Leaflet stylesheet import");
+requireToken(files.leafletLoader, 'setState("ready", "bundle")', "bundled Leaflet readiness state");
+requireToken(files.leafletLoader, "globalThis.L = Leaflet", "Leaflet compatibility global");
 requireToken(
   files.refinement,
   'mergedTitle: "设施、覆盖与网络实体"',
@@ -97,5 +94,5 @@ requireToken(
 );
 
 console.log(
-  "[geospatial-usability] PASS: OSM-first workflow, non-blocking resilient Leaflet loading, bundled fast-start coordinates, narrower drivable-road Overpass queries, faster endpoint failover, automatic Fast OD recovery, compact editable facilities, merged entity controls and readability improvements are wired into the release gate.",
+  "[geospatial-usability] PASS: OSM-first workflow, locally bundled Leaflet 1.9.4, bundled fast-start coordinates, narrower drivable-road Overpass queries, faster endpoint failover, automatic Fast OD recovery, compact editable facilities, merged entity controls and readability improvements are wired into the release gate.",
 );
