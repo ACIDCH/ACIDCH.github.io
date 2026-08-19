@@ -9,10 +9,47 @@ import {
 const root = globalThis.document?.getElementById("geo-v4");
 const CACHE_PREFIX = "acidch-osm-compact-v2:";
 
+function activeRoadScenario(url) {
+  const engine = globalThis.document?.getElementById("geo4-engine")?.value || "od";
+  if (engine !== "osm") return { mode: "baseline" };
+
+  try {
+    const parsed = new globalThis.URL(url);
+    const annotations = parsed.searchParams.get("annotations") || "";
+    const isCoreBaseTable =
+      parsed.pathname.includes("/table/v1/driving/") &&
+      parsed.searchParams.has("sources") &&
+      parsed.searchParams.has("destinations") &&
+      annotations.includes("distance") &&
+      annotations.includes("duration");
+    if (isCoreBaseTable) return { mode: "baseline" };
+  } catch {
+    return { mode: "baseline" };
+  }
+
+  const read = (id, fallback = 0) =>
+    Number(globalThis.document?.getElementById(id)?.value ?? fallback);
+  return {
+    mode: globalThis.document?.getElementById("geo4-road-mode")?.value || "baseline",
+    congestionSeverity: read("geo4-congestion") / 100,
+    congestionShare: read("geo4-congestion-share") / 100,
+    closureShare: read("geo4-closure") / 100,
+    improvement: 0.25,
+    improvementShare: 0.3,
+    newRoadLinks: Number(
+      globalThis.document?.getElementById("geo4-new-roads-out")?.textContent || 0,
+    ),
+    maxNewRoadKm: 0.65,
+    newRoadSpeedKph: 50,
+    seed: read("geo4-seed", 708709),
+  };
+}
+
 function localResponse(url, graph) {
+  const scenarioParams = activeRoadScenario(url);
   const payload = url.includes("/route/v1/driving/")
-    ? buildLocalRoutePayload(url, graph)
-    : buildLocalTablePayload(url, graph);
+    ? buildLocalRoutePayload(url, graph, scenarioParams)
+    : buildLocalTablePayload(url, graph, scenarioParams);
   return payload
     ? new globalThis.Response(JSON.stringify(payload), {
         status: 200,
