@@ -20,25 +20,31 @@ base = geo.base
 
 def wait_mobile_workspace(browser: object, timeout: float = 8.0) -> None:
     deadline = time.time() + timeout
+    last = None
     while time.time() < deadline:
-        ready = browser.execute(
-            "return document.querySelector('#geo-v4')?.dataset.mobileViewReady === 'true';"
+        last = browser.execute(
+            "return {ready:document.querySelector('#geo-v4')?.dataset.mobileWorkspaceReady||'',view:document.querySelector('.geo4__shell')?.dataset.mobileView||'',buttons:document.querySelectorAll('[data-geo4-mobile-view]').length};"
         )
-        if ready:
+        if (
+            isinstance(last, dict)
+            and last.get("ready") == "true"
+            and last.get("view") == "map"
+            and last.get("buttons") == 3
+        ):
             return
         time.sleep(0.15)
-    raise RuntimeError("Timed out waiting for geospatial mobile workspace controls.")
+    raise RuntimeError(f"Timed out waiting for geospatial mobile workspace controls: {last!r}")
 
 
 def layout_state(browser: object) -> dict[str, object]:
-    return browser.execute(
+    state = browser.execute(
         r"""
         const root = document.querySelector('#geo-v4');
         const shell = root?.querySelector('.geo4__shell');
         const map = document.querySelector('#geo4-map');
         const controls = root?.querySelector('.geo4__console');
         const results = root?.querySelector('.geo4__results');
-        const nav = root?.querySelector('.geo4__mobile-viewbar');
+        const nav = root?.querySelector('.geo4__mobile-nav');
         const row = root?.querySelector('#geo4-policy-list .geo4__policy-row');
         const actions = row?.querySelector('.geo4__entity-actions');
         const box = (el) => {
@@ -70,6 +76,9 @@ def layout_state(browser: object) -> dict[str, object]:
         };
         """
     )
+    if not isinstance(state, dict):
+        raise RuntimeError("Unable to inspect mobile geospatial layout state.")
+    return state
 
 
 def assert_mode(browser: object, expected: str) -> None:
