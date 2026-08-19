@@ -12,7 +12,7 @@ export function isPrimaryOptimalFlowLayer(layer) {
 
 export function isDecisionControl(target) {
   const id = String(target?.id || "");
-  if (target?.matches?.("[data-policy]")) return true;
+  if (target?.matches?.("[data-policy],[data-demand-edit]")) return true;
   const ids = new Set([
     "geo4-objective",
     "geo4-engine",
