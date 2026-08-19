@@ -261,6 +261,7 @@ function boot() {
       }
     });
     state.layers = [];
+    state.routeCache.clear();
   };
 
   function entities() {
