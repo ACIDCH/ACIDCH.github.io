@@ -2,9 +2,12 @@ import { readFile } from "node:fs/promises";
 
 const files = {
   refinement: await readFile("src/scripts/geospatial-usability-refinement.js", "utf8"),
+  readability: await readFile("src/scripts/geospatial-readability-polish.js", "utf8"),
   initialState: await readFile("src/scripts/geospatial-osm-initial-state.js", "utf8"),
   queryPolish: await readFile("src/scripts/geospatial-overpass-query-polish.js", "utf8"),
+  hedge: await readFile("src/scripts/geospatial-overpass-hedge.js", "utf8"),
   fallback: await readFile("src/scripts/geospatial-osm-fallback.js", "utf8"),
+  fleetGuard: await readFile("src/scripts/geospatial-fleet-allocation-guard.js", "utf8"),
   mobile: await readFile("src/scripts/geospatial-mobile-view.js", "utf8"),
   advanced: await readFile("src/components/GeospatialAdvancedVisuals.astro", "utf8"),
   lab: await readFile("src/components/GeospatialSupplyChainLabV4.astro", "utf8"),
@@ -21,9 +24,12 @@ const requireToken = (source, token, label) => {
 };
 
 requireToken(files.advanced, "geospatial-usability-refinement.js", "refinement mount");
+requireToken(files.advanced, "geospatial-readability-polish.js", "readability-polish mount");
 requireToken(files.advanced, "geospatial-osm-initial-state.js", "default OSM stale-state mount");
 requireToken(files.advanced, "geospatial-overpass-query-polish.js", "Overpass query-polish mount");
+requireToken(files.advanced, "geospatial-overpass-hedge.js", "Overpass hedged-request mount");
 requireToken(files.advanced, "geospatial-osm-fallback.js", "OSM fallback mount");
+requireToken(files.advanced, "geospatial-fleet-allocation-guard.js", "fleet allocation-source guard mount");
 requireToken(files.advanced, "geospatial-mobile-view.js", "mobile workspace mount");
 requireToken(files.lab, "geospatial-leaflet-loader.js", "bundled Leaflet loader mount");
 if (/https:\/\/(?:unpkg\.com|cdn\.jsdelivr\.net).*leaflet/i.test(files.lab)) {
@@ -71,10 +77,16 @@ requireToken(files.refinement, "syncExcludedFacilityMarkers", "removed-facility 
 requireToken(files.refinement, "loadButton?.click()", "run-triggered OSM graph loading");
 requireToken(files.refinement, "responseCache", "in-page GIS response cache");
 requireToken(
-  files.refinement,
-  ".geo4__service-chip strong{font-size:.58rem!important}",
-  "service-health readability",
+  files.readability,
+  ".geo4__service-chip strong{font-size:.68rem!important",
+  "larger service-health labels",
 );
+requireToken(
+  files.readability,
+  ".geo4__service-chip small{font-size:.61rem!important",
+  "larger service-health details",
+);
+requireToken(files.readability, '"点击地图添加"', "final Chinese map-add label");
 requireToken(
   files.refinement,
   ".geo4__micro{font-size:.71rem!important",
@@ -91,7 +103,12 @@ requireToken(files.mobile, "ArrowLeft", "keyboard navigation for mobile workspac
 requireToken(files.queryPolish, "motorway_link|trunk|trunk_link|primary", "drivable Overpass road filter");
 requireToken(files.queryPolish, '.replace("[timeout:35]", "[timeout:16]")', "narrowed Overpass query budget");
 requireToken(files.queryPolish, '.replace("out body;", "out body qt;")', "quick Overpass output");
+requireToken(files.hedge, "Promise.any([primary, secondary])", "hedged primary/secondary Overpass fetch");
+requireToken(files.hedge, "2,600", "staggered Overpass backup start");
 requireToken(files.fallback, "run.click()", "automatic Fast OD fallback solve");
+requireToken(files.fleetGuard, "isMainAllocation", "fleet main-allocation selector");
+requireToken(files.fleetGuard, '.replace(/Allocated:/gi, "Flow:")', "fleet allocation unmasking");
+requireToken(files.fleetGuard, '.replace(/Flow:/gi, "Routed:")', "fleet route-flow masking");
 requireToken(
   files.service,
   'overpassPrimary: "https://overpass.private.coffee/api/interpreter"',
@@ -105,7 +122,7 @@ requireToken(
 requireToken(
   files.service,
   'if (service === "overpass") return 18_000;',
-  "Overpass failover budget",
+  "per-endpoint Overpass ceiling",
 );
 requireToken(
   files.home,
@@ -119,5 +136,5 @@ requireToken(
 );
 
 console.log(
-  "[geospatial-usability] PASS: OSM-first workflow, locally bundled Leaflet 1.9.4, explicit initial stale-result state, bounded mutation observers, bundled fast-start coordinates, narrower drivable-road Overpass queries, faster endpoint failover, automatic Fast OD recovery, compact editable facilities, merged entity controls, readable mobile Map/Controls/Results switching and desktop readability improvements are wired into the release gate.",
+  "[geospatial-usability] PASS: OSM-first workflow, locally bundled Leaflet 1.9.4, explicit initial stale-result state, bounded mutation observers, bundled fast-start coordinates, narrower drivable-road Overpass queries, hedged endpoint failover, automatic Fast OD recovery, complete allocation-backed fleet planning, compact editable facilities, merged entity controls, readable mobile Map/Controls/Results switching and desktop readability improvements are wired into the release gate.",
 );
