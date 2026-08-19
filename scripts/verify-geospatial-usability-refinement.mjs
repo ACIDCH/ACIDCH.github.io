@@ -16,6 +16,7 @@ const files = {
   lab: await readFile("src/components/GeospatialSupplyChainLabV4.astro", "utf8"),
   leafletLoader: await readFile("src/scripts/geospatial-leaflet-loader.js", "utf8"),
   service: await readFile("src/lib/geospatial/serviceRuntime.js", "utf8"),
+  serviceResilience: await readFile("src/scripts/geospatial-service-resilience.js", "utf8"),
   home: await readFile("src/components/HomePage.astro", "utf8"),
   packageJson: await readFile("package.json", "utf8"),
   packageLock: await readFile("package-lock.json", "utf8"),
@@ -58,7 +59,7 @@ requireToken(files.core, "{ hubs: [3, 0], demands: [2, 8] }", "two-facility two-
 requireToken(files.core, "acidch-geo-v4-scene-index", "session-stable compact scene selection");
 requireToken(files.core, "HCPOOL", "bundled facility coordinates");
 requireToken(files.core, "NCPOOL", "bundled demand coordinates");
-requireToken(files.core, 'maxOpen = 2', "compact maximum-open baseline");
+requireToken(files.core, "maxOpen = 2", "compact maximum-open baseline");
 requireToken(files.core, 'q("geo4-facility-count").textContent = String(H.length + N.length)', "four-entity list count");
 requireToken(files.core, 'data-remove-entity="facility:${i}"', "physical facility delete action");
 requireToken(files.core, 'data-remove-entity="demand:${i}"', "physical demand delete action");
@@ -74,6 +75,7 @@ requireToken(files.core, "loadGraph(false)", "first Run loads OSM graph on deman
 requireToken(files.core, "insideGraphBounds", "reuse loaded graph for in-bounds entity edits");
 
 requireToken(files.compactUi, 'title: "设施、覆盖与网络实体"', "merged facility/entity title");
+requireToken(files.compactUi, 'list: "网络实体与设施决策"', "unified entity decision list");
 requireToken(files.compactUi, 'mapAdd: "点击地图添加"', "Chinese map-add label");
 requireToken(files.compactUi, 'init: "随机轻量场景"', "compact random-scene action");
 requireToken(files.compactUi, "root.dataset.entityEditorMerged", "merged entity editor state");
@@ -81,6 +83,7 @@ requireToken(files.compactUi, ".geo4__entity-remove", "readable physical-delete 
 
 requireToken(files.idleGuard, "externalGisBootDeferred", "idle external-GIS deferral state");
 requireToken(files.idleGuard, 'source.includes("loadGraph(true)")', "legacy boot-preload suppression");
+requireToken(files.idleGuard, "hasLocalFixture", "deterministic local fixture exception");
 requireToken(files.idleGuard, "首次运行优化或点击加载时按需获取路网", "user-triggered OSM copy");
 
 requireToken(files.initialState, 'root.dataset.resultFreshness = "stale"', "initial stale-result state");
@@ -93,6 +96,8 @@ requireToken(files.queryPolish, "motorway_link|trunk|trunk_link|primary", "driva
 requireToken(files.hedge, "const attempts = [primary, secondary]", "primary/secondary Overpass attempt set");
 requireToken(files.hedge, "Promise.any(attempts)", "hedged primary/secondary Overpass fetch");
 requireToken(files.hedge, "Promise.allSettled(attempts)", "hedged Overpass health reconciliation");
+requireToken(files.hedge, "configured.overpassSecondary", "runtime-configured secondary endpoint");
+requireToken(files.hedge, "Date.now() - exhaustedAt < 5000", "duplicate secondary wait suppression");
 requireToken(files.hedge, "2600", "staggered Overpass backup start");
 requireToken(files.fallback, "run.click()", "automatic Fast OD fallback solve");
 requireToken(files.localRouting, 'url.includes("/table/v1/driving/")', "local OSM table interception");
@@ -103,11 +108,16 @@ requireToken(files.fleetGuard, '.replace(/Flow:/gi, "Routed:")', "fleet non-allo
 
 requireToken(files.service, 'overpassPrimary: "https://overpass.private.coffee/api/interpreter"', "primary Overpass endpoint");
 requireToken(files.service, 'overpassSecondary: "https://overpass-api.de/api/interpreter"', "secondary Overpass endpoint");
+requireToken(files.service, "function matchesEndpoint", "configured endpoint identity matcher");
+requireToken(files.service, "matchesEndpoint(url, endpoints.overpassPrimary)", "primary endpoint preservation");
+requireToken(files.service, "matchesEndpoint(url, endpoints.overpassSecondary)", "secondary endpoint preservation");
 requireToken(files.service, 'if (service === "overpass") return 18_000;', "per-endpoint Overpass ceiling");
+requireToken(files.serviceResilience, "classifyServiceUrl(sourceUrl, endpoints)", "configured endpoint health classification");
+requireToken(files.serviceResilience, "rewriteServiceUrl(sourceUrl, endpoints)", "configured endpoint rewrite routing");
 
 requireToken(files.home, ':global(html[data-theme="light"]) .home-hero__featured-project', "light-theme featured-project contrast");
 requireToken(files.home, "background: rgb(248 252 253 / 0.92);", "light-theme featured card background");
 
 console.log(
-  "[geospatial-usability] PASS: four-entity random compact scenes, physical facility/demand deletion, unified entity controls, OSM-first user-triggered road loading, compact cached graph requests, hedged Overpass failover, local loaded-graph table routing, Fast OD recovery, complete fleet allocation flow, bundled Leaflet and readability/light-theme refinements are wired into the release gate.",
+  "[geospatial-usability] PASS: four-entity random compact scenes, physical facility/demand deletion, unified entity controls, OSM-first user-triggered road loading, compact cached graph requests, correctly separated and hedged Overpass endpoints, bounded failover waits, local loaded-graph table routing, Fast OD recovery, complete fleet allocation flow, bundled Leaflet and readability/light-theme refinements are wired into the release gate.",
 );
