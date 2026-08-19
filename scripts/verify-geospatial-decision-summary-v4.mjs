@@ -3,6 +3,10 @@ import { readFile } from "node:fs/promises";
 const files = {
   comparison: await readFile("src/lib/geospatial/scenarioComparison.js", "utf8"),
   runtime: await readFile("src/scripts/geospatial-scenario-summary-v4.js", "utf8"),
+  layout: await readFile(
+    "src/scripts/geospatial-scenario-summary-layout-v4.js",
+    "utf8",
+  ),
   advanced: await readFile("src/components/GeospatialAdvancedVisuals.astro", "utf8"),
   zh: await readFile(
     "src/content/projects/geospatial-supply-chain-optimisation.zh.md",
@@ -46,10 +50,22 @@ for (const [token, label] of [
 ])
   requireToken(files.runtime, token, label);
 
+for (const [token, label] of [
+  ["scenarioSummaryLayoutV4Ready", "protected scenario-summary layout state"],
+  ["#geo-v4 .geo4__ab > .geo4__ab-summary", "legacy A/B CSS override selector"],
+  ["display: grid", "stacked scenario-summary layout"],
+])
+  requireToken(files.layout, token, label);
+
 requireToken(
   files.advanced,
   'import "../scripts/geospatial-scenario-summary-v4.js"',
   "decision-summary runtime mount",
+);
+requireToken(
+  files.advanced,
+  'import "../scripts/geospatial-scenario-summary-layout-v4.js"',
+  "protected decision-summary layout mount",
 );
 
 for (const [source, tokens] of [
@@ -67,5 +83,5 @@ for (const [source, tokens] of [
 }
 
 console.log(
-  "[geospatial-decision-summary-v4] PASS: A/B snapshots preserve decision inputs and current KPIs, network deltas are unit-aware, changed assumptions and robustness are surfaced, public project copy is management-decision focused, and the CVRP boundary remains explicit.",
+  "[geospatial-decision-summary-v4] PASS: A/B snapshots preserve decision inputs and current KPIs, network deltas are unit-aware, changed assumptions and robustness are surfaced, the summary is protected from legacy horizontal A/B CSS, public project copy is management-decision focused, and the CVRP boundary remains explicit.",
 );
