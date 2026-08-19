@@ -15,9 +15,12 @@ function boot() {
   const sleep = (ms) => new globalThis.Promise((resolve) => globalThis.setTimeout(resolve, ms));
   const overpassPost = (input, init = {}) => {
     const url = typeof input === "string" ? input : input?.url || "";
-    const method = String(init?.method || (typeof input !== "string" ? input?.method : "GET") || "GET").toUpperCase();
+    const method = String(
+      init?.method || (typeof input !== "string" ? input?.method : "GET") || "GET",
+    ).toUpperCase();
     return /overpass|api\/interpreter/i.test(url) && method === "POST";
   };
+  const comparable = (value) => String(value || "").replace(/\/$/, "");
 
   async function validatedFetch(input, init, delayMs = 0) {
     if (delayMs) await sleep(delayMs);
@@ -51,34 +54,33 @@ function boot() {
     root.dataset.serviceOverpass = "ok";
     const detail = chip.querySelector("small");
     if (detail && /降级|Degraded/i.test(detail.textContent || "")) {
-      detail.textContent = (root.dataset.locale || "zh") === "zh" ? "正常 · 主/备端点已响应" : "Healthy · endpoint responded";
+      detail.textContent =
+        (root.dataset.locale || "zh") === "zh"
+          ? "正常 · 主/备端点已响应"
+          : "Healthy · endpoint responded";
     }
   }
 
   const wrappedFetch = async (input, init = {}) => {
     if (!overpassPost(input, init)) return priorFetch.call(globalThis, input, init);
     const sourceUrl = typeof input === "string" ? input : input?.url || "";
-    const host = (() => {
-      try {
-        return new globalThis.URL(sourceUrl).hostname.toLowerCase();
-      } catch {
-        return "";
-      }
-    })();
+    const configured = globalThis.__ACIDCH_GIS_RUNTIME__?.getEndpoints?.() || {};
+    const secondarySource =
+      configured.overpassSecondary || "https://overpass-api.de/api/interpreter";
 
-    // The core graph loader already calls a secondary URL after a failed first
-    // request. Hedge only the first request so the two core attempts do not
-    // recursively fan out into four public requests.
-    if (host === "overpass.kumi.systems" || host === "overpass.private.coffee") {
+    // The core loader already tries its secondary endpoint after a rejected
+    // primary attempt. Only hedge the primary request; if this call is already
+    // the configured secondary, let it pass through once.
+    if (comparable(sourceUrl) === comparable(secondarySource)) {
       return priorFetch.call(globalThis, input, init);
     }
 
-    const primarySource = input;
-    // serviceRuntime rewrites this legacy secondary source to the configured
-    // secondary endpoint (overpass-api.de by default). Start it after 2,600 ms
-    // so a healthy primary remains the normal low-load path.
-    const secondarySource = "https://overpass.kumi.systems/api/interpreter";
-    const primary = validatedFetch(primarySource, init, 0);
+    const primary = validatedFetch(input, init, 0);
+    if (comparable(sourceUrl) === comparable(secondarySource) || !secondarySource) {
+      return primary;
+    }
+    if (comparable(sourceUrl) === comparable(secondarySource)) return primary;
+
     const secondary = validatedFetch(secondarySource, init, 2600);
     const attempts = [primary, secondary];
     try {
