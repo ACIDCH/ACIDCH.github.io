@@ -41,7 +41,10 @@ function boot() {
       .geo4__shell[data-mobile-view="map"] .geo4__road-hud,.geo4__shell[data-mobile-view="map"] .geo4__coverage-hud-v2{max-width:calc(100% - 1rem)!important}
       .geo4__shell[data-mobile-view="map"] #geo4-map{inset:0!important}
       .geo4__shell[data-mobile-view="map"] .leaflet-control-zoom{margin-top:12px!important;margin-left:12px!important}
-      .geo4__policy-row{grid-template-columns:minmax(0,1fr) 94px 62px!important}
+      .geo4__policy-row{grid-template-columns:minmax(0,1fr) minmax(138px,46%)!important;align-items:center!important}
+      .geo4__entity-actions{grid-template-columns:minmax(0,1fr) auto!important;min-width:0!important}
+      .geo4__entity-actions select,.geo4__entity-actions input{min-width:0!important;width:100%!important}
+      .geo4__entity-remove{white-space:nowrap!important}
       .geo4__merged-editor-heading{align-items:flex-start!important}
     }
   `;
@@ -87,7 +90,7 @@ function boot() {
   });
 
   nav.addEventListener("keydown", (event) => {
-    if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+    if (!["ArrowLeft", "ArrowRight"].includes(event.key)) return;
     const current = buttons.findIndex((button) => button.getAttribute("aria-selected") === "true");
     const delta = event.key === "ArrowRight" ? 1 : -1;
     const next = (current + delta + buttons.length) % buttons.length;
