@@ -81,8 +81,7 @@ class GeospatialBrowserSession(base.BrowserSession):
         self.set_viewport(1440, 1000, mobile=False)
 
 
-# verify-pr-geospatial-hotfix.py imports this module and then reuses geo.base.
-# Expose the same eager session so all geospatial browser gates share one runtime policy.
+# Other geospatial browser verifiers import this module and reuse geo.base.
 base.BrowserSession = GeospatialBrowserSession
 
 
@@ -171,6 +170,7 @@ def read_text(browser: object, selector: str) -> str:
 
 
 def prime_geospatial_document(browser: object) -> None:
+    """Seed only local coordinates before navigation; do not touch GIS service fetches."""
     hubs = [
         {"lat": -36.855, "lon": 174.746, "label": "Ponsonby"},
         {"lat": -36.866, "lon": 174.735, "label": "Grey Lynn"},
@@ -192,45 +192,47 @@ def prime_geospatial_document(browser: object) -> None:
         {"lat": -36.906, "lon": 174.755, "label": "Three Kings"},
     ]
     coords_json = json.dumps({"hubs": hubs, "demands": demands})
-    source = r"""
-      try {
-        localStorage.setItem('acidch-geo-v4-base-coords', %s);
-      } catch {}
-      if (!globalThis.__geoProofFetchInstalled && typeof globalThis.fetch === 'function') {
-        globalThis.__geoProofFetchInstalled = true;
-        const prior = globalThis.fetch.bind(globalThis);
-        const nodes=[]; const ways=[]; let id=1;
-        const rows=11, cols=11, lat0=-36.935, lon0=174.700, dLat=.014, dLon=.017;
-        const grid=[];
-        for(let r=0;r<rows;r++){
-          grid[r]=[];
-          for(let c=0;c<cols;c++){
-            const nodeId=id++;
-            grid[r][c]=nodeId;
-            nodes.push({type:'node',id:nodeId,lat:lat0+r*dLat,lon:lon0+c*dLon});
-          }
-        }
-        let wayId=10000;
-        for(let r=0;r<rows;r++) ways.push({type:'way',id:wayId++,nodes:grid[r],tags:{highway:'secondary',maxspeed:'50'}});
-        for(let c=0;c<cols;c++) ways.push({type:'way',id:wayId++,nodes:grid.map(row=>row[c]),tags:{highway:'secondary',maxspeed:'50'}});
-        const overpassBody=JSON.stringify({elements:[...nodes,...ways]});
-        globalThis.fetch=async(input,init={})=>{
-          const url=typeof input==='string'?input:(input?.url||'');
-          if(/overpass|api\/interpreter/i.test(url) && String(init?.method||'GET').toUpperCase()==='POST'){
-            return new Response(overpassBody,{status:200,headers:{'content-type':'application/json'}});
-          }
-          return prior(input,init);
-        };
-      }
-    """ % json.dumps(coords_json)
+    source = "try { localStorage.setItem('acidch-geo-v4-base-coords', %s); } catch {}" % json.dumps(coords_json)
     base.request_json(
         "POST",
         f"{browser.session_base}/goog/cdp/execute",
-        {
-            "cmd": "Page.addScriptToEvaluateOnNewDocument",
-            "params": {"source": source},
-        },
+        {"cmd": "Page.addScriptToEvaluateOnNewDocument", "params": {"source": source}},
         timeout=8,
+    )
+
+
+def install_overpass_fixture(browser: object) -> None:
+    """Install the deterministic road graph only after idle-service assertions."""
+    browser.execute(
+        r"""
+        if (!globalThis.__geoProofFetchInstalled && typeof globalThis.fetch === 'function') {
+          globalThis.__geoProofFetchInstalled = true;
+          const prior = globalThis.fetch.bind(globalThis);
+          const nodes=[]; const ways=[]; let id=1;
+          const rows=11, cols=11, lat0=-36.935, lon0=174.700, dLat=.014, dLon=.017;
+          const grid=[];
+          for(let r=0;r<rows;r++){
+            grid[r]=[];
+            for(let c=0;c<cols;c++){
+              const nodeId=id++;
+              grid[r][c]=nodeId;
+              nodes.push({type:'node',id:nodeId,lat:lat0+r*dLat,lon:lon0+c*dLon});
+            }
+          }
+          let wayId=10000;
+          for(let r=0;r<rows;r++) ways.push({type:'way',id:wayId++,nodes:grid[r],tags:{highway:'secondary',maxspeed:'50'}});
+          for(let c=0;c<cols;c++) ways.push({type:'way',id:wayId++,nodes:grid.map(row=>row[c]),tags:{highway:'secondary',maxspeed:'50'}});
+          const overpassBody=JSON.stringify({elements:[...nodes,...ways]});
+          globalThis.fetch=async(input,init={})=>{
+            const url=typeof input==='string'?input:(input?.url||'');
+            if(/overpass|api\/interpreter/i.test(url) && String(init?.method||'GET').toUpperCase()==='POST'){
+              return new Response(overpassBody,{status:200,headers:{'content-type':'application/json'}});
+            }
+            return prior(input,init);
+          };
+        }
+        return true;
+        """
     )
 
 
@@ -271,6 +273,7 @@ def assert_refined_ui(browser: object) -> None:
 
 
 def run_osm_first(browser: object) -> None:
+    install_overpass_fixture(browser)
     browser.click("#geo4-run")
     browser.wait_for_text("#geo4-graph-status", "nodes /", timeout=12)
     browser.wait_for_text("#geo4-status", "当前情景已完成重新优化", timeout=12)
