@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import math
 import subprocess
 import threading
 from functools import partial
@@ -59,24 +60,23 @@ def execute_fetch_stub(browser: object) -> None:
     )
 
 
-def assert_hotfix(browser: object) -> None:
-    geo.prime_geospatial_document(browser)
+def assert_hotfix(browser: object, endpoint: str) -> None:
+    geo.configure_gis(browser, endpoint)
     geo.navigate_path(browser, "/zh/lab/geospatial-supply-chain/")
-    geo.wait_leaflet(browser)
-    browser.require("#geo-v4[data-usability-refinement-ready='true']")
+    browser.require("#geo-v4[data-compact-entity-ui-ready='true']")
     browser.require("#geo4-map .leaflet-map-pane")
     execute_fetch_stub(browser)
-    # Match the primary geospatial proof: product interactions run against a
-    # deterministic local OSM graph. Public-service outage recovery is tested
-    # separately by verify-pr-geospatial-osm-fallback.py.
-    geo.install_overpass_fixture(browser)
+
+    browser.wait_for_text("#geo4-graph-status", "OSM 道路网络已加载", timeout=16)
+    geo.wait_solved(browser, timeout=16)
 
     if browser.execute("return document.querySelector('#geo4-engine')?.value") != "osm":
         raise RuntimeError("OSM Road Network is not the default engine in the hotfix gate.")
-
-    browser.click("#geo4-run")
-    browser.wait_for_text("#geo4-graph-status", "nodes /", timeout=12)
-    browser.wait_for_text("#geo4-status", "当前情景已完成重新优化", timeout=12)
+    entity_count = browser.execute(
+        "return document.querySelectorAll('#geo4-policy-list .geo4__policy-row').length;"
+    )
+    if entity_count != 4:
+        raise RuntimeError(f"Expected four model-backed initial entities, found {entity_count}.")
 
     osm_label = browser.execute(
         "return document.querySelector('#geo4-engine option[value=\"osm\"]')?.textContent || '';"
@@ -110,22 +110,27 @@ def assert_hotfix(browser: object) -> None:
     browser.wait_for_text("#geo4-status", "请先重新运行优化", timeout=4)
 
     browser.click("#geo4-run")
-    browser.wait_for_text("#geo4-status", "当前情景已完成重新优化", timeout=12)
+    geo.wait_solved(browser, timeout=12)
     geo.set_select(browser, "#geo4-road-mode", "baseline")
     browser.click("#geo4-run")
-    browser.wait_for_text("#geo4-status", "当前情景已完成重新优化", timeout=12)
+    geo.wait_solved(browser, timeout=12)
 
     # Fast OD remains a valid fallback, while the two-echelon road-scenario
     # planner must still refuse to present OD values as an active OSM graph.
     geo.set_select(browser, "#geo4-engine", "od")
     browser.click("#geo4-run")
-    browser.wait_for_text("#geo4-status", "当前情景已完成重新优化", timeout=12)
+    geo.wait_solved(browser, timeout=12)
     browser.click(".geo4__trans-run")
     browser.wait_for_text(".geo4__trans-status", "需要 OSM 道路网络", timeout=4)
 
     geo.set_select(browser, "#geo4-engine", "osm")
     browser.click("#geo4-run")
-    browser.wait_for_text("#geo4-status", "当前情景已完成重新优化", timeout=12)
+    geo.wait_solved(browser, timeout=12)
+    if browser.execute("return document.querySelector('#geo4-routes')?.disabled") is True:
+        raise RuntimeError("Route loading remained disabled after a feasible OSM solve.")
+    if browser.execute("return document.querySelector('.geo4__fleet-build')?.disabled") is True:
+        raise RuntimeError("Fleet/TSP planning remained disabled after a feasible OSM solve.")
+
     browser.click("#geo4-routes")
     browser.wait_for_text("#geo4-status", "最优路径已加载", timeout=12)
     browser.click(".geo4__fleet-build")
@@ -134,13 +139,29 @@ def assert_hotfix(browser: object) -> None:
     trips = int(geo.read_text(browser, "[data-fleet-trips]"))
     available = int(geo.read_text(browser, "[data-fleet-available]"))
     minimum = int(geo.read_text(browser, "[data-fleet-minimum]"))
-    if not (80 <= trips <= 82):
+    scene = browser.execute(
+        "return {demands:[...document.querySelectorAll('[data-demand-edit]')].map(e=>Number(e.value)||0),mult:Number(document.querySelector('#geo4-demand-multiplier')?.value)||1,capacity:Number(document.querySelector('#geo4-vehicle-capacity')?.value)||1,hubs:Number(document.querySelector('#geo4-kpi-hubs')?.textContent)||1,fleet:Number(document.querySelector('#geo4-fleet-out')?.textContent)||0,tripsPer:Number(document.querySelector('#geo4-trips')?.value)||0};"
+    )
+    if not isinstance(scene, dict) or not isinstance(scene.get("demands"), list):
+        raise RuntimeError(f"Unable to derive compact-scene fleet expectation: {scene!r}")
+    total_flow = sum(float(value) for value in scene["demands"]) * float(scene["mult"])
+    vehicle_capacity = max(1.0, float(scene["capacity"]))
+    selected_hubs = max(1, int(scene["hubs"]))
+    expected_min = math.ceil(total_flow / vehicle_capacity)
+    # Trips are split independently by hub. Rounding each hub load can add at
+    # most one extra trip per additional selected hub.
+    expected_max = expected_min + selected_hubs - 1
+    if not (expected_min <= trips <= expected_max):
         raise RuntimeError(
-            f"Fleet trip count indicates duplicated or missing allocation flow: trips={trips}, expected 80–82."
+            "Fleet trip count indicates duplicated or missing solved allocation flow: "
+            f"trips={trips}, expected={expected_min}–{expected_max}, "
+            f"total_flow={total_flow:g}, capacity={vehicle_capacity:g}, hubs={selected_hubs}."
         )
-    if available != 100 or trips > available or minimum > 20:
+    expected_available = int(scene["fleet"]) * int(scene["tripsPer"])
+    if available != expected_available or trips > available or minimum > int(scene["fleet"]):
         raise RuntimeError(
-            f"Fleet feasibility outputs are inconsistent: trips={trips}, available={available}, minimum={minimum}."
+            f"Fleet feasibility outputs are inconsistent: trips={trips}, available={available}, "
+            f"expected_available={expected_available}, minimum={minimum}, fleet={scene['fleet']}."
         )
 
 
@@ -154,6 +175,7 @@ def main() -> None:
     server_thread = threading.Thread(target=server.serve_forever, daemon=True)
     server_thread.start()
 
+    gis_server, _gis_thread, endpoint = geo.gis.start_fake_overpass()
     driver_port = 9531
     driver_base = f"http://127.0.0.1:{driver_port}"
     driver = subprocess.Popen(
@@ -166,7 +188,7 @@ def main() -> None:
         base.wait_for_driver(driver_base, driver)
         browser = base.BrowserSession(driver_base, f"http://127.0.0.1:{site_port}")
         browser.set_viewport(1440, 1000, mobile=False)
-        assert_hotfix(browser)
+        assert_hotfix(browser, endpoint)
     finally:
         if browser is not None:
             browser.close()
@@ -177,9 +199,11 @@ def main() -> None:
             driver.kill()
         server.shutdown()
         server.server_close()
+        gis_server.shutdown()
+        gis_server.server_close()
 
     print(
-        "Post-release geospatial browser verification passed: OSM-first solving, coverage isolation, stale-result guards, OSM-only transshipment and non-duplicated fleet trips are correct."
+        "Post-release geospatial browser verification passed: compact OSM-first solving, coverage isolation, stale-result guards, OSM-only transshipment, enabled Route/Fleet actions and model-scaled non-duplicated fleet trips are correct."
     )
 
 
