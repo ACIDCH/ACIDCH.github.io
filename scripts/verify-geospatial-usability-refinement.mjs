@@ -103,8 +103,11 @@ requireToken(files.mobile, "ArrowLeft", "keyboard navigation for mobile workspac
 requireToken(files.queryPolish, "motorway_link|trunk|trunk_link|primary", "drivable Overpass road filter");
 requireToken(files.queryPolish, '.replace("[timeout:35]", "[timeout:16]")', "narrowed Overpass query budget");
 requireToken(files.queryPolish, '.replace("out body;", "out body qt;")', "quick Overpass output");
-requireToken(files.hedge, "Promise.any([primary, secondary])", "hedged primary/secondary Overpass fetch");
-requireToken(files.hedge, "2,600", "staggered Overpass backup start");
+requireToken(files.hedge, "const attempts = [primary, secondary]", "primary/secondary Overpass attempt set");
+requireToken(files.hedge, "Promise.any(attempts)", "hedged primary/secondary Overpass fetch");
+requireToken(files.hedge, "Promise.allSettled(attempts)", "hedged Overpass health reconciliation");
+requireToken(files.hedge, "reconcileHealthyState", "successful Overpass health-state reconciliation");
+requireToken(files.hedge, "2600", "staggered Overpass backup start");
 requireToken(files.fallback, "run.click()", "automatic Fast OD fallback solve");
 requireToken(files.fleetGuard, "isMainAllocation", "fleet main-allocation selector");
 requireToken(files.fleetGuard, '.replace(/Allocated:/gi, "Flow:")', "fleet allocation unmasking");
@@ -136,5 +139,5 @@ requireToken(
 );
 
 console.log(
-  "[geospatial-usability] PASS: OSM-first workflow, locally bundled Leaflet 1.9.4, explicit initial stale-result state, bounded mutation observers, bundled fast-start coordinates, narrower drivable-road Overpass queries, hedged endpoint failover, automatic Fast OD recovery, complete allocation-backed fleet planning, compact editable facilities, merged entity controls, readable mobile Map/Controls/Results switching and desktop readability improvements are wired into the release gate.",
+  "[geospatial-usability] PASS: OSM-first workflow, locally bundled Leaflet 1.9.4, explicit initial stale-result state, bounded mutation observers, bundled fast-start coordinates, narrower drivable-road Overpass queries, hedged endpoint failover with health reconciliation, automatic Fast OD recovery, complete allocation-backed fleet planning, compact editable facilities, merged entity controls, readable mobile Map/Controls/Results switching and desktop readability improvements are wired into the release gate.",
 );
