@@ -88,6 +88,7 @@ base.BrowserSession = GeospatialBrowserSession
 
 def navigate_path(browser: object, path: str) -> None:
     target = f"{browser.site_base}{path}"
+    requires_geo_root = "/lab/geospatial-supply-chain/" in path
     last_error: Exception | None = None
     for attempt in range(3):
         try:
@@ -110,13 +111,15 @@ def navigate_path(browser: object, path: str) -> None:
                 last_error = error
                 time.sleep(0.2)
                 continue
-            if (
-                isinstance(state, dict)
-                and state.get("path") == path
-                and state.get("root") is True
-                and state.get("ready") in {"loading", "interactive", "complete"}
-            ):
-                time.sleep(0.5)
+            if not isinstance(state, dict) or state.get("path") != path:
+                time.sleep(0.15)
+                continue
+            if requires_geo_root:
+                if state.get("root") is True:
+                    time.sleep(0.5)
+                    return
+            elif state.get("ready") in {"interactive", "complete"}:
+                time.sleep(0.35)
                 return
             time.sleep(0.15)
 
@@ -135,19 +138,23 @@ def navigate_path(browser: object, path: str) -> None:
 
 def wait_leaflet(browser: object, timeout: float = 20) -> None:
     deadline = time.time() + timeout
+    last_error: Exception | None = None
     while time.time() < deadline:
         try:
             ready = browser.execute(
-                "return Boolean(globalThis.L && document.querySelector('#geo4-map'));"
+                "return Boolean(globalThis.L && document.querySelector('#geo4-map .leaflet-map-pane'));"
             )
-        except Exception:
-            ready = False
-        if ready is True:
-            return
-        time.sleep(0.25)
-    state = browser.execute(
-        "return {leaflet:Boolean(globalThis.L),page:document.readyState,root:document.querySelector('#geo-v4')?.dataset||{}};"
-    )
+            if ready is True:
+                return
+        except Exception as error:
+            last_error = error
+        time.sleep(0.35)
+    try:
+        state = browser.execute(
+            "return {leaflet:Boolean(globalThis.L),page:document.readyState,leafletState:document.querySelector('#geo-v4')?.dataset.leafletState||'',source:document.querySelector('#geo-v4')?.dataset.leafletSource||''};"
+        )
+    except Exception as error:
+        state = {"executeError": repr(error), "priorError": repr(last_error)}
     raise RuntimeError(f"Leaflet did not become ready within the browser budget: {state}")
 
 
@@ -170,7 +177,7 @@ def read_text(browser: object, selector: str) -> str:
     return value
 
 
-def seed_cached_coordinates(browser: object) -> None:
+def prime_geospatial_document(browser: object) -> None:
     hubs = [
         {"lat": -36.855, "lon": 174.746, "label": "Ponsonby"},
         {"lat": -36.866, "lon": 174.735, "label": "Grey Lynn"},
@@ -191,16 +198,14 @@ def seed_cached_coordinates(browser: object) -> None:
         {"lat": -36.881, "lon": 174.798, "label": "Remuera"},
         {"lat": -36.906, "lon": 174.755, "label": "Three Kings"},
     ]
-    payload = json.dumps({"hubs": hubs, "demands": demands})
-    browser.execute(
-        "localStorage.setItem('acidch-geo-v4-base-coords', %r);return true;" % payload
-    )
-
-
-def install_overpass_fixture(browser: object) -> None:
-    browser.execute(
-        r"""
-        const prior=globalThis.fetch;
+    coords_json = json.dumps({"hubs": hubs, "demands": demands})
+    source = r"""
+      try {
+        localStorage.setItem('acidch-geo-v4-base-coords', %s);
+      } catch {}
+      if (!globalThis.__geoProofFetchInstalled && typeof globalThis.fetch === 'function') {
+        globalThis.__geoProofFetchInstalled = true;
+        const prior = globalThis.fetch.bind(globalThis);
         const nodes=[]; const ways=[]; let id=1;
         const rows=11, cols=11, lat0=-36.935, lon0=174.700, dLat=.014, dLon=.017;
         const grid=[];
@@ -215,16 +220,24 @@ def install_overpass_fixture(browser: object) -> None:
         let wayId=10000;
         for(let r=0;r<rows;r++) ways.push({type:'way',id:wayId++,nodes:grid[r],tags:{highway:'secondary',maxspeed:'50'}});
         for(let c=0;c<cols;c++) ways.push({type:'way',id:wayId++,nodes:grid.map(row=>row[c]),tags:{highway:'secondary',maxspeed:'50'}});
-        const body=JSON.stringify({elements:[...nodes,...ways]});
+        const overpassBody=JSON.stringify({elements:[...nodes,...ways]});
         globalThis.fetch=async(input,init={})=>{
           const url=typeof input==='string'?input:(input?.url||'');
           if(/overpass|api\/interpreter/i.test(url) && String(init?.method||'GET').toUpperCase()==='POST'){
-            return new Response(body,{status:200,headers:{'content-type':'application/json'}});
+            return new Response(overpassBody,{status:200,headers:{'content-type':'application/json'}});
           }
-          return prior.call(globalThis,input,init);
+          return prior(input,init);
         };
-        return true;
-        """
+      }
+    """ % json.dumps(coords_json)
+    base.request_json(
+        "POST",
+        f"{browser.session_base}/goog/cdp/execute",
+        {
+            "cmd": "Page.addScriptToEvaluateOnNewDocument",
+            "params": {"source": source},
+        },
+        timeout=8,
     )
 
 
@@ -265,7 +278,6 @@ def assert_refined_ui(browser: object) -> None:
 
 
 def run_osm_first(browser: object) -> None:
-    install_overpass_fixture(browser)
     browser.click("#geo4-run")
     browser.wait_for_text("#geo4-graph-status", "nodes /", timeout=12)
     browser.wait_for_text("#geo4-status", "当前情景已完成重新优化", timeout=12)
@@ -295,11 +307,11 @@ def assert_light_home_contrast(browser: object) -> None:
         raise RuntimeError(f"Featured project still uses white text in light mode: {values}")
     if float(values.get("font") or 0) < 16:
         raise RuntimeError(f"Featured-project title remains too small: {values}")
+    browser.screenshot("geospatial-home-light-desktop.png")
 
 
 def capture_desktop(browser: object) -> None:
-    navigate_path(browser, "/zh/lab/geospatial-supply-chain/")
-    seed_cached_coordinates(browser)
+    prime_geospatial_document(browser)
     navigate_path(browser, "/zh/lab/geospatial-supply-chain/")
     wait_leaflet(browser)
     browser.require("#geo4-map .leaflet-map-pane")
@@ -366,7 +378,7 @@ def main() -> None:
         server.shutdown()
         server.server_close()
 
-    expected = 5
+    expected = 6
     actual = len(list(OUTPUT.glob("*.png")))
     if actual != expected:
         raise RuntimeError(f"Expected {expected} desktop geospatial visual proofs, generated {actual}.")
