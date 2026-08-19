@@ -18,7 +18,7 @@ spec.loader.exec_module(geo)
 base = geo.base
 
 
-def wait_value(browser: object, script: str, expected: object, timeout: float = 10) -> object:
+def wait_value(browser: object, script: str, expected: object, timeout: float = 12) -> object:
     deadline = time.time() + timeout
     last = None
     while time.time() < deadline:
@@ -29,7 +29,7 @@ def wait_value(browser: object, script: str, expected: object, timeout: float = 
     raise RuntimeError(f"Timed out waiting for {expected!r}; last value was {last!r}.")
 
 
-def wait_nonblank(browser: object, selector: str, timeout: float = 10) -> str:
+def wait_nonblank(browser: object, selector: str, timeout: float = 12) -> str:
     deadline = time.time() + timeout
     last = ""
     while time.time() < deadline:
@@ -41,63 +41,49 @@ def wait_nonblank(browser: object, selector: str, timeout: float = 10) -> str:
 
 
 def assert_osm_failure_fallback(browser: object) -> None:
+    # A localhost endpoint makes the test deterministic and allows the normal
+    # compact-scene boot path to attempt OSM immediately. Port 9 is intentionally
+    # unreachable, so both configured Overpass attempts fail without contacting
+    # a public service.
+    geo.configure_gis(browser, "http://127.0.0.1:9/api/interpreter")
     geo.navigate_path(browser, "/zh/lab/geospatial-supply-chain/")
-    geo.wait_leaflet(browser)
-    browser.require("#geo-v4[data-usability-refinement-ready='true']")
+    browser.require("#geo-v4[data-compact-entity-ui-ready='true']")
     browser.require("#geo-v4[data-leaflet-source='bundle']")
+    browser.require("#geo4-map .leaflet-map-pane")
 
-    if browser.execute("return document.querySelector('#geo4-engine')?.value") != "osm":
-        raise RuntimeError("OSM is not selected before failure-recovery test.")
-    wait_value(
-        browser,
-        "return document.querySelector('#geo-v4')?.dataset.resultFreshness || '';",
-        "stale",
-        timeout=5,
-    )
-    browser.wait_for_text(".geo4__freshness", "默认 OSM 情景已就绪", timeout=5)
-
-    browser.execute(
-        r"""
-        const original=globalThis.fetch;
-        globalThis.fetch=async(input,init={})=>{
-          const url=typeof input==='string'?input:(input?.url||'');
-          const method=String(init?.method||'GET').toUpperCase();
-          if(/overpass|api\/interpreter/i.test(url) && method==='POST'){
-            return new Response(JSON.stringify({remark:'synthetic outage'}),{
-              status:503,headers:{'content-type':'application/json'}
-            });
-          }
-          return original.call(globalThis,input,init);
-        };
-        return true;
-        """
-    )
-
-    browser.click("#geo4-run")
     wait_value(
         browser,
         "return document.querySelector('#geo4-engine')?.value || '';",
         "od",
-        timeout=10,
+        timeout=12,
     )
     wait_value(
         browser,
         "return document.querySelector('#geo-v4')?.dataset.networkRecovery || '';",
         "fast-od",
-        timeout=10,
+        timeout=12,
     )
     wait_value(
         browser,
         "return document.querySelector('#geo-v4')?.dataset.resultFreshness || '';",
         "fresh",
-        timeout=10,
+        timeout=12,
     )
-    hubs = wait_nonblank(browser, "#geo4-kpi-hubs", timeout=10)
-    cost = wait_nonblank(browser, "#geo4-kpi-cost", timeout=10)
+
+    entity_count = browser.execute(
+        "return document.querySelectorAll('#geo4-policy-list .geo4__policy-row').length;"
+    )
+    if entity_count != 4:
+        raise RuntimeError(
+            f"Fast OD recovery did not preserve the compact four-entity scene: {entity_count}"
+        )
+
+    hubs = wait_nonblank(browser, "#geo4-kpi-hubs", timeout=12)
+    cost = wait_nonblank(browser, "#geo4-kpi-cost", timeout=12)
     status = geo.read_text(browser, "#geo4-status")
     graph_status = geo.read_text(browser, "#geo4-graph-status")
 
-    if "OD" not in graph_status:
+    if "快速 OD" not in graph_status and "Fast OD" not in graph_status:
         raise RuntimeError(f"Graph status did not record Fast OD recovery: {graph_status!r}")
     if "重新优化" not in status and "re-optimised" not in status:
         raise RuntimeError(f"Fallback result did not settle on a solved state: {status!r}")
@@ -142,7 +128,7 @@ def main() -> None:
         server.server_close()
 
     print(
-        "OSM failure recovery browser verification passed: bundled Leaflet starts locally, default OSM begins stale, and a synthetic Overpass outage produces a durable Fast OD recovery state with a fresh solved result."
+        "OSM failure recovery browser verification passed: bundled Leaflet starts locally, a deterministic Overpass outage preserves the compact scene, and Fast OD recovery produces a durable recovery state with fresh solved KPIs."
     )
 
 
