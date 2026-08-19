@@ -4,7 +4,7 @@ function boot() {
   const root = D?.getElementById("geo-v4");
   const engine = D?.getElementById("geo4-engine");
   const graphStatus = D?.getElementById("geo4-graph-status");
-  if (!root || !engine || !graphStatus || root.dataset.usabilityRefinementReady !== "true") {
+  if (!root || !engine || !graphStatus || root.dataset.compactEntityUiReady !== "true") {
     globalThis.setTimeout(boot, 80);
     return;
   }
