@@ -3,7 +3,6 @@ from __future__ import annotations
 import importlib.util
 import subprocess
 import threading
-import time
 from functools import partial
 from pathlib import Path
 
@@ -16,29 +15,6 @@ if spec is None or spec.loader is None:
 geo = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(geo)
 base = geo.base
-
-TEST_COORDS = {
-    "hubs": [
-        {"lat": -36.8552, "lon": 174.7465},
-        {"lat": -36.8617, "lon": 174.7355},
-        {"lat": -36.8890, "lon": 174.7970},
-        {"lat": -36.8475, "lon": 174.7755},
-        {"lat": -36.8585, "lon": 174.8110},
-        {"lat": -36.9200, "lon": 174.7860},
-    ],
-    "demands": [
-        {"lat": -36.8485, "lon": 174.7633},
-        {"lat": -36.8875, "lon": 174.7750},
-        {"lat": -36.8617, "lon": 174.7355},
-        {"lat": -36.8795, "lon": 174.7615},
-        {"lat": -36.8710, "lon": 174.7780},
-        {"lat": -36.9210, "lon": 174.7850},
-        {"lat": -36.8600, "lon": 174.8100},
-        {"lat": -36.8552, "lon": 174.7465},
-        {"lat": -36.8790, "lon": 174.8000},
-        {"lat": -36.9100, "lon": 174.7560},
-    ],
-}
 
 
 def execute_fetch_stub(browser: object) -> None:
@@ -84,16 +60,12 @@ def execute_fetch_stub(browser: object) -> None:
 
 
 def assert_hotfix(browser: object) -> None:
+    geo.prime_geospatial_document(browser)
     geo.navigate_path(browser, "/zh/lab/geospatial-supply-chain/")
-    browser.require("#geo-v4")
-    browser.execute(
-        "localStorage.setItem('acidch-geo-v4-base-coords', JSON.stringify(%r)); return true;"
-        % TEST_COORDS
-    )
-    geo.navigate_path(browser, "/zh/lab/geospatial-supply-chain/")
+    geo.wait_leaflet(browser)
     browser.require("#geo-v4[data-usability-refinement-ready='true']")
+    browser.require("#geo4-map .leaflet-map-pane")
     execute_fetch_stub(browser)
-    geo.install_overpass_fixture(browser)
 
     if browser.execute("return document.querySelector('#geo4-engine')?.value") != "osm":
         raise RuntimeError("OSM Road Network is not the default engine in the hotfix gate.")
@@ -139,8 +111,8 @@ def assert_hotfix(browser: object) -> None:
     browser.click("#geo4-run")
     browser.wait_for_text("#geo4-status", "当前情景已完成重新优化", timeout=12)
 
-    # Fast OD is still available as a fallback, but two-echelon transshipment must
-    # not pretend that baseline OSRM costs represent an active road disruption.
+    # Fast OD remains a valid fallback, while the two-echelon road-scenario
+    # planner must still refuse to present OD values as an active OSM graph.
     geo.set_select(browser, "#geo4-engine", "od")
     browser.click("#geo4-run")
     browser.wait_for_text("#geo4-status", "当前情景已完成重新优化", timeout=12)
