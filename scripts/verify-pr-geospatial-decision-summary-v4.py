@@ -58,6 +58,26 @@ def wait_slot(browser: object, slot: str, timeout: float = 8) -> None:
         raise RuntimeError(f"Scenario {slot} did not render as saved: {text!r}")
 
 
+def assert_summary_layout(browser: object) -> None:
+    display = browser.execute(
+        "return getComputedStyle(document.querySelector('.geo4__ab-summary')).display;"
+    )
+    if display != "grid":
+        raise RuntimeError(
+            f"Scenario summary was overridden by legacy A/B layout CSS: display={display!r}"
+        )
+    dimensions = browser.execute(
+        "const a=document.querySelector('#geo4-ab');"
+        "const s=document.querySelector('.geo4__ab-summary');"
+        "const d=document.querySelector('.geo4__ab-decision');"
+        "return {ab:a?.getBoundingClientRect().width||0,summary:s?.getBoundingClientRect().width||0,decision:d?.getBoundingClientRect().width||0};"
+    )
+    if not isinstance(dimensions, dict):
+        raise RuntimeError("Unable to measure the rendered A/B scenario summary.")
+    if dimensions.get("decision", 0) <= 0 or dimensions.get("summary", 0) > dimensions.get("ab", 0) + 2:
+        raise RuntimeError(f"Scenario summary is horizontally clipped: {dimensions}")
+
+
 def assert_same_engine_summary(browser: object) -> None:
     browser.click("#geo4-save-a")
     wait_slot(browser, "A")
@@ -76,6 +96,7 @@ def assert_same_engine_summary(browser: object) -> None:
     decision = geo.read_text(browser, ".geo4__ab-decision")
     if "决策解读" not in decision:
         raise RuntimeError(f"Decision interpretation is missing: {decision!r}")
+    assert_summary_layout(browser)
 
     changed_count = browser.execute(
         "return document.querySelectorAll('.geo4__ab-change').length;"
@@ -95,7 +116,7 @@ def assert_same_engine_summary(browser: object) -> None:
         )
 
     browser.execute(
-        "document.querySelector('#geo4-compare')?.scrollIntoView({block:'center'});return true;"
+        "document.querySelector('.geo4__ab-decision')?.scrollIntoView({block:'center'});return true;"
     )
     time.sleep(0.4)
     browser.screenshot("geospatial-decision-summary-v4.png")
@@ -111,6 +132,7 @@ def assert_cross_engine_guard(browser: object) -> None:
     wait_slot(browser, "B")
     browser.click("#geo4-compare")
     wait_dataset(browser, "scenarioComparisonState", "cross-engine", timeout=8)
+    assert_summary_layout(browser)
 
     warning = geo.read_text(browser, ".geo4__ab-warning")
     if "Fast OD 是 km，OSM 是 min" not in warning:
@@ -139,7 +161,7 @@ def assert_cross_engine_guard(browser: object) -> None:
         )
 
     browser.execute(
-        "document.querySelector('#geo4-compare')?.scrollIntoView({block:'center'});return true;"
+        "document.querySelector('.geo4__ab-warning')?.scrollIntoView({block:'center'});return true;"
     )
     time.sleep(0.4)
     browser.screenshot("geospatial-cross-engine-guard-v4.png")
@@ -171,6 +193,7 @@ def main() -> None:
         geo.configure_gis(browser, endpoint)
         geo.navigate_path(browser, "/zh/lab/geospatial-supply-chain/")
         browser.require("#geo-v4[data-scenario-summary-v4-ready='true']")
+        browser.require("#geo-v4[data-scenario-summary-layout-v4-ready='true']")
         browser.wait_for_text("#geo4-graph-status", "OSM 道路网络已加载", timeout=16)
         geo.wait_solved(browser)
 
@@ -190,7 +213,7 @@ def main() -> None:
         gis_server.server_close()
 
     print(
-        "Geospatial decision-summary v4 browser verification passed: A/B captures changed assumptions and managerial trade-off interpretation under like-for-like OSM metrics, while cross-engine Fast OD versus OSM comparisons refuse to subtract kilometres from minutes."
+        "Geospatial decision-summary v4 browser verification passed: A/B is visibly stacked in the Scenario Console, captures changed assumptions and managerial trade-off interpretation under like-for-like OSM metrics, and cross-engine Fast OD versus OSM comparisons refuse to subtract kilometres from minutes."
     )
 
 
