@@ -29,7 +29,7 @@ function boot() {
       const roadFilter =
         'way["highway"~"^(motorway|motorway_link|trunk|trunk_link|primary|primary_link|secondary|secondary_link|tertiary|tertiary_link|unclassified|residential|living_street|service)$"]';
       const query = source
-        .replace("[timeout:35]", "[timeout:16]")
+        .replace(/\[timeout:\d+\]/, "[timeout:16]")
         .replace(
           'way["highway"]["highway"!~"footway|path|cycleway|steps|pedestrian|track"]',
           roadFilter,
