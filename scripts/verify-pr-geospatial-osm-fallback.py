@@ -82,6 +82,12 @@ def assert_osm_failure_fallback(browser: object) -> None:
     )
     wait_value(
         browser,
+        "return document.querySelector('#geo-v4')?.dataset.networkRecovery || '';",
+        "fast-od",
+        timeout=10,
+    )
+    wait_value(
+        browser,
         "return document.querySelector('#geo-v4')?.dataset.resultFreshness || '';",
         "fresh",
         timeout=10,
@@ -91,10 +97,10 @@ def assert_osm_failure_fallback(browser: object) -> None:
     status = geo.read_text(browser, "#geo4-status")
     graph_status = geo.read_text(browser, "#geo4-graph-status")
 
-    if "快速 OD" not in status and "Fast OD" not in status:
-        raise RuntimeError(f"Fallback solve did not surface its recovery mode: {status!r}")
     if "OD" not in graph_status:
         raise RuntimeError(f"Graph status did not record Fast OD recovery: {graph_status!r}")
+    if "重新优化" not in status and "re-optimised" not in status:
+        raise RuntimeError(f"Fallback result did not settle on a solved state: {status!r}")
     if hubs in {"", "—"} or cost in {"", "—"}:
         raise RuntimeError(
             f"Fast OD fallback did not produce a usable optimisation result: hubs={hubs!r}, cost={cost!r}"
@@ -136,7 +142,7 @@ def main() -> None:
         server.server_close()
 
     print(
-        "OSM failure recovery browser verification passed: bundled Leaflet starts locally, the default OSM result is stale before execution, and Fast OD solves automatically after a synthetic Overpass outage."
+        "OSM failure recovery browser verification passed: bundled Leaflet starts locally, default OSM begins stale, and a synthetic Overpass outage produces a durable Fast OD recovery state with a fresh solved result."
     )
 
 
