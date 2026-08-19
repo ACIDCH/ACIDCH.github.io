@@ -29,20 +29,24 @@ describe("geospatial service runtime", () => {
     expect(classifyServiceUrl("https://example.com/data.json")).toBeNull();
   });
 
-  it("prefers Private.coffee and sends the legacy Kumi fallback to overpass-api.de", () => {
+  it("keeps the configured primary and secondary Overpass endpoints distinct", () => {
+    expect(
+      rewriteServiceUrl("https://overpass.private.coffee/api/interpreter"),
+    ).toBe("https://overpass.private.coffee/api/interpreter");
     expect(rewriteServiceUrl("https://overpass-api.de/api/interpreter")).toBe(
-      "https://overpass.private.coffee/api/interpreter",
+      "https://overpass-api.de/api/interpreter",
     );
     expect(rewriteServiceUrl("https://overpass.kumi.systems/api/interpreter")).toBe(
       "https://overpass-api.de/api/interpreter",
     );
   });
 
-  it("preserves endpoint paths and queries when a runtime override is supplied", () => {
+  it("preserves configured custom endpoints while legacy public URLs remain rewritable", () => {
     const endpoints = normalizeGisEndpoints({
       nominatim: "https://geo.example.test/nominatim",
       osrm: "https://route.example.test/osrm",
       overpassPrimary: "https://overpass.example.test/api/interpreter",
+      overpassSecondary: "https://backup.example.test/api/interpreter",
     });
     expect(
       rewriteServiceUrl(
@@ -57,8 +61,24 @@ describe("geospatial service runtime", () => {
       ),
     ).toBe("https://route.example.test/osrm/route/v1/driving/1,2;3,4?steps=false");
     expect(
-      rewriteServiceUrl("https://overpass-api.de/api/interpreter", endpoints),
+      rewriteServiceUrl(
+        "https://overpass.private.coffee/api/interpreter",
+        endpoints,
+      ),
     ).toBe("https://overpass.example.test/api/interpreter");
+    expect(
+      rewriteServiceUrl("https://overpass.kumi.systems/api/interpreter", endpoints),
+    ).toBe("https://backup.example.test/api/interpreter");
+  });
+
+  it("recognises and preserves a configured local Overpass fixture", () => {
+    const endpoints = normalizeGisEndpoints({
+      overpassPrimary: "http://127.0.0.1:8123/api/interpreter",
+      overpassSecondary: "http://127.0.0.1:8124/api/interpreter",
+    });
+    const url = "http://127.0.0.1:8123/api/interpreter";
+    expect(classifyServiceUrl(url, endpoints)).toBe("overpass");
+    expect(rewriteServiceUrl(url, endpoints)).toBe(url);
   });
 
   it("shares one parsed JSON payload across the response and all clones", async () => {
