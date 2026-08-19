@@ -39,7 +39,7 @@
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",
-    "astro": "^7.1.3",
+    "astro": "^7.2.2",
     "leaflet": "1.9.4",
     "webr": "^0.6.0"
   },
