@@ -44,6 +44,17 @@ function boot() {
     }
   }
 
+  function reconcileHealthyState() {
+    const chip = root.querySelector('.geo4__service-chip[data-service="overpass"]');
+    if (!chip) return;
+    chip.dataset.state = "ok";
+    root.dataset.serviceOverpass = "ok";
+    const detail = chip.querySelector("small");
+    if (detail && /降级|Degraded/i.test(detail.textContent || "")) {
+      detail.textContent = (root.dataset.locale || "zh") === "zh" ? "正常 · 主/备端点已响应" : "Healthy · endpoint responded";
+    }
+  }
+
   const wrappedFetch = async (input, init = {}) => {
     if (!overpassPost(input, init)) return priorFetch.call(globalThis, input, init);
     const sourceUrl = typeof input === "string" ? input : input?.url || "";
@@ -64,12 +75,18 @@ function boot() {
 
     const primarySource = input;
     // serviceRuntime rewrites this legacy secondary source to the configured
-    // secondary endpoint (overpass-api.de by default).
+    // secondary endpoint (overpass-api.de by default). Start it after 2,600 ms
+    // so a healthy primary remains the normal low-load path.
     const secondarySource = "https://overpass.kumi.systems/api/interpreter";
     const primary = validatedFetch(primarySource, init, 0);
     const secondary = validatedFetch(secondarySource, init, 2600);
+    const attempts = [primary, secondary];
     try {
-      return await globalThis.Promise.any([primary, secondary]);
+      const response = await globalThis.Promise.any(attempts);
+      globalThis.Promise.allSettled(attempts).then((results) => {
+        if (results.some((entry) => entry.status === "fulfilled")) reconcileHealthyState();
+      });
+      return response;
     } catch (error) {
       throw new Error("Both Overpass graph endpoints were unavailable", { cause: error });
     }
