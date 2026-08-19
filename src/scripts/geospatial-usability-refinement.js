@@ -152,8 +152,10 @@ function boot() {
       const marker = markers[index];
       if (!marker) return;
       const removed = select.value === "exclude";
-      marker.style.display = removed ? "none" : "";
-      marker.setAttribute("aria-hidden", removed ? "true" : "false");
+      const display = removed ? "none" : "";
+      const hidden = removed ? "true" : "false";
+      if (marker.style.display !== display) marker.style.display = display;
+      if (marker.getAttribute("aria-hidden") !== hidden) marker.setAttribute("aria-hidden", hidden);
     });
   }
 
@@ -179,10 +181,12 @@ function boot() {
           decoratePolicyRows();
         });
       }
-      button.textContent = removed ? copy.restore : copy.delete;
+      const label = removed ? copy.restore : copy.delete;
+      if (button.textContent?.trim() !== label) button.textContent = label;
     });
     const count = D.getElementById("geo4-facility-count");
-    if (count) count.textContent = `${activeCount}/${rows.length}`;
+    const nextCount = `${activeCount}/${rows.length}`;
+    if (count && count.textContent !== nextCount) count.textContent = nextCount;
     globalThis.requestAnimationFrame(syncExcludedFacilityMarkers);
   }
 
@@ -208,7 +212,7 @@ function boot() {
     decoratePolicyRows();
     if (root.dataset.compactFacilityPreset !== "true") compactFacilityPreset();
   });
-  policyObserver.observe(policyList, { childList: true, subtree: true });
+  policyObserver.observe(policyList, { childList: true });
 
   const mapBox = D.getElementById("geo4-map");
   const mapObserver = new globalThis.MutationObserver(syncExcludedFacilityMarkers);
