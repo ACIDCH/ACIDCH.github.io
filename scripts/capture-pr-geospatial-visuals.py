@@ -21,7 +21,7 @@ base.OUTPUT = OUTPUT
 
 
 class GeospatialBrowserSession(base.BrowserSession):
-    """Chrome session that never lets third-party map resources own navigation."""
+    """Chrome session tuned for the locally bundled geospatial runtime."""
 
     def __init__(self, driver_base: str, site_base: str) -> None:
         self.site_base = site_base
@@ -29,7 +29,7 @@ class GeospatialBrowserSession(base.BrowserSession):
             "capabilities": {
                 "alwaysMatch": {
                     "browserName": "chrome",
-                    "pageLoadStrategy": "none",
+                    "pageLoadStrategy": "eager",
                     "goog:chromeOptions": {
                         "args": [
                             "--headless=new",
@@ -82,7 +82,7 @@ class GeospatialBrowserSession(base.BrowserSession):
 
 
 # verify-pr-geospatial-hotfix.py imports this module and then reuses geo.base.
-# Expose the same nonblocking session so both browser gates exercise identical runtime semantics.
+# Expose the same eager session so all geospatial browser gates share one runtime policy.
 base.BrowserSession = GeospatialBrowserSession
 
 
@@ -96,7 +96,7 @@ def navigate_path(browser: object, path: str) -> None:
                 "POST",
                 f"{browser.session_base}/url",
                 {"url": target},
-                timeout=6,
+                timeout=12,
             )
         except Exception as error:
             last_error = error
@@ -115,23 +115,14 @@ def navigate_path(browser: object, path: str) -> None:
                 time.sleep(0.15)
                 continue
             if requires_geo_root:
-                if state.get("root") is True:
-                    time.sleep(0.5)
+                if state.get("root") is True and state.get("ready") in {"interactive", "complete"}:
+                    time.sleep(0.35)
                     return
             elif state.get("ready") in {"interactive", "complete"}:
                 time.sleep(0.35)
                 return
             time.sleep(0.15)
 
-        try:
-            base.request_json(
-                "POST",
-                f"{browser.session_base}/goog/cdp/execute",
-                {"cmd": "Page.stopLoading", "params": {}},
-                timeout=4,
-            )
-        except Exception:
-            pass
         time.sleep(0.5 * (attempt + 1))
     raise RuntimeError(f"Unable to navigate geospatial proof browser to {target}: {last_error}")
 
@@ -141,14 +132,16 @@ def wait_leaflet(browser: object, timeout: float = 20) -> None:
     last_error: Exception | None = None
     while time.time() < deadline:
         try:
-            ready = browser.execute(
-                "return Boolean(globalThis.L && document.querySelector('#geo4-map .leaflet-map-pane'));"
+            state = browser.execute(
+                "return {ready:Boolean(globalThis.L && document.querySelector('#geo4-map .leaflet-map-pane')),leafletState:document.querySelector('#geo-v4')?.dataset.leafletState||'',source:document.querySelector('#geo-v4')?.dataset.leafletSource||''};"
             )
-            if ready is True:
+            if isinstance(state, dict) and state.get("ready") is True:
+                if state.get("source") != "bundle":
+                    raise RuntimeError(f"Leaflet did not start from the local bundle: {state}")
                 return
         except Exception as error:
             last_error = error
-        time.sleep(0.35)
+        time.sleep(0.25)
     try:
         state = browser.execute(
             "return {leaflet:Boolean(globalThis.L),page:document.readyState,leafletState:document.querySelector('#geo-v4')?.dataset.leafletState||'',source:document.querySelector('#geo-v4')?.dataset.leafletSource||''};"
