@@ -12,10 +12,6 @@ function boot() {
   if (root.dataset.osmFallbackReady === "true") return;
   root.dataset.osmFallbackReady = "true";
 
-  const zh = (root.dataset.locale || "zh") === "zh";
-  const fallbackText = zh
-    ? "OSM 路网暂时不可用，已自动使用快速 OD 网络完成优化。"
-    : "OSM Road Network is temporarily unavailable; optimisation continued automatically with Fast OD.";
   let fallbackInFlight = false;
 
   const observer = new globalThis.MutationObserver(() => {
@@ -24,17 +20,20 @@ function boot() {
     const ready = /nodes\s*\/\s*[\d,]+\s*edges/i.test(text);
     if (ready) {
       fallbackInFlight = false;
+      delete root.dataset.networkRecovery;
       return;
     }
     if (!failed || fallbackInFlight || engine.value !== "od") return;
+
+    // Persist the recovery mode separately from the result-status sentence.
+    // The result status is allowed to settle on the normal "re-optimised"
+    // message after the Fast OD solve, while graphStatus remains the visible
+    // explanation of why the network engine changed.
+    root.dataset.networkRecovery = "fast-od";
     fallbackInFlight = true;
     root.dataset.resultFreshness = "calculating";
     globalThis.setTimeout(() => run.click(), 0);
     globalThis.setTimeout(() => {
-      const status = D.getElementById("geo4-status");
-      if (status && /重新优化|re-optimised/i.test(status.textContent || "")) {
-        status.textContent = fallbackText;
-      }
       fallbackInFlight = false;
     }, 250);
   });
