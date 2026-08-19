@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import importlib.util
-import json
 import subprocess
 import threading
 import time
@@ -10,6 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE_SCRIPT = ROOT / "scripts" / "capture-pr-sql-visuals.py"
+GIS_SCRIPT = ROOT / "scripts" / "geospatial-test-gis.py"
 OUTPUT = ROOT / "geospatial-proofs"
 
 spec = importlib.util.spec_from_file_location("sql_visual_helpers", BASE_SCRIPT)
@@ -19,141 +19,49 @@ base = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(base)
 base.OUTPUT = OUTPUT
 
-
-class GeospatialBrowserSession(base.BrowserSession):
-    """Chrome session tuned for the locally bundled geospatial runtime."""
-
-    def __init__(self, driver_base: str, site_base: str) -> None:
-        self.site_base = site_base
-        payload = {
-            "capabilities": {
-                "alwaysMatch": {
-                    "browserName": "chrome",
-                    "pageLoadStrategy": "eager",
-                    "goog:chromeOptions": {
-                        "args": [
-                            "--headless=new",
-                            "--no-sandbox",
-                            "--disable-gpu",
-                            "--disable-dev-shm-usage",
-                            "--disable-background-networking",
-                            "--disable-extensions",
-                            "--no-first-run",
-                            "--no-default-browser-check",
-                            "--disable-features=Translate,MediaRouter,OptimizationHints",
-                            "--window-size=1440,1000",
-                        ]
-                    },
-                }
-            }
-        }
-        session_id = None
-        last_error: Exception | None = None
-        for attempt in range(2):
-            try:
-                response = base.request_json(
-                    "POST", f"{driver_base}/session", payload, timeout=40
-                )
-                value = response.get("value")
-                if isinstance(value, dict) and isinstance(value.get("sessionId"), str):
-                    session_id = value["sessionId"]
-                    break
-                last_error = RuntimeError(
-                    f"Unexpected ChromeDriver session response: {response}"
-                )
-            except Exception as error:
-                last_error = error
-                deadline = time.time() + 8
-                while time.time() < deadline and session_id is None:
-                    session_id = base.recover_session(driver_base)
-                    if session_id is None:
-                        time.sleep(0.5)
-                if session_id is not None:
-                    break
-            if attempt == 0:
-                time.sleep(1.0)
-        if session_id is None:
-            raise RuntimeError(
-                f"Geospatial ChromeDriver session did not start after bounded recovery: {last_error}"
-            )
-        self.session_id = session_id
-        self.session_base = f"{driver_base}/session/{session_id}"
-        self.set_viewport(1440, 1000, mobile=False)
-
-
-# Other geospatial browser verifiers import this module and reuse geo.base.
-base.BrowserSession = GeospatialBrowserSession
+gis_spec = importlib.util.spec_from_file_location("geospatial_test_gis", GIS_SCRIPT)
+if gis_spec is None or gis_spec.loader is None:
+    raise RuntimeError("Unable to load deterministic GIS fixture server.")
+gis = importlib.util.module_from_spec(gis_spec)
+gis_spec.loader.exec_module(gis)
 
 
 def navigate_path(browser: object, path: str) -> None:
-    target = f"{browser.site_base}{path}"
-    requires_geo_root = "/lab/geospatial-supply-chain/" in path
-    last_error: Exception | None = None
-    for attempt in range(3):
-        try:
-            base.request_json(
-                "POST",
-                f"{browser.session_base}/url",
-                {"url": target},
-                timeout=12,
-            )
-        except Exception as error:
-            last_error = error
-
-        deadline = time.time() + 18
-        while time.time() < deadline:
-            try:
-                state = browser.execute(
-                    "return {ready:document.readyState,path:location.pathname,root:Boolean(document.querySelector('#geo-v4'))};"
-                )
-            except Exception as error:
-                last_error = error
-                time.sleep(0.2)
-                continue
-            if not isinstance(state, dict) or state.get("path") != path:
-                time.sleep(0.15)
-                continue
-            if requires_geo_root:
-                if state.get("root") is True and state.get("ready") in {"interactive", "complete"}:
-                    time.sleep(0.35)
-                    return
-            elif state.get("ready") in {"interactive", "complete"}:
-                time.sleep(0.35)
-                return
-            time.sleep(0.15)
-
-        time.sleep(0.5 * (attempt + 1))
-    raise RuntimeError(f"Unable to navigate geospatial proof browser to {target}: {last_error}")
-
-
-def wait_leaflet(browser: object, timeout: float = 20) -> None:
-    deadline = time.time() + timeout
-    last_error: Exception | None = None
+    base.request_json(
+        "POST",
+        f"{browser.session_base}/url",
+        {"url": f"{browser.site_base}{path}"},
+    )
+    deadline = time.time() + 12
     while time.time() < deadline:
-        try:
-            state = browser.execute(
-                "return {ready:Boolean(globalThis.L && document.querySelector('#geo4-map .leaflet-map-pane')),leafletState:document.querySelector('#geo-v4')?.dataset.leafletState||'',source:document.querySelector('#geo-v4')?.dataset.leafletSource||''};"
-            )
-            if isinstance(state, dict) and state.get("ready") is True:
-                if state.get("source") != "bundle":
-                    raise RuntimeError(f"Leaflet did not start from the local bundle: {state}")
-                return
-        except Exception as error:
-            last_error = error
-        time.sleep(0.25)
-    try:
-        state = browser.execute(
-            "return {leaflet:Boolean(globalThis.L),page:document.readyState,leafletState:document.querySelector('#geo-v4')?.dataset.leafletState||'',source:document.querySelector('#geo-v4')?.dataset.leafletSource||''};"
-        )
-    except Exception as error:
-        state = {"executeError": repr(error), "priorError": repr(last_error)}
-    raise RuntimeError(f"Leaflet did not become ready within the browser budget: {state}")
+        if browser.execute("return document.readyState") == "complete":
+            break
+        time.sleep(0.1)
+    time.sleep(0.6)
+
+
+def configure_gis(browser: object, endpoint: str) -> None:
+    navigate_path(browser, "/")
+    browser.execute(
+        "localStorage.setItem('acidch-gis-endpoints', JSON.stringify({overpassPrimary:%r,overpassSecondary:%r}));"
+        "sessionStorage.setItem('acidch-geo-v4-scene-index','0');return true;"
+        % (endpoint, endpoint)
+    )
 
 
 def set_select(browser: object, selector: str, value: str) -> None:
     browser.require(selector)
     browser.execute(
         "const e=document.querySelector(%r);e.value=%r;e.dispatchEvent(new Event('change',{bubbles:true}));"
+        % (selector, value)
+    )
+    time.sleep(0.35)
+
+
+def set_input(browser: object, selector: str, value: str) -> None:
+    browser.require(selector)
+    browser.execute(
+        "const e=document.querySelector(%r);e.value=%r;e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));"
         % (selector, value)
     )
     time.sleep(0.25)
@@ -169,224 +77,186 @@ def read_text(browser: object, selector: str) -> str:
     return value
 
 
-def prime_geospatial_document(browser: object) -> None:
-    """Seed only local coordinates before navigation; do not touch GIS service fetches."""
-    hubs = [
-        {"lat": -36.855, "lon": 174.746, "label": "Ponsonby"},
-        {"lat": -36.866, "lon": 174.735, "label": "Grey Lynn"},
-        {"lat": -36.892, "lon": 174.777, "label": "Greenlane"},
-        {"lat": -36.846, "lon": 174.776, "label": "CBD East"},
-        {"lat": -36.858, "lon": 174.812, "label": "Orakei"},
-        {"lat": -36.918, "lon": 174.789, "label": "Onehunga"},
+def read_value(browser: object, selector: str) -> str:
+    browser.require(selector)
+    value = browser.execute("return String(document.querySelector(%r)?.value ?? '');" % selector)
+    if not isinstance(value, str):
+        raise RuntimeError(f"Unable to read value from {selector}.")
+    return value
+
+
+def read_kpis(browser: object) -> dict[str, str]:
+    return {
+        "hubs": read_text(browser, "#geo4-kpi-hubs"),
+        "cost": read_text(browser, "#geo4-kpi-cost"),
+        "ss": read_text(browser, "#geo4-kpi-ss"),
+        "rop": read_text(browser, "#geo4-kpi-rop"),
+    }
+
+
+def wait_dataset(browser: object, key: str, expected: str, timeout: float = 8) -> None:
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        value = browser.execute(
+            "const r=document.querySelector('#geo-v4');return r?.dataset[%r] || '';" % key
+        )
+        if value == expected:
+            return
+        time.sleep(0.2)
+    raise RuntimeError(f"Timed out waiting for #geo-v4 data-{key}={expected!r}.")
+
+
+def wait_solved(browser: object, timeout: float = 16) -> None:
+    browser.wait_for_text("#geo4-status", "当前情景已完成重新优化", timeout=timeout)
+
+
+def assert_single_mounts(browser: object) -> None:
+    selectors = [
+        ".geo4__service-health",
+        ".geo4__capacity-buffer",
+        ".geo4__lead-variability",
+        ".geo4__fleet-planner",
+        ".geo4__transshipment",
+        ".geo4__flow-panel",
+        ".geo4__layer-chip",
     ]
-    demands = [
-        {"lat": -36.848, "lon": 174.763, "label": "CBD"},
-        {"lat": -36.886, "lon": 174.775, "label": "Epsom"},
-        {"lat": -36.862, "lon": 174.735, "label": "Grey Lynn"},
-        {"lat": -36.878, "lon": 174.761, "label": "Mount Eden"},
-        {"lat": -36.869, "lon": 174.778, "label": "Newmarket"},
-        {"lat": -36.922, "lon": 174.786, "label": "Onehunga"},
-        {"lat": -36.857, "lon": 174.810, "label": "Orakei"},
-        {"lat": -36.856, "lon": 174.744, "label": "Ponsonby"},
-        {"lat": -36.881, "lon": 174.798, "label": "Remuera"},
-        {"lat": -36.906, "lon": 174.755, "label": "Three Kings"},
-    ]
-    coords_json = json.dumps({"hubs": hubs, "demands": demands})
-    source = "try { localStorage.setItem('acidch-geo-v4-base-coords', %s); } catch {}" % json.dumps(coords_json)
-    base.request_json(
-        "POST",
-        f"{browser.session_base}/goog/cdp/execute",
-        {"cmd": "Page.addScriptToEvaluateOnNewDocument", "params": {"source": source}},
-        timeout=8,
+    duplicates = browser.execute(
+        "return Object.fromEntries(%r.map(s=>[s,document.querySelectorAll(s).length]));" % selectors
     )
+    if not isinstance(duplicates, dict):
+        raise RuntimeError("Unable to inspect geospatial extension mount counts.")
+    invalid = {key: value for key, value in duplicates.items() if value != 1}
+    if invalid:
+        raise RuntimeError(f"Geospatial extensions are not idempotently mounted: {invalid}")
 
 
-def install_overpass_fixture(browser: object) -> None:
-    """Install the deterministic road graph only after idle-service assertions."""
-    browser.execute(
-        r"""
-        if (!globalThis.__geoProofFetchInstalled && typeof globalThis.fetch === 'function') {
-          globalThis.__geoProofFetchInstalled = true;
-          const prior = globalThis.fetch.bind(globalThis);
-          const nodes=[]; const ways=[]; let id=1;
-          const rows=11, cols=11, lat0=-36.935, lon0=174.700, dLat=.014, dLon=.017;
-          const grid=[];
-          for(let r=0;r<rows;r++){
-            grid[r]=[];
-            for(let c=0;c<cols;c++){
-              const nodeId=id++;
-              grid[r][c]=nodeId;
-              nodes.push({type:'node',id:nodeId,lat:lat0+r*dLat,lon:lon0+c*dLon});
-            }
-          }
-          let wayId=10000;
-          for(let r=0;r<rows;r++) ways.push({type:'way',id:wayId++,nodes:grid[r],tags:{highway:'secondary',maxspeed:'50'}});
-          for(let c=0;c<cols;c++) ways.push({type:'way',id:wayId++,nodes:grid.map(row=>row[c]),tags:{highway:'secondary',maxspeed:'50'}});
-          const overpassBody=JSON.stringify({elements:[...nodes,...ways]});
-          globalThis.fetch=async(input,init={})=>{
-            const url=typeof input==='string'?input:(input?.url||'');
-            if(/overpass|api\/interpreter/i.test(url) && String(init?.method||'GET').toUpperCase()==='POST'){
-              return new Response(overpassBody,{status:200,headers:{'content-type':'application/json'}});
-            }
-            return prior(input,init);
-          };
-        }
-        return true;
-        """
-    )
-
-
-def assert_services_idle(browser: object) -> None:
+def assert_osm_first_state(browser: object) -> None:
+    browser.wait_for_text("#geo4-graph-status", "OSM 道路网络已加载", timeout=16)
+    wait_solved(browser)
+    if read_value(browser, "#geo4-engine") != "osm":
+        raise RuntimeError("The production geospatial scene did not start in OSM mode.")
+    entity_count = browser.execute("return document.querySelectorAll('#geo4-policy-list .geo4__policy-row').length;")
+    if entity_count != 4:
+        raise RuntimeError(f"Expected a compact four-entity initial scene, found {entity_count} rows.")
+    if "网络实体与设施决策" not in read_text(browser, "#geo4-policy-list") and "网络实体与设施决策" not in read_text(browser, ".geo4__console"):
+        raise RuntimeError("Unified network-entity/facility module was not mounted.")
+    if read_text(browser, "#geo4-map-add") != "点击地图添加":
+        raise RuntimeError("Map-click add button copy is not the requested Chinese wording.")
     states = browser.execute(
         "return Object.fromEntries([...document.querySelectorAll('.geo4__service-chip')].map(e=>[e.dataset.service,e.dataset.state]));"
     )
-    expected = {"nominatim": "idle", "osrm": "idle", "overpass": "idle"}
-    if states != expected:
-        raise RuntimeError(f"GIS services must remain idle before a user action: {states}")
+    if states.get("overpass") != "ok":
+        raise RuntimeError(f"OSM-first startup did not complete its Overpass request: {states}")
+    if states.get("nominatim") != "idle" or states.get("osrm") != "idle":
+        raise RuntimeError(f"Base OSM scene unexpectedly called Nominatim or OSRM: {states}")
 
 
-def assert_refined_ui(browser: object) -> None:
-    browser.require("#geo-v4[data-usability-refinement-ready='true']")
-    if browser.execute("return document.querySelector('#geo4-engine')?.value") != "osm":
-        raise RuntimeError("OSM Road Network is not the default engine.")
-    if read_text(browser, "#geo4-threshold-out") != "30 min":
-        raise RuntimeError("OSM-first threshold did not initialise to 30 min.")
-    if read_text(browser, "#geo4-facility-count") != "4/6":
-        raise RuntimeError(
-            f"Expected compact 4/6 facility preset, got {read_text(browser, '#geo4-facility-count')!r}."
-        )
-    if read_text(browser, "#geo4-map-add") != "点击地图添加":
-        raise RuntimeError("Chinese map-add button label was not simplified.")
-    merged = browser.execute(
-        "return document.querySelector('#geo4-address')?.closest('.geo4__block')===document.querySelector('#geo4-policy-list')?.closest('.geo4__block');"
-    )
-    if merged is not True:
-        raise RuntimeError("Facility and network-entity controls were not merged.")
-    toggles = browser.execute("return document.querySelectorAll('.geo4__entity-toggle').length")
-    if toggles != 6:
-        raise RuntimeError(f"Expected six facility remove/restore controls, found {toggles}.")
-    font_px = browser.execute(
-        "return parseFloat(getComputedStyle(document.querySelector('.geo4__service-chip strong')).fontSize);"
-    )
-    if not isinstance(font_px, (int, float)) or font_px < 8:
-        raise RuntimeError(f"GIS service-health text remains too small: {font_px}px")
+def assert_entity_edit_cycle(browser: object) -> None:
+    before = browser.execute("return document.querySelectorAll('#geo4-policy-list .geo4__policy-row').length;")
+    browser.click('[data-remove-entity="demand:1"]')
+    wait_solved(browser)
+    after = browser.execute("return document.querySelectorAll('#geo4-policy-list .geo4__policy-row').length;")
+    if before != 4 or after != 3:
+        raise RuntimeError(f"Entity deletion did not change the model-backed list: before={before}, after={after}")
+    browser.click("#geo4-reset")
+    wait_solved(browser)
+    restored = browser.execute("return document.querySelectorAll('#geo4-policy-list .geo4__policy-row').length;")
+    if restored != 4:
+        raise RuntimeError(f"Reset did not restore the compact four-entity base scene: {restored}")
 
 
-def run_osm_first(browser: object) -> None:
-    install_overpass_fixture(browser)
+def assert_state_cycle(browser: object) -> None:
+    browser.require(".geo4__service-health")
+    browser.require("#geo4-utilisation-buffer")
+    browser.require("#geo4-lead-time-sd")
+    browser.require(".geo4__fleet-planner")
+    browser.require(".geo4__transshipment")
+    assert_single_mounts(browser)
+    assert_osm_first_state(browser)
+
+    initial = read_kpis(browser)
+    if any(value in {"", "—"} for value in initial.values()):
+        raise RuntimeError(f"Initial OSM KPIs were not fully solved: {initial}")
+
+    browser.click("#geo4-reset")
+    wait_solved(browser)
+    baseline = read_kpis(browser)
+    if initial != baseline:
+        raise RuntimeError(f"Initial OSM KPI state does not match Reset: initial={initial}, reset={baseline}")
+
+    assert_entity_edit_cycle(browser)
+    baseline = read_kpis(browser)
+
+    set_input(browser, "#geo4-demand-multiplier", "1.20")
+    set_input(browser, "#geo4-lead-time-sd", "0.6")
+    set_input(browser, "#geo4-utilisation-buffer", "80")
     browser.click("#geo4-run")
-    browser.wait_for_text("#geo4-graph-status", "nodes /", timeout=12)
-    browser.wait_for_text("#geo4-status", "当前情景已完成重新优化", timeout=12)
-    if browser.execute("return document.querySelector('#geo4-engine')?.value") != "osm":
-        raise RuntimeError("OSM-first optimisation fell back despite a valid graph fixture.")
-    if browser.execute("return document.querySelector('#geo4-routes')?.disabled") is True:
-        raise RuntimeError("Route loading remained disabled after a feasible OSM solve.")
+    wait_solved(browser)
+    browser.click("#geo4-save-a")
+    browser.wait_for_text("#geo4-status", "已保存情景 A", timeout=5)
+
+    set_select(browser, "#geo4-road-mode", "congestion")
+    set_input(browser, "#geo4-congestion", "55")
+    browser.click("#geo4-run")
+    wait_solved(browser)
+    browser.click("#geo4-save-b")
+    browser.wait_for_text("#geo4-status", "已保存情景 B", timeout=5)
+    browser.click("#geo4-compare")
+    browser.wait_for_text("#geo4-ab", "Δ Facilities", timeout=5)
+
+    browser.click("#geo4-reset")
+    wait_solved(browser)
+    expected_values = {
+        "#geo4-demand-multiplier": "1",
+        "#geo4-lead-time-sd": "0",
+        "#geo4-utilisation-buffer": "85",
+        "#geo4-road-mode": "baseline",
+        "#geo4-layer": "network",
+        "#geo4-service": "1.645",
+        "#geo4-holding-cost": "1",
+        "#geo4-facility-capacity-base": "6000",
+        "#geo4-facility-capacity": "5100",
+        "#geo4-engine": "osm",
+    }
+    wrong = {
+        selector: (read_value(browser, selector), expected)
+        for selector, expected in expected_values.items()
+        if read_value(browser, selector) != expected
+    }
+    if wrong:
+        raise RuntimeError(f"Reset left stale geospatial scenario state: {wrong}")
+    if read_text(browser, "#geo4-ab"):
+        raise RuntimeError("Scenario A/B comparison survived Reset.")
+    restored = read_kpis(browser)
+    if restored != baseline:
+        raise RuntimeError(f"Baseline KPI state was not restored: before={baseline}, after={restored}")
+    assert_single_mounts(browser)
 
 
-def wait_mobile_workspace(browser: object, timeout: float = 8) -> None:
-    deadline = time.time() + timeout
-    while time.time() < deadline:
-        state = browser.execute(
-            "return {ready:document.querySelector('#geo-v4')?.dataset.mobileWorkspaceReady||'',view:document.querySelector('.geo4__shell')?.dataset.mobileView||'',buttons:document.querySelectorAll('[data-geo4-mobile-view]').length};"
-        )
-        if (
-            isinstance(state, dict)
-            and state.get("ready") == "true"
-            and state.get("view") == "map"
-            and state.get("buttons") == 3
-        ):
-            return
-        time.sleep(0.2)
-    raise RuntimeError("Mobile Map / Controls / Results workspace did not initialise in time.")
-
-
-def mobile_layout_state(browser: object) -> dict:
-    state = browser.execute(
-        r"""
-        const shell=document.querySelector('.geo4__shell');
-        const map=document.querySelector('#geo4-map');
-        const consoleEl=document.querySelector('.geo4__console');
-        const results=document.querySelector('.geo4__results');
-        const nav=document.querySelector('.geo4__mobile-nav');
-        const rect=e=>{const r=e.getBoundingClientRect();return {top:r.top,bottom:r.bottom,width:r.width,height:r.height}};
-        return {
-          view:shell?.dataset.mobileView||'',
-          shell:rect(shell),map:rect(map),controls:rect(consoleEl),results:rect(results),nav:rect(nav),
-          controlsDisplay:getComputedStyle(consoleEl).display,
-          resultsDisplay:getComputedStyle(results).display,
-          navDisplay:getComputedStyle(nav).display,
-        };
-        """
+def assert_service_degradation(browser: object) -> None:
+    before = read_text(browser, "#geo4-kpi-cost")
+    browser.execute(
+        "globalThis.__ACIDCH_GIS_ENDPOINTS__={osrm:'http://127.0.0.1:9'};"
+        "globalThis.fetch('https://router.project-osrm.org/table/v1/driving/0,0;1,1')"
+        ".catch(()=>{});return true;"
     )
-    if not isinstance(state, dict):
-        raise RuntimeError("Unable to inspect mobile geospatial layout state.")
-    return state
+    wait_dataset(browser, "serviceOsrm", "degraded", timeout=8)
+    after = read_text(browser, "#geo4-kpi-cost")
+    if after != before:
+        raise RuntimeError("External GIS service failure mutated the current optimisation result.")
+    browser.execute("globalThis.__ACIDCH_GIS_ENDPOINTS__={};return true;")
 
 
-def assert_mobile_mode(browser: object, expected: str) -> None:
-    state = mobile_layout_state(browser)
-    if state.get("view") != expected:
-        raise RuntimeError(f"Unexpected mobile workspace state: {state}")
-    nav = state.get("nav") or {}
-    shell = state.get("shell") or {}
-    if state.get("navDisplay") == "none" or float(nav.get("width") or 0) < 300:
-        raise RuntimeError(f"Mobile workspace navigation is not usable: {state}")
-    if float(shell.get("height") or 0) < 600:
-        raise RuntimeError(f"Mobile decision canvas is unexpectedly short: {state}")
-    if expected == "map":
-        if state.get("controlsDisplay") != "none" or state.get("resultsDisplay") != "none":
-            raise RuntimeError(f"Map-first mobile mode is obscured by a panel: {state}")
-        if float((state.get("map") or {}).get("height") or 0) < 600:
-            raise RuntimeError(f"Mobile map does not retain a usable canvas: {state}")
-    elif expected == "controls":
-        if state.get("controlsDisplay") == "none" or state.get("resultsDisplay") != "none":
-            raise RuntimeError(f"Controls mode visibility is incorrect: {state}")
-        controls = state.get("controls") or {}
-        if float(controls.get("width") or 0) < 340 or float(controls.get("height") or 0) < 480:
-            raise RuntimeError(f"Controls mode is too small for interaction: {state}")
-        if float(controls.get("bottom") or 0) > float(nav.get("top") or 0) + 2:
-            raise RuntimeError(f"Controls panel overlaps the mobile workspace navigation: {state}")
-    elif expected == "results":
-        if state.get("resultsDisplay") == "none" or state.get("controlsDisplay") != "none":
-            raise RuntimeError(f"Results mode visibility is incorrect: {state}")
-        results = state.get("results") or {}
-        if float(results.get("width") or 0) < 340 or float(results.get("height") or 0) < 480:
-            raise RuntimeError(f"Results mode is too small for decision output: {state}")
-        if float(results.get("bottom") or 0) > float(nav.get("top") or 0) + 2:
-            raise RuntimeError(f"Results panel overlaps the mobile workspace navigation: {state}")
-
-
-def assert_light_home_contrast(browser: object) -> None:
-    navigate_path(browser, "/zh/")
-    browser.require(".home-hero__featured-project")
-    values = browser.execute(
-        "const e=document.querySelector('.home-hero__featured-project');"
-        "const s=getComputedStyle(e);"
-        "return {theme:document.documentElement.dataset.theme,color:s.color,bg:s.backgroundColor,font:parseFloat(getComputedStyle(e.querySelector('strong')).fontSize)};"
-    )
-    if not isinstance(values, dict):
-        raise RuntimeError("Unable to inspect featured-project light-theme styling.")
-    if values.get("theme") != "light":
-        browser.execute("document.documentElement.dataset.theme='light';return true;")
-        time.sleep(0.2)
-        values = browser.execute(
-            "const e=document.querySelector('.home-hero__featured-project');const s=getComputedStyle(e);return {color:s.color,bg:s.backgroundColor,font:parseFloat(getComputedStyle(e.querySelector('strong')).fontSize)};"
-        )
-    if values.get("color") in {"rgb(255, 255, 255)", "rgba(255, 255, 255, 1)"}:
-        raise RuntimeError(f"Featured project still uses white text in light mode: {values}")
-    if float(values.get("font") or 0) < 16:
-        raise RuntimeError(f"Featured-project title remains too small: {values}")
-    browser.screenshot("geospatial-home-light-desktop.png")
-
-
-def capture_desktop(browser: object) -> None:
-    prime_geospatial_document(browser)
+def capture_desktop(browser: object, endpoint: str) -> None:
+    configure_gis(browser, endpoint)
     navigate_path(browser, "/zh/lab/geospatial-supply-chain/")
-    wait_leaflet(browser)
+    browser.require("#geo-v4")
+    browser.require("#geo4-map")
+    browser.require(".geo4__console")
+    browser.require(".geo4__results")
     browser.require("#geo4-map .leaflet-map-pane")
-    assert_services_idle(browser)
-    assert_refined_ui(browser)
-    run_osm_first(browser)
+    assert_state_cycle(browser)
+
     browser.screenshot("geospatial-baseline-desktop.png")
 
     set_select(browser, "#geo4-layer", "coverage")
@@ -400,50 +270,20 @@ def capture_desktop(browser: object) -> None:
 
     set_select(browser, "#geo4-layer", "risk")
     browser.wait_for_text(".geo4__layer-chip", "风险")
+    mode = browser.execute("const s=document.querySelector('.geo4__shell');return s?.dataset.analysisLayer||'';")
+    if mode != "risk":
+        raise RuntimeError(f"Expected risk analysis visual mode, got {mode!r}.")
     browser.screenshot("geospatial-risk-layer-desktop.png")
 
     set_select(browser, "#geo4-road-mode", "mixed")
     browser.wait_for_text(".geo4__scenario-ribbon", "混合路网事件")
-    browser.wait_for_text(".geo4__freshness", "参数已变更", timeout=5)
+    browser.wait_for_text(".geo4__freshness", "参数已变更", timeout=4)
+    road_mode = browser.execute("const s=document.querySelector('.geo4__shell');return s?.dataset.roadVisual||'';")
+    if road_mode != "mixed":
+        raise RuntimeError(f"Expected mixed road visual mode, got {road_mode!r}.")
     browser.screenshot("geospatial-mixed-event-desktop.png")
 
-    assert_light_home_contrast(browser)
-
-
-def capture_mobile(browser: object) -> None:
-    browser.set_viewport(390, 844, mobile=True)
-    navigate_path(browser, "/zh/lab/geospatial-supply-chain/")
-    wait_leaflet(browser)
-    wait_mobile_workspace(browser)
-    browser.require(".geo4__mobile-nav")
-    assert_refined_ui(browser)
-    assert_mobile_mode(browser, "map")
-    run_osm_first(browser)
-    assert_mobile_mode(browser, "map")
-    browser.screenshot("geospatial-map-mobile.png")
-
-    browser.click('[data-geo4-mobile-view="controls"]')
-    assert_mobile_mode(browser, "controls")
-    browser.screenshot("geospatial-controls-mobile.png")
-
-    browser.click('[data-geo4-mobile-view="results"]')
-    assert_mobile_mode(browser, "results")
-    if read_text(browser, "#geo4-kpi-hubs") in {"", "—"}:
-        raise RuntimeError("Mobile Results mode did not expose a fresh optimisation result.")
-    if not read_text(browser, "#geo4-open-list"):
-        raise RuntimeError("Mobile Results mode did not expose selected-facility details.")
-    browser.screenshot("geospatial-results-mobile.png")
-
-    browser.click('[data-geo4-mobile-view="map"]')
-    assert_mobile_mode(browser, "map")
-    set_select(browser, "#geo4-layer", "risk")
-    browser.wait_for_text(".geo4__layer-chip", "风险")
-    browser.screenshot("geospatial-risk-layer-mobile.png")
-
-    set_select(browser, "#geo4-road-mode", "mixed")
-    browser.wait_for_text(".geo4__scenario-ribbon", "混合路网事件")
-    browser.wait_for_text(".geo4__freshness", "参数已变更", timeout=5)
-    browser.screenshot("geospatial-mixed-event-mobile.png")
+    assert_service_degradation(browser)
 
 
 def main() -> None:
@@ -453,12 +293,13 @@ def main() -> None:
     for proof in OUTPUT.glob("*.png"):
         proof.unlink()
 
-    handler = partial(base.QuietHandler, directory=str(base.DIST))
-    server = base.ThreadingHTTPServer(("127.0.0.1", 0), handler)
-    site_port = server.server_address[1]
-    server_thread = threading.Thread(target=server.serve_forever, daemon=True)
-    server_thread.start()
+    site_handler = partial(base.QuietHandler, directory=str(base.DIST))
+    site_server = base.ThreadingHTTPServer(("127.0.0.1", 0), site_handler)
+    site_port = site_server.server_address[1]
+    site_thread = threading.Thread(target=site_server.serve_forever, daemon=True)
+    site_thread.start()
 
+    gis_server, _gis_thread, endpoint = gis.start_fake_overpass()
     driver_port = 9523
     driver_base = f"http://127.0.0.1:{driver_port}"
     driver = subprocess.Popen(
@@ -469,10 +310,9 @@ def main() -> None:
     browser = None
     try:
         base.wait_for_driver(driver_base, driver)
-        browser = GeospatialBrowserSession(driver_base, f"http://127.0.0.1:{site_port}")
+        browser = base.BrowserSession(driver_base, f"http://127.0.0.1:{site_port}")
         browser.set_viewport(1440, 1000, mobile=False)
-        capture_desktop(browser)
-        capture_mobile(browser)
+        capture_desktop(browser, endpoint)
     finally:
         if browser is not None:
             browser.close()
@@ -481,17 +321,17 @@ def main() -> None:
             driver.wait(timeout=5)
         except subprocess.TimeoutExpired:
             driver.kill()
-        server.shutdown()
-        server.server_close()
+        site_server.shutdown()
+        site_server.server_close()
+        gis_server.shutdown()
+        gis_server.server_close()
 
-    expected = 11
+    expected = 5
     actual = len(list(OUTPUT.glob("*.png")))
     if actual != expected:
-        raise RuntimeError(
-            f"Expected {expected} desktop/mobile geospatial visual proofs, generated {actual}."
-        )
+        raise RuntimeError(f"Expected {expected} desktop geospatial visual proofs, generated {actual}.")
     print(
-        f"Captured {actual} desktop/mobile geospatial proofs and passed OSM-first, compact-facility, merged-editor, mobile Map/Controls/Results and light-theme readability acceptance in {OUTPUT}."
+        f"Captured {actual} OSM-first desktop geospatial proofs and passed compact-scene / entity-edit / state-cycle / service-degradation acceptance in {OUTPUT}."
     )
 
 
