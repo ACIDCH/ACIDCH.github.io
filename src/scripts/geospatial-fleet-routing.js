@@ -3,115 +3,15 @@ import {
   nearestGraphNode,
   parseOverpassGraph,
 } from "../lib/geospatial/decisionEngine.js";
+import {
+  solveTspTour,
+  splitByCapacity,
+  totalTripFlow,
+} from "../lib/geospatial/fleetTour.js";
 import { reconstructGraphPath } from "../lib/geospatial/pathTools.js";
 
 const D = globalThis.document;
 const F = (...args) => globalThis.fetch(...args);
-
-function nearestNeighbour(matrix) {
-  const remaining = new Set(matrix.slice(1).map((_, index) => index + 1));
-  const order = [0];
-  let current = 0;
-  let cost = 0;
-  while (remaining.size) {
-    let next = -1;
-    let best = Infinity;
-    for (const node of remaining) {
-      if (matrix[current][node] < best) {
-        next = node;
-        best = matrix[current][node];
-      }
-    }
-    if (next < 0 || !Number.isFinite(best)) break;
-    order.push(next);
-    remaining.delete(next);
-    cost += best;
-    current = next;
-  }
-  if (order.length > 1 && Number.isFinite(matrix[current][0])) {
-    order.push(0);
-    cost += matrix[current][0];
-  }
-  return { order, cost, method: "nearest-neighbour" };
-}
-
-function exactTsp(matrix) {
-  const n = matrix.length;
-  if (n <= 1) return { order: [0], cost: 0, method: "exact" };
-  if (n - 1 > 11) return nearestNeighbour(matrix);
-  const bits = n - 1;
-  const size = 1 << bits;
-  const dp = Array.from({ length: size }, () => Array(n).fill(Infinity));
-  const previous = Array.from({ length: size }, () => Array(n).fill(-1));
-  for (let node = 1; node < n; node += 1) {
-    dp[1 << (node - 1)][node] = matrix[0][node];
-  }
-  for (let mask = 1; mask < size; mask += 1) {
-    for (let end = 1; end < n; end += 1) {
-      if (!(mask & (1 << (end - 1)))) continue;
-      const prior = mask ^ (1 << (end - 1));
-      if (!prior) continue;
-      for (let before = 1; before < n; before += 1) {
-        if (!(prior & (1 << (before - 1)))) continue;
-        const candidate = dp[prior][before] + matrix[before][end];
-        if (candidate < dp[mask][end]) {
-          dp[mask][end] = candidate;
-          previous[mask][end] = before;
-        }
-      }
-    }
-  }
-  const full = size - 1;
-  let end = -1;
-  let best = Infinity;
-  for (let node = 1; node < n; node += 1) {
-    const candidate = dp[full][node] + matrix[node][0];
-    if (candidate < best) {
-      end = node;
-      best = candidate;
-    }
-  }
-  if (end < 0 || !Number.isFinite(best)) return nearestNeighbour(matrix);
-  const reversed = [];
-  let mask = full;
-  let current = end;
-  while (current > 0) {
-    reversed.push(current);
-    const next = previous[mask][current];
-    mask ^= 1 << (current - 1);
-    current = next;
-  }
-  return { order: [0, ...reversed.reverse(), 0], cost: best, method: "exact" };
-}
-
-function splitByCapacity(order, deliveries, capacity) {
-  const trips = [];
-  let currentTrip = [];
-  let remaining = Math.max(1, capacity);
-  for (const node of order) {
-    if (node === 0) continue;
-    const delivery = deliveries[node - 1];
-    let flow = Math.max(0, delivery.flow);
-    while (flow > 1e-9) {
-      if (remaining <= 1e-9) {
-        if (currentTrip.length) trips.push(currentTrip);
-        currentTrip = [];
-        remaining = capacity;
-      }
-      const amount = Math.min(flow, remaining);
-      currentTrip.push({ ...delivery, amount });
-      flow -= amount;
-      remaining -= amount;
-      if (remaining <= 1e-9) {
-        trips.push(currentTrip);
-        currentTrip = [];
-        remaining = capacity;
-      }
-    }
-  }
-  if (currentTrip.length) trips.push(currentTrip);
-  return trips;
-}
 
 function boot() {
   const root = D?.getElementById("geo-v4");
@@ -129,11 +29,15 @@ function boot() {
     ? {
         title: "车队道路计划",
         build: "生成车队路线",
-        note: "道路 TSP 访问顺序与单车容量拆分共同形成车队行程；聚合班次检查用于识别运力不足。",
-        need: "请先初始化 GIS、运行优化并加载当前最优路径。",
+        note: "道路 TSP 访问顺序与单车容量拆分共同形成车队行程；只有覆盖全部当前分配需求并能返回出发设施的完整道路 tour 才会被接受。",
+        need: "请先运行主模型优化；Fleet/TSP 会直接读取当前分配与道路情景。",
         running: "正在计算道路 TSP 顺序与容量 trips…",
+        runningHub: "正在验证完整道路 tour",
         ready: "车队计划已生成",
-        unavailable: "当前路线或道路服务不可用。",
+        unavailable: "当前路线或道路服务不可用，未生成车队方案。",
+        roadIncomplete: "当前道路情景无法形成覆盖全部已分配需求并返回出发设施的完整 tour",
+        roadAdvice: "请降低封路比例、切换道路情景或增加可达道路后重新运行主模型与 Fleet/TSP。",
+        splitMismatch: "车队容量拆分未覆盖完整分配流量，已阻止输出不完整方案。",
         trips: "需要 Trips",
         available: "可用 Trips",
         minimum: "建议最少车辆",
@@ -141,17 +45,22 @@ function boot() {
         time: "计划时间",
         feasible: "运力可行",
         infeasible: "运力不足",
+        shortfall: "Trips 缺口",
         exact: "Exact TSP",
         heuristic: "Heuristic TSP",
       }
     : {
         title: "Fleet Road Planner",
         build: "Build fleet tours",
-        note: "Road-based TSP visit order and vehicle-capacity trip splitting with aggregate capacity checks; this is not a full CVRP or time-window scheduler.",
-        need: "Initialise GIS, run optimisation and load current optimal paths first.",
+        note: "Road-based TSP sequencing and vehicle-capacity splitting form the fleet trips. A plan is accepted only when every allocated demand can be visited and the tour can return to its origin facility.",
+        need: "Run the main optimisation first; Fleet/TSP reads the current allocation and road scenario directly.",
         running: "Calculating road TSP sequence and capacity trips…",
+        runningHub: "Validating a complete road tour",
         ready: "Fleet plan generated",
-        unavailable: "Current route or road service is unavailable.",
+        unavailable: "The current route or road service is unavailable; no fleet plan was produced.",
+        roadIncomplete: "The active road scenario cannot form a complete tour that serves every allocated demand and returns to the origin facility",
+        roadAdvice: "Reduce closures, change the road scenario or add reachable roads, then rerun the main optimisation and Fleet/TSP.",
+        splitMismatch: "Fleet capacity splitting did not preserve the complete allocated flow, so the incomplete plan was blocked.",
         trips: "Trips required",
         available: "Trips available",
         minimum: "Minimum vehicles",
@@ -159,6 +68,7 @@ function boot() {
         time: "Planned time",
         feasible: "Fleet feasible",
         infeasible: "Fleet shortfall",
+        shortfall: "Trip shortfall",
         exact: "Exact TSP",
         heuristic: "Heuristic TSP",
       };
@@ -186,6 +96,13 @@ function boot() {
   };
   const state = { map: null, graph: null, layers: [], routeCache: new Map() };
 
+  function resetOutputs() {
+    Object.values(outputs).forEach((node) => {
+      if (node) node.textContent = "—";
+    });
+    if (list) list.innerHTML = "";
+  }
+
   function captureMap(layer) {
     if (state.map || typeof layer?.addTo !== "function") return;
     const originalAdd = layer.addTo;
@@ -195,6 +112,7 @@ function boot() {
       return result;
     };
   }
+
   if (!L.circleMarker.__acidchFleetWrapped) {
     const original = L.circleMarker;
     const wrapped = (...args) => {
@@ -321,12 +239,24 @@ function boot() {
     for (const stop of trip) {
       const next = indexByDemand.get(stop.demand);
       if (next == null) continue;
-      minutes += matrix[current]?.[next] ?? 0;
-      if (distance) km += distance[current]?.[next] ?? 0;
+      const legMinutes = matrix[current]?.[next];
+      if (!Number.isFinite(legMinutes)) return { minutes: Infinity, km: Infinity };
+      minutes += legMinutes;
+      if (distance) {
+        const legKm = distance[current]?.[next];
+        if (!Number.isFinite(legKm)) return { minutes: Infinity, km: Infinity };
+        km += legKm;
+      }
       current = next;
     }
-    minutes += matrix[current]?.[0] ?? 0;
-    if (distance) km += distance[current]?.[0] ?? 0;
+    const backMinutes = matrix[current]?.[0];
+    if (!Number.isFinite(backMinutes)) return { minutes: Infinity, km: Infinity };
+    minutes += backMinutes;
+    if (distance) {
+      const backKm = distance[current]?.[0];
+      if (!Number.isFinite(backKm)) return { minutes: Infinity, km: Infinity };
+      km += backKm;
+    }
     return { minutes, km };
   }
 
@@ -345,6 +275,7 @@ function boot() {
       coords: data.routes[0].geometry.coordinates.map(([lon, lat]) => [lat, lon]),
       km: data.routes[0].distance / 1000,
       minutes: data.routes[0].duration / 60,
+      complete: true,
     };
     state.routeCache.set(key, route);
     return route;
@@ -357,7 +288,9 @@ function boot() {
     for (let index = 0; index < points.length - 1; index += 1) {
       const source = nearestGraphNode(state.graph, points[index]);
       const target = nearestGraphNode(state.graph, points[index + 1]);
-      if (!source?.nodeId || !target?.nodeId) continue;
+      if (!source?.nodeId || !target?.nodeId) {
+        return { coords, km, minutes, complete: false, failedLeg: index };
+      }
       const path = reconstructGraphPath(
         state.graph,
         source.nodeId,
@@ -365,18 +298,18 @@ function boot() {
         scenario,
         "time",
       );
-      if (!path) continue;
+      if (!path) return { coords, km, minutes, complete: false, failedLeg: index };
       const leg = path.coordinates.map((point) => [point.lat, point.lon]);
       if (coords.length && leg.length) leg.shift();
       coords.push(...leg);
       km += path.distanceKm || 0;
       minutes += path.travelTimeMin || 0;
     }
-    return { coords, km, minutes };
+    return { coords, km, minutes, complete: true, failedLeg: null };
   }
 
   function renderRoute(route, hubName, names, count, colour) {
-    if (!state.map || route.coords.length < 2) return;
+    if (!state.map || !route.complete || route.coords.length < 2) return false;
     const layer = L.polyline(route.coords, {
       color: colour,
       weight: 2.05,
@@ -389,19 +322,34 @@ function boot() {
       )
       .addTo(state.map);
     state.layers.push(layer);
+    return true;
+  }
+
+  function roadTourError(hubName, demands = []) {
+    const error = new Error("fleet-road-incomplete");
+    error.code = "fleet-road-incomplete";
+    error.hubName = hubName;
+    error.demands = [...new Set(demands.filter(Boolean))];
+    return error;
   }
 
   async function build() {
     clearLayers();
+    resetOutputs();
     const assignments = verifiedAssignments();
     if (!assignments.length || !state.map) {
+      root.dataset.fleetPlanState = "needs-main";
       status.textContent = copy.need;
       status.className = "geo4__fleet-status bad";
       return;
     }
+
     button.disabled = true;
+    root.dataset.fleetPlanState = "running";
+    delete root.dataset.fleetFailureReason;
     status.textContent = copy.running;
     status.className = "geo4__fleet-status";
+
     try {
       const capacity = Math.max(
         1,
@@ -429,21 +377,42 @@ function boot() {
       let totalMinutes = 0;
       const summaries = [];
       let groupIndex = 0;
+
       for (const [hubName, demandMap] of groups) {
+        status.textContent = `${copy.runningHub} ${groupIndex + 1}/${groups.size} · ${hubName}`;
         const deliveries = [...demandMap.values()];
         const points = [
           deliveries[0].hubPoint,
           ...deliveries.map((item) => item.demandPoint),
         ];
         const matrixData = currentMatrix(points) || (await osrmMatrix(points));
-        const tsp = exactTsp(matrixData.matrix);
+        const tsp = solveTspTour(matrixData.matrix);
+        if (!tsp.complete) {
+          const unresolved = tsp.unvisited
+            .map((node) => deliveries[node - 1]?.demand)
+            .filter(Boolean);
+          if (tsp.returnBlocked && !unresolved.length) {
+            unresolved.push(...deliveries.map((item) => item.demand));
+          }
+          throw roadTourError(hubName, unresolved);
+        }
+
         const trips = splitByCapacity(tsp.order, deliveries, capacity);
+        const expectedFlow = deliveries.reduce((sum, item) => sum + item.flow, 0);
+        const plannedFlow = totalTripFlow(trips);
+        if (Math.abs(plannedFlow - expectedFlow) > 1e-6) {
+          const error = new Error("fleet-split-mismatch");
+          error.code = "fleet-split-mismatch";
+          throw error;
+        }
+
         const indexByDemand = new Map(
           deliveries.map((item, index) => [item.demand, index + 1]),
         );
         const signatures = new Map();
         let hubKm = 0;
         let hubMinutes = 0;
+
         for (const trip of trips) {
           const names = trip.map((stop) => stop.demand).join(" → ");
           const key = `${hubName}|${names}`;
@@ -465,6 +434,9 @@ function boot() {
             matrixData.matrix,
             matrixData.distance,
           );
+          if (!Number.isFinite(metrics.minutes)) {
+            throw roadTourError(hubName, trip.map((stop) => stop.demand));
+          }
           hubMinutes += metrics.minutes;
           hubKm += metrics.km;
         }
@@ -473,6 +445,9 @@ function boot() {
           const route = matrixData.scenario
             ? graphGeometry(entry.points, matrixData.scenario)
             : await osrmGeometry(entry.points);
+          if (!route.complete) {
+            throw roadTourError(hubName, entry.names.split(" → "));
+          }
           renderRoute(
             route,
             hubName,
@@ -482,6 +457,7 @@ function boot() {
           );
           if (!matrixData.distance) hubKm += route.km * entry.count;
         }
+
         totalTrips += trips.length;
         totalKm += hubKm;
         totalMinutes += hubMinutes;
@@ -498,13 +474,31 @@ function boot() {
       const minimumFleet =
         tripsPerVehicle > 0 ? Math.ceil(totalTrips / tripsPerVehicle) : null;
       const feasible = totalTrips <= available;
+      const shortfall = Math.max(0, totalTrips - available);
+
       outputs.trips.textContent = String(totalTrips);
       outputs.available.textContent = String(available);
       outputs.minimum.textContent = minimumFleet == null ? "—" : String(minimumFleet);
       outputs.distance.textContent = totalKm > 0 ? `${totalKm.toFixed(1)} km` : "—";
       outputs.time.textContent = `${(totalMinutes / 60).toFixed(1)} h`;
-      status.textContent = `${copy.ready}. ${feasible ? copy.feasible : copy.infeasible}.`;
-      status.className = `geo4__fleet-status ${feasible ? "ok" : "bad"}`;
+
+      if (feasible) {
+        root.dataset.fleetPlanState = "ready";
+        status.textContent = `${copy.ready}. ${copy.feasible}: ${totalTrips} trips / ${available} available.`;
+        status.className = "geo4__fleet-status ok";
+      } else {
+        root.dataset.fleetPlanState = "capacity-shortfall";
+        root.dataset.fleetFailureReason = "capacity-shortfall";
+        const minimumText =
+          minimumFleet == null
+            ? ""
+            : zh
+              ? ` 按当前每车 ${tripsPerVehicle} trips，建议至少 ${minimumFleet} 辆车。`
+              : ` At ${tripsPerVehicle} trips per vehicle, at least ${minimumFleet} vehicles are recommended.`;
+        status.textContent = `${copy.ready}. ${copy.infeasible}: ${totalTrips} trips / ${available} available · ${copy.shortfall} ${shortfall}.${minimumText}`;
+        status.className = "geo4__fleet-status bad";
+      }
+
       list.innerHTML = summaries
         .map(
           (item) =>
@@ -513,7 +507,22 @@ function boot() {
         .join("");
     } catch (error) {
       globalThis.console?.warn("[Fleet planner]", error);
-      status.textContent = copy.unavailable;
+      clearLayers();
+      resetOutputs();
+      if (error?.code === "fleet-road-incomplete") {
+        root.dataset.fleetPlanState = "road-infeasible";
+        root.dataset.fleetFailureReason = "road-infeasible";
+        const names = error.demands?.length ? `: ${error.demands.join("、")}` : "";
+        status.textContent = `${copy.roadIncomplete}${names}. ${copy.roadAdvice}`;
+      } else if (error?.code === "fleet-split-mismatch") {
+        root.dataset.fleetPlanState = "invalid";
+        root.dataset.fleetFailureReason = "split-mismatch";
+        status.textContent = copy.splitMismatch;
+      } else {
+        root.dataset.fleetPlanState = "service-unavailable";
+        root.dataset.fleetFailureReason = "service-unavailable";
+        status.textContent = copy.unavailable;
+      }
       status.className = "geo4__fleet-status bad";
     } finally {
       button.disabled = false;
