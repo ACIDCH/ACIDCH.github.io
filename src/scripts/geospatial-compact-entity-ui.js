@@ -15,7 +15,7 @@ function boot() {
   const copy = zh
     ? {
         title: "设施、覆盖与网络实体",
-        list: "实体清单",
+        list: "网络实体与设施决策",
         editor: "添加网络实体",
         preference:
           "OSM 道路网络为默认引擎。首次运行优化或点击“加载 / 刷新 OSM 路网”时按需加载真实路网；失败时自动使用快速 OD 网络。",
@@ -25,7 +25,7 @@ function boot() {
       }
     : {
         title: "Facilities, coverage & network entities",
-        list: "Entities",
+        list: "Network entities & facility decisions",
         editor: "Add network entity",
         preference:
           "OSM Road Network is the default. The real road graph loads on the first optimisation run or when you choose Load / refresh OSM graph; Fast OD remains available as fallback.",
