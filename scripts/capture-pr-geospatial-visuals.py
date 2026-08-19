@@ -283,6 +283,79 @@ def run_osm_first(browser: object) -> None:
         raise RuntimeError("Route loading remained disabled after a feasible OSM solve.")
 
 
+def wait_mobile_workspace(browser: object, timeout: float = 8) -> None:
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        state = browser.execute(
+            "return {ready:document.querySelector('#geo-v4')?.dataset.mobileWorkspaceReady||'',view:document.querySelector('.geo4__shell')?.dataset.mobileView||'',buttons:document.querySelectorAll('[data-geo4-mobile-view]').length};"
+        )
+        if (
+            isinstance(state, dict)
+            and state.get("ready") == "true"
+            and state.get("view") == "map"
+            and state.get("buttons") == 3
+        ):
+            return
+        time.sleep(0.2)
+    raise RuntimeError("Mobile Map / Controls / Results workspace did not initialise in time.")
+
+
+def mobile_layout_state(browser: object) -> dict:
+    state = browser.execute(
+        r"""
+        const shell=document.querySelector('.geo4__shell');
+        const map=document.querySelector('#geo4-map');
+        const consoleEl=document.querySelector('.geo4__console');
+        const results=document.querySelector('.geo4__results');
+        const nav=document.querySelector('.geo4__mobile-nav');
+        const rect=e=>{const r=e.getBoundingClientRect();return {top:r.top,bottom:r.bottom,width:r.width,height:r.height}};
+        return {
+          view:shell?.dataset.mobileView||'',
+          shell:rect(shell),map:rect(map),controls:rect(consoleEl),results:rect(results),nav:rect(nav),
+          controlsDisplay:getComputedStyle(consoleEl).display,
+          resultsDisplay:getComputedStyle(results).display,
+          navDisplay:getComputedStyle(nav).display,
+        };
+        """
+    )
+    if not isinstance(state, dict):
+        raise RuntimeError("Unable to inspect mobile geospatial layout state.")
+    return state
+
+
+def assert_mobile_mode(browser: object, expected: str) -> None:
+    state = mobile_layout_state(browser)
+    if state.get("view") != expected:
+        raise RuntimeError(f"Unexpected mobile workspace state: {state}")
+    nav = state.get("nav") or {}
+    shell = state.get("shell") or {}
+    if state.get("navDisplay") == "none" or float(nav.get("width") or 0) < 300:
+        raise RuntimeError(f"Mobile workspace navigation is not usable: {state}")
+    if float(shell.get("height") or 0) < 600:
+        raise RuntimeError(f"Mobile decision canvas is unexpectedly short: {state}")
+    if expected == "map":
+        if state.get("controlsDisplay") != "none" or state.get("resultsDisplay") != "none":
+            raise RuntimeError(f"Map-first mobile mode is obscured by a panel: {state}")
+        if float((state.get("map") or {}).get("height") or 0) < 600:
+            raise RuntimeError(f"Mobile map does not retain a usable canvas: {state}")
+    elif expected == "controls":
+        if state.get("controlsDisplay") == "none" or state.get("resultsDisplay") != "none":
+            raise RuntimeError(f"Controls mode visibility is incorrect: {state}")
+        controls = state.get("controls") or {}
+        if float(controls.get("width") or 0) < 340 or float(controls.get("height") or 0) < 480:
+            raise RuntimeError(f"Controls mode is too small for interaction: {state}")
+        if float(controls.get("bottom") or 0) > float(nav.get("top") or 0) + 2:
+            raise RuntimeError(f"Controls panel overlaps the mobile workspace navigation: {state}")
+    elif expected == "results":
+        if state.get("resultsDisplay") == "none" or state.get("controlsDisplay") != "none":
+            raise RuntimeError(f"Results mode visibility is incorrect: {state}")
+        results = state.get("results") or {}
+        if float(results.get("width") or 0) < 340 or float(results.get("height") or 0) < 480:
+            raise RuntimeError(f"Results mode is too small for decision output: {state}")
+        if float(results.get("bottom") or 0) > float(nav.get("top") or 0) + 2:
+            raise RuntimeError(f"Results panel overlaps the mobile workspace navigation: {state}")
+
+
 def assert_light_home_contrast(browser: object) -> None:
     navigate_path(browser, "/zh/")
     browser.require(".home-hero__featured-project")
@@ -337,6 +410,42 @@ def capture_desktop(browser: object) -> None:
     assert_light_home_contrast(browser)
 
 
+def capture_mobile(browser: object) -> None:
+    browser.set_viewport(390, 844, mobile=True)
+    navigate_path(browser, "/zh/lab/geospatial-supply-chain/")
+    wait_leaflet(browser)
+    wait_mobile_workspace(browser)
+    browser.require(".geo4__mobile-nav")
+    assert_refined_ui(browser)
+    assert_mobile_mode(browser, "map")
+    run_osm_first(browser)
+    assert_mobile_mode(browser, "map")
+    browser.screenshot("geospatial-map-mobile.png")
+
+    browser.click('[data-geo4-mobile-view="controls"]')
+    assert_mobile_mode(browser, "controls")
+    browser.screenshot("geospatial-controls-mobile.png")
+
+    browser.click('[data-geo4-mobile-view="results"]')
+    assert_mobile_mode(browser, "results")
+    if read_text(browser, "#geo4-kpi-hubs") in {"", "—"}:
+        raise RuntimeError("Mobile Results mode did not expose a fresh optimisation result.")
+    if not read_text(browser, "#geo4-open-list"):
+        raise RuntimeError("Mobile Results mode did not expose selected-facility details.")
+    browser.screenshot("geospatial-results-mobile.png")
+
+    browser.click('[data-geo4-mobile-view="map"]')
+    assert_mobile_mode(browser, "map")
+    set_select(browser, "#geo4-layer", "risk")
+    browser.wait_for_text(".geo4__layer-chip", "风险")
+    browser.screenshot("geospatial-risk-layer-mobile.png")
+
+    set_select(browser, "#geo4-road-mode", "mixed")
+    browser.wait_for_text(".geo4__scenario-ribbon", "混合路网事件")
+    browser.wait_for_text(".geo4__freshness", "参数已变更", timeout=5)
+    browser.screenshot("geospatial-mixed-event-mobile.png")
+
+
 def main() -> None:
     if not base.DIST.exists():
         raise RuntimeError("dist/ is missing. Run the site build before visual capture.")
@@ -363,6 +472,7 @@ def main() -> None:
         browser = GeospatialBrowserSession(driver_base, f"http://127.0.0.1:{site_port}")
         browser.set_viewport(1440, 1000, mobile=False)
         capture_desktop(browser)
+        capture_mobile(browser)
     finally:
         if browser is not None:
             browser.close()
@@ -374,12 +484,14 @@ def main() -> None:
         server.shutdown()
         server.server_close()
 
-    expected = 6
+    expected = 11
     actual = len(list(OUTPUT.glob("*.png")))
     if actual != expected:
-        raise RuntimeError(f"Expected {expected} desktop geospatial visual proofs, generated {actual}.")
+        raise RuntimeError(
+            f"Expected {expected} desktop/mobile geospatial visual proofs, generated {actual}."
+        )
     print(
-        f"Captured {actual} desktop geospatial proofs and passed OSM-first, compact-facility, merged-editor and light-theme readability acceptance in {OUTPUT}."
+        f"Captured {actual} desktop/mobile geospatial proofs and passed OSM-first, compact-facility, merged-editor, mobile Map/Controls/Results and light-theme readability acceptance in {OUTPUT}."
     )
 
 
