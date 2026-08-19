@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { parseOverpassGraph } from "./decisionEngine.js";
-import { buildLocalTablePayload, parseOsrmTableRequest } from "./localRoutingFallback.js";
+import {
+  buildLocalRoutePayload,
+  buildLocalTablePayload,
+  parseOsrmRouteRequest,
+  parseOsrmTableRequest,
+} from "./localRoutingFallback.js";
 
 describe("local OSM routing fallback", () => {
   const graph = parseOverpassGraph([
@@ -34,5 +39,29 @@ describe("local OSM routing fallback", () => {
     expect(payload?.distances[0]).toHaveLength(1);
     expect(payload?.distances[0][0]).toBeGreaterThan(1000);
     expect(payload?.durations[0][0]).toBeGreaterThan(0);
+  });
+
+  it("parses OSRM route coordinates", () => {
+    const request = parseOsrmRouteRequest(
+      "https://router.project-osrm.org/route/v1/driving/174.76,-36.87;174.78,-36.87?overview=full&geometries=geojson",
+    );
+    expect(request?.points).toEqual([
+      { lat: -36.87, lon: 174.76 },
+      { lat: -36.87, lon: 174.78 },
+    ]);
+  });
+
+  it("builds OSRM-compatible route geometry from the loaded graph", () => {
+    const payload = buildLocalRoutePayload(
+      "https://router.project-osrm.org/route/v1/driving/174.76,-36.87;174.78,-36.87?overview=full&geometries=geojson",
+      graph,
+    );
+    expect(payload?.code).toBe("Ok");
+    expect(payload?.routes).toHaveLength(1);
+    expect(payload?.routes[0].geometry.type).toBe("LineString");
+    expect(payload?.routes[0].geometry.coordinates.length).toBeGreaterThanOrEqual(2);
+    expect(payload?.routes[0].distance).toBeGreaterThan(1000);
+    expect(payload?.routes[0].duration).toBeGreaterThan(0);
+    expect(payload?.waypoints).toHaveLength(2);
   });
 });
