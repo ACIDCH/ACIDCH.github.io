@@ -26,9 +26,10 @@ requireText(
 
 for (const [token, label] of [
   ["geo4__fleet-build", "fleet build interception"],
-  ["maskNonPrimaryFlowMetadata", "fleet flow de-duplication"],
+  ["maskPrimaryRouteFlowMetadata", "fleet flow de-duplication"],
   ["isPrimaryOptimalFlowLayer", "primary optimal-route classifier"],
-  ["Allocated:", "non-primary Flow metadata masking"],
+  ["Routed:", "duplicate route Flow metadata masking"],
+  ["complete Facility → Demand allocation", "complete assignment-flow source contract"],
   ["transNeedOsm", "OSM-only transshipment guard"],
   ["stopImmediatePropagation", "guarded stale/invalid actions"],
   ["data-result-freshness", "freshness UI contract"],
@@ -56,7 +57,7 @@ if (!isPrimaryOptimalFlowLayer(fakeLayer({ color: "#d8ff6b" }))) {
   fail("Primary acid-green optimal route was rejected");
 }
 if (isPrimaryOptimalFlowLayer(fakeLayer({ color: "#62ecff" }))) {
-  fail("Cyan allocation link would be double-counted as a fleet route");
+  fail("Cyan allocation link was misclassified as presentation route geometry");
 }
 if (
   isPrimaryOptimalFlowLayer(
@@ -70,5 +71,5 @@ if (!isDecisionControl({ id: "geo4-road-mode" }) || isDecisionControl({ id: "geo
 }
 
 console.log(
-  "[geospatial-post-release] PASS: fleet flow de-duplication, OSM-only transshipment, stale-result guards, coverage isolation and Nominatim pacing acceptance checks passed.",
+  "[geospatial-post-release] PASS: fleet planning consumes complete allocation flow without duplicate route metadata; OSM-only transshipment, stale-result guards, coverage isolation and Nominatim pacing acceptance checks passed.",
 );

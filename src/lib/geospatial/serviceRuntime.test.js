@@ -9,47 +9,84 @@ import {
 
 describe("geospatial service runtime", () => {
   it("classifies the external GIS services used by the lab", () => {
-    expect(classifyServiceUrl("https://nominatim.openstreetmap.org/search?q=Auckland")).toBe(
-      "nominatim",
-    );
-    expect(classifyServiceUrl("https://router.project-osrm.org/table/v1/driving/1,2;3,4")).toBe(
-      "osrm",
-    );
-    expect(classifyServiceUrl("https://overpass-api.de/api/interpreter")).toBe("overpass");
-    expect(classifyServiceUrl("https://overpass.kumi.systems/api/interpreter")).toBe(
+    expect(
+      classifyServiceUrl("https://nominatim.openstreetmap.org/search?q=Auckland"),
+    ).toBe("nominatim");
+    expect(
+      classifyServiceUrl(
+        "https://router.project-osrm.org/table/v1/driving/1,2;3,4",
+      ),
+    ).toBe("osrm");
+    expect(classifyServiceUrl("https://overpass-api.de/api/interpreter")).toBe(
       "overpass",
     );
+    expect(
+      classifyServiceUrl("https://overpass.kumi.systems/api/interpreter"),
+    ).toBe("overpass");
+    expect(
+      classifyServiceUrl("https://overpass.private.coffee/api/interpreter"),
+    ).toBe("overpass");
     expect(classifyServiceUrl("https://example.com/data.json")).toBeNull();
   });
 
-  it("moves the legacy Kumi fallback to the current secondary Overpass endpoint", () => {
+  it("keeps the configured primary and secondary Overpass endpoints distinct", () => {
+    expect(
+      rewriteServiceUrl("https://overpass.private.coffee/api/interpreter"),
+    ).toBe("https://overpass.private.coffee/api/interpreter");
+    expect(rewriteServiceUrl("https://overpass-api.de/api/interpreter")).toBe(
+      "https://overpass-api.de/api/interpreter",
+    );
     expect(rewriteServiceUrl("https://overpass.kumi.systems/api/interpreter")).toBe(
-      "https://overpass.private.coffee/api/interpreter",
+      "https://overpass-api.de/api/interpreter",
     );
   });
 
-  it("preserves endpoint paths and queries when a runtime override is supplied", () => {
+  it("preserves configured custom endpoints while legacy public URLs remain rewritable", () => {
     const endpoints = normalizeGisEndpoints({
       nominatim: "https://geo.example.test/nominatim",
       osrm: "https://route.example.test/osrm",
       overpassPrimary: "https://overpass.example.test/api/interpreter",
+      overpassSecondary: "https://backup.example.test/api/interpreter",
     });
     expect(
-      rewriteServiceUrl("https://nominatim.openstreetmap.org/search?q=Epsom&format=jsonv2", endpoints),
+      rewriteServiceUrl(
+        "https://nominatim.openstreetmap.org/search?q=Epsom&format=jsonv2",
+        endpoints,
+      ),
     ).toBe("https://geo.example.test/nominatim/search?q=Epsom&format=jsonv2");
     expect(
-      rewriteServiceUrl("https://router.project-osrm.org/route/v1/driving/1,2;3,4?steps=false", endpoints),
+      rewriteServiceUrl(
+        "https://router.project-osrm.org/route/v1/driving/1,2;3,4?steps=false",
+        endpoints,
+      ),
     ).toBe("https://route.example.test/osrm/route/v1/driving/1,2;3,4?steps=false");
-    expect(rewriteServiceUrl("https://overpass-api.de/api/interpreter", endpoints)).toBe(
-      "https://overpass.example.test/api/interpreter",
-    );
+    expect(
+      rewriteServiceUrl(
+        "https://overpass.private.coffee/api/interpreter",
+        endpoints,
+      ),
+    ).toBe("https://overpass.example.test/api/interpreter");
+    expect(
+      rewriteServiceUrl("https://overpass.kumi.systems/api/interpreter", endpoints),
+    ).toBe("https://backup.example.test/api/interpreter");
+  });
+
+  it("recognises and preserves a configured local Overpass fixture", () => {
+    const endpoints = normalizeGisEndpoints({
+      overpassPrimary: "http://127.0.0.1:8123/api/interpreter",
+      overpassSecondary: "http://127.0.0.1:8124/api/interpreter",
+    });
+    const url = "http://127.0.0.1:8123/api/interpreter";
+    expect(classifyServiceUrl(url, endpoints)).toBe("overpass");
+    expect(rewriteServiceUrl(url, endpoints)).toBe(url);
   });
 
   it("shares one parsed JSON payload across the response and all clones", async () => {
     const response = shareJsonResponse(
-      new globalThis.Response(JSON.stringify({ elements: [{ type: "node", id: 1 }] }), {
-        headers: { "content-type": "application/json" },
-      }),
+      new globalThis.Response(
+        JSON.stringify({ elements: [{ type: "node", id: 1 }] }),
+        { headers: { "content-type": "application/json" } },
+      ),
     );
     const [direct, cloneA, cloneB] = await Promise.all([
       response.json(),
@@ -64,7 +101,7 @@ describe("geospatial service runtime", () => {
   it("uses finite request budgets without background polling", () => {
     expect(timeoutForService("nominatim")).toBe(12_000);
     expect(timeoutForService("osrm")).toBe(15_000);
-    expect(timeoutForService("overpass")).toBe(45_000);
+    expect(timeoutForService("overpass")).toBe(18_000);
     expect(timeoutForService(null)).toBe(0);
   });
 });

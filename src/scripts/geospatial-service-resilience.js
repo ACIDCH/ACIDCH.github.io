@@ -115,10 +115,11 @@ function boot() {
 
   const wrappedFetch = async (input, init = {}) => {
     const sourceUrl = typeof input === "string" ? input : input?.url || "";
-    const service = classifyServiceUrl(sourceUrl);
+    const endpoints = runtimeOverrides();
+    const service = classifyServiceUrl(sourceUrl, endpoints);
     if (!service) return originalFetch.call(globalThis, input, init);
 
-    const rewritten = rewriteServiceUrl(sourceUrl, runtimeOverrides());
+    const rewritten = rewriteServiceUrl(sourceUrl, endpoints);
     const timeoutMs = timeoutForService(service);
     const controller = new globalThis.AbortController();
     const inheritedSignal =

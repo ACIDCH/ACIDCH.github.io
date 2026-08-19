@@ -28,9 +28,15 @@ describe("post-release geospatial integrity", () => {
     expect(isPrimaryOptimalFlowLayer(layer({ tooltip: "Hub → Demand<br>NZ$2,000" }))).toBe(false);
   });
 
-  it("recognises decision controls but not presentation-only layer selectors", () => {
+  it("recognises decision controls including compact demand edits but not presentation layers", () => {
     expect(isDecisionControl({ id: "geo4-road-mode" })).toBe(true);
     expect(isDecisionControl({ id: "geo4-demand-multiplier" })).toBe(true);
+    expect(
+      isDecisionControl({
+        id: "",
+        matches: (selector) => selector.includes("[data-demand-edit]"),
+      }),
+    ).toBe(true);
     expect(isDecisionControl({ id: "geo4-layer" })).toBe(false);
   });
 

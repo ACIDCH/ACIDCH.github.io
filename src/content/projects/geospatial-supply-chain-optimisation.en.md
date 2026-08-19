@@ -23,7 +23,7 @@ tags:
   - road network
   - Auckland
   - GIS
-updatedAt: 2026-08-18
+updatedAt: 2026-08-19
 ---
 
 ## Project overview
@@ -56,6 +56,6 @@ Natural-language addresses can be geocoded to real coordinates and inserted as F
 
 ## Reading the result and its boundaries
 
-The map remains the primary interface, with a scrollable parameter console in the upper right and a compact result module in the lower right. The road layer reflects hierarchy; Congestion, Closure and proposed links have distinct event semantics; optimal routes use flow-scaled directional particles, glow and node pulses, while Fleet Tour and two-echelon transshipment use separate line styles. The result module separates physical network measures from monetary measures: Fast OD reports average delivery distance, OSM reports average travel time, and transport cost remains distinct from total scenario cost.
+On desktop, the map remains the primary interface, with a scrollable parameter console in the upper right and a compact result module in the lower right. The road layer reflects hierarchy; Congestion, Closure and proposed links have distinct event semantics; optimal routes use flow-scaled directional particles, glow and node pulses, while Fleet Tour and two-echelon transshipment use separate line styles. The result module separates physical network measures from monetary measures: Fast OD reports average delivery distance, OSM reports average travel time, and transport cost remains distinct from total scenario cost.
 
-The current release is designed for desktop interaction. Facility allocation, two-echelon transshipment, fleet planning and inventory risk remain separate decision layers, while the visual system only renders solved network and flow results. If an external GIS service is unavailable, the sandbox can continue from its Fast OD Network rather than losing the current decision state.
+The current release supports both desktop and mobile interaction: desktop keeps the parallel map, controls and results workspace, while narrow screens use a Map / Controls / Results switcher with the map as the default view. Facility allocation, two-echelon transshipment, fleet planning and inventory risk remain separate decision layers, while the visual system only renders solved network and flow results. If an external GIS service is unavailable, the sandbox can continue from its Fast OD Network rather than losing the current decision state.

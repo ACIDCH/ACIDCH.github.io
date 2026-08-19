@@ -1,13 +1,13 @@
 export const DEFAULT_GIS_ENDPOINTS = Object.freeze({
   nominatim: "https://nominatim.openstreetmap.org",
   osrm: "https://router.project-osrm.org",
-  overpassPrimary: "https://overpass-api.de/api/interpreter",
-  overpassSecondary: "https://overpass.private.coffee/api/interpreter",
+  overpassPrimary: "https://overpass.private.coffee/api/interpreter",
+  overpassSecondary: "https://overpass-api.de/api/interpreter",
 });
 
 const LEGACY_SECONDARY_OVERPASS_HOSTS = new Set([
   "overpass.kumi.systems",
-  "overpass.private.coffee",
+  "maps.mail.ru",
 ]);
 
 function asUrl(input) {
@@ -46,15 +46,33 @@ export function normalizeGisEndpoints(overrides = {}) {
   };
 }
 
-export function classifyServiceUrl(input) {
+function matchesEndpoint(url, endpoint) {
+  const base = asUrl(endpoint);
+  if (!url || !base || url.origin !== base.origin) return false;
+  const basePath = base.pathname.replace(/\/$/, "");
+  if (!basePath) return true;
+  return url.pathname === basePath || url.pathname.startsWith(`${basePath}/`);
+}
+
+export function classifyServiceUrl(input, overrides = {}) {
   const url = asUrl(input);
   if (!url) return null;
+  const endpoints = normalizeGisEndpoints(overrides);
+  if (matchesEndpoint(url, endpoints.nominatim)) return "nominatim";
+  if (matchesEndpoint(url, endpoints.osrm)) return "osrm";
+  if (
+    matchesEndpoint(url, endpoints.overpassPrimary) ||
+    matchesEndpoint(url, endpoints.overpassSecondary)
+  ) {
+    return "overpass";
+  }
   const host = url.hostname.toLowerCase();
   if (host === "nominatim.openstreetmap.org") return "nominatim";
   if (host === "router.project-osrm.org") return "osrm";
   if (
     host === "overpass-api.de" ||
     host.endsWith(".overpass-api.de") ||
+    host === "overpass.private.coffee" ||
     LEGACY_SECONDARY_OVERPASS_HOSTS.has(host)
   ) {
     return "overpass";
@@ -72,7 +90,20 @@ export function rewriteServiceUrl(input, overrides = {}) {
   const url = asUrl(input);
   if (!url) return typeof input === "string" ? input : input?.url || "";
   const endpoints = normalizeGisEndpoints(overrides);
-  const service = classifyServiceUrl(url);
+
+  // Calls already using the configured endpoint must stay on that exact
+  // primary/secondary service. This prevents a configured secondary from
+  // being silently rewritten back to the primary and allows local fixtures.
+  if (
+    matchesEndpoint(url, endpoints.nominatim) ||
+    matchesEndpoint(url, endpoints.osrm) ||
+    matchesEndpoint(url, endpoints.overpassPrimary) ||
+    matchesEndpoint(url, endpoints.overpassSecondary)
+  ) {
+    return url.toString();
+  }
+
+  const service = classifyServiceUrl(url, endpoints);
   if (service === "nominatim") {
     return joinBase(endpoints.nominatim, url.pathname, url.search);
   }
@@ -80,8 +111,12 @@ export function rewriteServiceUrl(input, overrides = {}) {
     return joinBase(endpoints.osrm, url.pathname, url.search);
   }
   if (service === "overpass") {
-    const secondary = LEGACY_SECONDARY_OVERPASS_HOSTS.has(url.hostname.toLowerCase());
-    const endpoint = secondary ? endpoints.overpassSecondary : endpoints.overpassPrimary;
+    const requestedSecondary = LEGACY_SECONDARY_OVERPASS_HOSTS.has(
+      url.hostname.toLowerCase(),
+    );
+    const endpoint = requestedSecondary
+      ? endpoints.overpassSecondary
+      : endpoints.overpassPrimary;
     const base = new globalThis.URL(endpoint);
     base.search = url.search;
     return base.toString();
@@ -90,7 +125,11 @@ export function rewriteServiceUrl(input, overrides = {}) {
 }
 
 export function shareJsonResponse(response) {
-  if (!response || typeof response.clone !== "function" || typeof response.json !== "function") {
+  if (
+    !response ||
+    typeof response.clone !== "function" ||
+    typeof response.json !== "function"
+  ) {
     return response;
   }
   if (response.__acidchSharedJson === true) return response;
@@ -113,7 +152,7 @@ export function shareJsonResponse(response) {
 }
 
 export function timeoutForService(service) {
-  if (service === "overpass") return 45_000;
+  if (service === "overpass") return 18_000;
   if (service === "nominatim") return 12_000;
   if (service === "osrm") return 15_000;
   return 0;
