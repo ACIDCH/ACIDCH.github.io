@@ -52,8 +52,18 @@ requireToken(files.refinement, "BUNDLED_AUCKLAND_COORDS", "bundled fast-start GI
 requireToken(files.refinement, "compactFacilityPreset", "compact facility preset");
 requireToken(
   files.refinement,
-  'button.textContent = removed ? copy.restore : copy.delete',
-  "facility remove/restore control",
+  "const label = removed ? copy.restore : copy.delete;",
+  "facility remove/restore label",
+);
+requireToken(
+  files.refinement,
+  "if (button.textContent?.trim() !== label) button.textContent = label;",
+  "idempotent facility-button DOM update",
+);
+requireToken(
+  files.refinement,
+  "policyObserver.observe(policyList, { childList: true });",
+  "bounded facility-list mutation observer",
 );
 requireToken(files.refinement, "syncExcludedFacilityMarkers", "removed-facility map visibility");
 requireToken(files.refinement, "loadButton?.click()", "run-triggered OSM graph loading");
@@ -99,5 +109,5 @@ requireToken(
 );
 
 console.log(
-  "[geospatial-usability] PASS: OSM-first workflow, locally bundled Leaflet 1.9.4, explicit initial stale-result state, bundled fast-start coordinates, narrower drivable-road Overpass queries, faster endpoint failover, automatic Fast OD recovery, compact editable facilities, merged entity controls and readability improvements are wired into the release gate.",
+  "[geospatial-usability] PASS: OSM-first workflow, locally bundled Leaflet 1.9.4, explicit initial stale-result state, bounded mutation observers, bundled fast-start coordinates, narrower drivable-road Overpass queries, faster endpoint failover, automatic Fast OD recovery, compact editable facilities, merged entity controls and readability improvements are wired into the release gate.",
 );
