@@ -1,10 +1,18 @@
 import { parseOverpassGraph } from "../lib/geospatial/decisionEngine.js";
-import { buildLocalTablePayload } from "../lib/geospatial/localRoutingFallback.js";
+import {
+  buildLocalRoutePayload,
+  buildLocalTablePayload,
+  parseOsrmRouteRequest,
+  parseOsrmTableRequest,
+} from "../lib/geospatial/localRoutingFallback.js";
 
 const root = globalThis.document?.getElementById("geo-v4");
+const CACHE_PREFIX = "acidch-osm-compact-v2:";
 
 function localResponse(url, graph) {
-  const payload = buildLocalTablePayload(url, graph);
+  const payload = url.includes("/route/v1/driving/")
+    ? buildLocalRoutePayload(url, graph)
+    : buildLocalTablePayload(url, graph);
   return payload
     ? new globalThis.Response(JSON.stringify(payload), {
         status: 200,
@@ -16,6 +24,33 @@ function localResponse(url, graph) {
     : null;
 }
 
+function requestPoints(url) {
+  return (
+    parseOsrmTableRequest(url)?.points ||
+    parseOsrmRouteRequest(url)?.points ||
+    []
+  );
+}
+
+function cacheBounds(key) {
+  if (!key.startsWith(CACHE_PREFIX)) return null;
+  const values = key.slice(CACHE_PREFIX.length).split(":").map(Number);
+  return values.length === 4 && values.every(Number.isFinite) ? values : null;
+}
+
+function containsAll(bounds, points) {
+  if (!bounds || !points.length) return false;
+  const [minLat, minLon, maxLat, maxLon] = bounds;
+  const pad = 0.002;
+  return points.every(
+    (point) =>
+      point.lat >= minLat - pad &&
+      point.lon >= minLon - pad &&
+      point.lat <= maxLat + pad &&
+      point.lon <= maxLon + pad,
+  );
+}
+
 function boot() {
   if (!root) return;
   if (root.dataset.localRoutingFallbackReady === "true") return;
@@ -23,14 +58,46 @@ function boot() {
   if (typeof currentFetch !== "function") return;
   root.dataset.localRoutingFallbackReady = "true";
 
-  const state = { graph: null };
+  const state = { graph: null, cachedGraphs: new Map() };
+
+  function graphFromSession(url) {
+    const points = requestPoints(url);
+    if (!points.length) return null;
+    try {
+      const storage = globalThis.sessionStorage;
+      for (let index = 0; index < (storage?.length || 0); index += 1) {
+        const key = storage.key(index);
+        const bounds = cacheBounds(String(key || ""));
+        if (!key || !containsAll(bounds, points)) continue;
+        if (state.cachedGraphs.has(key)) return state.cachedGraphs.get(key);
+        const payload = JSON.parse(storage.getItem(key) || "null");
+        if (!Array.isArray(payload?.elements) || !payload.elements.length) continue;
+        const graph = parseOverpassGraph(payload.elements);
+        if (!graph?.edges?.length) continue;
+        state.cachedGraphs.set(key, graph);
+        return graph;
+      }
+    } catch {
+      // Session cache is an optimisation only; continue with the live graph/service.
+    }
+    return null;
+  }
+
   const wrappedFetch = async (input, init = {}) => {
     const url = typeof input === "string" ? input : input?.url || "";
     const isTable = url.includes("/table/v1/driving/");
+    const isRoute = url.includes("/route/v1/driving/");
+    const isRouting = isTable || isRoute;
 
-    if (isTable && state.graph) {
-      const response = localResponse(url, state.graph);
-      if (response) return response;
+    if (isRouting) {
+      const graph = graphFromSession(url) || state.graph;
+      if (graph) {
+        const response = localResponse(url, graph);
+        if (response) {
+          root.dataset.localRoutingSource = "osm-graph";
+          return response;
+        }
+      }
     }
 
     try {
@@ -46,12 +113,19 @@ function boot() {
           })
           .catch(() => {});
       }
-      if (!isTable || response.ok || !state.graph) return response;
-      return localResponse(url, state.graph) || response;
+      if (!isRouting || response.ok) return response;
+      const graph = graphFromSession(url) || state.graph;
+      if (!graph) return response;
+      const local = localResponse(url, graph);
+      if (local) root.dataset.localRoutingSource = "osm-graph";
+      return local || response;
     } catch (error) {
-      if (!isTable || !state.graph) throw error;
-      const response = localResponse(url, state.graph);
+      if (!isRouting) throw error;
+      const graph = graphFromSession(url) || state.graph;
+      if (!graph) throw error;
+      const response = localResponse(url, graph);
       if (!response) throw error;
+      root.dataset.localRoutingSource = "osm-graph";
       return response;
     }
   };
