@@ -39,8 +39,10 @@ requireToken(files.guidance, "infeasibleRedundancy", "redundancy diagnostic");
 requireToken(files.guidance, "infeasibleCapacity", "facility-capacity diagnostic");
 requireToken(files.guidance, 'fleetState === "road-infeasible"', "road-tour recovery guidance");
 requireToken(files.guidance, 'fleetState === "capacity-shortfall"', "fleet-capacity recovery guidance");
+requireToken(files.guidance, "完整 CVRP", "honest Chinese non-CVRP modelling boundary");
+requireToken(files.guidance, "not a full CVRP", "honest English non-CVRP modelling boundary");
 requireToken(files.advanced, "geospatial-decision-guidance-v3.js", "guidance runtime mount");
 
 console.log(
-  "[geospatial-guidance-v3] PASS: Fleet/TSP rejects partial road tours, verifies allocated-flow conservation, distinguishes road infeasibility from fleet-capacity shortfall, invalidates cached route geometry before every downstream rerun, and surfaces context-specific next-step guidance for main-model infeasibility and downstream decision states.",
+  "[geospatial-guidance-v3] PASS: Fleet/TSP rejects partial road tours, verifies allocated-flow conservation, distinguishes road infeasibility from fleet-capacity shortfall, invalidates cached route geometry before every downstream rerun, preserves the explicit non-CVRP/time-window modelling boundary, and surfaces context-specific next-step guidance for main-model infeasibility and downstream decision states.",
 );
