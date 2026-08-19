@@ -178,17 +178,21 @@ function boot() {
     L.circleMarker = wrappedCircleMarker;
   }
 
-  function maskNonPrimaryFlowMetadata() {
+  function maskPrimaryRouteFlowMetadata() {
     if (!state.map) return [];
     const restore = [];
     for (const layer of Object.values(state.map._layers || {})) {
       if (typeof layer?.getTooltip !== "function" || typeof layer?.getLatLngs !== "function") continue;
       const tooltip = layer.getTooltip();
       const content = String(tooltip?.getContent?.() || "");
-      if (!/Flow:\s*[\d,.]+/i.test(content) || isPrimaryOptimalFlowLayer(layer)) continue;
+      if (!/Flow:\s*[\d,.]+/i.test(content) || !isPrimaryOptimalFlowLayer(layer)) continue;
       if (typeof tooltip?.setContent !== "function") continue;
       restore.push(() => tooltip.setContent(content));
-      tooltip.setContent(content.replace(/Flow:/gi, "Allocated:"));
+      // Fleet planning must consume the complete Facility → Demand allocation
+      // layer. The acid-green path is presentation geometry and can be a strict
+      // subset after route rendering or visual-layer filtering, so hide only its
+      // duplicate Flow label for the duration of the fleet click.
+      tooltip.setContent(content.replace(/Flow:/gi, "Routed:"));
     }
     return restore;
   }
@@ -198,7 +202,7 @@ function boot() {
     "click",
     (event) => {
       if (blockStale(event)) return;
-      const restore = maskNonPrimaryFlowMetadata();
+      const restore = maskPrimaryRouteFlowMetadata();
       globalThis.setTimeout(() => restore.forEach((fn) => fn()), 0);
     },
     true,
