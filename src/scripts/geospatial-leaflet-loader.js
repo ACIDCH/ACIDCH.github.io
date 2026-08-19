@@ -1,3 +1,4 @@
+import "./geospatial-idle-gis-guard.js";
 import * as LeafletNamespace from "leaflet";
 import "leaflet/dist/leaflet.css";
 
