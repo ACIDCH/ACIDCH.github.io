@@ -66,6 +66,10 @@ def assert_hotfix(browser: object) -> None:
     browser.require("#geo-v4[data-usability-refinement-ready='true']")
     browser.require("#geo4-map .leaflet-map-pane")
     execute_fetch_stub(browser)
+    # Match the primary geospatial proof: product interactions run against a
+    # deterministic local OSM graph. Public-service outage recovery is tested
+    # separately by verify-pr-geospatial-osm-fallback.py.
+    geo.install_overpass_fixture(browser)
 
     if browser.execute("return document.querySelector('#geo4-engine')?.value") != "osm":
         raise RuntimeError("OSM Road Network is not the default engine in the hotfix gate.")
