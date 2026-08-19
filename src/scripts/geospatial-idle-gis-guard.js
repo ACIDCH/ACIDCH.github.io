@@ -6,11 +6,24 @@ function restore() {
   if (globalThis.setTimeout === guardedSetTimeout) globalThis.setTimeout = originalSetTimeout;
 }
 
+function hasLocalFixture() {
+  try {
+    const configured = JSON.parse(globalThis.localStorage?.getItem("acidch-gis-endpoints") || "null");
+    const endpoint = String(configured?.overpassPrimary || "");
+    return /^https?:\/\/(?:127\.0\.0\.1|localhost)(?::\d+)?\//i.test(endpoint);
+  } catch {
+    return false;
+  }
+}
+
 function guardedSetTimeout(callback, delay, ...args) {
   const source = typeof callback === "function" ? String(callback) : "";
   if (armed && Number(delay) === 120 && source.includes("loadGraph(true)")) {
     armed = false;
     restore();
+    if (hasLocalFixture()) {
+      return originalSetTimeout(callback, delay, ...args);
+    }
     const root = D?.getElementById("geo-v4");
     if (root) {
       root.dataset.externalGisBootDeferred = "true";
