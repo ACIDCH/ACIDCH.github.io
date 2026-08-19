@@ -39,15 +39,14 @@ def wait_dataset(browser: object, key: str, expected: str, timeout: float = 10) 
 
 
 def set_select(browser: object, selector: str, value: str) -> None:
-    ok = browser.execute(
-        "const e=document.querySelector(arguments[0]);"
+    script = (
+        f"const e=document.querySelector({selector!r});"
         "if(!e)return false;"
-        "e.value=arguments[1];"
+        f"e.value={value!r};"
         "e.dispatchEvent(new Event('change',{bubbles:true}));"
-        "return e.value===arguments[1];",
-        selector,
-        value,
+        f"return e.value==={value!r};"
     )
+    ok = browser.execute(script)
     if not ok:
         raise RuntimeError(f"Unable to set {selector} to {value!r}")
 
