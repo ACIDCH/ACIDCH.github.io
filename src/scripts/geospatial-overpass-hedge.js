@@ -21,6 +21,7 @@ function boot() {
     return /overpass|api\/interpreter/i.test(url) && method === "POST";
   };
   const comparable = (value) => String(value || "").replace(/\/$/, "");
+  let exhaustedAt = 0;
 
   async function validatedFetch(input, init, delayMs = 0) {
     if (delayMs) await sleep(delayMs);
@@ -67,29 +68,31 @@ function boot() {
     const configured = globalThis.__ACIDCH_GIS_RUNTIME__?.getEndpoints?.() || {};
     const secondarySource =
       configured.overpassSecondary || "https://overpass-api.de/api/interpreter";
+    const sourceIsSecondary = comparable(sourceUrl) === comparable(secondarySource);
 
-    // The core loader already tries its secondary endpoint after a rejected
-    // primary attempt. Only hedge the primary request; if this call is already
-    // the configured secondary, let it pass through once.
-    if (comparable(sourceUrl) === comparable(secondarySource)) {
+    // The primary call already starts the secondary after a short grace period.
+    // If both have just failed, the core loader's next loop iteration must not
+    // wait through the same secondary endpoint for another full timeout window.
+    if (sourceIsSecondary) {
+      if (exhaustedAt && Date.now() - exhaustedAt < 5000) {
+        throw new Error("Overpass secondary already failed in the current hedged attempt");
+      }
       return priorFetch.call(globalThis, input, init);
     }
 
     const primary = validatedFetch(input, init, 0);
-    if (comparable(sourceUrl) === comparable(secondarySource) || !secondarySource) {
-      return primary;
-    }
-    if (comparable(sourceUrl) === comparable(secondarySource)) return primary;
-
+    if (!secondarySource) return primary;
     const secondary = validatedFetch(secondarySource, init, 2600);
     const attempts = [primary, secondary];
     try {
       const response = await globalThis.Promise.any(attempts);
+      exhaustedAt = 0;
       globalThis.Promise.allSettled(attempts).then((results) => {
         if (results.some((entry) => entry.status === "fulfilled")) reconcileHealthyState();
       });
       return response;
     } catch (error) {
+      exhaustedAt = Date.now();
       throw new Error("Both Overpass graph endpoints were unavailable", { cause: error });
     }
   };
