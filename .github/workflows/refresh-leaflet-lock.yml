@@ -1,0 +1,40 @@
+name: Refresh Leaflet lockfile
+
+on:
+  push:
+    branches:
+      - fix/geospatial-usability-osm-reliability
+
+permissions:
+  contents: write
+
+jobs:
+  refresh-lock:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v6
+        with:
+          ref: fix/geospatial-usability-osm-reliability
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Refresh exact Leaflet lock entry
+        run: npm install --package-lock-only --ignore-scripts --save-exact leaflet@1.9.4
+
+      - name: Commit generated lockfile when needed
+        run: |
+          if git diff --quiet -- package.json package-lock.json; then
+            echo "Lockfile already matches package.json."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json
+          git commit -m "Lock bundled Leaflet dependency"
+          git push origin HEAD:fix/geospatial-usability-osm-reliability
