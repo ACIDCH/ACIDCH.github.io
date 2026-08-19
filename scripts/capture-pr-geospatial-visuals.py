@@ -233,18 +233,30 @@ def assert_state_cycle(browser: object) -> None:
     assert_single_mounts(browser)
 
 
-def assert_service_degradation(browser: object) -> None:
+def assert_local_routing_fallback(browser: object) -> None:
     before = read_text(browser, "#geo4-kpi-cost")
     browser.execute(
         "globalThis.__ACIDCH_GIS_ENDPOINTS__={osrm:'http://127.0.0.1:9'};"
-        "globalThis.fetch('https://router.project-osrm.org/table/v1/driving/0,0;1,1')"
-        ".catch(()=>{});return true;"
+        "const r=document.querySelector('#geo-v4');delete r.dataset.ciLocalRouting;"
+        "globalThis.fetch('https://router.project-osrm.org/table/v1/driving/174.75,-36.88;174.78,-36.86?annotations=distance,duration')"
+        ".then(x=>{r.dataset.ciLocalRouting=x.headers.get('X-ACIDCH-Fallback')||'none';})"
+        ".catch(()=>{r.dataset.ciLocalRouting='error';});return true;"
     )
-    wait_dataset(browser, "serviceOsrm", "degraded", timeout=8)
+    wait_dataset(browser, "ciLocalRouting", "osm-graph", timeout=8)
+    osrm_state = browser.execute(
+        "return document.querySelector('#geo-v4')?.dataset.serviceOsrm || '';"
+    )
+    if osrm_state == "degraded":
+        raise RuntimeError(
+            "Local OSM graph routing succeeded but the untouched external OSRM service was falsely marked degraded."
+        )
     after = read_text(browser, "#geo4-kpi-cost")
     if after != before:
-        raise RuntimeError("External GIS service failure mutated the current optimisation result.")
-    browser.execute("globalThis.__ACIDCH_GIS_ENDPOINTS__={};return true;")
+        raise RuntimeError("Local routing fallback mutated the current optimisation result.")
+    browser.execute(
+        "globalThis.__ACIDCH_GIS_ENDPOINTS__={};"
+        "delete document.querySelector('#geo-v4').dataset.ciLocalRouting;return true;"
+    )
 
 
 def capture_desktop(browser: object, endpoint: str) -> None:
@@ -283,7 +295,7 @@ def capture_desktop(browser: object, endpoint: str) -> None:
         raise RuntimeError(f"Expected mixed road visual mode, got {road_mode!r}.")
     browser.screenshot("geospatial-mixed-event-desktop.png")
 
-    assert_service_degradation(browser)
+    assert_local_routing_fallback(browser)
 
 
 def main() -> None:
@@ -331,7 +343,7 @@ def main() -> None:
     if actual != expected:
         raise RuntimeError(f"Expected {expected} desktop geospatial visual proofs, generated {actual}.")
     print(
-        f"Captured {actual} OSM-first desktop geospatial proofs and passed compact-scene / entity-edit / state-cycle / service-degradation acceptance in {OUTPUT}."
+        f"Captured {actual} OSM-first desktop geospatial proofs and passed compact-scene / entity-edit / state-cycle / local-routing-fallback acceptance in {OUTPUT}."
     )
 
 
