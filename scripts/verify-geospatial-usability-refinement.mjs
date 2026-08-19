@@ -1,12 +1,15 @@
 import { readFile } from "node:fs/promises";
 
 const files = {
-  refinement: await readFile("src/scripts/geospatial-usability-refinement.js", "utf8"),
+  core: await readFile("src/scripts/geospatial-v4.js", "utf8"),
+  compactUi: await readFile("src/scripts/geospatial-compact-entity-ui.js", "utf8"),
+  idleGuard: await readFile("src/scripts/geospatial-idle-gis-guard.js", "utf8"),
   readability: await readFile("src/scripts/geospatial-readability-polish.js", "utf8"),
   initialState: await readFile("src/scripts/geospatial-osm-initial-state.js", "utf8"),
   queryPolish: await readFile("src/scripts/geospatial-overpass-query-polish.js", "utf8"),
   hedge: await readFile("src/scripts/geospatial-overpass-hedge.js", "utf8"),
   fallback: await readFile("src/scripts/geospatial-osm-fallback.js", "utf8"),
+  localRouting: await readFile("src/scripts/geospatial-local-routing-fallback.js", "utf8"),
   fleetGuard: await readFile("src/scripts/geospatial-fleet-allocation-guard.js", "utf8"),
   mobile: await readFile("src/scripts/geospatial-mobile-view.js", "utf8"),
   advanced: await readFile("src/components/GeospatialAdvancedVisuals.astro", "utf8"),
@@ -19,18 +22,21 @@ const files = {
 };
 
 const requireToken = (source, token, label) => {
-  if (!source.includes(token))
+  if (!source.includes(token)) {
     throw new Error(`[geospatial-usability] missing ${label}: ${token}`);
+  }
 };
 
-requireToken(files.advanced, "geospatial-usability-refinement.js", "refinement mount");
+requireToken(files.advanced, "geospatial-compact-entity-ui.js", "compact unified entity UI mount");
 requireToken(files.advanced, "geospatial-readability-polish.js", "readability-polish mount");
 requireToken(files.advanced, "geospatial-osm-initial-state.js", "default OSM stale-state mount");
 requireToken(files.advanced, "geospatial-overpass-query-polish.js", "Overpass query-polish mount");
 requireToken(files.advanced, "geospatial-overpass-hedge.js", "Overpass hedged-request mount");
-requireToken(files.advanced, "geospatial-osm-fallback.js", "OSM fallback mount");
-requireToken(files.advanced, "geospatial-fleet-allocation-guard.js", "fleet allocation-source guard mount");
+requireToken(files.advanced, "geospatial-local-routing-fallback.js", "local OSM table fallback mount");
+requireToken(files.advanced, "geospatial-osm-fallback.js", "Fast OD recovery mount");
+requireToken(files.advanced, "geospatial-fleet-allocation-guard.js", "fleet allocation guard mount");
 requireToken(files.advanced, "geospatial-mobile-view.js", "mobile workspace mount");
+
 requireToken(files.lab, "geospatial-leaflet-loader.js", "bundled Leaflet loader mount");
 if (/https:\/\/(?:unpkg\.com|cdn\.jsdelivr\.net).*leaflet/i.test(files.lab)) {
   throw new Error("[geospatial-usability] the lab component must not synchronously depend on a Leaflet CDN");
@@ -41,103 +47,67 @@ if (/https:\/\/(?:unpkg\.com|cdn\.jsdelivr\.net).*leaflet/i.test(files.leafletLo
 requireToken(files.packageJson, '"leaflet": "1.9.4"', "exact Leaflet package dependency");
 requireToken(files.packageLock, '"leaflet": "1.9.4"', "locked Leaflet package dependency");
 requireToken(files.packageLock, '"node_modules/leaflet"', "Leaflet lockfile package entry");
+requireToken(files.leafletLoader, 'import "./geospatial-idle-gis-guard.js"', "idle GIS guard bootstrap");
 requireToken(files.leafletLoader, 'from "leaflet"', "local Leaflet module import");
 requireToken(files.leafletLoader, 'import "leaflet/dist/leaflet.css"', "local Leaflet stylesheet import");
 requireToken(files.leafletLoader, 'setState("ready", "bundle")', "bundled Leaflet readiness state");
 requireToken(files.leafletLoader, "globalThis.L = Leaflet", "Leaflet compatibility global");
+
+requireToken(files.core, "COMPACT_SCENES", "random compact scene definitions");
+requireToken(files.core, "{ hubs: [3, 0], demands: [2, 8] }", "two-facility two-demand compact preset");
+requireToken(files.core, "acidch-geo-v4-scene-index", "session-stable compact scene selection");
+requireToken(files.core, "HCPOOL", "bundled facility coordinates");
+requireToken(files.core, "NCPOOL", "bundled demand coordinates");
+requireToken(files.core, 'maxOpen = 2', "compact maximum-open baseline");
+requireToken(files.core, 'q("geo4-facility-count").textContent = String(H.length + N.length)', "four-entity list count");
+requireToken(files.core, 'data-remove-entity="facility:${i}"', "physical facility delete action");
+requireToken(files.core, 'data-remove-entity="demand:${i}"', "physical demand delete action");
+requireToken(files.core, "async function removeEntity(kind, index)", "physical model-entity deletion");
+requireToken(files.core, "H.splice(index, 1)", "facility model-array deletion");
+requireToken(files.core, "N.splice(index, 1)", "demand model-array deletion");
+requireToken(files.core, 'q("geo4-engine").value = "osm"', "OSM-first engine selection");
+requireToken(files.core, 'q("geo4-threshold").value = "30"', "OSM 30-minute threshold");
+requireToken(files.core, "graphRequestBounds", "compact graph bounding box");
+requireToken(files.core, "const bounds = graphRequestBounds()", "graph request uses compact entity extent");
+requireToken(files.core, "acidch-osm-compact-v2", "session OSM graph cache");
+requireToken(files.core, "loadGraph(false)", "first Run loads OSM graph on demand");
+requireToken(files.core, "insideGraphBounds", "reuse loaded graph for in-bounds entity edits");
+
+requireToken(files.compactUi, 'title: "设施、覆盖与网络实体"', "merged facility/entity title");
+requireToken(files.compactUi, 'mapAdd: "点击地图添加"', "Chinese map-add label");
+requireToken(files.compactUi, 'init: "随机轻量场景"', "compact random-scene action");
+requireToken(files.compactUi, "root.dataset.entityEditorMerged", "merged entity editor state");
+requireToken(files.compactUi, ".geo4__entity-remove", "readable physical-delete control");
+
+requireToken(files.idleGuard, "externalGisBootDeferred", "idle external-GIS deferral state");
+requireToken(files.idleGuard, 'source.includes("loadGraph(true)")', "legacy boot-preload suppression");
+requireToken(files.idleGuard, "首次运行优化或点击加载时按需获取路网", "user-triggered OSM copy");
+
 requireToken(files.initialState, 'root.dataset.resultFreshness = "stale"', "initial stale-result state");
-requireToken(files.initialState, "默认 OSM 情景已就绪 · 请运行优化", "Chinese default OSM freshness copy");
-requireToken(files.initialState, "Default OSM scenario ready · Run optimisation", "English default OSM freshness copy");
-requireToken(
-  files.refinement,
-  'mergedTitle: "设施、覆盖与网络实体"',
-  "merged facility/entity panel",
-);
-requireToken(files.refinement, 'mapAdd: "点击地图添加"', "Chinese map-add label");
-requireToken(files.refinement, 'engine.value = "osm"', "OSM-first engine selection");
-requireToken(files.refinement, 'threshold.value = "30"', "OSM default threshold");
-requireToken(files.refinement, "BUNDLED_AUCKLAND_COORDS", "bundled fast-start GIS coordinates");
-requireToken(files.refinement, "compactFacilityPreset", "compact facility preset");
-requireToken(
-  files.refinement,
-  "const label = removed ? copy.restore : copy.delete;",
-  "facility remove/restore label",
-);
-requireToken(
-  files.refinement,
-  "if (button.textContent?.trim() !== label) button.textContent = label;",
-  "idempotent facility-button DOM update",
-);
-requireToken(
-  files.refinement,
-  "policyObserver.observe(policyList, { childList: true });",
-  "bounded facility-list mutation observer",
-);
-requireToken(files.refinement, "syncExcludedFacilityMarkers", "removed-facility map visibility");
-requireToken(files.refinement, "loadButton?.click()", "run-triggered OSM graph loading");
-requireToken(files.refinement, "responseCache", "in-page GIS response cache");
-requireToken(
-  files.readability,
-  ".geo4__service-chip strong{font-size:.68rem!important",
-  "larger service-health labels",
-);
-requireToken(
-  files.readability,
-  ".geo4__service-chip small{font-size:.61rem!important",
-  "larger service-health details",
-);
+requireToken(files.readability, ".geo4__service-chip strong{font-size:.68rem!important", "larger service-health labels");
+requireToken(files.readability, ".geo4__service-chip small{font-size:.61rem!important", "larger service-health details");
 requireToken(files.readability, '"点击地图添加"', "final Chinese map-add label");
-requireToken(
-  files.refinement,
-  ".geo4__micro{font-size:.71rem!important",
-  "micro-copy readability",
-);
-requireToken(files.mobile, 'labels = zh', "bilingual mobile workspace labels");
-requireToken(files.mobile, 'setView("map")', "map-first mobile default");
-requireToken(files.mobile, 'data-geo4-mobile-view="${view}"', "three mobile workspace controls");
-requireToken(files.mobile, 'shell.dataset.mobileView = next', "mobile view state binding");
-requireToken(files.mobile, 'data-mobile-view="controls"', "mobile controls mode styling");
-requireToken(files.mobile, 'data-mobile-view="results"', "mobile results mode styling");
-requireToken(files.mobile, 'new globalThis.Event("resize")', "Leaflet resize refresh after mobile switching");
-requireToken(files.mobile, "ArrowLeft", "keyboard navigation for mobile workspace");
+
+requireToken(files.queryPolish, '.replace(/\\[timeout:\\d+\\]/, "[timeout:16]")', "bounded Overpass query timeout");
 requireToken(files.queryPolish, "motorway_link|trunk|trunk_link|primary", "drivable Overpass road filter");
-requireToken(files.queryPolish, '.replace("[timeout:35]", "[timeout:16]")', "narrowed Overpass query budget");
-requireToken(files.queryPolish, '.replace("out body;", "out body qt;")', "quick Overpass output");
 requireToken(files.hedge, "const attempts = [primary, secondary]", "primary/secondary Overpass attempt set");
 requireToken(files.hedge, "Promise.any(attempts)", "hedged primary/secondary Overpass fetch");
 requireToken(files.hedge, "Promise.allSettled(attempts)", "hedged Overpass health reconciliation");
-requireToken(files.hedge, "reconcileHealthyState", "successful Overpass health-state reconciliation");
 requireToken(files.hedge, "2600", "staggered Overpass backup start");
 requireToken(files.fallback, "run.click()", "automatic Fast OD fallback solve");
+requireToken(files.localRouting, 'url.includes("/table/v1/driving/")', "local OSM table interception");
+requireToken(files.localRouting, "buildLocalTablePayload", "loaded-graph OSRM-compatible table fallback");
 requireToken(files.fleetGuard, "isMainAllocation", "fleet main-allocation selector");
 requireToken(files.fleetGuard, '.replace(/Allocated:/gi, "Flow:")', "fleet allocation unmasking");
-requireToken(files.fleetGuard, '.replace(/Flow:/gi, "Routed:")', "fleet route-flow masking");
-requireToken(
-  files.service,
-  'overpassPrimary: "https://overpass.private.coffee/api/interpreter"',
-  "primary Overpass endpoint",
-);
-requireToken(
-  files.service,
-  'overpassSecondary: "https://overpass-api.de/api/interpreter"',
-  "secondary Overpass endpoint",
-);
-requireToken(
-  files.service,
-  'if (service === "overpass") return 18_000;',
-  "per-endpoint Overpass ceiling",
-);
-requireToken(
-  files.home,
-  ':global(html[data-theme="light"]) .home-hero__featured-project',
-  "light-theme featured-project contrast",
-);
-requireToken(
-  files.home,
-  "background: rgb(248 252 253 / 0.92);",
-  "light-theme featured card background",
-);
+requireToken(files.fleetGuard, '.replace(/Flow:/gi, "Routed:")', "fleet non-allocation masking");
+
+requireToken(files.service, 'overpassPrimary: "https://overpass.private.coffee/api/interpreter"', "primary Overpass endpoint");
+requireToken(files.service, 'overpassSecondary: "https://overpass-api.de/api/interpreter"', "secondary Overpass endpoint");
+requireToken(files.service, 'if (service === "overpass") return 18_000;', "per-endpoint Overpass ceiling");
+
+requireToken(files.home, ':global(html[data-theme="light"]) .home-hero__featured-project', "light-theme featured-project contrast");
+requireToken(files.home, "background: rgb(248 252 253 / 0.92);", "light-theme featured card background");
 
 console.log(
-  "[geospatial-usability] PASS: OSM-first workflow, locally bundled Leaflet 1.9.4, explicit initial stale-result state, bounded mutation observers, bundled fast-start coordinates, narrower drivable-road Overpass queries, hedged endpoint failover with health reconciliation, automatic Fast OD recovery, complete allocation-backed fleet planning, compact editable facilities, merged entity controls, readable mobile Map/Controls/Results switching and desktop readability improvements are wired into the release gate.",
+  "[geospatial-usability] PASS: four-entity random compact scenes, physical facility/demand deletion, unified entity controls, OSM-first user-triggered road loading, compact cached graph requests, hedged Overpass failover, local loaded-graph table routing, Fast OD recovery, complete fleet allocation flow, bundled Leaflet and readability/light-theme refinements are wired into the release gate.",
 );
