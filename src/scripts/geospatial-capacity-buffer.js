@@ -12,8 +12,18 @@ function boot() {
 
   const zh = (root.dataset.locale || "zh") === "zh";
   const copy = zh
-    ? { label: "最大设施利用率", physical: "物理容量", effective: "规划可用容量", note: "有效容量 = 物理容量 × 最大利用率；默认保留 15% capacity buffer。" }
-    : { label: "Maximum facility utilisation", physical: "Physical capacity", effective: "Effective planning capacity", note: "Effective capacity = physical capacity × maximum utilisation; the default keeps a 15% capacity buffer." };
+    ? {
+        label: "最大设施利用率",
+        physical: "物理容量",
+        effective: "规划可用容量",
+        note: "有效容量 = 物理容量 × 最大利用率；默认保留 15% capacity buffer。",
+      }
+    : {
+        label: "Maximum facility utilisation",
+        physical: "Physical capacity",
+        effective: "Effective planning capacity",
+        note: "Effective capacity = physical capacity × maximum utilisation; the default keeps a 15% capacity buffer.",
+      };
 
   capacity.id = "geo4-facility-capacity-base";
   capacity.dataset.physicalCapacity = "true";
@@ -44,41 +54,45 @@ function boot() {
   const physicalOut = preview.querySelector("[data-physical]");
   const effectiveOut = preview.querySelector("[data-effective]");
 
-  function sync() {
+  function markPendingResult() {
+    root.dataset.resultFreshness = "stale";
+    const freshness = root.querySelector(".geo4__freshness");
+    if (!freshness) return;
+    freshness.textContent = zh
+      ? "容量参数已就绪 · 请运行优化"
+      : "Capacity parameters ready · Run optimisation";
+  }
+
+  function sync({ markStale = true } = {}) {
     const physical = Math.max(0, Number(capacity.value) || 0);
-    const utilisation = Math.max(.5, Math.min(1, Number(slider.value || 85) / 100));
+    const utilisation = Math.max(0.5, Math.min(1, Number(slider.value || 85) / 100));
     const planning = physical * utilisation;
     effective.value = String(planning);
     output.textContent = `${(utilisation * 100).toFixed(0)}%`;
     physicalOut.textContent = physical.toLocaleString();
-    effectiveOut.textContent = planning.toLocaleString(undefined, { maximumFractionDigits: 0 });
+    effectiveOut.textContent = planning.toLocaleString(undefined, {
+      maximumFractionDigits: 0,
+    });
     root.dataset.maxFacilityUtilisation = utilisation.toFixed(2);
     effective.dispatchEvent(new globalThis.Event("input", { bubbles: true }));
+    if (markStale) markPendingResult();
   }
 
-  capacity.addEventListener("input", sync);
-  slider.addEventListener("input", sync);
+  capacity.addEventListener("input", () => sync());
+  slider.addEventListener("input", () => sync());
   D.getElementById("geo4-reset")?.addEventListener("click", () => {
     capacity.value = "6000";
     slider.value = "85";
     sync();
   });
 
-  // V4 is mounted before the functional extensions and performs its first solve
-  // against the visible 6,000-unit capacity input. This extension then converts
-  // that input into a physical capacity and exposes the 85%-buffered 5,100-unit
-  // effective capacity to V4. Run exactly one follow-up solve after the current
-  // boot stack so the first result a user sees already reflects the planning
-  // buffer instead of remaining stale until Run or Reset is clicked.
+  // Initialise the effective 5,100-unit planning capacity without triggering
+  // an optimisation run. The product is OSM-first, so automatically clicking
+  // Run here would start an Overpass request during page boot. External GIS
+  // services must remain idle until the user explicitly runs optimisation or
+  // loads the graph.
   sync();
-  if (root.dataset.capacityBufferInitialSolve !== "done") {
-    root.dataset.capacityBufferInitialSolve = "scheduled";
-    globalThis.setTimeout(() => {
-      if (root.dataset.capacityBufferInitialSolve === "done") return;
-      root.dataset.capacityBufferInitialSolve = "done";
-      D.getElementById("geo4-run")?.click();
-    }, 0);
-  }
+  root.dataset.capacityBufferInitialSolve = "deferred";
 }
 
 boot();
