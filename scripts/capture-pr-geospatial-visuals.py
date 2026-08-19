@@ -20,46 +20,106 @@ spec.loader.exec_module(base)
 base.OUTPUT = OUTPUT
 
 
+class GeospatialBrowserSession(base.BrowserSession):
+    """Chrome session that never lets third-party map resources own navigation."""
+
+    def __init__(self, driver_base: str, site_base: str) -> None:
+        self.site_base = site_base
+        payload = {
+            "capabilities": {
+                "alwaysMatch": {
+                    "browserName": "chrome",
+                    "pageLoadStrategy": "none",
+                    "goog:chromeOptions": {
+                        "args": [
+                            "--headless=new",
+                            "--no-sandbox",
+                            "--disable-gpu",
+                            "--disable-dev-shm-usage",
+                            "--disable-background-networking",
+                            "--disable-extensions",
+                            "--no-first-run",
+                            "--no-default-browser-check",
+                            "--disable-features=Translate,MediaRouter,OptimizationHints",
+                            "--window-size=1440,1000",
+                        ]
+                    },
+                }
+            }
+        }
+        session_id = None
+        last_error: Exception | None = None
+        for attempt in range(2):
+            try:
+                response = base.request_json(
+                    "POST", f"{driver_base}/session", payload, timeout=40
+                )
+                value = response.get("value")
+                if isinstance(value, dict) and isinstance(value.get("sessionId"), str):
+                    session_id = value["sessionId"]
+                    break
+                last_error = RuntimeError(
+                    f"Unexpected ChromeDriver session response: {response}"
+                )
+            except Exception as error:
+                last_error = error
+                deadline = time.time() + 8
+                while time.time() < deadline and session_id is None:
+                    session_id = base.recover_session(driver_base)
+                    if session_id is None:
+                        time.sleep(0.5)
+                if session_id is not None:
+                    break
+            if attempt == 0:
+                time.sleep(1.0)
+        if session_id is None:
+            raise RuntimeError(
+                f"Geospatial ChromeDriver session did not start after bounded recovery: {last_error}"
+            )
+        self.session_id = session_id
+        self.session_base = f"{driver_base}/session/{session_id}"
+        self.set_viewport(1440, 1000, mobile=False)
+
+
+# verify-pr-geospatial-hotfix.py imports this module and then reuses geo.base.
+# Expose the same nonblocking session so both browser gates exercise identical runtime semantics.
+base.BrowserSession = GeospatialBrowserSession
+
+
 def navigate_path(browser: object, path: str) -> None:
-    """Navigate without blocking on slow third-party subresources.
-
-    The geospatial lab intentionally references map/GIS assets that can outlive the
-    local document load. WebDriver's /url command waits for the full page-load
-    event and has intermittently stalled on GitHub-hosted runners before any
-    product assertion runs. CDP Page.navigate returns after navigation is issued;
-    we then explicitly wait for the local document to become interactive.
-    """
-
     target = f"{browser.site_base}{path}"
     last_error: Exception | None = None
     for attempt in range(3):
         try:
             base.request_json(
                 "POST",
-                f"{browser.session_base}/goog/cdp/execute",
-                {"cmd": "Page.navigate", "params": {"url": target}},
-                timeout=8,
+                f"{browser.session_base}/url",
+                {"url": target},
+                timeout=6,
             )
-            deadline = time.time() + 15
-            while time.time() < deadline:
-                try:
-                    state = browser.execute(
-                        "return {ready:document.readyState,path:location.pathname};"
-                    )
-                except Exception as error:
-                    last_error = error
-                    time.sleep(0.2)
-                    continue
-                if (
-                    isinstance(state, dict)
-                    and state.get("ready") in {"interactive", "complete"}
-                    and state.get("path") == path
-                ):
-                    time.sleep(0.8)
-                    return
-                time.sleep(0.15)
         except Exception as error:
             last_error = error
+
+        deadline = time.time() + 18
+        while time.time() < deadline:
+            try:
+                state = browser.execute(
+                    "return {ready:document.readyState,path:location.pathname,root:Boolean(document.querySelector('#geo-v4'))};"
+                )
+            except Exception as error:
+                last_error = error
+                time.sleep(0.2)
+                continue
+            if (
+                isinstance(state, dict)
+                and state.get("path") == path
+                and state.get("root") is True
+                and state.get("ready") in {"loading", "interactive", "complete"}
+            ):
+                time.sleep(0.5)
+                return
+            time.sleep(0.15)
+
         try:
             base.request_json(
                 "POST",
@@ -71,6 +131,24 @@ def navigate_path(browser: object, path: str) -> None:
             pass
         time.sleep(0.5 * (attempt + 1))
     raise RuntimeError(f"Unable to navigate geospatial proof browser to {target}: {last_error}")
+
+
+def wait_leaflet(browser: object, timeout: float = 20) -> None:
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        try:
+            ready = browser.execute(
+                "return Boolean(globalThis.L && document.querySelector('#geo4-map'));"
+            )
+        except Exception:
+            ready = False
+        if ready is True:
+            return
+        time.sleep(0.25)
+    state = browser.execute(
+        "return {leaflet:Boolean(globalThis.L),page:document.readyState,root:document.querySelector('#geo-v4')?.dataset||{}};"
+    )
+    raise RuntimeError(f"Leaflet did not become ready within the browser budget: {state}")
 
 
 def set_select(browser: object, selector: str, value: str) -> None:
@@ -223,6 +301,7 @@ def capture_desktop(browser: object) -> None:
     navigate_path(browser, "/zh/lab/geospatial-supply-chain/")
     seed_cached_coordinates(browser)
     navigate_path(browser, "/zh/lab/geospatial-supply-chain/")
+    wait_leaflet(browser)
     browser.require("#geo4-map .leaflet-map-pane")
     assert_services_idle(browser)
     assert_refined_ui(browser)
@@ -273,7 +352,7 @@ def main() -> None:
     browser = None
     try:
         base.wait_for_driver(driver_base, driver)
-        browser = base.BrowserSession(driver_base, f"http://127.0.0.1:{site_port}")
+        browser = GeospatialBrowserSession(driver_base, f"http://127.0.0.1:{site_port}")
         browser.set_viewport(1440, 1000, mobile=False)
         capture_desktop(browser)
     finally:
