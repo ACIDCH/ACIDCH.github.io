@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 
 const files = {
   refinement: await readFile("src/scripts/geospatial-usability-refinement.js", "utf8"),
+  initialState: await readFile("src/scripts/geospatial-osm-initial-state.js", "utf8"),
   queryPolish: await readFile("src/scripts/geospatial-overpass-query-polish.js", "utf8"),
   fallback: await readFile("src/scripts/geospatial-osm-fallback.js", "utf8"),
   advanced: await readFile("src/components/GeospatialAdvancedVisuals.astro", "utf8"),
@@ -19,6 +20,7 @@ const requireToken = (source, token, label) => {
 };
 
 requireToken(files.advanced, "geospatial-usability-refinement.js", "refinement mount");
+requireToken(files.advanced, "geospatial-osm-initial-state.js", "default OSM stale-state mount");
 requireToken(files.advanced, "geospatial-overpass-query-polish.js", "Overpass query-polish mount");
 requireToken(files.advanced, "geospatial-osm-fallback.js", "OSM fallback mount");
 requireToken(files.lab, "geospatial-leaflet-loader.js", "bundled Leaflet loader mount");
@@ -35,6 +37,9 @@ requireToken(files.leafletLoader, 'from "leaflet"', "local Leaflet module import
 requireToken(files.leafletLoader, 'import "leaflet/dist/leaflet.css"', "local Leaflet stylesheet import");
 requireToken(files.leafletLoader, 'setState("ready", "bundle")', "bundled Leaflet readiness state");
 requireToken(files.leafletLoader, "globalThis.L = Leaflet", "Leaflet compatibility global");
+requireToken(files.initialState, 'root.dataset.resultFreshness = "stale"', "initial stale-result state");
+requireToken(files.initialState, "默认 OSM 情景已就绪 · 请运行优化", "Chinese default OSM freshness copy");
+requireToken(files.initialState, "Default OSM scenario ready · Run optimisation", "English default OSM freshness copy");
 requireToken(
   files.refinement,
   'mergedTitle: "设施、覆盖与网络实体"',
@@ -94,5 +99,5 @@ requireToken(
 );
 
 console.log(
-  "[geospatial-usability] PASS: OSM-first workflow, locally bundled Leaflet 1.9.4, bundled fast-start coordinates, narrower drivable-road Overpass queries, faster endpoint failover, automatic Fast OD recovery, compact editable facilities, merged entity controls and readability improvements are wired into the release gate.",
+  "[geospatial-usability] PASS: OSM-first workflow, locally bundled Leaflet 1.9.4, explicit initial stale-result state, bundled fast-start coordinates, narrower drivable-road Overpass queries, faster endpoint failover, automatic Fast OD recovery, compact editable facilities, merged entity controls and readability improvements are wired into the release gate.",
 );
