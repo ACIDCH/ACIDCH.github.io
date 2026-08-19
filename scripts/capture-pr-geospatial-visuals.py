@@ -135,10 +135,15 @@ def assert_osm_first_state(browser: object) -> None:
     wait_solved(browser)
     if read_value(browser, "#geo4-engine") != "osm":
         raise RuntimeError("The production geospatial scene did not start in OSM mode.")
-    entity_count = browser.execute("return document.querySelectorAll('#geo4-policy-list .geo4__policy-row').length;")
+    entity_count = browser.execute(
+        "return document.querySelectorAll('#geo4-policy-list .geo4__policy-row').length;"
+    )
     if entity_count != 4:
         raise RuntimeError(f"Expected a compact four-entity initial scene, found {entity_count} rows.")
-    if "网络实体与设施决策" not in read_text(browser, "#geo4-policy-list") and "网络实体与设施决策" not in read_text(browser, ".geo4__console"):
+    if (
+        "网络实体与设施决策" not in read_text(browser, "#geo4-policy-list")
+        and "网络实体与设施决策" not in read_text(browser, ".geo4__console")
+    ):
         raise RuntimeError("Unified network-entity/facility module was not mounted.")
     if read_text(browser, "#geo4-map-add") != "点击地图添加":
         raise RuntimeError("Map-click add button copy is not the requested Chinese wording.")
@@ -152,15 +157,23 @@ def assert_osm_first_state(browser: object) -> None:
 
 
 def assert_entity_edit_cycle(browser: object) -> None:
-    before = browser.execute("return document.querySelectorAll('#geo4-policy-list .geo4__policy-row').length;")
+    before = browser.execute(
+        "return document.querySelectorAll('#geo4-policy-list .geo4__policy-row').length;"
+    )
     browser.click('[data-remove-entity="demand:1"]')
     wait_solved(browser)
-    after = browser.execute("return document.querySelectorAll('#geo4-policy-list .geo4__policy-row').length;")
+    after = browser.execute(
+        "return document.querySelectorAll('#geo4-policy-list .geo4__policy-row').length;"
+    )
     if before != 4 or after != 3:
-        raise RuntimeError(f"Entity deletion did not change the model-backed list: before={before}, after={after}")
+        raise RuntimeError(
+            f"Entity deletion did not change the model-backed list: before={before}, after={after}"
+        )
     browser.click("#geo4-reset")
     wait_solved(browser)
-    restored = browser.execute("return document.querySelectorAll('#geo4-policy-list .geo4__policy-row').length;")
+    restored = browser.execute(
+        "return document.querySelectorAll('#geo4-policy-list .geo4__policy-row').length;"
+    )
     if restored != 4:
         raise RuntimeError(f"Reset did not restore the compact four-entity base scene: {restored}")
 
@@ -171,6 +184,7 @@ def assert_state_cycle(browser: object) -> None:
     browser.require("#geo4-lead-time-sd")
     browser.require(".geo4__fleet-planner")
     browser.require(".geo4__transshipment")
+    browser.require("#geo-v4[data-scenario-summary-v4-ready='true']")
     assert_single_mounts(browser)
     assert_osm_first_state(browser)
 
@@ -182,7 +196,9 @@ def assert_state_cycle(browser: object) -> None:
     wait_solved(browser)
     baseline = read_kpis(browser)
     if initial != baseline:
-        raise RuntimeError(f"Initial OSM KPI state does not match Reset: initial={initial}, reset={baseline}")
+        raise RuntimeError(
+            f"Initial OSM KPI state does not match Reset: initial={initial}, reset={baseline}"
+        )
 
     assert_entity_edit_cycle(browser)
     baseline = read_kpis(browser)
@@ -194,6 +210,7 @@ def assert_state_cycle(browser: object) -> None:
     wait_solved(browser)
     browser.click("#geo4-save-a")
     browser.wait_for_text("#geo4-status", "已保存情景 A", timeout=5)
+    wait_dataset(browser, "scenarioAState", "saved", timeout=5)
 
     set_select(browser, "#geo4-road-mode", "congestion")
     set_input(browser, "#geo4-congestion", "55")
@@ -201,8 +218,12 @@ def assert_state_cycle(browser: object) -> None:
     wait_solved(browser)
     browser.click("#geo4-save-b")
     browser.wait_for_text("#geo4-status", "已保存情景 B", timeout=5)
+    wait_dataset(browser, "scenarioBState", "saved", timeout=5)
     browser.click("#geo4-compare")
-    browser.wait_for_text("#geo4-ab", "Δ Facilities", timeout=5)
+    wait_dataset(browser, "scenarioComparisonState", "comparable", timeout=5)
+    browser.wait_for_text("#geo4-ab", "决策解读", timeout=5)
+    if browser.execute("return document.querySelectorAll('#geo4-ab .geo4__ab-delta').length;") != 4:
+        raise RuntimeError("Scenario A/B managerial summary did not render four comparable KPI cards.")
 
     browser.click("#geo4-reset")
     wait_solved(browser)
@@ -225,11 +246,21 @@ def assert_state_cycle(browser: object) -> None:
     }
     if wrong:
         raise RuntimeError(f"Reset left stale geospatial scenario state: {wrong}")
-    if read_text(browser, "#geo4-ab"):
-        raise RuntimeError("Scenario A/B comparison survived Reset.")
+    wait_dataset(browser, "scenarioComparisonState", "waiting", timeout=5)
+    saved_states = browser.execute(
+        "const r=document.querySelector('#geo-v4');return {a:r?.dataset.scenarioAState||'',b:r?.dataset.scenarioBState||''};"
+    )
+    if saved_states != {"a": "", "b": ""}:
+        raise RuntimeError(f"Scenario A/B saved state survived Reset: {saved_states}")
+    if browser.execute("return document.querySelectorAll('#geo4-ab .geo4__ab-decision').length;") != 0:
+        raise RuntimeError("Scenario A/B decision interpretation survived Reset.")
+    if read_text(browser, "#geo4-ab").count("尚未保存") != 2:
+        raise RuntimeError("Reset did not return A/B summary to two empty saved-state slots.")
     restored = read_kpis(browser)
     if restored != baseline:
-        raise RuntimeError(f"Baseline KPI state was not restored: before={baseline}, after={restored}")
+        raise RuntimeError(
+            f"Baseline KPI state was not restored: before={baseline}, after={restored}"
+        )
     assert_single_mounts(browser)
 
 
@@ -282,7 +313,9 @@ def capture_desktop(browser: object, endpoint: str) -> None:
 
     set_select(browser, "#geo4-layer", "risk")
     browser.wait_for_text(".geo4__layer-chip", "风险")
-    mode = browser.execute("const s=document.querySelector('.geo4__shell');return s?.dataset.analysisLayer||'';")
+    mode = browser.execute(
+        "const s=document.querySelector('.geo4__shell');return s?.dataset.analysisLayer||'';"
+    )
     if mode != "risk":
         raise RuntimeError(f"Expected risk analysis visual mode, got {mode!r}.")
     browser.screenshot("geospatial-risk-layer-desktop.png")
@@ -290,7 +323,9 @@ def capture_desktop(browser: object, endpoint: str) -> None:
     set_select(browser, "#geo4-road-mode", "mixed")
     browser.wait_for_text(".geo4__scenario-ribbon", "混合路网事件")
     browser.wait_for_text(".geo4__freshness", "参数已变更", timeout=4)
-    road_mode = browser.execute("const s=document.querySelector('.geo4__shell');return s?.dataset.roadVisual||'';")
+    road_mode = browser.execute(
+        "const s=document.querySelector('.geo4__shell');return s?.dataset.roadVisual||'';"
+    )
     if road_mode != "mixed":
         raise RuntimeError(f"Expected mixed road visual mode, got {road_mode!r}.")
     browser.screenshot("geospatial-mixed-event-desktop.png")
@@ -315,14 +350,20 @@ def main() -> None:
     driver_port = 9523
     driver_base = f"http://127.0.0.1:{driver_port}"
     driver = subprocess.Popen(
-        [base.find_chromedriver(), f"--port={driver_port}", "--allowed-ips=127.0.0.1"],
+        [
+            base.find_chromedriver(),
+            f"--port={driver_port}",
+            "--allowed-ips=127.0.0.1",
+        ],
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
     )
     browser = None
     try:
         base.wait_for_driver(driver_base, driver)
-        browser = base.BrowserSession(driver_base, f"http://127.0.0.1:{site_port}")
+        browser = base.BrowserSession(
+            driver_base, f"http://127.0.0.1:{site_port}"
+        )
         browser.set_viewport(1440, 1000, mobile=False)
         capture_desktop(browser, endpoint)
     finally:
@@ -341,7 +382,9 @@ def main() -> None:
     expected = 5
     actual = len(list(OUTPUT.glob("*.png")))
     if actual != expected:
-        raise RuntimeError(f"Expected {expected} desktop geospatial visual proofs, generated {actual}.")
+        raise RuntimeError(
+            f"Expected {expected} desktop geospatial visual proofs, generated {actual}."
+        )
     print(
         f"Captured {actual} OSM-first desktop geospatial proofs and passed compact-scene / entity-edit / state-cycle / local-routing-fallback acceptance in {OUTPUT}."
     )

@@ -1,4 +1,8 @@
-import { graphOdMatrix, nearestGraphNode } from "./decisionEngine.js";
+import {
+  buildEdgeScenario,
+  graphOdMatrix,
+  nearestGraphNode,
+} from "./decisionEngine.js";
 import { reconstructGraphPath } from "./pathTools.js";
 
 function parseIndexes(value, length) {
@@ -85,6 +89,7 @@ export function buildLocalRoutePayload(input, graph, scenarioParams = { mode: "b
   const waypoints = [];
   let distanceKm = 0;
   let travelTimeMin = 0;
+  const scenario = buildEdgeScenario(graph, scenarioParams);
 
   for (const point of request.points) {
     const snap = nearestGraphNode(graph, point);
@@ -106,7 +111,7 @@ export function buildLocalRoutePayload(input, graph, scenarioParams = { mode: "b
       graph,
       source.nodeId,
       target.nodeId,
-      scenarioParams,
+      scenario,
       "time",
     );
     if (!path) return null;
