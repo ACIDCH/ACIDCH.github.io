@@ -17,10 +17,12 @@ function boot() {
     ? {
         fleetStale: "主模型或运力参数已变更，请重新生成车队路线。",
         transStale: "主模型、实体或路网参数已变更，请重新运行两级转运。",
+        robustNeedFresh: "请先重新运行主模型，再执行 Monte Carlo 稳健性模拟。",
       }
     : {
         fleetStale: "Main-model or fleet inputs changed. Rebuild the fleet tours.",
         transStale: "Main-model, entity or road inputs changed. Re-run transshipment.",
+        robustNeedFresh: "Run the main optimisation again before Monte Carlo robustness simulation.",
       };
 
   const style = D.createElement("style");
@@ -57,8 +59,15 @@ function boot() {
   const fleetStatus = root.querySelector(".geo4__fleet-status");
   const transStatus = root.querySelector(".geo4__trans-status");
   const robust = D.getElementById("geo4-robust");
+  const simulate = D.getElementById("geo4-simulate");
+  const status = D.getElementById("geo4-status");
   const layer = D.getElementById("geo4-layer");
   const riskOption = layer?.querySelector('option[value="risk"]');
+
+  function syncSimulationAvailability() {
+    if (!simulate) return;
+    simulate.disabled = root.dataset.resultFreshness === "stale";
+  }
 
   function resetFleet() {
     root.dataset.fleetFreshness = "stale";
@@ -116,6 +125,14 @@ function boot() {
       if (event.target?.closest?.("#geo4-run,#geo4-reset,[data-remove-entity]")) {
         invalidateDownstream();
       }
+      if (
+        event.target?.closest?.("#geo4-simulate") &&
+        root.dataset.resultFreshness === "stale"
+      ) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        if (status) status.textContent = copy.robustNeedFresh;
+      }
     },
     true,
   );
@@ -126,6 +143,14 @@ function boot() {
       ? new globalThis.MutationObserver(() => invalidateDownstream())
       : null;
   entityObserver?.observe(policyList, { childList: true });
+
+  const freshnessObserver = globalThis.MutationObserver
+    ? new globalThis.MutationObserver(syncSimulationAvailability)
+    : null;
+  freshnessObserver?.observe(root, {
+    attributes: true,
+    attributeFilter: ["data-result-freshness"],
+  });
 
   const fleetObserver =
     fleetStatus && globalThis.MutationObserver
@@ -149,7 +174,6 @@ function boot() {
       : null;
   transObserver?.observe(transStatus, { childList: true, characterData: true, subtree: true });
 
-  const status = D.getElementById("geo4-status");
   const statusObserver =
     status && globalThis.MutationObserver
       ? new globalThis.MutationObserver(() => {
@@ -163,6 +187,7 @@ function boot() {
   statusObserver?.observe(status, { childList: true, characterData: true, subtree: true });
 
   invalidateDownstream();
+  syncSimulationAvailability();
 }
 
 boot();
