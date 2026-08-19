@@ -15,6 +15,7 @@ function boot() {
   const copy = zh
     ? {
         label: "推荐下一步",
+        boundary: "方法边界：这里是道路 TSP + 单车容量拆分与聚合运力检查，不等同于完整 CVRP 或带时间窗车辆调度。",
         run: "当前参数已变更。先点击“运行优化”，再继续路线、Fleet/TSP 或 Monte Carlo。",
         mainReady: "主模型已更新。可直接生成车队路线；“加载最优路径”只负责把当前道路路径画到地图上。",
         fleetReady: "主模型与 Fleet/TSP 均为当前参数。可继续运行 Monte Carlo 检查方案稳健性。",
@@ -30,6 +31,7 @@ function boot() {
       }
     : {
         label: "Recommended next step",
+        boundary: "Model boundary: this is road-based TSP sequencing plus vehicle-capacity splitting and aggregate fleet checks, not a full CVRP or time-window vehicle scheduler.",
         run: "Inputs changed. Run the main optimisation before continuing with routes, Fleet/TSP or Monte Carlo.",
         mainReady: "The main model is current. Fleet/TSP can run directly from the allocation; ‘Load optimal paths’ only draws the current road paths on the map.",
         fleetReady: "The main model and Fleet/TSP are current. Run Monte Carlo next to test robustness.",
@@ -57,6 +59,12 @@ function boot() {
     #geo-v4[data-guidance-tone="ok"] .geo4__next-action span{color:#d8ff6b}
   `;
   D.head.appendChild(style);
+
+  const fleetNote = root.querySelector(".geo4__fleet-note");
+  if (fleetNote && !fleetNote.dataset.modelBoundaryReady) {
+    fleetNote.dataset.modelBoundaryReady = "true";
+    fleetNote.textContent = `${fleetNote.textContent} ${copy.boundary}`;
+  }
 
   const card = D.createElement("div");
   card.className = "geo4__next-action";
