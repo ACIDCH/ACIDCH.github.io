@@ -1,0 +1,177 @@
+name: One-off geospatial scene patch
+
+on:
+  push:
+    branches:
+      - feat/geospatial-randomized-auckland-scene
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: ${{ !startsWith(github.event.head_commit.message, 'Apply randomized Auckland GIS scene') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Patch randomized scene and route emphasis
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          path = Path('src/scripts/geospatial-v4.js')
+          text = path.read_text(encoding='utf-8')
+
+          new_scene = r'''  const WAREHOUSE_TARGET = 7,
+    FACTORY_TARGET = 3,
+    DEMAND_TARGET = 12,
+    FACILITY_POOL = [
+      { name: "Albany", address: "Albany, Auckland, New Zealand", lat: -36.725, lon: 174.700, sector: "north", type: "warehouse" },
+      { name: "Wairau Valley", address: "Wairau Valley, Auckland, New Zealand", lat: -36.759, lon: 174.735, sector: "north", type: "warehouse" },
+      { name: "Rosedale", address: "Rosedale, Auckland, New Zealand", lat: -36.746, lon: 174.715, sector: "north", type: "warehouse" },
+      { name: "Hobsonville", address: "Hobsonville, Auckland, New Zealand", lat: -36.798, lon: 174.656, sector: "west", type: "warehouse" },
+      { name: "Westgate", address: "Westgate, Auckland, New Zealand", lat: -36.817, lon: 174.610, sector: "west", type: "warehouse" },
+      { name: "Henderson", address: "Henderson, Auckland, New Zealand", lat: -36.879, lon: 174.630, sector: "west", type: "warehouse" },
+      { name: "New Lynn", address: "New Lynn, Auckland, New Zealand", lat: -36.908, lon: 174.682, sector: "west", type: "warehouse" },
+      { name: "Auckland CBD", address: "Auckland CBD, Auckland, New Zealand", lat: -36.8485, lon: 174.7633, sector: "central", type: "warehouse" },
+      { name: "Newmarket", address: "Newmarket, Auckland, New Zealand", lat: -36.869, lon: 174.776, sector: "central", type: "warehouse" },
+      { name: "Mount Eden", address: "Mount Eden, Auckland, New Zealand", lat: -36.877, lon: 174.744, sector: "central", type: "warehouse" },
+      { name: "Mount Wellington", address: "Mount Wellington, Auckland, New Zealand", lat: -36.898, lon: 174.842, sector: "east", type: "warehouse" },
+      { name: "Botany", address: "Botany, Auckland, New Zealand", lat: -36.928, lon: 174.914, sector: "east", type: "warehouse" },
+      { name: "Howick", address: "Howick, Auckland, New Zealand", lat: -36.894, lon: 174.927, sector: "east", type: "warehouse" },
+      { name: "Manukau", address: "Manukau, Auckland, New Zealand", lat: -36.992, lon: 174.879, sector: "south", type: "warehouse" },
+      { name: "Papakura", address: "Papakura, Auckland, New Zealand", lat: -37.065, lon: 174.944, sector: "south", type: "warehouse" },
+      { name: "East Tamaki", address: "East Tamaki, Auckland, New Zealand", lat: -36.951, lon: 174.874, sector: "south", type: "factory" },
+      { name: "Wiri", address: "Wiri, Auckland, New Zealand", lat: -37.013, lon: 174.858, sector: "south", type: "factory" },
+      { name: "Penrose", address: "Penrose, Auckland, New Zealand", lat: -36.910, lon: 174.833, sector: "east", type: "factory" },
+      { name: "Onehunga", address: "Onehunga, Auckland, New Zealand", lat: -36.925, lon: 174.785, sector: "central", type: "factory" },
+      { name: "Henderson Valley", address: "Henderson Valley, Auckland, New Zealand", lat: -36.918, lon: 174.604, sector: "west", type: "factory" },
+    ],
+    DEMAND_POOL = [
+      { name: "Silverdale", lat: -36.617, lon: 174.676, sector: "north", demand: 850 },
+      { name: "Orewa", lat: -36.584, lon: 174.689, sector: "north", demand: 700 },
+      { name: "Albany", lat: -36.727, lon: 174.697, sector: "north", demand: 950 },
+      { name: "Westgate", lat: -36.818, lon: 174.611, sector: "west", demand: 800 },
+      { name: "Henderson", lat: -36.879, lon: 174.630, sector: "west", demand: 1050 },
+      { name: "New Lynn", lat: -36.908, lon: 174.682, sector: "west", demand: 750 },
+      { name: "Auckland CBD", lat: -36.8485, lon: 174.7633, sector: "central", demand: 1200 },
+      { name: "Ponsonby", lat: -36.854, lon: 174.744, sector: "central", demand: 650 },
+      { name: "Epsom", lat: -36.887, lon: 174.776, sector: "central", demand: 900 },
+      { name: "Howick", lat: -36.894, lon: 174.927, sector: "east", demand: 1000 },
+      { name: "Botany", lat: -36.928, lon: 174.914, sector: "east", demand: 900 },
+      { name: "Pakuranga", lat: -36.883, lon: 174.871, sector: "east", demand: 800 },
+      { name: "Manukau", lat: -36.992, lon: 174.879, sector: "south", demand: 1100 },
+      { name: "Airport", lat: -37.008, lon: 174.785, sector: "south", demand: 900 },
+      { name: "Papakura", lat: -37.065, lon: 174.944, sector: "south", demand: 700 },
+      { name: "Takanini", lat: -37.042, lon: 174.910, sector: "south", demand: 850 },
+      { name: "Pukekohe", lat: -37.204, lon: 174.900, sector: "south", demand: 650 },
+      { name: "Massey", lat: -36.815, lon: 174.610, sector: "west", demand: 720 },
+    ],
+    SECTORS = ["north", "west", "central", "east", "south"];
+
+  function shuffled(items) {
+    const out = [...items];
+    for (let i = out.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [out[i], out[j]] = [out[j], out[i]];
+    }
+    return out;
+  }
+
+  function pickSpread(pool, count) {
+    const chosen = [], used = new Set();
+    for (const sector of SECTORS) {
+      const candidates = shuffled(pool.filter((x) => x.sector === sector));
+      const item = candidates[0];
+      if (item) {
+        chosen.push(item);
+        used.add(item);
+      }
+    }
+    const remaining = shuffled(pool.filter((x) => !used.has(x)));
+    while (chosen.length < count && remaining.length) chosen.push(remaining.shift());
+    return chosen.slice(0, count);
+  }
+
+  function randomScene() {
+    const factories = pickSpread(FACILITY_POOL.filter((x) => x.type === "factory"), FACTORY_TARGET),
+      warehousePool = FACILITY_POOL.filter((x) => x.type === "warehouse"),
+      warehouses = pickSpread(warehousePool, WAREHOUSE_TARGET),
+      facilities = shuffled([...warehouses, ...factories]),
+      demands = pickSpread(DEMAND_POOL, DEMAND_TARGET),
+      H = facilities.map((x) => x.name),
+      HQ = facilities.map((x) => x.address),
+      HC = facilities.map(({ lat, lon }) => ({ lat, lon })),
+      HT = facilities.map((x) => x.type),
+      N = demands.map((x) => x.name),
+      NQ = demands.map((x) => `${x.name}, Auckland, New Zealand`),
+      NC = demands.map(({ lat, lon }) => ({ lat, lon })),
+      DM = demands.map((x) => x.demand),
+      M = HC.map((a) => NC.map((b) => {
+        const r = Math.PI / 180;
+        const dLat = (b.lat - a.lat) * r;
+        const dLon = (b.lon - a.lon) * r;
+        const aa = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLon / 2) ** 2;
+        const km = 6371 * 2 * Math.atan2(Math.sqrt(aa), Math.sqrt(1 - aa));
+        return +(km * 1.22 + 0.35).toFixed(2);
+      }));
+    return { H, HQ, HC, HT, N, NQ, NC, DM, M };
+  }
+
+  let baseScene = randomScene();
+'''
+
+          pattern = r"  const HPOOL = \[.*?\n  let baseSceneIndex = chooseSceneIndex\(false\),\n    baseScene = sceneFromIndex\(baseSceneIndex\);\n"
+          text, n = re.subn(pattern, new_scene, text, count=1, flags=re.S)
+          if n != 1:
+              raise SystemExit('Scene block replacement failed')
+
+          text = text.replace('      maxOpen = Math.max(1, Math.min(2, H.length));', '      maxOpen = Math.max(2, Math.min(4, H.length));', 1)
+
+          old_osm = '''          L.polyline(\n            p.coordinates.map((v) => [v.lat, v.lon]),\n            { color: "#d8ff6b", weight: 2.7, opacity: 0.84 },\n          )'''
+          new_osm = '''          L.polyline(\n            p.coordinates.map((v) => [v.lat, v.lon]),\n            { color: "#06131d", weight: 8, opacity: 0.82 },\n          ).addTo(rl);\n          L.polyline(\n            p.coordinates.map((v) => [v.lat, v.lon]),\n            { color: "#d8ff6b", weight: 4.2, opacity: 0.97 },\n          )'''
+          if old_osm not in text:
+              raise SystemExit('OSM route block not found')
+          text = text.replace(old_osm, new_osm, 1)
+
+          old_osrm = '''          L.polyline(\n            cs.map(([lon, lat]) => [lat, lon]),\n            { color: "#d8ff6b", weight: 2.5, opacity: 0.82 },\n          )'''
+          new_osrm = '''          L.polyline(\n            cs.map(([lon, lat]) => [lat, lon]),\n            { color: "#06131d", weight: 8, opacity: 0.82 },\n          ).addTo(rl);\n          L.polyline(\n            cs.map(([lon, lat]) => [lat, lon]),\n            { color: "#d8ff6b", weight: 4.2, opacity: 0.97 },\n          )'''
+          if old_osrm not in text:
+              raise SystemExit('OSRM route block not found')
+          text = text.replace(old_osrm, new_osrm, 1)
+
+          old_route = '          `${H[x.hub]} → ${N[x.demand]}<br>Flow: ${x.flow.toFixed(0)} · ${p.cost.toFixed(1)} min`,'
+          new_route = '          `${H[x.hub]} → ${N[x.demand]}<br>Flow: ${x.flow.toFixed(0)} · ${p.cost.toFixed(1)} min · Optimal path`,'
+          text = text.replace(old_route, new_route, 1)
+
+          path.write_text(text, encoding='utf-8')
+
+          # Source-level self-checks before commit.
+          checks = [
+              ('WAREHOUSE_TARGET = 7', 'WAREHOUSE_TARGET = 7' in text),
+              ('FACTORY_TARGET = 3', 'FACTORY_TARGET = 3' in text),
+              ('DEMAND_TARGET = 12', 'DEMAND_TARGET = 12' in text),
+              ('randomScene()', 'function randomScene()' in text),
+              ('route highlight 4.2px', 'weight: 4.2' in text),
+              ('old compact pools removed', 'COMPACT_SCENES' not in text and 'MPOOL' not in text),
+          ]
+          failed = [name for name, ok in checks if not ok]
+          if failed:
+              raise SystemExit('Self-check failed: ' + ', '.join(failed))
+          print('Patch self-check passed:', ', '.join(name for name, _ in checks))
+      
+      - name: Commit patched source and remove one-off workflow
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/scripts/geospatial-v4.js
+          git commit -m "Apply randomized Auckland GIS scene" 
+          git rm .github/workflows/one-off-geospatial-scene-patch.yml
+          git commit -m "chore: remove one-off geospatial patch workflow"
+          git push
