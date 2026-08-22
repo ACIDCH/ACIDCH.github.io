@@ -92,3 +92,4 @@ text = text.replace('            { color: "#d8ff6b", weight: 2.7, opacity: 0.84 
 text = text.replace('            { color: "#d8ff6b", weight: 2.5, opacity: 0.82 },', '            { color: "#142126", weight: 7.5, opacity: 0.82, lineCap: "round", lineJoin: "round" },\n          )\n            .addTo(rl);\n          L.polyline(\n            cs.map(([lon, lat]) => [lat, lon]),\n            { color: "#d8ff6b", weight: 4, opacity: 0.95, lineCap: "round", lineJoin: "round" },');
 if (text.includes('COMPACT_SCENES') || text.includes('chooseSceneIndex') || text.includes('baseSceneIndex')) throw new Error('legacy scene code remains');
 fs.writeFileSync(path, text, 'utf8');
+// trigger a fresh branch push so GitHub Actions applies the patch
