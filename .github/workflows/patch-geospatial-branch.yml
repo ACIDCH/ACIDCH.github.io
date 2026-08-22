@@ -3,13 +3,20 @@ on:
   push:
     branches:
       - feat/geospatial-randomized-auckland-scenario
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - main
 permissions:
   contents: write
 jobs:
   patch:
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/feat/geospatial-randomized-auckland-scenario'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref || github.ref }}
       - name: Apply patch
         run: node scripts/patch-randomized-geospatial.cjs
       - name: Validate source
