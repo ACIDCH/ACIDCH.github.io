@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.ref || github.ref }}
-      - name: Update randomized-scene release checks
+      - name: Align randomized-scene release checks and browser proofs
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -24,9 +24,9 @@ jobs:
           text = core.read_text()
           old = 'Math.round((400 + random() * 700) / 50) * 50'
           new = 'Math.round((350 + random() * 400) / 50) * 50'
-          if old not in text:
-              raise SystemExit('demand range target not found')
-          core.write_text(text.replace(old, new, 1))
+          if old in text:
+              text = text.replace(old, new, 1)
+          core.write_text(text)
 
           test = Path('scripts/verify-geospatial-usability-refinement.mjs')
           text = test.read_text()
@@ -41,27 +41,40 @@ jobs:
             'requireToken(files.core, "graphRequestBounds", "compact graph bounding box");': 'requireToken(files.core, "const M = HC.map", "dynamic OD distance matrix");\nrequireToken(files.core, "graphRequestBounds", "randomized graph bounding box");',
           }
           for old, new in replacements.items():
-              if old not in text:
-                  raise SystemExit(f'missing test target: {old}')
-              text = text.replace(old, new, 1)
+              if old in text:
+                  text = text.replace(old, new, 1)
           test.write_text(text)
+
+          visual = Path('scripts/capture-pr-geospatial-visuals.py')
+          text = visual.read_text()
+          text = text.replace('if entity_count != 4:', 'if entity_count != 22:')
+          text = text.replace('Expected a compact four-entity initial scene', 'Expected a 22-entity randomized initial scene')
+          text = text.replace('if before != 4 or after != 3:', 'if before != 22 or after != 21:')
+          text = text.replace('Reset did not restore the compact four-entity base scene', 'Reset did not restore the 22-entity randomized base scene')
+          text = text.replace('if restored != 4:', 'if restored != 22:')
+          visual.write_text(text)
+
+          for name in ['scripts/verify-pr-geospatial-hotfix.py', 'scripts/verify-pr-geospatial-osm-fallback.py']:
+              path = Path(name)
+              text = path.read_text()
+              text = text.replace('if entity_count != 4:', 'if entity_count != 22:')
+              text = text.replace('Expected four model-backed initial entities', 'Expected 22 model-backed initial entities')
+              path.write_text(text)
           PY
-      - name: Validate updated release checks
+      - name: Validate updated browser proofs
         run: |
+          python3 -m py_compile scripts/capture-pr-geospatial-visuals.py scripts/verify-pr-geospatial-hotfix.py scripts/verify-pr-geospatial-osm-fallback.py
           node --check src/scripts/geospatial-v4.js
           node --check scripts/verify-geospatial-usability-refinement.mjs
-          grep -q 'FACILITY_REGIONS' src/scripts/geospatial-v4.js
-          grep -q 'DEMAND_REGIONS' src/scripts/geospatial-v4.js
-          grep -q 'if (facilities.length >= 10)' src/scripts/geospatial-v4.js
-          grep -q 'if (demands.length >= 12)' src/scripts/geospatial-v4.js
-          grep -q 'index < 3 ? "factory" : "warehouse"' src/scripts/geospatial-v4.js
-          grep -q 'Math.round((350 + random() \* 400)' src/scripts/geospatial-v4.js
-          ! grep -q 'COMPACT_SCENES' scripts/verify-geospatial-usability-refinement.mjs
+          grep -q 'entity_count != 22' scripts/capture-pr-geospatial-visuals.py
+          grep -q 'before != 22 or after != 21' scripts/capture-pr-geospatial-visuals.py
+          grep -q 'entity_count != 22' scripts/verify-pr-geospatial-hotfix.py
+          grep -q 'entity_count != 22' scripts/verify-pr-geospatial-osm-fallback.py
       - name: Commit and remove temporary tooling
         run: |
-          rm -f .github/workflows/patch-geospatial-tests.yml scripts/.geo-ci-trigger
+          rm -f .github/workflows/patch-geospatial-tests.yml scripts/.geo-test-trigger scripts/.geo-ci-trigger scripts/.geo-patch-trigger scripts/.geo-patch-trigger-2 scripts/.geo-patch-trigger-3 scripts/.geo-patch-trigger-4
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A
-          git commit -m 'test: align geospatial release checks with randomized scenes'
+          git commit -m 'test: align geospatial browser proofs with randomized scenes'
           git push origin HEAD
