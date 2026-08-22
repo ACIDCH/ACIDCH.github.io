@@ -144,7 +144,7 @@ export const sharedUi = {
       notes: "Latest Notes",
       themes: "Core Themes",
       cta: "Build decisions on clearer evidence.",
-      interactiveProject: "Featured interactive project",
+      interactiveProject: "Interactive project",
       geospatialProject: "Geospatial Supply Chain Optimisation",
       geospatialProjectDescription:
         "Explore facility, fleet, inventory and road-disruption scenarios on Auckland’s real road network and re-optimise the network interactively.",
@@ -277,7 +277,7 @@ export const sharedUi = {
       notes: "最新笔记",
       themes: "核心方向",
       cta: "用更清晰的证据支持决策。",
-      interactiveProject: "特色交互项目",
+      interactiveProject: "交互项目",
       geospatialProject: "基于地理空间的供应链优化",
       geospatialProjectDescription:
         "在奥克兰真实道路网络上交互调整设施、车队、库存与路网扰动，并重新优化供应链网络。",
