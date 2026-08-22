@@ -179,7 +179,7 @@ function boot() {
     const N = demands.map((x) => x.name);
     const NQ = demands.map((x) => x.name + ", Auckland, New Zealand");
     const NC = demands.map((x) => ({ lat: x.lat, lon: x.lon }));
-    const DM = demands.map(() => Math.round((400 + random() * 700) / 50) * 50);
+    const DM = demands.map(() => Math.round((350 + random() * 400) / 50) * 50);
     const M = HC.map((a) => NC.map((b) => {
       const lat = ((b.lat - a.lat) * Math.PI) / 180;
       const lon = ((b.lon - a.lon) * Math.PI) / 180;
