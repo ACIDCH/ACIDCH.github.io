@@ -110,99 +110,86 @@ function boot() {
           vsBaseline: "vs baseline",
         };
 
-  const HPOOL = [
-      "328 Ponsonby Road",
-      "322 Great North Road",
-      "214 Green Lane West",
-      "151 Beach Road",
-      "76 Coates Avenue",
-      "151 Neilson Street",
-    ],
-    HQPOOL = [
-      "328 Ponsonby Road, Ponsonby, Auckland, New Zealand",
-      "322 Great North Road, Grey Lynn, Auckland, New Zealand",
-      "214 Green Lane West, Epsom, Auckland, New Zealand",
-      "151 Beach Road, Auckland CBD, Auckland, New Zealand",
-      "76 Coates Avenue, Orakei, Auckland, New Zealand",
-      "151 Neilson Street, Onehunga, Auckland, New Zealand",
-    ],
-    HCPOOL = [
-      { lat: -36.8552, lon: 174.7465 },
-      { lat: -36.8617, lon: 174.7355 },
-      { lat: -36.889, lon: 174.797 },
-      { lat: -36.8475, lon: 174.7755 },
-      { lat: -36.8585, lon: 174.811 },
-      { lat: -36.92, lon: 174.786 },
-    ],
-    NPOOL = [
-      "Auckland CBD",
-      "Epsom",
-      "Grey Lynn",
-      "Mount Eden",
-      "Newmarket",
-      "Onehunga",
-      "Orakei",
-      "Ponsonby",
-      "Remuera",
-      "Three Kings",
-    ],
-    NQPOOL = NPOOL.map((x) => `${x}, Auckland, New Zealand`),
-    NCPOOL = [
-      { lat: -36.8485, lon: 174.7633 },
-      { lat: -36.8875, lon: 174.775 },
-      { lat: -36.8617, lon: 174.7355 },
-      { lat: -36.8795, lon: 174.7615 },
-      { lat: -36.871, lon: 174.778 },
-      { lat: -36.921, lon: 174.785 },
-      { lat: -36.86, lon: 174.81 },
-      { lat: -36.8552, lon: 174.7465 },
-      { lat: -36.879, lon: 174.8 },
-      { lat: -36.91, lon: 174.756 },
-    ],
-    DMPOOL = [4000, 600, 700, 800, 500, 600, 400, 700, 900, 400],
-    MPOOL = [
-      [2.07, 5.8, 2.04, 4.66, 4.12, 10.66, 7.5, 0.31, 7.7, 7.89],
-      [4.2, 5.62, 1.29, 4.26, 4.94, 10.03, 9.5, 3.22, 8.51, 6.91],
-      [6.45, 1.92, 6.76, 2.79, 3.44, 4.19, 7.26, 7.27, 4.42, 3.23],
-      [1.45, 4.95, 4.85, 4.11, 2.47, 9.25, 4.48, 3.52, 4.89, 7.33],
-      [5.56, 6.79, 8.98, 7.29, 5.05, 9.13, 0, 7.63, 2.87, 9.6],
-      [10.7, 6.17, 10.99, 7.03, 7.69, 1.04, 9.48, 11.52, 6.62, 4.27],
-    ],
-    COMPACT_SCENES = [
-      { hubs: [3, 0], demands: [2, 8] },
-      { hubs: [2, 3], demands: [1, 4] },
-      { hubs: [1, 0], demands: [2, 7] },
-      { hubs: [5, 2], demands: [5, 9] },
+  const FACILITY_REGIONS = [
+    { name: "North", points: [["Albany",-36.7245,174.6978],["Browns Bay",-36.7167,174.75],["Takapuna",-36.787,174.775],["Silverdale",-36.6167,174.675]] },
+    { name: "West", points: [["Henderson",-36.879,174.63],["Westgate",-36.819,174.613],["Te Atatu",-36.866,174.657],["New Lynn",-36.91,174.684]] },
+    { name: "Central", points: [["Auckland CBD",-36.8485,174.7633],["Mount Eden",-36.877,174.764],["Epsom",-36.889,174.797],["Onehunga",-36.921,174.785],["Newmarket",-36.869,174.777]] },
+    { name: "East", points: [["Orakei",-36.8585,174.811],["Panmure",-36.896,174.855],["Pakuranga",-36.883,174.915],["Howick",-36.895,174.93]] },
+    { name: "South", points: [["Manukau",-36.992,174.879],["Manurewa",-37.021,174.901],["Takanini",-37.041,174.921],["Papakura",-37.066,174.943],["Drury",-37.101,174.956]] },
+  ],
+    DEMAND_REGIONS = [
+      { name: "North", points: [["Albany Demand",-36.735,174.698],["Rosedale Demand",-36.742,174.717],["Browns Bay Demand",-36.715,174.748],["Northcross Demand",-36.703,174.733]] },
+      { name: "West", points: [["Henderson Demand",-36.879,174.63],["Massey Demand",-36.814,174.606],["New Lynn Demand",-36.909,174.681],["Glen Eden Demand",-36.923,174.65]] },
+      { name: "Central", points: [["CBD Demand",-36.8485,174.7633],["Kingsland Demand",-36.882,174.719],["Epsom Demand",-36.889,174.797],["One Tree Hill Demand",-36.901,174.785]] },
+      { name: "East", points: [["Orakei Demand",-36.8585,174.811],["Panmure Demand",-36.895,174.854],["Pakuranga Demand",-36.883,174.915],["Howick Demand",-36.895,174.93]] },
+      { name: "South", points: [["Manukau Demand",-36.992,174.879],["Manurewa Demand",-37.021,174.901],["Takanini Demand",-37.041,174.921],["Papakura Demand",-37.066,174.943]] },
     ];
 
-  function chooseSceneIndex(forceDifferent = false) {
-    const stored = Number(globalThis.sessionStorage?.getItem("acidch-geo-v4-scene-index"));
-    if (!forceDifferent && Number.isInteger(stored) && stored >= 0 && stored < COMPACT_SCENES.length)
-      return stored;
-    let next = Math.floor(Math.random() * COMPACT_SCENES.length);
-    if (forceDifferent && Number.isInteger(stored) && COMPACT_SCENES.length > 1 && next === stored)
-      next = (next + 1) % COMPACT_SCENES.length;
-    globalThis.sessionStorage?.setItem("acidch-geo-v4-scene-index", String(next));
-    return next;
-  }
-
-  function sceneFromIndex(index) {
-    const spec = COMPACT_SCENES[index] || COMPACT_SCENES[0];
-    return {
-      H: spec.hubs.map((i) => HPOOL[i]),
-      HQ: spec.hubs.map((i) => HQPOOL[i]),
-      HC: spec.hubs.map((i) => ({ ...HCPOOL[i] })),
-      HT: spec.hubs.map(() => "warehouse"),
-      N: spec.demands.map((i) => NPOOL[i]),
-      NQ: spec.demands.map((i) => NQPOOL[i]),
-      NC: spec.demands.map((i) => ({ ...NCPOOL[i] })),
-      DM: spec.demands.map((i) => DMPOOL[i]),
-      M: spec.hubs.map((hi) => spec.demands.map((di) => MPOOL[hi][di])),
+  function rng(seed) {
+    let value = seed >>> 0;
+    return () => {
+      value = (value * 1664525 + 1013904223) >>> 0;
+      return value / 4294967296;
     };
   }
 
-  let baseSceneIndex = chooseSceneIndex(false),
-    baseScene = sceneFromIndex(baseSceneIndex);
+  function shuffled(items, random) {
+    const out = [...items];
+    for (let i = out.length - 1; i > 0; i--) {
+      const j = Math.floor(random() * (i + 1));
+      [out[i], out[j]] = [out[j], out[i]];
+    }
+    return out;
+  }
+
+  function chooseRandomScene(forceDifferent = false) {
+    const stored = Number(globalThis.sessionStorage?.getItem("acidch-geo-v4-scene-seed"));
+    let seed = Number.isInteger(stored) && stored > 0 ? stored : ((Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0);
+    if (forceDifferent || !Number.isInteger(stored) || stored <= 0) {
+      seed = ((Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0);
+      if (seed === stored) seed = (seed + 104729) >>> 0;
+      globalThis.sessionStorage?.setItem("acidch-geo-v4-scene-seed", String(seed));
+    }
+    const random = rng(seed);
+    const facilities = [];
+    FACILITY_REGIONS.forEach((region) => {
+      const p = shuffled(region.points, random)[0];
+      facilities.push({ region: region.name, name: p[0], lat: p[1], lon: p[2] });
+    });
+    const facilityPool = FACILITY_REGIONS.flatMap((region) => region.points.map((p) => ({ region: region.name, name: p[0], lat: p[1], lon: p[2] })));
+    for (const candidate of shuffled(facilityPool, random)) {
+      if (facilities.length >= 10) break;
+      if (!facilities.some((x) => x.name === candidate.name)) facilities.push(candidate);
+    }
+    const typedFacilities = shuffled(facilities, random).map((x, index) => ({ ...x, type: index < 3 ? "factory" : "warehouse" }));
+    const demands = [];
+    DEMAND_REGIONS.forEach((region) => {
+      const p = shuffled(region.points, random)[0];
+      demands.push({ region: region.name, name: p[0], lat: p[1], lon: p[2] });
+    });
+    const demandPool = DEMAND_REGIONS.flatMap((region) => region.points.map((p) => ({ region: region.name, name: p[0], lat: p[1], lon: p[2] })));
+    for (const candidate of shuffled(demandPool, random)) {
+      if (demands.length >= 12) break;
+      if (!demands.some((x) => x.name === candidate.name)) demands.push(candidate);
+    }
+    const H = typedFacilities.map((x) => x.name);
+    const HQ = typedFacilities.map((x) => x.name + ", Auckland, New Zealand");
+    const HC = typedFacilities.map((x) => ({ lat: x.lat, lon: x.lon }));
+    const HT = typedFacilities.map((x) => x.type);
+    const N = demands.map((x) => x.name);
+    const NQ = demands.map((x) => x.name + ", Auckland, New Zealand");
+    const NC = demands.map((x) => ({ lat: x.lat, lon: x.lon }));
+    const DM = demands.map(() => Math.round((350 + random() * 400) / 50) * 50);
+    const M = HC.map((a) => NC.map((b) => {
+      const lat = ((b.lat - a.lat) * Math.PI) / 180;
+      const lon = ((b.lon - a.lon) * Math.PI) / 180;
+      const aa = Math.sin(lat / 2) ** 2 + Math.cos((a.lat * Math.PI) / 180) * Math.cos((b.lat * Math.PI) / 180) * Math.sin(lon / 2) ** 2;
+      return 2 * 6371 * Math.asin(Math.sqrt(Math.min(1, aa)));
+    }));
+    return { H, HQ, HC, HT, N, NQ, NC, DM, M, seed };
+  }
+
+  let baseScene = chooseRandomScene(false);
 
   const q = (id) => D.getElementById(id),
     map = L.map("geo4-map", {
@@ -959,8 +946,7 @@ function boot() {
   async function init() {
     q("geo4-init").disabled = true;
     try {
-      baseSceneIndex = chooseSceneIndex(true);
-      baseScene = sceneFromIndex(baseSceneIndex);
+      baseScene = chooseRandomScene(true);
       applyBaseScene(baseScene);
       graph = null;
       graphBounds = null;
@@ -1006,7 +992,12 @@ function boot() {
           }
           L.polyline(
             p.coordinates.map((v) => [v.lat, v.lon]),
-            { color: "#d8ff6b", weight: 2.7, opacity: 0.84 },
+            { color: "#142126", weight: 8, opacity: 0.82, lineCap: "round", lineJoin: "round" },
+          )
+            .addTo(rl);
+          L.polyline(
+            p.coordinates.map((v) => [v.lat, v.lon]),
+            { color: "#d8ff6b", weight: 4.2, opacity: 0.96, lineCap: "round", lineJoin: "round" },
           )
             .bindTooltip(
               `${H[x.hub]} → ${N[x.demand]}<br>Flow: ${x.flow.toFixed(0)} · ${p.cost.toFixed(1)} min`,
@@ -1028,7 +1019,12 @@ function boot() {
           if (!r.ok || !cs?.length) throw Error("route");
           L.polyline(
             cs.map(([lon, lat]) => [lat, lon]),
-            { color: "#d8ff6b", weight: 2.5, opacity: 0.82 },
+            { color: "#142126", weight: 7.5, opacity: 0.82, lineCap: "round", lineJoin: "round" },
+          )
+            .addTo(rl);
+          L.polyline(
+            cs.map(([lon, lat]) => [lat, lon]),
+            { color: "#d8ff6b", weight: 4, opacity: 0.95, lineCap: "round", lineJoin: "round" },
           )
             .bindTooltip(`${H[x.hub]} → ${N[x.demand]}<br>Flow: ${x.flow.toFixed(0)}`)
             .addTo(rl);

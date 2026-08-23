@@ -106,7 +106,7 @@ def wait_dataset(browser: object, key: str, expected: str, timeout: float = 8) -
     raise RuntimeError(f"Timed out waiting for #geo-v4 data-{key}={expected!r}.")
 
 
-def wait_solved(browser: object, timeout: float = 16) -> None:
+def wait_solved(browser: object, timeout: float = 50) -> None:
     browser.wait_for_text("#geo4-status", "当前情景已完成重新优化", timeout=timeout)
 
 
@@ -131,15 +131,15 @@ def assert_single_mounts(browser: object) -> None:
 
 
 def assert_osm_first_state(browser: object) -> None:
-    browser.wait_for_text("#geo4-graph-status", "OSM 道路网络已加载", timeout=16)
+    browser.wait_for_text("#geo4-graph-status", "OSM 道路网络已加载", timeout=50)
     wait_solved(browser)
     if read_value(browser, "#geo4-engine") != "osm":
         raise RuntimeError("The production geospatial scene did not start in OSM mode.")
     entity_count = browser.execute(
         "return document.querySelectorAll('#geo4-policy-list .geo4__policy-row').length;"
     )
-    if entity_count != 4:
-        raise RuntimeError(f"Expected a compact four-entity initial scene, found {entity_count} rows.")
+    if entity_count != 22:
+        raise RuntimeError(f"Expected a 22-entity randomized initial scene, found {entity_count} rows.")
     if (
         "网络实体与设施决策" not in read_text(browser, "#geo4-policy-list")
         and "网络实体与设施决策" not in read_text(browser, ".geo4__console")
@@ -165,7 +165,7 @@ def assert_entity_edit_cycle(browser: object) -> None:
     after = browser.execute(
         "return document.querySelectorAll('#geo4-policy-list .geo4__policy-row').length;"
     )
-    if before != 4 or after != 3:
+    if before != 22 or after != 21:
         raise RuntimeError(
             f"Entity deletion did not change the model-backed list: before={before}, after={after}"
         )
@@ -174,8 +174,8 @@ def assert_entity_edit_cycle(browser: object) -> None:
     restored = browser.execute(
         "return document.querySelectorAll('#geo4-policy-list .geo4__policy-row').length;"
     )
-    if restored != 4:
-        raise RuntimeError(f"Reset did not restore the compact four-entity base scene: {restored}")
+    if restored != 22:
+        raise RuntimeError(f"Reset did not restore the 22-entity randomized base scene: {restored}")
 
 
 def assert_state_cycle(browser: object) -> None:

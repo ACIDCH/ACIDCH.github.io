@@ -75,8 +75,8 @@ def assert_hotfix(browser: object, endpoint: str) -> None:
     entity_count = browser.execute(
         "return document.querySelectorAll('#geo4-policy-list .geo4__policy-row').length;"
     )
-    if entity_count != 4:
-        raise RuntimeError(f"Expected four model-backed initial entities, found {entity_count}.")
+    if entity_count != 22:
+        raise RuntimeError(f"Expected 22 model-backed initial entities, found {entity_count}.")
 
     osm_label = browser.execute(
         "return document.querySelector('#geo4-engine option[value=\"osm\"]')?.textContent || '';"
