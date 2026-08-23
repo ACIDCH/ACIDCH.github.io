@@ -120,6 +120,8 @@ function boot() {
     globalThis.setTimeout(scheduleRandomSceneMaxOpen, 20);
   });
 
+  // The randomized 22-entity scene enforces its five-facility ceiling in the
+  // core scene state; this observer remains a UI-level safety net after reset.
   // Initialise the effective 5,100-unit planning capacity without triggering
   // an optimisation run. The product is OSM-first, so automatically clicking
   // Run here would start an Overpass request during page boot. External GIS
