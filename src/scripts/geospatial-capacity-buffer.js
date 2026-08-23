@@ -97,7 +97,7 @@ function boot() {
     const tick = () => {
       if (ensureRandomSceneMaxOpen()) return;
       attempts += 1;
-      if (attempts < 60) globalThis.setTimeout(tick, 100);
+      if (attempts < 200) globalThis.setTimeout(tick, 10);
     };
     tick();
   }
@@ -108,10 +108,10 @@ function boot() {
     capacity.value = "6000";
     slider.value = "85";
     sync();
-    globalThis.setTimeout(scheduleRandomSceneMaxOpen, 120);
+    globalThis.setTimeout(scheduleRandomSceneMaxOpen, 20);
   });
   D.getElementById("geo4-init")?.addEventListener("click", () => {
-    globalThis.setTimeout(scheduleRandomSceneMaxOpen, 120);
+    globalThis.setTimeout(scheduleRandomSceneMaxOpen, 20);
   });
 
   // Initialise the effective 5,100-unit planning capacity without triggering
