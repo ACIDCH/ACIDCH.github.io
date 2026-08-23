@@ -99,7 +99,7 @@ function boot() {
       globalThis.setTimeout(scheduleRandomSceneMaxOpen, 20);
       return;
     }
-    const observer = new MutationObserver(() => {
+    const observer = new globalThis.MutationObserver(() => {
       if (ensureRandomSceneMaxOpen()) observer.disconnect();
     });
     observer.observe(list, { childList: true, subtree: true });
