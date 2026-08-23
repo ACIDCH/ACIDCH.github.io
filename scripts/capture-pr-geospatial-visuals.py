@@ -138,8 +138,8 @@ def assert_osm_first_state(browser: object) -> None:
     entity_count = browser.execute(
         "return document.querySelectorAll('#geo4-policy-list .geo4__policy-row').length;"
     )
-    if entity_count != 4:
-        raise RuntimeError(f"Expected a compact four-entity initial scene, found {entity_count} rows.")
+    if entity_count != 22:
+        raise RuntimeError(f"Expected a 22-entity randomized initial scene, found {entity_count} rows.")
     if (
         "网络实体与设施决策" not in read_text(browser, "#geo4-policy-list")
         and "网络实体与设施决策" not in read_text(browser, ".geo4__console")
@@ -165,7 +165,7 @@ def assert_entity_edit_cycle(browser: object) -> None:
     after = browser.execute(
         "return document.querySelectorAll('#geo4-policy-list .geo4__policy-row').length;"
     )
-    if before != 4 or after != 3:
+    if before != 22 or after != 21:
         raise RuntimeError(
             f"Entity deletion did not change the model-backed list: before={before}, after={after}"
         )
@@ -174,8 +174,8 @@ def assert_entity_edit_cycle(browser: object) -> None:
     restored = browser.execute(
         "return document.querySelectorAll('#geo4-policy-list .geo4__policy-row').length;"
     )
-    if restored != 4:
-        raise RuntimeError(f"Reset did not restore the compact four-entity base scene: {restored}")
+    if restored != 22:
+        raise RuntimeError(f"Reset did not restore the 22-entity randomized base scene: {restored}")
 
 
 def assert_state_cycle(browser: object) -> None:

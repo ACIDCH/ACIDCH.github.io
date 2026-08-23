@@ -73,7 +73,7 @@ def assert_osm_failure_fallback(browser: object) -> None:
     entity_count = browser.execute(
         "return document.querySelectorAll('#geo4-policy-list .geo4__policy-row').length;"
     )
-    if entity_count != 4:
+    if entity_count != 22:
         raise RuntimeError(
             f"Fast OD recovery did not preserve the compact four-entity scene: {entity_count}"
         )
