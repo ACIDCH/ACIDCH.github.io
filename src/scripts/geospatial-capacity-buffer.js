@@ -93,13 +93,19 @@ function boot() {
   }
 
   function scheduleRandomSceneMaxOpen() {
-    let attempts = 0;
-    const tick = () => {
-      if (ensureRandomSceneMaxOpen()) return;
-      attempts += 1;
-      if (attempts < 200) globalThis.setTimeout(tick, 10);
-    };
-    tick();
+    if (ensureRandomSceneMaxOpen()) return;
+    const list = D.getElementById("geo4-policy-list");
+    if (!list) {
+      globalThis.setTimeout(scheduleRandomSceneMaxOpen, 20);
+      return;
+    }
+    const observer = new MutationObserver(() => {
+      if (ensureRandomSceneMaxOpen()) observer.disconnect();
+    });
+    observer.observe(list, { childList: true, subtree: true });
+    globalThis.setTimeout(() => {
+      if (ensureRandomSceneMaxOpen()) observer.disconnect();
+    }, 2000);
   }
 
   capacity.addEventListener("input", () => sync());
