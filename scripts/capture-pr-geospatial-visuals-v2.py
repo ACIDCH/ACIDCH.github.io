@@ -14,6 +14,23 @@ proofs = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(proofs)
 
 
+# V4 switched from the old scene-index fixture selector to a session seed.
+# Seed the browser before navigation so the randomized production scene is
+# deterministic for visual regression, while production sessions remain random.
+_original_navigate_path = proofs.navigate_path
+
+
+def navigate_path(browser: object, path: str) -> None:
+    browser.execute(
+        "sessionStorage.setItem('acidch-geo-v4-scene-seed','20260823');"
+        "sessionStorage.removeItem('acidch-geo-v4-scene-index');return true;"
+    )
+    _original_navigate_path(browser, path)
+
+
+proofs.navigate_path = navigate_path
+
+
 def assert_local_routing_resilience(browser: object) -> None:
     before = proofs.read_text(browser, "#geo4-kpi-cost")
     browser.execute(
@@ -57,5 +74,20 @@ def assert_local_routing_resilience(browser: object) -> None:
     )
 
 
+def assert_random_scene_default_max_open(browser: object) -> None:
+    value = int(proofs.read_value(browser, "#geo4-max-open-out"))
+    if value < 5:
+        raise RuntimeError(f"Randomized 22-entity scene must allow at least five open facilities; found {value}.")
+
+
 proofs.assert_service_degradation = assert_local_routing_resilience
+_original_assert_state_cycle = proofs.assert_state_cycle
+
+
+def assert_state_cycle(browser: object) -> None:
+    _original_assert_state_cycle(browser)
+    assert_random_scene_default_max_open(browser)
+
+
+proofs.assert_state_cycle = assert_state_cycle
 proofs.main()
