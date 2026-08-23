@@ -79,8 +79,7 @@ function boot() {
   }
 
   function ensureRandomSceneMaxOpen() {
-    const count = Number(D.getElementById("geo4-facility-count")?.textContent || 0) +
-      Number(D.getElementById("geo4-demand-count")?.textContent || 0);
+    const count = D.querySelectorAll("#geo4-policy-list .geo4__policy-row").length;
     const output = D.getElementById("geo4-max-open-out");
     const plus = D.querySelector('[data-step="maxOpen"][data-delta="1"]');
     if (count !== 22 || !output || !plus) return false;
