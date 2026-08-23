@@ -106,7 +106,7 @@ def wait_dataset(browser: object, key: str, expected: str, timeout: float = 8) -
     raise RuntimeError(f"Timed out waiting for #geo-v4 data-{key}={expected!r}.")
 
 
-def wait_solved(browser: object, timeout: float = 16) -> None:
+def wait_solved(browser: object, timeout: float = 50) -> None:
     browser.wait_for_text("#geo4-status", "当前情景已完成重新优化", timeout=timeout)
 
 
@@ -131,7 +131,7 @@ def assert_single_mounts(browser: object) -> None:
 
 
 def assert_osm_first_state(browser: object) -> None:
-    browser.wait_for_text("#geo4-graph-status", "OSM 道路网络已加载", timeout=16)
+    browser.wait_for_text("#geo4-graph-status", "OSM 道路网络已加载", timeout=50)
     wait_solved(browser)
     if read_value(browser, "#geo4-engine") != "osm":
         raise RuntimeError("The production geospatial scene did not start in OSM mode.")
