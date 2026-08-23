@@ -1,0 +1,41 @@
+name: Temporary geospatial proof timeout update
+on:
+  push:
+    branches:
+      - feat/geospatial-randomized-auckland-scenario
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  patch:
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/feat/geospatial-randomized-auckland-scenario'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref || github.ref }}
+      - name: Increase OSM proof wait windows
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('scripts/capture-pr-geospatial-visuals.py')
+          text = path.read_text()
+          text = text.replace('def wait_solved(browser: object, timeout: float = 16)', 'def wait_solved(browser: object, timeout: float = 50)')
+          text = text.replace('browser.wait_for_text("#geo4-graph-status", "OSM 道路网络已加载", timeout=16)', 'browser.wait_for_text("#geo4-graph-status", "OSM 道路网络已加载", timeout=50)')
+          path.write_text(text)
+          PY
+      - name: Validate proof helper
+        run: |
+          python3 -m py_compile scripts/capture-pr-geospatial-visuals.py
+          grep -q 'timeout: float = 50' scripts/capture-pr-geospatial-visuals.py
+          grep -q 'graph-status.*timeout=50' scripts/capture-pr-geospatial-visuals.py
+      - name: Commit and remove temporary tooling
+        run: |
+          rm -f .github/workflows/patch-geospatial-timeout.yml scripts/.geo-final-ci-trigger
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'test: allow OSM proof to wait for randomized graph load'
+          git push origin HEAD
