@@ -263,7 +263,7 @@ function boot() {
     NC = scene.NC.map((p) => ({ ...p }));
     P = H.map(() => "auto");
     custom = [];
-    maxOpen = Math.max(1, Math.min(2, H.length));
+    maxOpen = Math.max(1, Math.min(5, H.length));
   }
   applyBaseScene();
 
@@ -934,7 +934,7 @@ function boot() {
       q("geo4-engine").value = "od";
       q("geo4-graph-status").textContent = T.graphFail;
       runs();
-      q("geo4-threshold").value = "6";
+      q("geo4-threshold").value = "15";
       labels();
       if (solveAfter) await solve();
       return false;

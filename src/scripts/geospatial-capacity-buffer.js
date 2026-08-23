@@ -78,14 +78,50 @@ function boot() {
     if (markStale) markPendingResult();
   }
 
+  function ensureRandomSceneMaxOpen() {
+    const count = D.querySelectorAll("#geo4-policy-list .geo4__policy-row").length;
+    const output = D.getElementById("geo4-max-open-out");
+    const plus = D.querySelector('[data-step="maxOpen"][data-delta="1"]');
+    if (count !== 22 || !output || !plus) return false;
+    let current = Number(output.textContent);
+    if (!Number.isFinite(current)) return false;
+    while (current < 5) {
+      plus.click();
+      current += 1;
+    }
+    return current >= 5;
+  }
+
+  function scheduleRandomSceneMaxOpen() {
+    if (ensureRandomSceneMaxOpen()) return;
+    const list = D.getElementById("geo4-policy-list");
+    if (!list) {
+      globalThis.setTimeout(scheduleRandomSceneMaxOpen, 20);
+      return;
+    }
+    const observer = new globalThis.MutationObserver(() => {
+      if (ensureRandomSceneMaxOpen()) observer.disconnect();
+    });
+    observer.observe(list, { childList: true, subtree: true });
+    globalThis.setTimeout(() => {
+      if (ensureRandomSceneMaxOpen()) observer.disconnect();
+    }, 2000);
+  }
+
   capacity.addEventListener("input", () => sync());
   slider.addEventListener("input", () => sync());
   D.getElementById("geo4-reset")?.addEventListener("click", () => {
     capacity.value = "6000";
     slider.value = "85";
     sync();
+    globalThis.setTimeout(scheduleRandomSceneMaxOpen, 20);
+  });
+  D.getElementById("geo4-init")?.addEventListener("click", () => {
+    globalThis.setTimeout(scheduleRandomSceneMaxOpen, 20);
   });
 
+  // The randomized 22-entity scene enforces its five-facility ceiling in the
+  // core scene state; this observer remains a UI-level safety net after reset.
   // Initialise the effective 5,100-unit planning capacity without triggering
   // an optimisation run. The product is OSM-first, so automatically clicking
   // Run here would start an Overpass request during page boot. External GIS
@@ -93,6 +129,7 @@ function boot() {
   // loads the graph.
   sync();
   root.dataset.capacityBufferInitialSolve = "deferred";
+  scheduleRandomSceneMaxOpen();
 }
 
 boot();

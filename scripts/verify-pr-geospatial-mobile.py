@@ -136,8 +136,13 @@ def capture_mobile(browser: object, endpoint: str) -> None:
 
     browser.click('[data-geo4-mobile-view="controls"]')
     assert_mode(browser, "controls")
-    if browser.execute("return document.querySelectorAll('#geo4-policy-list .geo4__policy-row').length") != 4:
-        raise RuntimeError("Compact four-entity controls are not visible in mobile Controls mode.")
+    entity_count = browser.execute(
+        "return document.querySelectorAll('#geo4-policy-list .geo4__policy-row').length"
+    )
+    if entity_count != 22:
+        raise RuntimeError(
+            f"Randomized 22-entity controls are not visible in mobile Controls mode: {entity_count}"
+        )
     browser.screenshot("geospatial-controls-mobile.png")
 
     browser.click('[data-geo4-mobile-view="results"]')
@@ -197,7 +202,7 @@ def main() -> None:
         gis_server.server_close()
 
     print(
-        "Mobile geospatial verification passed: Map / Controls / Results workspace switching, compact four-entity controls, OSM-first solve state, fresh KPIs, Risk/Mixed states and mobile-safe layout checks are correct."
+        "Mobile geospatial verification passed: Map / Controls / Results workspace switching, randomized 22-entity controls, OSM-first solve state, fresh KPIs, Risk/Mixed states and mobile-safe layout checks are correct."
     )
 
 
