@@ -263,7 +263,7 @@ function boot() {
     NC = scene.NC.map((p) => ({ ...p }));
     P = H.map(() => "auto");
     custom = [];
-    maxOpen = Math.max(1, Math.min(2, H.length));
+    maxOpen = Math.max(1, Math.min(5, H.length));
   }
   applyBaseScene();
 
