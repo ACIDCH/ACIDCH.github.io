@@ -78,12 +78,41 @@ function boot() {
     if (markStale) markPendingResult();
   }
 
+  function ensureRandomSceneMaxOpen() {
+    const count = Number(D.getElementById("geo4-facility-count")?.textContent || 0) +
+      Number(D.getElementById("geo4-demand-count")?.textContent || 0);
+    const output = D.getElementById("geo4-max-open-out");
+    const plus = D.querySelector('[data-step="maxOpen"][data-delta="1"]');
+    if (count !== 22 || !output || !plus) return false;
+    let current = Number(output.textContent);
+    if (!Number.isFinite(current)) return false;
+    while (current < 5) {
+      plus.click();
+      current += 1;
+    }
+    return current >= 5;
+  }
+
+  function scheduleRandomSceneMaxOpen() {
+    let attempts = 0;
+    const tick = () => {
+      if (ensureRandomSceneMaxOpen()) return;
+      attempts += 1;
+      if (attempts < 60) globalThis.setTimeout(tick, 100);
+    };
+    tick();
+  }
+
   capacity.addEventListener("input", () => sync());
   slider.addEventListener("input", () => sync());
   D.getElementById("geo4-reset")?.addEventListener("click", () => {
     capacity.value = "6000";
     slider.value = "85";
     sync();
+    globalThis.setTimeout(scheduleRandomSceneMaxOpen, 120);
+  });
+  D.getElementById("geo4-init")?.addEventListener("click", () => {
+    globalThis.setTimeout(scheduleRandomSceneMaxOpen, 120);
   });
 
   // Initialise the effective 5,100-unit planning capacity without triggering
@@ -93,6 +122,7 @@ function boot() {
   // loads the graph.
   sync();
   root.dataset.capacityBufferInitialSolve = "deferred";
+  scheduleRandomSceneMaxOpen();
 }
 
 boot();
