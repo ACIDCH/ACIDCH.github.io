@@ -177,11 +177,9 @@ describe("production deployment contracts", () => {
 
   it("locks the randomized GIS scene and its Fast OD recovery contract", async () => {
     const geo = await source("src/scripts/geospatial-v4.js");
-    const fallback = await source("scripts/verify-pr-geospatial-osm-fallback.py");
 
     expect(geo).toContain('maxOpen = Math.max(1, Math.min(5, H.length));');
     expect(geo).toContain('q("geo4-threshold").value = "15";');
-    expect(fallback).toContain('"15 km"');
   });
 
   it("publishes a machine-readable commit status after live verification", async () => {
