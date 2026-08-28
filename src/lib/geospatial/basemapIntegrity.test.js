@@ -23,8 +23,9 @@ describe("geospatial basemap integrity", () => {
     expect(source).toContain("OpenStreetMap</a> contributors");
     expect(source).toContain("CARTO</a>");
     expect(source).toContain(
-      'setState("ready", CARTO_KEY ? "carto-dark-matter" : "osm-fallback")',
+      'target.dataset.leafletBasemap = CARTO_KEY ? "carto-dark-matter" : "osm-fallback"',
     );
+    expect(source).toContain('setState("ready", "bundle")');
   });
 
   it("does not expose an API-key-required failure state", () => {
