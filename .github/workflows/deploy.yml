@@ -80,7 +80,19 @@ jobs:
       - name: Audit production dependencies
         run: npm audit --audit-level=high
 
+      - name: Require CARTO basemap key for production build
+        if: >-
+          github.event_name == 'push' ||
+          github.event_name == 'workflow_dispatch' ||
+          (github.event_name == 'pull_request_target' && github.event.pull_request.merged == true)
+        env:
+          CARTO_BASEMAP_KEY: ${{ secrets.PUBLIC_CARTO_BASEMAP_KEY }}
+        shell: bash
+        run: test -n "$CARTO_BASEMAP_KEY"
+
       - name: Build and validate static site
+        env:
+          PUBLIC_CARTO_BASEMAP_KEY: ${{ secrets.PUBLIC_CARTO_BASEMAP_KEY }}
         run: npm run build
 
       - name: Run final bilingual acceptance audit
