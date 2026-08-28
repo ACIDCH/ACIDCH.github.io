@@ -17,6 +17,7 @@ function setState(state, source = "bundle") {
   if (!target) return;
   target.dataset.leafletState = state;
   target.dataset.leafletSource = source;
+  target.dataset.leafletBasemap = CARTO_KEY ? "carto-dark-matter" : "osm-fallback";
 }
 
 function configureBasemap() {
@@ -49,11 +50,14 @@ function exposeBundledLeaflet() {
 
   configureBasemap();
   globalThis.L = Leaflet;
-  setState("ready", CARTO_KEY ? "carto-dark-matter" : "osm-fallback");
+  setState("ready", "bundle");
   globalThis.__ACIDCH_LEAFLET_PROMISE__ = globalThis.Promise.resolve(Leaflet);
   globalThis.dispatchEvent(
     new globalThis.CustomEvent("acidch:leaflet-ready", {
-      detail: { source: CARTO_KEY ? "carto-dark-matter" : "osm-fallback" },
+      detail: {
+        source: "bundle",
+        basemap: CARTO_KEY ? "carto-dark-matter" : "osm-fallback",
+      },
     }),
   );
   return Leaflet;
