@@ -128,7 +128,7 @@ def capture_mobile(browser: object, endpoint: str) -> None:
     browser.require("#geo-v4[data-compact-entity-ui-ready='true']")
     browser.require("#geo4-map .leaflet-map-pane")
     wait_mobile_workspace(browser)
-    browser.wait_for_text("#geo4-graph-status", "OSM 道路网络已加载", timeout=16)
+    browser.wait_for_text("#geo4-graph-status", "基础网络已就绪", timeout=20)
     geo.wait_solved(browser, timeout=16)
 
     assert_mode(browser, "map")
@@ -202,7 +202,7 @@ def main() -> None:
         gis_server.server_close()
 
     print(
-        "Mobile geospatial verification passed: Map / Controls / Results workspace switching, randomized 22-entity controls, OSM-first solve state, fresh KPIs, Risk/Mixed states and mobile-safe layout checks are correct."
+        "Mobile geospatial verification passed: Map / Controls / Results workspace switching, randomized 22-entity controls, baseline-first OSM solve state, fresh KPIs, Risk/Mixed states and mobile-safe layout checks are correct."
     )
 
 

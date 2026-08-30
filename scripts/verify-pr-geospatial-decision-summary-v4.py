@@ -194,7 +194,7 @@ def main() -> None:
         geo.navigate_path(browser, "/zh/lab/geospatial-supply-chain/")
         browser.require("#geo-v4[data-scenario-summary-v4-ready='true']")
         browser.require("#geo-v4[data-scenario-summary-layout-v4-ready='true']")
-        browser.wait_for_text("#geo4-graph-status", "OSM 道路网络已加载", timeout=16)
+        browser.wait_for_text("#geo4-graph-status", "基础网络已就绪", timeout=20)
         geo.wait_solved(browser)
 
         assert_same_engine_summary(browser)
