@@ -1,3 +1,5 @@
+import { Buffer } from "node:buffer";
+
 const [baseArgument, expectedSha] = globalThis.process.argv.slice(2);
 if (!baseArgument || !expectedSha) {
   console.error(
@@ -50,6 +52,60 @@ function requireText(source, token, label) {
   if (!source.includes(token)) throw new Error(`Production GIS missing ${label}`);
 }
 
+async function fetchBytes(url) {
+  const response = await globalThis.fetch(url, {
+    signal: globalThis.AbortSignal.timeout(15000),
+    cache: "no-store",
+  });
+  const bytes = Buffer.from(await response.arrayBuffer());
+  return {
+    ok: response.ok,
+    status: response.status,
+    type: response.headers.get("content-type") || "",
+    bytes,
+  };
+}
+
+function aucklandTile(zoom = 12) {
+  const lat = -36.8485;
+  const lon = 174.7633;
+  const scale = 2 ** zoom;
+  const x = Math.floor(((lon + 180) / 360) * scale);
+  const radians = (lat * Math.PI) / 180;
+  const y = Math.floor(
+    ((1 - Math.asinh(Math.tan(radians)) / Math.PI) / 2) * scale,
+  );
+  return { x, y, zoom };
+}
+
+async function verifyCartoAuthentication() {
+  const key = globalThis.process.env.PUBLIC_CARTO_BASEMAP_KEY?.trim();
+  if (!key) throw new Error("Production verifier is missing PUBLIC_CARTO_BASEMAP_KEY");
+  const { x, y, zoom } = aucklandTile();
+  const base = `https://a.basemaps.cartocdn.com/rastertiles/dark_all/${zoom}/${x}/${y}.png`;
+  const [authenticated, anonymous] = await Promise.all([
+    fetchBytes(`${base}?key=${encodeURIComponent(key)}`),
+    fetchBytes(`${base}?verification=anonymous-${Date.now()}`),
+  ]);
+  if (!authenticated.ok || !authenticated.type.includes("image/")) {
+    throw new Error(
+      `Authenticated CARTO tile failed: HTTP ${authenticated.status} ${authenticated.type}`,
+    );
+  }
+  if (authenticated.bytes.length < 512) {
+    throw new Error("Authenticated CARTO tile payload is unexpectedly small");
+  }
+  if (
+    anonymous.ok &&
+    anonymous.type.includes("image/") &&
+    Buffer.compare(authenticated.bytes, anonymous.bytes) === 0
+  ) {
+    throw new Error(
+      "Authenticated CARTO tile is identical to the anonymous response; API key was not effective",
+    );
+  }
+}
+
 async function verify() {
   const marker = JSON.parse(await fetchText("deploy-meta.json"));
   if (marker.sha !== expectedSha) {
@@ -80,6 +136,16 @@ async function verify() {
   requireText(source, "geospatial-analysis", "module Worker bundle reference");
   requireText(source, "criticality", "criticality runtime");
   requireText(source, "Factory to Warehouse to Demand Sankey", "Sankey runtime");
+  requireText(
+    source,
+    "rastertiles/dark_all",
+    "keyed CARTO Dark Matter raster endpoint",
+  );
+  requireText(source, "?key=", "CARTO basemap key query contract");
+  if (source.includes("basemaps.cartocdn.com/dark_all/")) {
+    throw new Error("Production GIS still contains the legacy unkeyed CARTO endpoint");
+  }
+  await verifyCartoAuthentication();
 }
 
 let lastError;

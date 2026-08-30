@@ -245,6 +245,8 @@ jobs:
           node-version-file: .nvmrc
 
       - name: Confirm production matches this commit
+        env:
+          PUBLIC_CARTO_BASEMAP_KEY: ${{ secrets.PUBLIC_CARTO_BASEMAP_KEY }}
         run: |
           npm run verify:production -- "${{ needs.deploy.outputs.page_url }}" "${{ needs.quality.outputs.deploy_sha }}"
           npm run verify:geospatial-production -- "${{ needs.deploy.outputs.page_url }}" "${{ needs.quality.outputs.deploy_sha }}"
