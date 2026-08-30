@@ -8,13 +8,7 @@ import {
 
 describe("route-flow geometry", () => {
   it("normalises Leaflet-style and coordinate-array paths", () => {
-    expect(
-      flattenLatLngs([
-        [1, 2],
-        { lat: 3, lng: 4 },
-        [[5, 6]],
-      ]),
-    ).toEqual([
+    expect(flattenLatLngs([[1, 2], { lat: 3, lng: 4 }, [[5, 6]]])).toEqual([
       { lat: 1, lng: 2 },
       { lat: 3, lng: 4 },
       { lat: 5, lng: 6 },

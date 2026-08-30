@@ -4,6 +4,10 @@
   "exclude": [
     "dist",
     "Businfo",
+    ".agents",
+    "codex-portfolio-design-skills-bundle",
+    "tmp",
+    "src/data/geospatial/aucklandBaselineSnapshot.js",
     "codex-knowledge.local",
     "content-staging.local",
     "local-instructions.local"

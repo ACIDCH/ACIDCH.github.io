@@ -13,8 +13,20 @@ function boot() {
 
   const zh = (root.dataset.locale || "zh") === "zh";
   const copy = zh
-    ? { title: "物流图层", fleet: "车队 Tour", fw: "工厂→仓库", wd: "仓库→需求", active: "活动路线" }
-    : { title: "Logistics Layers", fleet: "Fleet tour", fw: "Factory→Warehouse", wd: "Warehouse→Demand", active: "Active routes" };
+    ? {
+        title: "物流图层",
+        fleet: "车队 Tour",
+        fw: "工厂→仓库",
+        wd: "仓库→需求",
+        active: "活动路线",
+      }
+    : {
+        title: "Logistics Layers",
+        fleet: "Fleet tour",
+        fw: "Factory→Warehouse",
+        wd: "Warehouse→Demand",
+        active: "Active routes",
+      };
 
   const style = D.createElement("style");
   style.textContent = `
@@ -34,7 +46,11 @@ function boot() {
 
   const legend = shell.querySelector(".geo4__legend");
   if (legend && !legend.querySelector("[data-logistics-legend]")) {
-    for (const [className, label] of [["fleet-tour", copy.fleet], ["factory-warehouse", copy.fw], ["warehouse-demand", copy.wd]]) {
+    for (const [className, label] of [
+      ["fleet-tour", copy.fleet],
+      ["factory-warehouse", copy.fw],
+      ["warehouse-demand", copy.wd],
+    ]) {
       const item = D.createElement("span");
       item.dataset.logisticsLegend = className;
       item.innerHTML = `<i class="${className}"></i> ${label}`;
@@ -55,7 +71,12 @@ function boot() {
   const observer = globalThis.MutationObserver
     ? new globalThis.MutationObserver(() => globalThis.setTimeout(refresh, 0))
     : null;
-  observer?.observe(mapBox, { childList: true, subtree: true, attributes: true, attributeFilter: ["class"] });
+  observer?.observe(mapBox, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    attributeFilter: ["class"],
+  });
   refresh();
 }
 

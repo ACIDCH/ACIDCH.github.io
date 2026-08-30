@@ -1,4 +1,4 @@
-import { dijkstraGraph } from "./decisionEngine.js";
+import { aStarGraph } from "./decisionEngine.js";
 
 export function reconstructGraphPath(
   graph,
@@ -9,8 +9,8 @@ export function reconstructGraphPath(
 ) {
   const source = String(sourceNodeId);
   const target = String(targetNodeId);
-  const result = dijkstraGraph(graph, source, scenario, metric);
-  const cost = result.distances.get(target);
+  const result = aStarGraph(graph, source, target, scenario, metric);
+  const cost = result?.cost;
   if (!Number.isFinite(cost)) return null;
 
   const edges = [];

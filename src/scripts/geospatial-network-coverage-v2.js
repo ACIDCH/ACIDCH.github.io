@@ -1,40 +1,51 @@
 import {
   buildEdgeScenario,
   nearestGraphNode,
-  parseOverpassGraph,
 } from "../lib/geospatial/decisionEngine.js";
+import { getGeospatialStore } from "../lib/geospatial/geospatialStore.js";
+import { createDisruptionEvent } from "../lib/geospatial/disruptionEvents.js";
 
 const D = globalThis.document;
 
 class Heap {
-  constructor() { this.a = []; }
+  constructor() {
+    this.a = [];
+  }
   push(item) {
-    const a = this.a; a.push(item); let i = a.length - 1;
+    const a = this.a;
+    a.push(item);
+    let i = a.length - 1;
     while (i > 0) {
       const p = Math.floor((i - 1) / 2);
       if (a[p].cost <= item.cost) break;
-      a[i] = a[p]; i = p;
+      a[i] = a[p];
+      i = p;
     }
     a[i] = item;
   }
   pop() {
     const a = this.a;
     if (!a.length) return null;
-    const root = a[0], last = a.pop();
+    const root = a[0],
+      last = a.pop();
     if (a.length && last) {
       let i = 0;
       while (true) {
-        const l = i * 2 + 1, r = l + 1;
+        const l = i * 2 + 1,
+          r = l + 1;
         if (l >= a.length) break;
         const c = r < a.length && a[r].cost < a[l].cost ? r : l;
         if (a[c].cost >= last.cost) break;
-        a[i] = a[c]; i = c;
+        a[i] = a[c];
+        i = c;
       }
       a[i] = last;
     }
     return root;
   }
-  get size() { return this.a.length; }
+  get size() {
+    return this.a.length;
+  }
 }
 
 function boundedDijkstra(graph, startNode, scenario, limitMin) {
@@ -86,8 +97,22 @@ function boot() {
 
   const zh = (root.dataset.locale || "zh") === "zh";
   const t = zh
-    ? { title: "道路网络覆盖", waiting: "OSM 路网加载后计算真实时间可达范围。", threshold: "时间阈值", hubs: "服务设施", reachable: "可达节点", overlap: "重叠覆盖" }
-    : { title: "Network Service Reach", waiting: "Load the OSM graph to calculate true time-based reachability.", threshold: "Time threshold", hubs: "Service facilities", reachable: "Reachable nodes", overlap: "Overlap coverage" };
+    ? {
+        title: "道路网络覆盖",
+        waiting: "OSM 路网加载后计算真实时间可达范围。",
+        threshold: "时间阈值",
+        hubs: "服务设施",
+        reachable: "可达节点",
+        overlap: "重叠覆盖",
+      }
+    : {
+        title: "Network Service Reach",
+        waiting: "Load the OSM graph to calculate true time-based reachability.",
+        threshold: "Time threshold",
+        hubs: "Service facilities",
+        reachable: "Reachable nodes",
+        overlap: "Overlap coverage",
+      };
 
   const style = D.createElement("style");
   style.textContent = `
@@ -107,64 +132,72 @@ function boot() {
   hud.innerHTML = `<span>SERVICE AREA / DIJKSTRA</span><strong>${t.title}</strong><small data-detail>${t.waiting}</small><div class="geo4__coverage-stats-v2"><div><span>${t.threshold}</span><b data-threshold>—</b></div><div><span>${t.hubs}</span><b data-hubs>—</b></div><div><span>${t.reachable}</span><b data-reachable>—</b></div><div><span>${t.overlap}</span><b data-overlap>—</b></div></div><div class="geo4__coverage-scale-v2"><span>1×</span><i></i><span>2×+</span></div>`;
   shell.appendChild(hud);
   const ui = {
-    detail: hud.querySelector("[data-detail]"), threshold: hud.querySelector("[data-threshold]"),
-    hubs: hud.querySelector("[data-hubs]"), reachable: hud.querySelector("[data-reachable]"), overlap: hud.querySelector("[data-overlap]"),
+    detail: hud.querySelector("[data-detail]"),
+    threshold: hud.querySelector("[data-threshold]"),
+    hubs: hud.querySelector("[data-hubs]"),
+    reachable: hud.querySelector("[data-reachable]"),
+    overlap: hud.querySelector("[data-overlap]"),
   };
-  const state = { graph: null, map: null, segments: [], sets: [], key: "", pending: false };
-
-  function captureMap(layer) {
-    if (state.map || typeof layer?.addTo !== "function") return;
-    const original = layer.addTo;
-    layer.addTo = function coverageV2Capture(target) {
-      const result = original.call(this, target);
-      if (!state.map && target?._map) {
-        state.map = target._map;
-        state.map.on("move zoom resize", schedule);
-      }
-      return result;
-    };
-  }
-  if (!L.circleMarker.__acidchCoverageV2Wrapped) {
-    const original = L.circleMarker;
-    const wrapped = (...args) => { const layer = original.apply(L, args); captureMap(layer); return layer; };
-    wrapped.__acidchCoverageV2Wrapped = true;
-    wrapped.__acidchCoverageV2Original = original;
-    L.circleMarker = wrapped;
-  }
+  const store = getGeospatialStore();
+  const initial = store.getState();
+  const state = {
+    graph: initial.graph,
+    map: initial.presentation.map,
+    segments: [],
+    sets: [],
+    key: "",
+    pending: false,
+  };
+  if (state.graph) state.segments = prepare(state.graph);
+  state.map?.on("move zoom resize", schedule);
 
   function params() {
+    const snapshot = store.getState();
+    const seed = Number(D.getElementById("geo4-seed")?.value || 708709);
+    const event = createDisruptionEvent({
+      eventId: snapshot.scenarioInputs.disruptionEvent || "none",
+      seed,
+      facilities: snapshot.entities.facilities,
+      demands: snapshot.entities.demands,
+    });
     return {
       mode: D.getElementById("geo4-road-mode")?.value || "baseline",
       congestionSeverity: Number(D.getElementById("geo4-congestion")?.value || 0) / 100,
-      congestionShare: Number(D.getElementById("geo4-congestion-share")?.value || 0) / 100,
+      congestionShare:
+        Number(D.getElementById("geo4-congestion-share")?.value || 0) / 100,
       closureShare: Number(D.getElementById("geo4-closure")?.value || 0) / 100,
-      improvement: .25, improvementShare: .3,
-      newRoadLinks: Number(D.getElementById("geo4-new-roads-out")?.textContent || 0),
-      maxNewRoadKm: .65, newRoadSpeedKph: 50,
-      seed: Number(D.getElementById("geo4-seed")?.value || 708709),
+      improvement: 0.25,
+      improvementShare: 0.3,
+      newRoadLinks: Number(snapshot.scenarioInputs.newRoads || 0),
+      maxNewRoadKm: 0.65,
+      newRoadSpeedKph: 50,
+      seed,
+      ...event.networkScenario,
     };
   }
 
   function selectedFacilities() {
-    if (!state.map) return [];
-    const names = new Set([...D.querySelectorAll("#geo4-open-list strong")].map((n) => n.textContent?.trim()).filter(Boolean));
-    const result = [];
-    for (const layer of Object.values(state.map._layers || {})) {
-      if (typeof layer?.getLatLng !== "function" || typeof layer?.getTooltip !== "function") continue;
-      const content = String(layer.getTooltip()?.getContent?.() || "");
-      const name = content.match(/<strong>(.*?)<\/strong>/)?.[1]?.trim();
-      if (!name || !names.has(name) || /Demand:/i.test(content)) continue;
-      const p = layer.getLatLng(); result.push({ name, lat: p.lat, lon: p.lng });
-    }
-    return result;
+    const snapshot = store.getState();
+    if (snapshot.freshness.main !== "current") return [];
+    return snapshot.mainSolution.selected
+      .map((index) => snapshot.entities.facilities[index])
+      .filter((facility) => facility?.point)
+      .map((facility) => ({ name: facility.name, ...facility.point }));
   }
 
   function prepare(graph) {
     const unique = new Map();
     for (const edge of graph.edges || []) {
       if (unique.has(edge.segmentKey)) continue;
-      const a = graph.nodes.get(String(edge.from)), b = graph.nodes.get(String(edge.to));
-      if (a && b) unique.set(edge.segmentKey, { from: String(edge.from), to: String(edge.to), a, b });
+      const a = graph.nodes.get(String(edge.from)),
+        b = graph.nodes.get(String(edge.to));
+      if (a && b)
+        unique.set(edge.segmentKey, {
+          from: String(edge.from),
+          to: String(edge.to),
+          a,
+          b,
+        });
     }
     return [...unique.values()];
   }
@@ -172,76 +205,145 @@ function boot() {
   function recalc() {
     const engine = D.getElementById("geo4-engine")?.value || "od";
     const layer = D.getElementById("geo4-layer")?.value || "network";
-    if (!state.graph || !state.map || engine !== "osm" || layer !== "coverage") { state.sets = []; return; }
-    const threshold = Math.max(1, Number(D.getElementById("geo4-threshold")?.value || 30));
+    if (!state.graph || !state.map || engine !== "osm" || layer !== "coverage") {
+      state.sets = [];
+      return;
+    }
+    const threshold = Math.max(
+      1,
+      Number(D.getElementById("geo4-threshold")?.value || 30),
+    );
     const facilities = selectedFacilities();
     const scenarioParams = params();
-    const key = JSON.stringify({ threshold, facilities: facilities.map((p) => [p.name, p.lat, p.lon]), scenarioParams });
+    const key = JSON.stringify({
+      threshold,
+      facilities: facilities.map((p) => [p.name, p.lat, p.lon]),
+      scenarioParams,
+    });
     if (key === state.key) return;
     state.key = key;
     const scenario = buildEdgeScenario(state.graph, scenarioParams);
     state.sets = facilities.map((point) => {
       const snap = nearestGraphNode(state.graph, point);
-      return snap?.nodeId ? boundedDijkstra(state.graph, snap.nodeId, scenario, threshold) : new Set();
+      return snap?.nodeId
+        ? boundedDijkstra(state.graph, snap.nodeId, scenario, threshold)
+        : new Set();
     });
     const union = new Set(state.sets.flatMap((set) => [...set]));
     let overlap = 0;
-    for (const node of union) if (state.sets.reduce((sum, set) => sum + (set.has(node) ? 1 : 0), 0) >= 2) overlap += 1;
+    for (const node of union)
+      if (state.sets.reduce((sum, set) => sum + (set.has(node) ? 1 : 0), 0) >= 2)
+        overlap += 1;
     ui.detail.textContent = `${facilities.length} ${t.hubs.toLowerCase()} · ${threshold.toFixed(0)} min`;
-    ui.threshold.textContent = `${threshold.toFixed(0)} min`; ui.hubs.textContent = String(facilities.length);
-    ui.reachable.textContent = union.size.toLocaleString(); ui.overlap.textContent = union.size ? `${Math.round(overlap / union.size * 100)}%` : "0%";
+    ui.threshold.textContent = `${threshold.toFixed(0)} min`;
+    ui.hubs.textContent = String(facilities.length);
+    ui.reachable.textContent = union.size.toLocaleString();
+    ui.overlap.textContent = union.size
+      ? `${Math.round((overlap / union.size) * 100)}%`
+      : "0%";
   }
 
   function fit() {
-    const rect = mapBox.getBoundingClientRect(), dpr = Math.min(2, globalThis.devicePixelRatio || 1);
-    const w = Math.max(1, Math.round(rect.width * dpr)), h = Math.max(1, Math.round(rect.height * dpr));
-    if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; canvas.style.width = `${rect.width}px`; canvas.style.height = `${rect.height}px`; }
+    const rect = mapBox.getBoundingClientRect(),
+      dpr = Math.min(2, globalThis.devicePixelRatio || 1);
+    const w = Math.max(1, Math.round(rect.width * dpr)),
+      h = Math.max(1, Math.round(rect.height * dpr));
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w;
+      canvas.height = h;
+      canvas.style.width = `${rect.width}px`;
+      canvas.style.height = `${rect.height}px`;
+    }
     return { rect, dpr };
   }
 
   function draw() {
     state.pending = false;
     if (!ctx) return;
-    const { rect, dpr } = fit(); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, rect.width, rect.height);
-    const engine = D.getElementById("geo4-engine")?.value || "od", layer = D.getElementById("geo4-layer")?.value || "network";
-    if (!state.graph || !state.map || engine !== "osm" || layer !== "coverage") { if (engine !== "osm") ui.detail.textContent = t.waiting; return; }
-    recalc(); if (!state.sets.length) return;
-    ctx.save(); ctx.globalCompositeOperation = "lighter";
+    const { rect, dpr } = fit();
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, rect.width, rect.height);
+    const engine = D.getElementById("geo4-engine")?.value || "od",
+      layer = D.getElementById("geo4-layer")?.value || "network";
+    if (!state.graph || !state.map || engine !== "osm" || layer !== "coverage") {
+      if (engine !== "osm") ui.detail.textContent = t.waiting;
+      return;
+    }
+    recalc();
+    if (!state.sets.length) return;
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
     let drawn = 0;
     for (const segment of state.segments) {
-      const coverage = state.sets.reduce((sum, set) => sum + (set.has(segment.from) && set.has(segment.to) ? 1 : 0), 0);
+      const coverage = state.sets.reduce(
+        (sum, set) => sum + (set.has(segment.from) && set.has(segment.to) ? 1 : 0),
+        0,
+      );
       if (!coverage) continue;
-      const p1 = state.map.latLngToContainerPoint([segment.a.lat, segment.a.lon]), p2 = state.map.latLngToContainerPoint([segment.b.lat, segment.b.lon]);
+      const p1 = state.map.latLngToContainerPoint([segment.a.lat, segment.a.lon]),
+        p2 = state.map.latLngToContainerPoint([segment.b.lat, segment.b.lon]);
       const overlap = coverage >= 2;
-      ctx.strokeStyle = overlap ? "rgba(216,255,107,.96)" : "rgba(98,236,255,.82)"; ctx.globalAlpha = overlap ? .7 : .34; ctx.lineWidth = overlap ? 2.2 : 1.15; ctx.shadowColor = overlap ? "rgba(216,255,107,.75)" : "rgba(98,236,255,.45)"; ctx.shadowBlur = overlap ? 8 : 3;
-      ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
-      drawn += 1; if (drawn > 18000) break;
+      ctx.strokeStyle = overlap ? "rgba(216,255,107,.96)" : "rgba(98,236,255,.82)";
+      ctx.globalAlpha = overlap ? 0.7 : 0.34;
+      ctx.lineWidth = overlap ? 2.2 : 1.15;
+      ctx.shadowColor = overlap ? "rgba(216,255,107,.75)" : "rgba(98,236,255,.45)";
+      ctx.shadowBlur = overlap ? 8 : 3;
+      ctx.beginPath();
+      ctx.moveTo(p1.x, p1.y);
+      ctx.lineTo(p2.x, p2.y);
+      ctx.stroke();
+      drawn += 1;
+      if (drawn > 18000) break;
     }
     ctx.restore();
   }
-  function schedule() { state.key = ""; if (state.pending) return; state.pending = true; globalThis.requestAnimationFrame(draw); }
-
-  const originalFetch = globalThis.fetch;
-  if (typeof originalFetch === "function" && !originalFetch.__acidchCoverageV2Fetch) {
-    const wrapped = async (...args) => {
-      const response = await originalFetch.apply(globalThis, args), input = args[0], url = typeof input === "string" ? input : input?.url || "";
-      if (response.ok && /overpass.*api\/interpreter|api\/interpreter/i.test(url)) response.clone().json().then((payload) => {
-        if (!Array.isArray(payload?.elements) || !payload.elements.length) return;
-        const graph = parseOverpassGraph(payload.elements); if (!graph?.edges?.length) return;
-        state.graph = graph; state.segments = prepare(graph); schedule();
-      }).catch(() => {});
-      return response;
-    };
-    wrapped.__acidchCoverageV2Fetch = true; wrapped.__acidchCoverageV2Original = originalFetch; globalThis.fetch = wrapped;
+  function schedule() {
+    state.key = "";
+    if (state.pending) return;
+    state.pending = true;
+    globalThis.requestAnimationFrame(draw);
   }
 
-  for (const id of ["geo4-engine", "geo4-layer", "geo4-threshold", "geo4-road-mode", "geo4-congestion", "geo4-congestion-share", "geo4-closure", "geo4-seed", "geo4-run"]) {
-    const el = D.getElementById(id); el?.addEventListener("input", schedule); el?.addEventListener("change", schedule); el?.addEventListener("click", () => globalThis.setTimeout(schedule, 40));
+  store.subscribe((snapshot, reason) => {
+    const nextMap = snapshot.presentation.map;
+    if (nextMap && nextMap !== state.map) {
+      state.map = nextMap;
+      state.map.on("move zoom resize", schedule);
+    }
+    if (snapshot.graph && snapshot.graph !== state.graph) {
+      state.graph = snapshot.graph;
+      state.segments = prepare(snapshot.graph);
+    }
+    if (
+      ["commit:mainSolution", "graph", "entities"].some((value) =>
+        String(reason).includes(value),
+      )
+    )
+      schedule();
+  });
+
+  for (const id of [
+    "geo4-engine",
+    "geo4-layer",
+    "geo4-threshold",
+    "geo4-road-mode",
+    "geo4-event",
+    "geo4-congestion",
+    "geo4-congestion-share",
+    "geo4-closure",
+    "geo4-seed",
+    "geo4-run",
+  ]) {
+    const el = D.getElementById(id);
+    el?.addEventListener("input", schedule);
+    el?.addEventListener("change", schedule);
+    el?.addEventListener("click", () => globalThis.setTimeout(schedule, 40));
   }
-  D.querySelectorAll('[data-step="newRoads"]').forEach((b) => b.addEventListener("click", () => globalThis.setTimeout(schedule, 0)));
-  const openList = D.getElementById("geo4-open-list");
-  if (openList && globalThis.MutationObserver) new globalThis.MutationObserver(() => globalThis.setTimeout(schedule, 40)).observe(openList, { childList: true, subtree: true });
-  if (globalThis.ResizeObserver) new globalThis.ResizeObserver(schedule).observe(mapBox);
+  D.querySelectorAll('[data-step="newRoads"]').forEach((b) =>
+    b.addEventListener("click", () => globalThis.setTimeout(schedule, 0)),
+  );
+  if (globalThis.ResizeObserver)
+    new globalThis.ResizeObserver(schedule).observe(mapBox);
   schedule();
 }
 

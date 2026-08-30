@@ -1,3 +1,5 @@
+import { getGeospatialStore } from "../lib/geospatial/geospatialStore.js";
+
 const D = globalThis.document;
 
 function boot() {
@@ -14,8 +16,22 @@ function boot() {
 
   const zh = (root.dataset.locale || "zh") === "zh";
   const text = zh
-    ? { flow: "货物流等级", low: "低", medium: "中", high: "高", source: "设施流出", sink: "需求流入" }
-    : { flow: "Flow tier", low: "Low", medium: "Medium", high: "High", source: "Facility outflow", sink: "Demand inflow" };
+    ? {
+        flow: "货物流等级",
+        low: "低",
+        medium: "中",
+        high: "高",
+        source: "设施流出",
+        sink: "需求流入",
+      }
+    : {
+        flow: "Flow tier",
+        low: "Low",
+        medium: "Medium",
+        high: "High",
+        source: "Facility outflow",
+        sink: "Demand inflow",
+      };
 
   const style = D.createElement("style");
   style.textContent = `
@@ -35,37 +51,32 @@ function boot() {
   canvas.setAttribute("aria-hidden", "true");
   mapBox.appendChild(canvas);
   const ctx = canvas.getContext("2d");
+  const store = getGeospatialStore();
   const routeState = { routes: [] };
-
-  const original = L.polyline.__acidchNodeOriginal || L.polyline;
-  if (!L.polyline.__acidchNodeWrapped) {
-    const wrapped = function nodeStatusPolyline(latlngs, options = {}) {
-      const layer = original.call(L, latlngs, options);
-      const optimal = String(options.color || "").toLowerCase() === "#d8ff6b" && Number(options.weight || 0) >= 2.4;
-      if (optimal) {
-        const flat = [];
-        const walk = (value) => {
-          if (Array.isArray(value)) {
-            if (value.length >= 2 && typeof value[0] === "number" && typeof value[1] === "number") flat.push({ lat: value[0], lng: value[1] });
-            else value.forEach(walk);
-          } else if (value && Number.isFinite(value.lat) && Number.isFinite(value.lng)) flat.push({ lat: value.lat, lng: value.lng });
+  const syncRoutes = (snapshot = store.getState()) => {
+    const map = snapshot.presentation.map;
+    routeState.routes = (snapshot.routeVisuals || [])
+      .filter((route) => route.coordinates?.length >= 2)
+      .map((route) => {
+        const start = route.coordinates[0];
+        const end = route.coordinates.at(-1);
+        return {
+          map,
+          start: { lat: start.lat, lng: start.lon ?? start.lng },
+          end: { lat: end.lat, lng: end.lon ?? end.lng },
+          flow: route.flow,
         };
-        walk(latlngs);
-        const record = { layer, start: flat[0], end: flat.at(-1), flow: 1 };
-        routeState.routes.push(record);
-        const bind = layer.bindTooltip;
-        layer.bindTooltip = function bindNodeTooltip(content, ...args) {
-          const match = String(content).match(/Flow:\s*([\d,.]+)/i);
-          if (match) record.flow = Number(match[1].replaceAll(",", "")) || 1;
-          return bind.call(this, content, ...args);
-        };
-      }
-      return layer;
-    };
-    wrapped.__acidchNodeWrapped = true;
-    wrapped.__acidchNodeOriginal = original;
-    L.polyline = wrapped;
-  }
+      });
+  };
+  store.subscribe((snapshot, reason) => {
+    if (
+      reason === "route-visuals" ||
+      reason === "reset" ||
+      String(reason).includes("commit:mainSolution")
+    )
+      syncRoutes(snapshot);
+  });
+  syncRoutes();
 
   function fit() {
     const rect = mapBox.getBoundingClientRect();
@@ -87,13 +98,18 @@ function boot() {
     const { rect, dpr } = fit();
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, rect.width, rect.height);
-    const active = routeState.routes.filter((route) => route.layer?._map && route.start && route.end);
+    const active = routeState.routes.filter(
+      (route) => route.map && route.start && route.end,
+    );
     if (!active.length) return;
-    const map = active[0].layer._map;
+    const map = active[0].map;
     const maxFlow = Math.max(1, ...active.map((route) => route.flow));
     const aggregate = new Map();
     for (const route of active) {
-      for (const [kind, point] of [["source", route.start], ["sink", route.end]]) {
+      for (const [kind, point] of [
+        ["source", route.start],
+        ["sink", route.end],
+      ]) {
         const key = `${kind}:${point.lat.toFixed(5)}:${point.lng.toFixed(5)}`;
         const current = aggregate.get(key) || { kind, point, flow: 0 };
         current.flow += route.flow;
@@ -120,12 +136,6 @@ function boot() {
     }
   }
 
-  const clearRoutes = () => { routeState.routes.length = 0; };
-  for (const id of ["geo4-run", "geo4-routes", "geo4-reset", "geo4-engine", "geo4-road-mode"]) {
-    const el = D.getElementById(id);
-    el?.addEventListener("click", clearRoutes);
-    el?.addEventListener("change", clearRoutes);
-  }
   draw();
 }
 

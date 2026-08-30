@@ -11,6 +11,10 @@ const pageTitle = zh
 const c = zh
   ? {
       scenario: "情景与计算引擎",
+      objective: "优化目标",
+      networkEngine: "网络引擎",
+      mapAria: "奥克兰地理空间供应链决策地图",
+      consoleAria: "情景控制台",
       road: "路网不确定性",
       facility: "设施与覆盖",
       fleet: "车队与运输",
@@ -32,6 +36,15 @@ const c = zh
       closure: "临时封路",
       newRoad: "新增道路 / 通行改善",
       mixed: "混合不确定性",
+      eventPreset: "关联业务事件",
+      eventNone: "无关联事件",
+      eventHarbour: "港湾通道中断",
+      eventCbd: "CBD 拥堵",
+      eventWarehouse: "仓库停运",
+      eventFactory: "工厂产能损失",
+      eventDemand: "需求激增",
+      eventAccess: "通行改善",
+      eventWeather: "严重天气",
       minHubs: "最少设施",
       minCost: "最低固定 + 运输成本",
       threshold: "最大服务阈值",
@@ -47,7 +60,8 @@ const c = zh
       fleetSize: "车队数量",
       vehicleCapacity: "单车容量",
       trips: "每车每日趟数",
-      transportCost: "运输成本 / 网络单位",
+      transportCost: "运输成本 / 公里（NZD）",
+      timeCost: "时间成本 / 分钟（NZD）",
       demandMultiplier: "需求倍率",
       meanDemand: "日均库存需求",
       demandSd: "需求标准差",
@@ -75,6 +89,14 @@ const c = zh
       cost: "成本",
       inventoryLayer: "库存",
       risk: "风险",
+      criticality: "道路关键性",
+      runCriticality: "分析关键道路",
+      criticalityNote:
+        "在后台逐条移除高流量候选道路并重新寻路，衡量成本、延误与未满足需求。",
+      sankey: "两级实际流 Sankey",
+      sankeyNote: "连线宽度表示 Factory → Warehouse → Demand 的实际求解流量。",
+      explainability: "节点决策解释",
+      close: "关闭",
       hubs: "开启设施",
       coverageRate: "覆盖率",
       avgDistance: "平均配送距离",
@@ -89,16 +111,37 @@ const c = zh
       actualRuns: "实际模拟次数",
       expectedCost: "期望成本",
       p95Cost: "P95 成本",
+      cvar95Cost: "CVaR95 尾部均值",
+      expectedUnmet: "期望未满足需求",
       failureRate: "不可行概率",
       stockout: "缺货概率",
       stability: "设施选择稳定性",
+      method: "求解模式",
+      fixedComponent: "设施固定成本",
+      transportComponent: "两级运输成本",
+      inventoryComponent: "库存持有成本",
+      distribution: "成本分布",
+      stageNetwork: "网络",
+      stageOptimise: "优化",
+      stageFleet: "车队",
+      stageRisk: "韧性",
+      stageCompare: "比较",
+      legendFacility: "设施",
+      legendDemand: "需求",
+      legendAllocation: "分配",
+      legendRoute: "最优路径",
+      legendCovered: "已覆盖",
       facilityRoleNote:
-        "设施分配与两级转运分别求解：主模型负责 Facility → Demand，Transshipment 模块负责 Factory → Warehouse → Demand，并共享当前道路情景。",
+        "主模型统一求解 Factory → Warehouse → Demand；工厂仅提供上游供给，只有开启仓库可向需求点配送。",
       simulationNote:
-        "快速 OD 模式支持 50–1000 次模拟；OSM 路网模式使用较小运行批次以保持浏览器交互流畅。",
+        "固定种子使扰动可复现；输出包括 P95、CVaR95、不可行概率与期望未满足需求。",
     }
   : {
       scenario: "Scenario & engine",
+      objective: "Objective",
+      networkEngine: "Network engine",
+      mapAria: "Auckland geospatial supply chain decision map",
+      consoleAria: "Scenario console",
       road: "Road uncertainty",
       facility: "Facilities & coverage",
       fleet: "Fleet & transport",
@@ -120,6 +163,15 @@ const c = zh
       closure: "Temporary closure",
       newRoad: "New road / access improvement",
       mixed: "Mixed uncertainty",
+      eventPreset: "Correlated business event",
+      eventNone: "No correlated event",
+      eventHarbour: "Harbour corridor disruption",
+      eventCbd: "CBD congestion",
+      eventWarehouse: "Warehouse outage",
+      eventFactory: "Factory capacity loss",
+      eventDemand: "Demand surge",
+      eventAccess: "Access improvement",
+      eventWeather: "Severe weather",
       minHubs: "Minimum facilities",
       minCost: "Minimum fixed + transport cost",
       threshold: "Maximum service threshold",
@@ -135,7 +187,8 @@ const c = zh
       fleetSize: "Fleet size",
       vehicleCapacity: "Vehicle capacity",
       trips: "Trips per vehicle / day",
-      transportCost: "Transport cost / network unit",
+      transportCost: "Distance cost / km (NZD)",
+      timeCost: "Time cost / minute (NZD)",
       demandMultiplier: "Demand multiplier",
       meanDemand: "Mean daily inventory demand",
       demandSd: "Demand standard deviation",
@@ -163,6 +216,14 @@ const c = zh
       cost: "Cost",
       inventoryLayer: "Inventory",
       risk: "Risk",
+      criticality: "Road criticality",
+      runCriticality: "Analyse critical roads",
+      criticalityNote:
+        "Tests high-flow route edges in the background by removing each candidate and rerouting affected shipments; measures cost, delay and unmet demand.",
+      sankey: "Actual two-echelon Sankey",
+      sankeyNote: "Link width represents solved Factory → Warehouse → Demand flow.",
+      explainability: "Node decision explanation",
+      close: "Close",
       hubs: "Open facilities",
       coverageRate: "Coverage",
       avgDistance: "Average delivery distance",
@@ -177,45 +238,70 @@ const c = zh
       actualRuns: "Actual simulation runs",
       expectedCost: "Expected cost",
       p95Cost: "P95 cost",
+      cvar95Cost: "CVaR95 tail mean",
+      expectedUnmet: "Expected unmet demand",
       failureRate: "Infeasibility rate",
       stockout: "Stockout probability",
       stability: "Facility selection stability",
+      method: "Solver mode",
+      fixedComponent: "Facility fixed cost",
+      transportComponent: "Two-echelon transport",
+      inventoryComponent: "Inventory holding",
+      distribution: "Cost distribution",
+      stageNetwork: "Network",
+      stageOptimise: "Optimise",
+      stageFleet: "Fleet",
+      stageRisk: "Resilience",
+      stageCompare: "Compare",
+      legendFacility: "Facility",
+      legendDemand: "Demand",
+      legendAllocation: "Allocation",
+      legendRoute: "Optimal path",
+      legendCovered: "Covered",
       facilityRoleNote:
-        "Facility allocation and two-echelon transshipment are solved separately: the main model handles Facility → Demand, while the Transshipment module handles Factory → Warehouse → Demand under the same road scenario.",
+        "The main model solves Factory → Warehouse → Demand as one system: factories supply upstream only, and only open warehouses deliver to demand.",
       simulationNote:
-        "Fast OD mode supports 50–1000 runs; OSM Road Network mode uses smaller batches to keep browser interaction responsive.",
+        "A fixed seed makes disruptions reproducible; outputs include P95, CVaR95, infeasibility and expected unmet demand.",
     };
 ---
 
 <section id="geo-v4" class="geo4" data-locale={locale}>
   <h1 class="geo4__sr-only">{pageTitle}</h1>
   <div class="geo4__shell">
-    <div id="geo4-map" aria-label="Auckland geospatial supply chain decision map"></div>
+    <div id="geo4-map" aria-label={c.mapAria}></div>
+
+    <nav class="geo4__workflow" aria-label="Decision workflow">
+      <span data-workflow-stage="network" class="is-current">01 {c.stageNetwork}</span>
+      <span data-workflow-stage="optimise">02 {c.stageOptimise}</span>
+      <span data-workflow-stage="fleet">03 {c.stageFleet}</span>
+      <span data-workflow-stage="risk">04 {c.stageRisk}</span>
+      <span data-workflow-stage="compare">05 {c.stageCompare}</span>
+    </nav>
 
     <div class="geo4__legend" aria-hidden="true">
-      <span><i class="facility"></i> Facility</span>
-      <span><i class="demand"></i> Demand</span>
-      <span><i class="allocation"></i> Allocation</span>
-      <span><i class="route"></i> Optimal path</span>
-      <span class="coverage-only"><i class="covered"></i> Covered</span>
-      <span class="coverage-only"><i class="redundant"></i> 2×+ coverage</span>
+      <span><i class="facility"></i> {c.legendFacility}</span>
+      <span><i class="demand"></i> {c.legendDemand}</span>
+      <span><i class="allocation"></i> {c.legendAllocation}</span>
+      <span><i class="route"></i> {c.legendRoute}</span>
+      <span class="coverage-only"><i class="covered"></i> {c.legendCovered}</span>
+      <span class="coverage-only"><i class="redundant"></i> 2×+</span>
     </div>
 
-    <aside class="geo4__console" aria-label="Scenario console">
+    <aside class="geo4__console" aria-label={c.consoleAria}>
       <div class="geo4__scroll">
         <section class="geo4__block">
           <div class="geo4__block-title">
             <span>01</span><strong>{c.scenario}</strong>
           </div>
           <label class="geo4__field"
-            ><span>Objective</span><select id="geo4-objective"
+            ><span>{c.objective}</span><select id="geo4-objective"
               ><option value="minHubs">{c.minHubs}</option><option value="minCost"
                 >{c.minCost}</option
               ></select
             ></label
           >
           <label class="geo4__field"
-            ><span>Network engine</span><select id="geo4-engine"
+            ><span>{c.networkEngine}</span><select id="geo4-engine"
               ><option value="od">{c.graphFast}</option><option value="osm"
                 >{c.graphOsm}</option
               ></select
@@ -240,6 +326,19 @@ const c = zh
               ><option value="closure">{c.closure}</option><option value="newroad"
                 >{c.newRoad}</option
               ><option value="mixed">{c.mixed}</option></select
+            ></label
+          >
+          <label class="geo4__field"
+            ><span>{c.eventPreset}</span><select id="geo4-event"
+              ><option value="none">{c.eventNone}</option><option value="harbour"
+                >{c.eventHarbour}</option
+              ><option value="cbd">{c.eventCbd}</option><option value="warehouse-outage"
+                >{c.eventWarehouse}</option
+              ><option value="factory-loss">{c.eventFactory}</option><option
+                value="demand-surge">{c.eventDemand}</option
+              ><option value="access-improvement">{c.eventAccess}</option><option
+                value="severe-weather">{c.eventWeather}</option
+              ></select
             ></label
           >
           <label class="geo4__range"
@@ -387,6 +486,15 @@ const c = zh
               value="0.72"
             /></label
           >
+          <label class="geo4__field inline"
+            ><span>{c.timeCost}</span><input
+              id="geo4-time-cost"
+              type="number"
+              min="0"
+              step="0.01"
+              value="0.35"
+            /></label
+          >
           <label class="geo4__range"
             ><span>{c.demandMultiplier}</span><output id="geo4-demand-multiplier-out"
               >1.00×</output
@@ -526,9 +634,16 @@ const c = zh
                 >{c.utilisation}</option
               ><option value="cost">{c.cost}</option><option value="inventory"
                 >{c.inventoryLayer}</option
-              ><option value="risk">{c.risk}</option></select
+              ><option value="risk">{c.risk}</option><option value="criticality"
+                >{c.criticality}</option
+              ></select
             ></label
           >
+          <button id="geo4-criticality" type="button" class="secondary full">
+            {c.runCriticality}
+          </button>
+          <p class="geo4__micro">{c.criticalityNote}</p>
+          <p id="geo4-criticality-status" class="geo4__micro">STALE</p>
         </section>
       </div>
 
@@ -541,7 +656,7 @@ const c = zh
 
     <aside class="geo4__results">
       <div class="geo4__results-head">
-        <span>RESULT</span><strong>{c.results}</strong>
+        <span>RESULT</span><strong>{c.results}</strong><em id="geo4-solver-mode">—</em>
       </div>
       <div class="geo4__kpis">
         <div><span>{c.hubs}</span><strong id="geo4-kpi-hubs">—</strong></div>
@@ -565,6 +680,15 @@ const c = zh
           id="geo4-kpi-delta">{c.baselineDelta} —</small
         >
       </div>
+      <div class="geo4__cost-breakdown" aria-label="Cost decomposition">
+        <div><span>{c.fixedComponent}</span><b id="geo4-cost-fixed">—</b><i></i></div>
+        <div>
+          <span>{c.transportComponent}</span><b id="geo4-cost-variable">—</b><i></i>
+        </div>
+        <div>
+          <span>{c.inventoryComponent}</span><b id="geo4-cost-inventory">—</b><i></i>
+        </div>
+      </div>
       <p id="geo4-status" class="geo4__status">—</p>
       <div id="geo4-open-list" class="geo4__open-list"></div>
 
@@ -578,7 +702,9 @@ const c = zh
             <span>{c.expectedCost}</span><strong id="geo4-mc-expected">—</strong>
           </div>
           <div><span>{c.p95Cost}</span><strong id="geo4-mc-p95">—</strong></div>
+          <div><span>{c.cvar95Cost}</span><strong id="geo4-mc-cvar">—</strong></div>
           <div><span>{c.failureRate}</span><strong id="geo4-mc-failure">—</strong></div>
+          <div><span>{c.expectedUnmet}</span><strong id="geo4-mc-unmet">—</strong></div>
           <div>
             <span id="geo4-mc-network-label">{c.avgDistance}</span><strong
               id="geo4-mc-network">—</strong
@@ -586,9 +712,45 @@ const c = zh
           </div>
           <div><span>{c.stockout}</span><strong id="geo4-mc-stockout">—</strong></div>
         </div>
+        <div class="geo4__subhead"><span>{c.distribution}</span></div>
+        <div id="geo4-cost-histogram" class="geo4__histogram" role="img"></div>
         <div class="geo4__subhead"><span>{c.stability}</span></div>
         <div id="geo4-stability" class="geo4__stability"></div>
       </div>
+
+      <section id="geo4-criticality-result" class="geo4__analysis" hidden>
+        <div class="geo4__results-head">
+          <span>CRITICALITY</span><strong>{c.criticality}</strong><em>WORKER</em>
+        </div>
+        <div id="geo4-criticality-list" class="geo4__criticality-list"></div>
+      </section>
+
+      <section id="geo4-sankey" class="geo4__analysis" hidden>
+        <div class="geo4__results-head">
+          <span>FLOW</span><strong>{c.sankey}</strong><em>2-ECH</em>
+        </div>
+        <p class="geo4__micro">{c.sankeyNote}</p>
+        <div id="geo4-sankey-canvas" class="geo4__sankey-canvas"></div>
+      </section>
+    </aside>
+
+    <aside
+      id="geo4-explain-drawer"
+      class="geo4__drawer"
+      aria-labelledby="geo4-explain-title"
+      aria-hidden="true"
+      hidden
+    >
+      <div class="geo4__drawer-head">
+        <div>
+          <span>EXPLAIN</span><strong id="geo4-explain-title"
+            >{c.explainability}</strong>
+        </div>
+        <button id="geo4-explain-close" type="button" aria-label={c.close}
+          >{c.close}</button
+        >
+      </div>
+      <div id="geo4-explain-body" class="geo4__drawer-body"></div>
     </aside>
   </div>
 </section>
@@ -599,6 +761,8 @@ const c = zh
 </script>
 
 <style>
+  /* Hallmark · pre-emit critique: P5 H4 E4 S5 R4 V5 */
+  /* Hallmark · macrostructure: map-first decision workbench · genre: technical · tone: restrained · palette: existing cyan/amber · nav/footer: inherited · honest/chrome/icons: pass */
   .geo4 {
     --bg: #06131d;
     --panel: rgba(7, 24, 34, 0.95);
@@ -655,6 +819,33 @@ const c = zh
     color: #91acb7;
     font-size: 0.66rem;
     backdrop-filter: blur(12px);
+  }
+  .geo4__workflow {
+    position: absolute;
+    z-index: 660;
+    top: 1rem;
+    left: 50%;
+    display: flex;
+    gap: 0.25rem;
+    max-width: calc(100% - 760px);
+    padding: 0.28rem;
+    border: 1px solid var(--line);
+    background: rgba(5, 21, 31, 0.9);
+    backdrop-filter: blur(12px);
+    transform: translateX(-50%);
+  }
+  .geo4__workflow span {
+    padding: 0.32rem 0.48rem;
+    color: #688893;
+    font: 700 0.53rem monospace;
+    white-space: nowrap;
+  }
+  .geo4__workflow span.is-current {
+    background: rgba(98, 236, 255, 0.1);
+    color: var(--cyan);
+  }
+  .geo4__workflow span.is-complete {
+    color: var(--acid);
   }
   .geo4__legend span {
     display: inline-flex;
@@ -817,6 +1008,11 @@ const c = zh
     grid-template-columns: 1fr 1fr;
     gap: 0.45rem;
   }
+  .geo4__buttons button,
+  .geo4__actions button {
+    font-size: 0.72rem;
+    white-space: nowrap;
+  }
   .geo4__buttons.three {
     grid-template-columns: 1fr 1fr 1fr;
   }
@@ -914,6 +1110,14 @@ const c = zh
   .geo4__results-head strong {
     font-size: 0.74rem;
   }
+  .geo4__results-head em {
+    padding: 0.18rem 0.3rem;
+    border: 1px solid rgba(216, 255, 107, 0.25);
+    color: var(--acid);
+    font: 700 0.5rem monospace;
+    font-style: normal;
+    letter-spacing: 0.05em;
+  }
   .geo4__kpis {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -951,6 +1155,31 @@ const c = zh
     margin-top: 0.4rem;
     color: var(--acid);
     font: 700 1rem monospace;
+  }
+  .geo4__cost-breakdown {
+    display: grid;
+    gap: 0.35rem;
+    margin-top: 0.5rem;
+  }
+  .geo4__cost-breakdown > div {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.4rem;
+    color: #7897a3;
+    font-size: 0.56rem;
+  }
+  .geo4__cost-breakdown b {
+    color: #eaf8fa;
+    font: 700 0.58rem monospace;
+  }
+  .geo4__cost-breakdown i {
+    grid-column: 1/-1;
+    height: 2px;
+    background: linear-gradient(
+      90deg,
+      var(--cyan) calc(var(--share, 0) * 100%),
+      rgba(116, 190, 213, 0.12) 0
+    );
   }
   .geo4__status {
     margin: 0.65rem 0 0;
@@ -1016,6 +1245,139 @@ const c = zh
       rgba(116, 190, 213, 0.12) 0
     );
   }
+  .geo4__histogram {
+    display: flex;
+    align-items: end;
+    gap: 2px;
+    height: 72px;
+    padding: 0.4rem;
+    border: 1px solid rgba(116, 190, 213, 0.15);
+    background: rgba(9, 36, 48, 0.45);
+  }
+  .geo4__histogram i {
+    flex: 1 1 0;
+    min-width: 2px;
+    height: calc(var(--height, 0) * 100%);
+    background: var(--cyan);
+    opacity: 0.68;
+  }
+  .geo4__histogram i.is-tail {
+    background: #ffcc66;
+    opacity: 0.92;
+  }
+  .geo4__analysis {
+    margin-top: 0.9rem;
+    padding-top: 0.8rem;
+    border-top: 1px solid var(--line);
+  }
+  .geo4__criticality-list {
+    display: grid;
+    gap: 0.38rem;
+  }
+  .geo4__criticality-list > div {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 0.5rem;
+    align-items: center;
+    color: #82a0aa;
+    font-size: 0.54rem;
+    line-height: 1.45;
+  }
+  .geo4__criticality-list i {
+    height: 3px;
+    background: linear-gradient(
+      90deg,
+      var(--criticality-colour) calc(var(--criticality) * 100%),
+      rgba(116, 190, 213, 0.13) 0
+    );
+  }
+  .geo4__criticality-list strong {
+    display: block;
+    color: #eafaff;
+    font-size: 0.58rem;
+  }
+  .geo4__sankey-canvas {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid rgba(116, 190, 213, 0.15);
+    background: rgba(9, 36, 48, 0.45);
+  }
+  .geo4__sankey-canvas svg {
+    display: block;
+    width: 100%;
+    min-width: 520px;
+    height: auto;
+  }
+  .geo4__sankey-canvas text {
+    fill: #9bb6bf;
+    font: 500 9px/1 monospace;
+  }
+  .geo4__drawer {
+    position: absolute;
+    z-index: 720;
+    top: 4rem;
+    right: 320px;
+    width: min(390px, calc(100% - 2rem));
+    max-height: calc(100% - 8rem);
+    overflow: auto;
+    border: 1px solid rgba(98, 236, 255, 0.32);
+    background: rgba(5, 20, 29, 0.98);
+    box-shadow: 0 22px 70px rgba(0, 0, 0, 0.42);
+  }
+  .geo4__drawer-head {
+    position: sticky;
+    z-index: 2;
+    top: 0;
+    display: flex;
+    justify-content: space-between;
+    gap: 0.8rem;
+    align-items: center;
+    padding: 0.8rem;
+    border-bottom: 1px solid var(--line);
+    background: var(--panel);
+  }
+  .geo4__drawer-head span,
+  .geo4__drawer-head strong {
+    display: block;
+  }
+  .geo4__drawer-head span {
+    color: var(--cyan);
+    font: 700 0.52rem/1 monospace;
+    letter-spacing: 0.12em;
+  }
+  .geo4__drawer-head strong {
+    margin-top: 0.2rem;
+    font-size: 0.76rem;
+  }
+  .geo4__drawer-head button {
+    flex: 0 0 auto;
+    min-height: 32px;
+  }
+  .geo4__drawer-body {
+    display: grid;
+    gap: 0;
+    padding: 0.4rem 0.8rem 0.9rem;
+  }
+  .geo4__drawer-body > div {
+    display: grid;
+    grid-template-columns: minmax(100px, 0.8fr) minmax(0, 1.2fr);
+    gap: 0.7rem;
+    padding: 0.58rem 0;
+    border-bottom: 1px solid rgba(116, 190, 213, 0.11);
+  }
+  .geo4__drawer-body span {
+    color: #7897a2;
+    font-size: 0.58rem;
+  }
+  .geo4__drawer-body strong {
+    color: #effbfd;
+    font-size: 0.61rem;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+  :global(.geo4__criticality-edge) {
+    filter: drop-shadow(0 0 4px rgba(255, 204, 102, 0.35));
+  }
   .geo4__ab {
     display: grid;
     gap: 0.35rem;
@@ -1048,11 +1410,17 @@ const c = zh
     font-size: 0.68rem;
   }
   @media (max-width: 1180px) {
+    .geo4__workflow {
+      display: none;
+    }
     .geo4__results {
       top: auto;
       bottom: 4rem;
       width: 280px;
       max-height: 52%;
+    }
+    .geo4__drawer {
+      right: 1rem;
     }
   }
   @media (max-width: 820px) {
@@ -1077,10 +1445,26 @@ const c = zh
       width: auto;
       max-height: 360px;
     }
+    .geo4__drawer {
+      position: fixed;
+      inset: auto 0.5rem 0.5rem;
+      width: auto;
+      max-height: min(72vh, 620px);
+    }
     .geo4__legend {
       left: 0.5rem;
       right: 0.5rem;
       bottom: 0.5rem;
+    }
+  }
+  @media (max-width: 420px) {
+    .geo4__buttons,
+    .geo4__buttons.three,
+    .geo4__actions {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .geo4 button:not(.leaflet-control-zoom-in):not(.leaflet-control-zoom-out) {
+      white-space: nowrap;
     }
   }
   .geo4__legend .coverage-only {

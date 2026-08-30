@@ -1,13 +1,18 @@
 import { describe, expect, it } from "vitest";
 import {
+  aStarGraph,
   applyOdScenario,
+  dijkstraGraph,
+  graphNetworkMatrix,
   graphOdMatrix,
   inventoryPolicy,
   parseOverpassGraph,
   runMonteCarlo,
   solveFacilityNetwork,
+  solveTwoEchelonNetwork,
   solveTransportation,
 } from "./decisionEngine.js";
+import { createNetworkMatrix } from "./networkMatrix.js";
 
 const matrix = [
   [2.07, 5.8, 2.04, 4.66, 4.12, 10.66, 7.5, 0.31, 7.7, 7.89],
@@ -120,6 +125,8 @@ describe("geospatial decision engine", () => {
     expect(a).toEqual(b);
     expect(a.runs).toBe(20);
     expect(a.facilityStability).toHaveLength(6);
+    expect(a.cvar95Cost).toBeGreaterThanOrEqual(a.p95Cost);
+    expect(a.costHistogram.length).toBeGreaterThan(0);
   });
 
   it("memoizes one parsed graph for the exact shared Overpass payload", () => {
@@ -160,5 +167,117 @@ describe("geospatial decision engine", () => {
     });
     expect(result.matrix[0][0]).toBeGreaterThan(1);
     expect(result.matrix[0][0]).toBeLessThan(3);
+    expect(graph.spatialIndex).toBeTruthy();
+  });
+
+  it("builds both physical metrics from the same graph scenario", () => {
+    const graph = parseOverpassGraph([
+      { type: "node", id: 1, lat: -36.87, lon: 174.76 },
+      { type: "node", id: 2, lat: -36.87, lon: 174.77 },
+      { type: "node", id: 3, lat: -36.87, lon: 174.78 },
+      {
+        type: "way",
+        id: 10,
+        nodes: [1, 2, 3],
+        tags: { highway: "primary", maxspeed: "60" },
+      },
+    ]);
+    const result = graphNetworkMatrix({
+      graph,
+      sources: [{ lat: -36.87, lon: 174.7601 }],
+      destinations: [{ lat: -36.87, lon: 174.7799 }],
+      costPerKm: 1,
+      costPerMinute: 2,
+    });
+    expect(result.networkMatrix.distanceKm[0][0]).toBeGreaterThan(1);
+    expect(result.networkMatrix.durationMin[0][0]).toBeGreaterThan(1);
+    expect(result.networkMatrix.generalizedCostNZD[0][0]).toBeGreaterThan(
+      result.networkMatrix.distanceKm[0][0],
+    );
+  });
+
+  it("uses target-aware cached Dijkstra and admissible A* consistently", () => {
+    const graph = parseOverpassGraph([
+      { type: "node", id: 1, lat: -36.87, lon: 174.76 },
+      { type: "node", id: 2, lat: -36.87, lon: 174.77 },
+      { type: "node", id: 3, lat: -36.87, lon: 174.78 },
+      {
+        type: "way",
+        id: 10,
+        nodes: [1, 2, 3],
+        tags: { highway: "primary", maxspeed: "50" },
+      },
+    ]);
+    const first = dijkstraGraph(graph, "1", {}, "time", { targets: ["3"] });
+    const second = dijkstraGraph(graph, "1", {}, "time", { targets: ["3"] });
+    const astar = aStarGraph(graph, "1", "3", {}, "time");
+    expect(second).toBe(first);
+    expect(astar.cost).toBeCloseTo(first.distances.get("3"));
+  });
+
+  it("solves an exact Factory to Warehouse to Demand network with conservation", () => {
+    const fw = createNetworkMatrix({
+      distanceKm: [
+        [2, 5],
+        [4, 1],
+      ],
+      durationMin: [
+        [4, 10],
+        [8, 2],
+      ],
+      costPerKm: 1,
+      costPerMinute: 0.5,
+    });
+    const wd = createNetworkMatrix({
+      distanceKm: [
+        [1, 3],
+        [3, 1],
+      ],
+      durationMin: [
+        [2, 6],
+        [6, 2],
+      ],
+      costPerKm: 1,
+      costPerMinute: 0.5,
+    });
+    const result = solveTwoEchelonNetwork({
+      factoryWarehouseMatrix: fw,
+      warehouseDemandMatrix: wd,
+      demands: [6, 6],
+      factoryCapacities: [8, 8],
+      warehouseCapacities: [8, 8],
+      maxOpen: 2,
+      fixedCost: 10,
+      serviceThreshold: 10,
+    });
+    expect(result.feasible).toBe(true);
+    expect(result.solverMode).toBe("exact");
+    expect(result.allocatedDemand).toBeCloseTo(12);
+    for (const throughput of result.throughput) {
+      const inflow = result.factoryWarehouseFlows
+        .filter((flow) => flow.warehouse === throughput.warehouse)
+        .reduce((sum, flow) => sum + flow.flow, 0);
+      const outflow = result.warehouseDemandFlows
+        .filter((flow) => flow.warehouse === throughput.warehouse)
+        .reduce((sum, flow) => sum + flow.flow, 0);
+      expect(inflow).toBeCloseTo(outflow);
+      expect(outflow).toBeLessThanOrEqual(throughput.capacity);
+    }
+  });
+
+  it("labels large facility candidate searches as heuristic", () => {
+    const large = Array.from({ length: 14 }, (_, facility) =>
+      [1, 2].map((value) => value + facility / 100),
+    );
+    const result = solveFacilityNetwork({
+      matrix: large,
+      demands: [2, 2],
+      maxOpen: 2,
+      threshold: 10,
+      facilityCapacity: 10,
+      exactLimit: 5,
+    });
+    expect(result.solverMode).toBe("heuristic");
+    expect(result.optimal).toBe(false);
   });
 });

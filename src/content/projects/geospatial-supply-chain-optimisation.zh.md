@@ -23,12 +23,12 @@ tags:
   - road network
   - Auckland
   - GIS
-updatedAt: 2026-08-20
+updatedAt: 2026-08-30
 ---
 
 ## 项目概览
 
-这个项目把供应链优化放回真实地理空间。研究区域为 Auckland：快速 OD 网络支持即时求解和大批量情景模拟，OSM 路网则构建有向道路图，在拥堵、临时封路和通行改善情景下重新运行 Dijkstra，并把同一情景产生的最优道路路径绘制到地图。项目重点不是“在地图上画点”，而是让设施、运输、库存与道路事件共享同一组决策状态，使每一次参数变化都能重新形成可解释的供应链方案。
+这个项目把供应链优化放回真实地理空间。研究区域为 Auckland。页面内置带版本信息的紧凑 OSM 道路快照，首次求解不依赖实时 Overpass；快速 OD 引擎用于即时情景分析，OSM 引擎则在拥堵、临时封路和通行改善情景下重算有向路网，并绘制同一情景产生的道路路径。设施、运输、库存与道路事件共享同一组决策状态，使每一次参数变化都能重新形成可解释的供应链方案。
 
 [打开交互式 GIS 决策沙盘 →](../../lab/geospatial-supply-chain/)
 
@@ -40,28 +40,34 @@ updatedAt: 2026-08-20
 
 ## 两套互补的网络引擎
 
-设施层保留需求、容量、服务阈值、最低覆盖次数、最多开启设施、固定成本与 Auto / Must open / Exclude 等决策约束。快速 OD 网络以道路距离衡量服务成本，适合快速比较多组参数；OSM 路网把候选设施和需求点吸附到有向道路图，以行程时间重新生成 OD 矩阵。Network / Flow / Coverage / Utilisation / Cost / Inventory / Risk 七个地图视图读取同一套求解结果，切换视图不会改变优化决策。
+每个路网矩阵都明确保存公里、分钟与 NZD 广义成本。每公里成本和每分钟成本是独立可见的假设，因此快速 OD 与 OSM 引擎使用相同物理含义的优化目标。结果不会把 km 与 OSM 的 min 当成同一量纲直接比较。实体变化后会重建完整受影响矩阵，不混用不同计算方法。Network / Flow / Coverage / Utilisation / Cost / Inventory / Risk 七个视图只读取同一份结构化求解结果。
 
 ## 路网不确定性与覆盖
 
 路网情景支持 Baseline、Congestion、Temporary Closure、New Road / Access Improvement 和 Mixed uncertainty。OSM 模式下，拥堵修改道路行程时间，封路使相应路段不可用，假设新增连接进入同一张道路图，然后重新计算最短路。Coverage 视图先按网络距离或道路可达性判断需求点的 Covered / Uncovered 状态，再用柔和扩散环强调当前服务据点；OSM 模式同时绘制阈值内可达道路，并区分单覆盖与 2×+ 重叠覆盖。
 
-## 车队与两级物流
+带固定种子的关联事件会组合道路与业务影响，包括港湾通道中断、CBD 拥堵、仓库停运、工厂产能损失、需求激增和严重天气。严重情景如果不可行，会明确显示不可行，而不是静默切换到无关基线。
 
-车队模块把已求解的 Hub → Demand 流量转换为道路 TSP 访问顺序，再根据单车容量拆分为实际 trips，并检查 Fleet Size × Trips per Vehicle 以及 Fleet Size × Shift Hours 的聚合运力。小型网络使用 Exact TSP，规模扩大后切换为启发式访问顺序；只有能够访问全部已分配需求并返回出发设施的完整道路 tour 才会被接受。这里的模型边界是 road TSP + capacity splitting + aggregate fleet checks，不把它包装成完整 CVRP 或带时间窗 VRP。
+## 统一两级物流与车队路线
 
-另外提供独立的 Factory → Warehouse → Demand 两级转运模块。Factory 由地址输入或地图点击建立，Warehouse 使用主模型当前开启的仓库；网络流采用 Warehouse-In → Warehouse-Out node splitting 严格限制仓库总吞吐量，并用当前道路情景的真实路网成本求解两级最小成本流。工厂到仓库与仓库到需求采用不同路线语义和视觉编码。
+主模型统一求解 Factory → Candidate Warehouse → Demand。工厂供给、仓库开启与吞吐容量、服务覆盖、冗余、Must open / Exclude 和需求满足同时进入约束。候选仓库较少时使用精确子集枚举与最小成本流；规模扩大后切换到确定性启发式，并在界面如实标注。
+
+车队模块直接读取结构化 Warehouse → Demand 分配。Split-delivery Clarke–Wright 与 2-opt 生成满足容量和返仓要求的路线，再把每趟分配给具体车辆，逐车检查班次小时与趟数上限。工厂到仓库、仓库到需求和车队路线仍保留不同的地图语义。
 
 ## 库存与不确定性
 
-库存层将 mean demand、demand SD、lead time、service level 和 holding cost 与空间网络放在同一个情景控制台。除固定提前期外，还可以输入 Lead-time SD；模型按需求波动与提前期波动的联合方差计算 combined lead-time demand SD，再更新 safety stock、ROP、holding-cost contribution 与 stockout simulation。Monte Carlo 模块进一步输出 expected cost、P95 cost、infeasibility rate、平均配送距离或平均行程时间、stockout probability 和 facility-selection stability，并保留随机种子以便复现。
+库存层将 mean demand、demand SD、lead time、service level 和 holding cost 与空间网络放在同一个控制台；需求波动与提前期波动先合并，再计算 safety stock 和 ROP。带固定种子的 Monte Carlo 在带情景版本号的 Web Worker 中运行，输出 expected cost、P95、CVaR95、failure rate、expected unmet demand、stockout probability、facility-selection stability 与成本分布。浏览器如果阻止模块 Worker，会明确标注使用作品集规模的 FALLBACK。
+
+道路关键性分析从当前高流量最优路径挑选候选边，逐条移除后重新计算受影响运输路径，衡量广义 NZD 成本增量、延误与未满足需求。关键性地图清楚解释分值；真正的两级 Sankey 以实际求解流量控制连线宽度；点击 Factory、Warehouse 或 Demand 节点会打开结构化解释抽屉，显示分配、利用率、替代方案、上游路径与风险证据。
 
 ## 地理编辑与情景比较
 
-自然语言地址可以通过 geocoding 转成真实坐标并加入 Factory、Warehouse 或 Demand；也可以直接点击地图增加节点，再通过 batched road matrix 更新网络输入。自定义节点可以删除。Scenario A / B 在保存时同时记录当前关键假设、求解 KPI、开启设施以及可用的 Monte Carlo 结果；比较时展示成本、覆盖、设施和同单位网络指标的变化，并列出发生变化的参数。若 A 与 B 使用不同网络引擎，系统不会把 Fast OD 的 km 与 OSM 的 min 直接相减，而是明确标记网络 KPI 不可直接比较。
+自然语言地址可以通过 geocoding 转成真实坐标并加入 Factory、Warehouse 或 Demand；也可以直接点击地图增加节点，随后重建完整受影响道路矩阵。自定义节点可以删除。Scenario A / B 在保存时同时记录当前关键假设、求解 KPI、开启设施以及可用的 Monte Carlo 结果；比较时展示成本、覆盖、设施和同单位网络指标的变化。如果成本定义、定价签名或网络指标不一致，系统会阻止没有物理意义的差值比较。
 
 ## 结果阅读与模型边界
 
 桌面端以地图为项目主体，右上为可滚动参数控制台，右下为结果模块。道路层按 road hierarchy 显示，Congestion、Closure 和 proposed links 分别使用不同事件视觉；主最优路径根据实际 flow 显示方向性粒子、路线辉光和节点脉冲，Fleet Tour 与两级转运采用独立线型。结果模块把物理网络指标与货币指标分开：快速 OD 网络显示平均配送距离，OSM 路网显示平均行程时间，运输成本与情景总成本分别呈现。A / B 决策摘要进一步把成本—服务权衡转成中性解释，不替使用者预设管理偏好。
 
-当前交互同时支持桌面与移动端：桌面保留地图、参数与结果并行工作区；窄屏通过“地图 / 参数 / 结果”三视图切换，并默认优先展示地图。设施分配、两级转运、车队规划和库存风险分别保持清晰的模型边界；地图视觉层只读取已经求解的道路与物流结果。外部 GIS 服务不可用时，决策沙盘仍可从快速 OD 网络继续进行情景分析，而不会丢失当前决策状态。
+当前交互同时支持桌面与移动端：桌面保留地图、参数与结果并行工作区；窄屏通过“地图 / 参数 / 结果”三视图切换，并默认优先展示地图。设施分配、两级转运、车队规划和库存风险分别保持清晰的模型边界；地图视觉层只读取已经求解的道路与物流结果。
+
+道路拓扑来自 OpenStreetMap，OSRM 提供可选道路矩阵与路线几何，Nominatim 提供可选地理编码，底图来自 CARTO / OSM。需求与容量是作品集演示数据，不是保密商业数据。公共 GIS 服务只按 best-effort 使用：请求具备 timeout、cache、retry 与 pacing 控制；失败时保留内置 Auckland 路网和适用的有效结果。拥堵是情景假设而非实时交通；当前车队模块采用拆单 Clarke–Wright 与 2-opt 启发式，不是完整 CVRP 的全局精确求解器；大规模候选点结果也不保证全局最优；关键性属于当前分配下的路径应急分析，不是全路网穷举阻断优化。

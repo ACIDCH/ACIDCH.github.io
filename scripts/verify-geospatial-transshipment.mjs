@@ -1,12 +1,13 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { solveTwoEchelonNetwork } from "../src/lib/geospatial/decisionEngine.js";
+import { createNetworkMatrix } from "../src/lib/geospatial/networkMatrix.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const read = (relative) => fs.readFileSync(path.join(root, relative), "utf8");
 const extension = read("src/components/GeospatialFunctionalExtensions.astro");
 const source = read("src/scripts/geospatial-transshipment.js");
-
 const fail = (message) => {
   throw new Error(`[geospatial-transshipment] ${message}`);
 };
@@ -14,73 +15,67 @@ const requireText = (token, label = token) => {
   if (!source.includes(token)) fail(`Missing ${label}`);
 };
 
-if (!extension.includes("geospatial-transshipment.js")) fail("Transshipment extension is not mounted");
+if (!extension.includes("geospatial-transshipment.js"))
+  fail("Transshipment extension is not mounted");
 for (const [token, label] of [
-  ["solveTwoEchelon", "two-echelon min-cost flow solver"],
-  ["wi0", "warehouse-in node set"],
-  ["wo0", "warehouse-out node set"],
-  ["stage: \"throughput\"", "strict warehouse throughput arc"],
-  ["warehouseCapacity", "warehouse throughput capacity"],
-  ["factoryCapacity", "factory supply capacity"],
-  ["graphOdMatrix", "current OSM road-cost matrix"],
-  ["scenarioParams: scenarioParams()", "active road scenario parameters"],
-  ["result.scenario", "scenario returned by the road matrix"],
-  ["reconstructGraphPath", "scenario-consistent road geometry"],
-  ["/table/v1/driving/", "OSRM matrix fallback"],
-  ["/route/v1/driving/", "OSRM route fallback"],
-  ["Factory → Warehouse", "first-echelon semantics"],
-  ["Warehouse → Demand", "second-echelon semantics"],
-  ["currently open warehouses", "main-model warehouse selection coupling"],
-]) requireText(token, label);
+  ["getGeospatialStore", "central store"],
+  ["snapshot.mainSolution", "structured integrated result"],
+  ["solution.factoryAssignments", "factory-to-warehouse flow"],
+  ["solution.assignments", "warehouse-to-demand flow"],
+  ["inflow", "warehouse inflow check"],
+  ["outflow", "warehouse outflow check"],
+  ["reconstructGraphPath", "same-scenario graph route"],
+  ["services.osrmRoute", "centralised route fallback"],
+  ['store.begin("transshipment")', "stale-result token"],
+])
+  requireText(token, label);
+if (source.includes("globalThis.fetch ="))
+  fail("Transshipment must not monkey-patch fetch");
+if (/querySelectorAll\([^\n]*geo4__open/.test(source))
+  fail("Transshipment must not parse opened warehouses from DOM");
 
-const start = source.indexOf("function solveTwoEchelon");
-const end = source.indexOf("\nfunction boot", start);
-if (start < 0 || end <= start) fail("Unable to extract the browser transshipment solver for numerical acceptance");
-const solverSource = source.slice(start, end);
-const solveTwoEchelon = new Function(`${solverSource}; return solveTwoEchelon;`)();
-
-const factories = [{ name: "F1" }, { name: "F2" }];
-const warehouses = [{ name: "W1" }];
-const demands = [{ demand: 4 }, { demand: 4 }];
-const fwCosts = [[1], [2]];
-const wdCosts = [[1, 3]];
-
-const constrained = solveTwoEchelon({
-  factories,
-  warehouses,
-  demands,
-  fwCosts,
-  wdCosts,
-  factoryCapacity: 10,
-  warehouseCapacity: 6,
+const matrix = (distanceKm) =>
+  createNetworkMatrix({
+    distanceKm,
+    durationMin: distanceKm.map((row) => row.map((value) => value * 2)),
+    costPerKm: 1,
+    source: "acceptance",
+    version: "1",
+  });
+const constrained = solveTwoEchelonNetwork({
+  factoryWarehouseMatrix: matrix([[1], [2]]),
+  warehouseDemandMatrix: matrix([[1, 3]]),
+  demands: [4, 4],
+  factoryCapacities: [10, 10],
+  warehouseCapacities: [6],
+  maxOpen: 1,
+  serviceThreshold: 99,
+  serviceMetric: "durationMin",
 });
-if (constrained.feasible || Math.abs(constrained.flow - 6) > 1e-6) {
-  fail("Warehouse node-split capacity must cap total throughput at 6 units");
-}
-
-const feasible = solveTwoEchelon({
-  factories,
-  warehouses,
-  demands,
-  fwCosts,
-  wdCosts,
-  factoryCapacity: 10,
-  warehouseCapacity: 8,
+if (constrained !== null)
+  fail(
+    "Warehouse throughput capacity must make the 8-unit case infeasible at capacity 6",
+  );
+const feasible = solveTwoEchelonNetwork({
+  factoryWarehouseMatrix: matrix([[1], [2]]),
+  warehouseDemandMatrix: matrix([[1, 3]]),
+  demands: [4, 4],
+  factoryCapacities: [10, 10],
+  warehouseCapacities: [8],
+  maxOpen: 1,
+  serviceThreshold: 99,
+  serviceMetric: "durationMin",
 });
-if (!feasible.feasible || Math.abs(feasible.flow - 8) > 1e-6) {
+if (!feasible?.feasible || Math.abs(feasible.allocatedDemand - 8) > 1e-6)
   fail("Feasible two-echelon case did not satisfy all demand");
-}
-const fwFlow = feasible.fw.reduce((sum, arc) => sum + arc.flow, 0);
-const wdFlow = feasible.wd.reduce((sum, arc) => sum + arc.flow, 0);
-const throughput = feasible.throughput.reduce((sum, arc) => sum + arc.flow, 0);
-if (
-  Math.abs(fwFlow - 8) > 1e-6 ||
-  Math.abs(wdFlow - 8) > 1e-6 ||
-  Math.abs(throughput - 8) > 1e-6
-) {
-  fail("Factory→Warehouse, warehouse throughput and Warehouse→Demand flow conservation failed");
-}
+const upstream = feasible.factoryWarehouseFlows.reduce((sum, arc) => sum + arc.flow, 0);
+const downstream = feasible.warehouseDemandFlows.reduce(
+  (sum, arc) => sum + arc.flow,
+  0,
+);
+if (Math.abs(upstream - downstream) > 1e-6)
+  fail("Two-echelon flow conservation failed");
 
 console.log(
-  "[geospatial-transshipment] PASS: strict node-split warehouse capacity, two-echelon flow conservation, current-road scenario coupling and route geometry checks passed.",
+  "[geospatial-transshipment] PASS: unified two-echelon model, warehouse throughput capacity, structured flow conservation and scenario-consistent routing passed.",
 );

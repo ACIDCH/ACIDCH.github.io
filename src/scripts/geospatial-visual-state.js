@@ -70,7 +70,7 @@ function bootScenarioVisualState() {
 
   const ribbon = D.createElement("div");
   ribbon.className = "geo4__scenario-ribbon";
-  ribbon.innerHTML = '<i></i><b></b><small></small>';
+  ribbon.innerHTML = "<i></i><b></b><small></small>";
   shell.appendChild(ribbon);
   const title = ribbon.querySelector("b");
   const detail = ribbon.querySelector("small");
@@ -84,12 +84,14 @@ function bootScenarioVisualState() {
     if (value === "congestion") score = congestionValue / 100;
     else if (value === "closure") score = Math.min(1, closureValue / 8);
     else if (value === "newroad") score = Math.min(0.65, roadsValue / 10);
-    else if (value === "mixed") score = Math.min(1, congestionValue / 130 + closureValue / 12);
+    else if (value === "mixed")
+      score = Math.min(1, congestionValue / 130 + closureValue / 12);
     const level = score > 0.62 ? "severe" : score > 0.24 ? "moderate" : "stable";
     shell.dataset.roadVisual = value;
     ribbon.dataset.level = level;
     title.textContent = labels[value] || labels.baseline;
-    detail.textContent = value === "baseline" ? labels.stable : `${labels[level]} · ${labels.active}`;
+    detail.textContent =
+      value === "baseline" ? labels.stable : `${labels[level]} · ${labels.active}`;
   };
 
   mode.addEventListener("change", update);
@@ -98,7 +100,9 @@ function bootScenarioVisualState() {
   D.querySelectorAll('[data-step="newRoads"]').forEach((button) =>
     button.addEventListener("click", () => globalThis.setTimeout(update, 0)),
   );
-  D.getElementById("geo4-reset")?.addEventListener("click", () => globalThis.setTimeout(update, 0));
+  D.getElementById("geo4-reset")?.addEventListener("click", () =>
+    globalThis.setTimeout(update, 0),
+  );
   update();
 }
 

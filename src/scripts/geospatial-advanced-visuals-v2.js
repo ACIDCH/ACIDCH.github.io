@@ -1,9 +1,9 @@
 import {
   buildPolylineMetrics,
-  flattenLatLngs,
   particleCountForFlow,
   pointAlongPolyline,
 } from "../lib/geospatial/flowGeometry.js";
+import { getGeospatialStore } from "../lib/geospatial/geospatialStore.js";
 
 const D = globalThis.document;
 const frame = (fn) => globalThis.requestAnimationFrame(fn);
@@ -136,38 +136,38 @@ function boot() {
     updateStatus();
   };
 
-  const original = L.polyline.__acidchFlowOriginal || L.polyline;
-  if (!L.polyline.__acidchFlowWrapped) {
-    const wrapped = function flowAwarePolyline(latlngs, options = {}) {
-      const layer = original.call(L, latlngs, options);
-      const acidRoute =
-        String(options.color || "").toLowerCase() === "#d8ff6b" &&
-        Number(options.weight || 0) >= 2.4;
-      if (acidRoute) {
-        const all = flattenLatLngs(latlngs);
-        const stride = Math.max(1, Math.ceil(all.length / 700));
-        const points = all.filter((_, index) => index % stride === 0);
-        if (all.length && points.at(-1) !== all.at(-1)) points.push(all.at(-1));
-        const record = { layer, points, flow: 1, travelMin: null };
-        state.routes.push(record);
-        const bind = layer.bindTooltip;
-        layer.bindTooltip = function bindFlowTooltip(content, ...args) {
-          const source = String(content);
-          const match = source.match(/Flow:\s*([\d,.]+)/i);
-          const minutes = source.match(/·\s*([\d.]+)\s*min/i);
-          if (match) record.flow = Number(match[1].replaceAll(",", "")) || 1;
-          if (minutes) record.travelMin = Number(minutes[1]) || null;
-          updateStatus();
-          return bind.call(this, content, ...args);
-        };
-        updateStatus();
+  const store = getGeospatialStore();
+  const syncRoutes = (snapshot = store.getState()) => {
+    const map = snapshot.presentation.map;
+    state.routes = (snapshot.routeVisuals || []).map((route) => {
+      const all = route.coordinates || [];
+      const stride = Math.max(1, Math.ceil(all.length / 700));
+      const points = all
+        .filter((_, index) => index % stride === 0)
+        .map((point) => ({ lat: point.lat, lng: point.lon ?? point.lng }));
+      if (all.length) {
+        const last = all.at(-1);
+        const normalized = { lat: last.lat, lng: last.lon ?? last.lng };
+        if (
+          !points.length ||
+          points.at(-1).lat !== normalized.lat ||
+          points.at(-1).lng !== normalized.lng
+        )
+          points.push(normalized);
       }
-      return layer;
-    };
-    wrapped.__acidchFlowWrapped = true;
-    wrapped.__acidchFlowOriginal = original;
-    L.polyline = wrapped;
-  }
+      return { map, points, flow: route.flow, travelMin: route.travelMin };
+    });
+    updateStatus();
+  };
+  store.subscribe((snapshot, reason) => {
+    if (
+      reason === "route-visuals" ||
+      reason === "reset" ||
+      String(reason).includes("commit:mainSolution")
+    )
+      syncRoutes(snapshot);
+  });
+  syncRoutes();
 
   function fitCanvas() {
     const rect = mapBox.getBoundingClientRect();
@@ -207,7 +207,7 @@ function boot() {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, rect.width, rect.height);
     if (!state.enabled || !state.routes.length) return;
-    const map = state.routes.find((route) => route.layer?._map)?.layer?._map;
+    const map = state.routes.find((route) => route.map)?.map;
     if (!map) return;
     const elapsed = Math.max(0, (now - state.started) / 1000);
     const maxFlow = Math.max(1, ...state.routes.map((route) => route.flow));
@@ -247,7 +247,8 @@ function boot() {
       for (let index = 0; index < count; index += 1) {
         const phase = (index / count + routeIndex * 0.137) % 1;
         const distance =
-          (elapsed * state.speed * metrics.total) / traversalSeconds + phase * metrics.total;
+          (elapsed * state.speed * metrics.total) / traversalSeconds +
+          phase * metrics.total;
         const p = pointAlongPolyline(metrics, distance);
         if (!p) continue;
         const r = 1.15 + ratio * 1.65;
@@ -257,8 +258,14 @@ function boot() {
         ctx.rotate(p.angle);
         const gradient = ctx.createLinearGradient(-tail, 0, r * 3, 0);
         gradient.addColorStop(0, hot ? "rgba(216,255,107,0)" : "rgba(98,236,255,0)");
-        gradient.addColorStop(0.68, hot ? "rgba(216,255,107,.38)" : "rgba(98,236,255,.34)");
-        gradient.addColorStop(1, hot ? "rgba(216,255,107,.98)" : "rgba(98,236,255,.98)");
+        gradient.addColorStop(
+          0.68,
+          hot ? "rgba(216,255,107,.38)" : "rgba(98,236,255,.34)",
+        );
+        gradient.addColorStop(
+          1,
+          hot ? "rgba(216,255,107,.98)" : "rgba(98,236,255,.98)",
+        );
         ctx.strokeStyle = gradient;
         ctx.lineWidth = 1 + ratio * 1.2;
         ctx.shadowColor = hot ? "rgba(216,255,107,.9)" : "rgba(98,236,255,.9)";
@@ -305,7 +312,13 @@ function boot() {
     ambientButton.classList.toggle("is-active");
   });
 
-  for (const id of ["geo4-routes", "geo4-run", "geo4-reset", "geo4-engine", "geo4-road-mode"]) {
+  for (const id of [
+    "geo4-routes",
+    "geo4-run",
+    "geo4-reset",
+    "geo4-engine",
+    "geo4-road-mode",
+  ]) {
     D.getElementById(id)?.addEventListener("click", clear);
     if (id === "geo4-engine" || id === "geo4-road-mode") {
       D.getElementById(id)?.addEventListener("change", clear);

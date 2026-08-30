@@ -1,150 +1,15 @@
-import {
-  graphOdMatrix,
-  nearestGraphNode,
-  parseOverpassGraph,
-} from "../lib/geospatial/decisionEngine.js";
+import { nearestGraphNode } from "../lib/geospatial/decisionEngine.js";
 import { reconstructGraphPath } from "../lib/geospatial/pathTools.js";
+import { getGeospatialStore } from "../lib/geospatial/geospatialStore.js";
+import { getGisServices } from "../lib/geospatial/gisServices.js";
+import { clearMapChannel, drawMapPolyline } from "../lib/geospatial/mapAdapter.js";
 
 const D = globalThis.document;
-const F = (...args) => globalThis.fetch(...args);
-
-function solveTwoEchelon({
-  factories,
-  warehouses,
-  demands,
-  fwCosts,
-  wdCosts,
-  factoryCapacity,
-  warehouseCapacity,
-}) {
-  const source = 0;
-  const f0 = 1;
-  const wi0 = f0 + factories.length;
-  const wo0 = wi0 + warehouses.length;
-  const d0 = wo0 + warehouses.length;
-  const sink = d0 + demands.length;
-  const nodeCount = sink + 1;
-  const graph = Array.from({ length: nodeCount }, () => []);
-  const tracked = [];
-  const totalDemand = demands.reduce((sum, item) => sum + item.demand, 0);
-
-  const addEdge = (from, to, capacity, cost, meta = null) => {
-    const forward = {
-      to,
-      rev: graph[to].length,
-      capacity,
-      initial: capacity,
-      cost,
-      meta,
-    };
-    const reverse = {
-      to: from,
-      rev: graph[from].length,
-      capacity: 0,
-      initial: 0,
-      cost: -cost,
-      meta: null,
-    };
-    graph[from].push(forward);
-    graph[to].push(reverse);
-    if (meta) tracked.push(forward);
-  };
-
-  factories.forEach((_, fi) => addEdge(source, f0 + fi, factoryCapacity, 0));
-  warehouses.forEach((_, wi) =>
-    addEdge(wi0 + wi, wo0 + wi, warehouseCapacity, 0, { stage: "throughput", wi }),
-  );
-  factories.forEach((_, fi) =>
-    warehouses.forEach((__, wi) => {
-      const cost = fwCosts[fi]?.[wi];
-      if (Number.isFinite(cost))
-        addEdge(f0 + fi, wi0 + wi, totalDemand, cost, { stage: "fw", fi, wi });
-    }),
-  );
-  warehouses.forEach((_, wi) =>
-    demands.forEach((__, di) => {
-      const cost = wdCosts[wi]?.[di];
-      if (Number.isFinite(cost))
-        addEdge(wo0 + wi, d0 + di, totalDemand, cost, { stage: "wd", wi, di });
-    }),
-  );
-  demands.forEach((item, di) => addEdge(d0 + di, sink, item.demand, 0));
-
-  let totalFlow = 0;
-  let totalCost = 0;
-  const parentNode = Array(nodeCount).fill(-1);
-  const parentEdge = Array(nodeCount).fill(-1);
-
-  while (totalFlow + 1e-9 < totalDemand) {
-    const dist = Array(nodeCount).fill(Infinity);
-    dist[source] = 0;
-    parentNode.fill(-1);
-    parentEdge.fill(-1);
-    for (let iteration = 0; iteration < nodeCount - 1; iteration += 1) {
-      let changed = false;
-      for (let from = 0; from < nodeCount; from += 1) {
-        if (!Number.isFinite(dist[from])) continue;
-        for (let ei = 0; ei < graph[from].length; ei += 1) {
-          const edge = graph[from][ei];
-          if (!(edge.capacity > 1e-9)) continue;
-          const candidate = dist[from] + edge.cost;
-          if (candidate + 1e-9 < dist[edge.to]) {
-            dist[edge.to] = candidate;
-            parentNode[edge.to] = from;
-            parentEdge[edge.to] = ei;
-            changed = true;
-          }
-        }
-      }
-      if (!changed) break;
-    }
-    if (!Number.isFinite(dist[sink])) break;
-
-    let amount = totalDemand - totalFlow;
-    for (let node = sink; node !== source;) {
-      const from = parentNode[node];
-      if (from < 0) {
-        amount = 0;
-        break;
-      }
-      amount = Math.min(amount, graph[from][parentEdge[node]].capacity);
-      node = from;
-    }
-    if (!(amount > 1e-9)) break;
-
-    for (let node = sink; node !== source;) {
-      const from = parentNode[node];
-      const edge = graph[from][parentEdge[node]];
-      edge.capacity -= amount;
-      graph[node][edge.rev].capacity += amount;
-      node = from;
-    }
-    totalFlow += amount;
-    totalCost += amount * dist[sink];
-  }
-
-  const used = (stage) =>
-    tracked
-      .filter(
-        (edge) => edge.meta.stage === stage && edge.initial - edge.capacity > 1e-6,
-      )
-      .map((edge) => ({ ...edge.meta, flow: edge.initial - edge.capacity }));
-  return {
-    feasible: totalFlow + 1e-6 >= totalDemand,
-    flow: totalFlow,
-    totalDemand,
-    cost: totalCost,
-    fw: used("fw"),
-    wd: used("wd"),
-    throughput: used("throughput"),
-  };
-}
 
 function boot() {
   const root = D?.getElementById("geo-v4");
   const editorBlock = D?.getElementById("geo4-custom-list")?.closest(".geo4__block");
-  const L = globalThis.L;
-  if (!root || !editorBlock || !L) {
+  if (!root || !editorBlock || !globalThis.L) {
     globalThis.setTimeout(boot, 80);
     return;
   }
@@ -152,317 +17,205 @@ function boot() {
   root.dataset.transshipmentReady = "true";
 
   const zh = (root.dataset.locale || "zh") === "zh";
-  const t = zh
+  const copy = zh
     ? {
-        title: "两级转运网络",
-        run: "运行 Factory → Warehouse → Demand",
-        note: "工厂供给 → 当前开启仓库 → 需求点。仓库采用严格总吞吐容量约束，道路成本来自当前路网与扰动情景。",
-        needFactory: "至少需要一个 Factory。可用地址输入或地图点击新增。",
-        needWarehouse: "请先运行主模型，确保至少有一个开启的 Warehouse。",
-        solving: "正在求解两级道路转运…",
-        feasible: "两级转运可行",
-        infeasible: "两级转运不可行：工厂/仓库容量或当前道路可达性不足。",
+        title: "统一两级流",
+        run: "检查统一两级流",
+        note: "直接读取主模型的结构化两级流；不会从地图标签、颜色或 DOM 文本反推业务数据。",
+        need: "请先运行统一两级主模型。",
+        ready: "两级流守恒检查通过",
+        invalid: "两级流不完整或不守恒。",
         factories: "工厂",
-        warehouses: "仓库",
+        warehouses: "开启仓库",
         flow: "完成流量",
-        cost: "转运成本",
+        cost: "两级运输成本",
+        upstream: "上游",
+        downstream: "下游",
       }
     : {
-        title: "Two-Echelon Transshipment",
-        run: "Run Factory → Warehouse → Demand",
-        note: "Factory supply → currently open warehouses → demand, with strict warehouse throughput capacity and the active road scenario.",
-        needFactory:
-          "At least one Factory is required. Add one by address or map click.",
-        needWarehouse: "Run the main model first so at least one Warehouse is open.",
-        solving: "Solving two-echelon road transshipment…",
-        feasible: "Two-echelon transshipment is feasible",
-        infeasible:
-          "Two-echelon transshipment is infeasible: factory/warehouse capacity or road accessibility is insufficient.",
+        title: "Integrated two-echelon flow",
+        run: "Inspect integrated flow",
+        note: "Reads the main model's structured two-echelon flow directly; business data is never inferred from map labels, colours or DOM copy.",
+        need: "Run the integrated two-echelon main model first.",
+        ready: "Two-echelon flow conservation passed",
+        invalid: "Two-echelon flow is incomplete or unbalanced.",
         factories: "Factories",
-        warehouses: "Warehouses",
+        warehouses: "Open warehouses",
         flow: "Flow served",
-        cost: "Transshipment cost",
+        cost: "Two-echelon transport",
+        upstream: "Upstream",
+        downstream: "Downstream",
       };
 
   const style = D.createElement("style");
   style.textContent = `
-    .geo4__transshipment{margin-top:.75rem;padding-top:.68rem;border-top:1px solid rgba(98,236,255,.16)}.geo4__trans-head{display:flex;justify-content:space-between;align-items:center;gap:.5rem}.geo4__trans-head span{color:#62ecff;font:700 .5rem monospace;letter-spacing:.1em}.geo4__trans-head strong{font-size:.65rem}.geo4__trans-run{width:100%;margin-top:.45rem;border-color:rgba(98,236,255,.3)!important;color:#bdefff!important}.geo4__trans-note{margin:.4rem 0;color:#698892;font-size:.52rem;line-height:1.42}.geo4__trans-kpis{display:grid;grid-template-columns:1fr 1fr;gap:.3rem;margin-top:.45rem}.geo4__trans-kpis div{padding:.34rem .38rem;border:1px solid rgba(98,236,255,.11);background:rgba(8,35,46,.42)}.geo4__trans-kpis span{display:block;color:#718e98;font-size:.44rem}.geo4__trans-kpis b{display:block;margin-top:.13rem;color:#e9fbfe;font:700 .62rem monospace}.geo4__trans-status{margin:.4rem 0 0;color:#718e98;font-size:.53rem;line-height:1.4}.geo4__trans-status.ok{color:#d8ff6b}.geo4__trans-status.bad{color:#ff759a}.geo4__transshipment-route.stage-fw{filter:drop-shadow(0 0 5px rgba(255,204,102,.4))}.geo4__transshipment-route.stage-wd{filter:drop-shadow(0 0 5px rgba(98,236,255,.35))}
+    .geo4__transshipment{margin-top:.75rem;padding-top:.68rem;border-top:1px solid rgba(98,236,255,.16)}.geo4__trans-head{display:flex;justify-content:space-between;align-items:center;gap:.5rem}.geo4__trans-head span{color:#62ecff;font:700 .5rem monospace;letter-spacing:.1em}.geo4__trans-head strong{font-size:.65rem}.geo4__trans-run{width:100%;margin-top:.45rem;border-color:rgba(98,236,255,.3)!important;color:#bdefff!important;white-space:nowrap}.geo4__trans-note{margin:.4rem 0;color:#698892;font-size:.52rem;line-height:1.42}.geo4__trans-kpis{display:grid;grid-template-columns:1fr 1fr;gap:.3rem;margin-top:.45rem}.geo4__trans-kpis div{padding:.34rem .38rem;border:1px solid rgba(98,236,255,.11);background:rgba(8,35,46,.42)}.geo4__trans-kpis span{display:block;color:#718e98;font-size:.44rem}.geo4__trans-kpis b{display:block;margin-top:.13rem;color:#e9fbfe;font:700 .62rem monospace}.geo4__trans-status{margin:.4rem 0 0;color:#718e98;font-size:.53rem;line-height:1.4}.geo4__trans-status.ok{color:#d8ff6b}.geo4__trans-status.bad{color:#ff759a}.geo4__trans-flow-list{display:grid;gap:.25rem;margin-top:.4rem}.geo4__trans-flow-list div{display:grid;grid-template-columns:minmax(0,1fr) 42px auto;gap:.3rem;align-items:center;color:#78959f;font-size:.48rem}.geo4__trans-flow-list i{height:2px;background:#62ecff}.geo4__trans-flow-list .upstream i{background:#ffcc66}.geo4__transshipment-route.stage-fw{filter:drop-shadow(0 0 5px rgba(255,204,102,.4))}.geo4__transshipment-route.stage-wd{filter:drop-shadow(0 0 5px rgba(98,236,255,.35))}
   `;
   D.head.appendChild(style);
   const panel = D.createElement("section");
   panel.className = "geo4__transshipment";
-  panel.innerHTML = `<div class="geo4__trans-head"><span>TRANSSHIPMENT / LP</span><strong>${t.title}</strong></div><button type="button" class="geo4__trans-run">${t.run}</button><p class="geo4__trans-note">${t.note}</p><div class="geo4__trans-kpis"><div><span>${t.factories}</span><b data-trans-f>—</b></div><div><span>${t.warehouses}</span><b data-trans-w>—</b></div><div><span>${t.flow}</span><b data-trans-flow>—</b></div><div><span>${t.cost}</span><b data-trans-cost>—</b></div></div><p class="geo4__trans-status">—</p>`;
+  panel.innerHTML = `<div class="geo4__trans-head"><span>TRANSSHIPMENT / EXACT</span><strong>${copy.title}</strong></div><button type="button" class="geo4__trans-run">${copy.run}</button><p class="geo4__trans-note">${copy.note}</p><div class="geo4__trans-kpis"><div><span>${copy.factories}</span><b data-trans-f>—</b></div><div><span>${copy.warehouses}</span><b data-trans-w>—</b></div><div><span>${copy.flow}</span><b data-trans-flow>—</b></div><div><span>${copy.cost}</span><b data-trans-cost>—</b></div></div><p class="geo4__trans-status">—</p><div class="geo4__trans-flow-list"></div>`;
   editorBlock.appendChild(panel);
 
+  const store = getGeospatialStore();
+  const services = getGisServices();
+  const state = { routeCache: new Map() };
   const button = panel.querySelector(".geo4__trans-run");
   const status = panel.querySelector(".geo4__trans-status");
-  const out = {
-    f: panel.querySelector("[data-trans-f]"),
-    w: panel.querySelector("[data-trans-w]"),
+  const list = panel.querySelector(".geo4__trans-flow-list");
+  const outputs = {
+    factories: panel.querySelector("[data-trans-f]"),
+    warehouses: panel.querySelector("[data-trans-w]"),
     flow: panel.querySelector("[data-trans-flow]"),
     cost: panel.querySelector("[data-trans-cost]"),
   };
-  const state = { map: null, graph: null, layers: [], routeCache: new Map() };
 
-  function captureMap(layer) {
-    if (state.map || typeof layer?.addTo !== "function") return;
-    const original = layer.addTo;
-    layer.addTo = function transCapture(target) {
-      const result = original.call(this, target);
-      if (!state.map && target?._map) state.map = target._map;
-      return result;
-    };
-  }
-  if (!L.circleMarker.__acidchTransshipmentWrapped) {
-    const original = L.circleMarker;
-    const wrapped = (...args) => {
-      const layer = original.apply(L, args);
-      captureMap(layer);
-      return layer;
-    };
-    wrapped.__acidchTransshipmentWrapped = true;
-    wrapped.__acidchTransshipmentOriginal = original;
-    L.circleMarker = wrapped;
-  }
-
-  const originalFetch = globalThis.fetch;
-  if (
-    typeof originalFetch === "function" &&
-    !originalFetch.__acidchTransshipmentWrapped
-  ) {
-    const wrappedFetch = async (...args) => {
-      const response = await originalFetch.apply(globalThis, args);
-      const input = args[0];
-      const url = typeof input === "string" ? input : input?.url || "";
-      if (response.ok && /overpass.*api\/interpreter|api\/interpreter/i.test(url)) {
-        response
-          .clone()
-          .json()
-          .then((payload) => {
-            if (!Array.isArray(payload?.elements) || !payload.elements.length) return;
-            const graph = parseOverpassGraph(payload.elements);
-            if (graph?.edges?.length) state.graph = graph;
-          })
-          .catch(() => {});
-      }
-      return response;
-    };
-    wrappedFetch.__acidchTransshipmentWrapped = true;
-    wrappedFetch.__acidchTransshipmentOriginal = originalFetch;
-    globalThis.fetch = wrappedFetch;
+  async function routeCoordinates(from, to, context) {
+    const pointKey = (point) =>
+      Array.isArray(point)
+        ? point.join(",")
+        : `${Number(point?.lat).toFixed(6)},${Number(point?.lon).toFixed(6)}`;
+    const cacheKey = `${pointKey(from)}|${pointKey(to)}|${context?.scenario?.mode || "baseline"}`;
+    if (state.routeCache.has(cacheKey)) return state.routeCache.get(cacheKey);
+    let coordinates;
+    if (context?.graph && context?.scenario) {
+      const source = nearestGraphNode(context.graph, from);
+      const target = nearestGraphNode(context.graph, to);
+      const path =
+        source.nodeId && target.nodeId
+          ? reconstructGraphPath(
+              context.graph,
+              source.nodeId,
+              target.nodeId,
+              context.scenario,
+              "time",
+            )
+          : null;
+      coordinates = path?.coordinates || [];
+    } else {
+      coordinates = (await services.osrmRoute([from, to])).coordinates;
+    }
+    state.routeCache.set(cacheKey, coordinates);
+    return coordinates;
   }
 
-  const clear = () => {
-    state.layers.forEach((layer) => {
-      try {
-        layer.remove();
-      } catch {
-        /* presentation cleanup */
-      }
-    });
-    state.layers = [];
+  async function drawFlow(from, to, flow, context, stage) {
+    const coordinates = await routeCoordinates(from.point, to.point, context);
+    if (coordinates.length < 2) return false;
+    drawMapPolyline(
+      "transshipment",
+      coordinates,
+      {
+        color: stage === "fw" ? "#ffcc66" : "#62ecff",
+        weight: 1.5 + Math.min(4, Math.sqrt(flow) / 18),
+        opacity: 0.76,
+        className: `geo4__transshipment-route stage-${stage}`,
+      },
+      `${from.name} → ${to.name}<br>${flow.toFixed(0)} · ${stage === "fw" ? "Factory → Warehouse" : "Warehouse → Demand"}`,
+    );
+    return true;
+  }
+
+  async function inspect() {
+    clearMapChannel("transshipment");
     state.routeCache.clear();
-  };
-
-  function entities() {
-    if (!state.map) return { factories: [], warehouses: [], demands: [] };
-    const open = new Set(
-      [...D.querySelectorAll("#geo4-open-list strong")]
-        .map((n) => n.textContent?.trim())
-        .filter(Boolean),
-    );
-    const factories = [],
-      warehouses = [],
-      demands = [];
-    for (const layer of Object.values(state.map._layers || {})) {
-      if (
-        typeof layer?.getLatLng !== "function" ||
-        typeof layer?.getTooltip !== "function"
-      )
-        continue;
-      const content = String(layer.getTooltip()?.getContent?.() || "");
-      const name = content.match(/<strong>(.*?)<\/strong>/)?.[1]?.trim();
-      const point = layer.getLatLng?.();
-      if (!name || !point) continue;
-      if (/<br>factory/i.test(content))
-        factories.push({ name, lat: point.lat, lon: point.lng });
-      else if (/<br>warehouse/i.test(content) && open.has(name))
-        warehouses.push({ name, lat: point.lat, lon: point.lng });
-      else if (/Demand:\s*[\d,.]+/i.test(content)) {
-        const base =
-          Number(content.match(/Demand:\s*([\d,.]+)/i)?.[1]?.replaceAll(",", "")) || 0;
-        demands.push({
-          name,
-          lat: point.lat,
-          lon: point.lng,
-          demand: base * Number(D.getElementById("geo4-demand-multiplier")?.value || 1),
-        });
-      }
-    }
-    return { factories, warehouses, demands };
-  }
-
-  const scenarioParams = () => ({
-    mode: D.getElementById("geo4-road-mode")?.value || "baseline",
-    congestionSeverity: Number(D.getElementById("geo4-congestion")?.value || 0) / 100,
-    congestionShare:
-      Number(D.getElementById("geo4-congestion-share")?.value || 0) / 100,
-    closureShare: Number(D.getElementById("geo4-closure")?.value || 0) / 100,
-    improvement: 0.25,
-    improvementShare: 0.3,
-    newRoadLinks: Number(D.getElementById("geo4-new-roads-out")?.textContent || 0),
-    maxNewRoadKm: 0.65,
-    newRoadSpeedKph: 50,
-    seed: Number(D.getElementById("geo4-seed")?.value || 708709),
-  });
-
-  async function osrmMatrix(sources, destinations) {
-    const points = [...sources, ...destinations];
-    const coords = points.map((p) => `${p.lon},${p.lat}`).join(";");
-    const src = sources.map((_, i) => i).join(";");
-    const dst = destinations.map((_, i) => i + sources.length).join(";");
-    const response = await F(
-      `https://router.project-osrm.org/table/v1/driving/${coords}?sources=${src}&destinations=${dst}&annotations=duration`,
-    );
-    const data = await response.json();
-    if (!response.ok || !Array.isArray(data.durations))
-      throw new Error("OSRM table unavailable");
-    return {
-      matrix: data.durations.map((row) =>
-        row.map((value) => (Number.isFinite(value) ? value / 60 : Infinity)),
-      ),
-      scenario: null,
-    };
-  }
-
-  function currentMatrix(sources, destinations) {
-    if (D.getElementById("geo4-engine")?.value !== "osm" || !state.graph) return null;
-    const result = graphOdMatrix({
-      graph: state.graph,
-      sources,
-      destinations,
-      scenarioParams: scenarioParams(),
-      metric: "time",
-    });
-    return { matrix: result.matrix, scenario: result.scenario };
-  }
-
-  async function osrmRoute(a, b) {
-    const key = `${a.lon.toFixed(5)},${a.lat.toFixed(5)};${b.lon.toFixed(5)},${b.lat.toFixed(5)}`;
-    if (state.routeCache.has(key)) return state.routeCache.get(key);
-    const response = await F(
-      `https://router.project-osrm.org/route/v1/driving/${a.lon},${a.lat};${b.lon},${b.lat}?overview=full&geometries=geojson&steps=false`,
-    );
-    const data = await response.json();
-    if (!response.ok || !data.routes?.[0]) throw new Error("OSRM route unavailable");
-    const coords = data.routes[0].geometry.coordinates.map(([lon, lat]) => [lat, lon]);
-    state.routeCache.set(key, coords);
-    return coords;
-  }
-  function graphRoute(a, b, scenario) {
-    const source = nearestGraphNode(state.graph, a),
-      target = nearestGraphNode(state.graph, b);
-    if (!source?.nodeId || !target?.nodeId) return [];
-    return (
-      reconstructGraphPath(
-        state.graph,
-        source.nodeId,
-        target.nodeId,
-        scenario,
-        "time",
-      )?.coordinates?.map((p) => [p.lat, p.lon]) || []
-    );
-  }
-  async function drawArc(a, b, flow, scenario, stage) {
-    const coords = scenario ? graphRoute(a, b, scenario) : await osrmRoute(a, b);
-    if (!state.map || coords.length < 2) return;
-    const colour = stage === "fw" ? "#ffcc66" : "#62ecff";
-    const layer = L.polyline(coords, {
-      color: colour,
-      weight: 1.5 + Math.min(4, Math.sqrt(flow) / 18),
-      opacity: 0.76,
-      className: `geo4__transshipment-route stage-${stage}`,
-    })
-      .bindTooltip(
-        `${a.name} → ${b.name}<br>Flow: ${flow.toFixed(0)} · ${stage === "fw" ? "Factory → Warehouse" : "Warehouse → Demand"}`,
-      )
-      .addTo(state.map);
-    state.layers.push(layer);
-  }
-
-  async function run() {
-    clear();
-    const { factories, warehouses, demands } = entities();
-    out.f.textContent = String(factories.length);
-    out.w.textContent = String(warehouses.length);
-    if (!factories.length) {
-      status.textContent = t.needFactory;
-      status.className = "geo4__trans-status bad";
-      return;
-    }
-    if (!warehouses.length) {
-      status.textContent = t.needWarehouse;
+    const snapshot = store.getState();
+    const solution = snapshot.mainSolution;
+    if (snapshot.freshness.main !== "current" || solution?.model !== "two-echelon") {
+      status.textContent = copy.need;
       status.className = "geo4__trans-status bad";
       return;
     }
     button.disabled = true;
-    status.textContent = t.solving;
-    status.className = "geo4__trans-status";
+    const token = store.begin("transshipment");
     try {
-      const fw =
-        currentMatrix(factories, warehouses) ||
-        (await osrmMatrix(factories, warehouses));
-      const wd =
-        currentMatrix(warehouses, demands) || (await osrmMatrix(warehouses, demands));
-      const scenario = fw.scenario || wd.scenario;
-      const capacity = Math.max(
+      const facilities = snapshot.entities.facilities;
+      const demands = snapshot.entities.demands;
+      const factories = facilities.filter((item) => item.role === "factory");
+      const context = snapshot.networkMatrices.twoEchelonRouteContext;
+      const inflow = new Map();
+      const outflow = new Map();
+      for (const flow of solution.factoryAssignments) {
+        inflow.set(flow.warehouse, (inflow.get(flow.warehouse) || 0) + flow.flow);
+      }
+      for (const flow of solution.assignments) {
+        outflow.set(flow.hub, (outflow.get(flow.hub) || 0) + flow.flow);
+      }
+      const balanced = solution.selected.every(
+        (warehouse) =>
+          Math.abs((inflow.get(warehouse) || 0) - (outflow.get(warehouse) || 0)) < 1e-6,
+      );
+      const maximumFlow = Math.max(
         1,
-        Number(D.getElementById("geo4-facility-capacity")?.value || 6000),
+        ...solution.factoryAssignments.map((flow) => flow.flow),
+        ...solution.assignments.map((flow) => flow.flow),
       );
-      const unitCost = Math.max(
-        0,
-        Number(D.getElementById("geo4-transport-cost")?.value || 0.72),
+      list.innerHTML = [
+        ...solution.factoryAssignments.map((flow) => ({
+          className: "upstream",
+          label: `${copy.upstream} · ${facilities[flow.factory].name} → ${facilities[flow.warehouse].name}`,
+          flow: flow.flow,
+        })),
+        ...solution.assignments.slice(0, 12).map((flow) => ({
+          className: "downstream",
+          label: `${copy.downstream} · ${facilities[flow.hub].name} → ${demands[flow.demand].name}`,
+          flow: flow.flow,
+        })),
+      ]
+        .map(
+          (item) =>
+            `<div class="${item.className}"><span>${item.label}</span><i style="width:${Math.max(4, (item.flow / maximumFlow) * 100)}%"></i><b>${item.flow.toFixed(0)}</b></div>`,
+        )
+        .join("");
+      for (const flow of solution.factoryAssignments) {
+        await drawFlow(
+          facilities[flow.factory],
+          facilities[flow.warehouse],
+          flow.flow,
+          context,
+          "fw",
+        );
+      }
+      for (const flow of solution.assignments) {
+        await drawFlow(
+          facilities[flow.hub],
+          demands[flow.demand],
+          flow.flow,
+          context,
+          "wd",
+        );
+      }
+      outputs.factories.textContent = String(factories.length);
+      outputs.warehouses.textContent = String(solution.selected.length);
+      outputs.flow.textContent = `${solution.allocatedDemand.toFixed(0)} / ${solution.totalDemand.toFixed(0)}`;
+      outputs.cost.textContent = `NZ$${solution.transportCost.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+      status.textContent = balanced ? copy.ready : copy.invalid;
+      status.className = `geo4__trans-status ${balanced ? "ok" : "bad"}`;
+      store.commit(
+        token,
+        "transshipmentSolution",
+        { balanced, source: "mainSolution", solutionRevision: token.scenarioRevision },
+        "transshipment",
       );
-      const solved = solveTwoEchelon({
-        factories,
-        warehouses,
-        demands,
-        fwCosts: fw.matrix.map((row) => row.map((value) => value * unitCost)),
-        wdCosts: wd.matrix.map((row) => row.map((value) => value * unitCost)),
-        factoryCapacity: capacity,
-        warehouseCapacity: capacity,
-      });
-      out.flow.textContent = `${solved.flow.toFixed(0)} / ${solved.totalDemand.toFixed(0)}`;
-      out.cost.textContent = `NZ$${solved.cost.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
-      status.textContent = solved.feasible ? t.feasible : t.infeasible;
-      status.className = `geo4__trans-status ${solved.feasible ? "ok" : "bad"}`;
-      for (const arc of solved.fw)
-        await drawArc(factories[arc.fi], warehouses[arc.wi], arc.flow, scenario, "fw");
-      for (const arc of solved.wd)
-        await drawArc(warehouses[arc.wi], demands[arc.di], arc.flow, scenario, "wd");
     } catch (error) {
-      globalThis.console?.warn("[Transshipment]", error);
-      status.textContent = t.infeasible;
+      globalThis.console?.warn("[Transshipment inspection]", error);
+      status.textContent = copy.invalid;
       status.className = "geo4__trans-status bad";
     } finally {
       button.disabled = false;
     }
   }
 
-  button.addEventListener("click", run);
-  for (const id of [
-    "geo4-run",
-    "geo4-reset",
-    "geo4-engine",
-    "geo4-road-mode",
-    "geo4-demand-multiplier",
-    "geo4-facility-capacity",
-    "geo4-transport-cost",
-  ]) {
-    const element = D.getElementById(id);
-    element?.addEventListener("click", clear);
-    element?.addEventListener("change", clear);
-  }
+  button.addEventListener("click", inspect);
+  store.subscribe((state) => {
+    if (state.freshness.main !== "current") {
+      clearMapChannel("transshipment");
+      Object.values(outputs).forEach((output) => (output.textContent = "—"));
+      list.innerHTML = "";
+      status.textContent = copy.need;
+      status.className = "geo4__trans-status bad";
+    }
+  });
 }
 
 boot();

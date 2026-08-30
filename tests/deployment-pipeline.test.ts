@@ -175,11 +175,11 @@ describe("production deployment contracts", () => {
     expect(verifier).toContain("visiblePublicCopy");
   });
 
-  it("locks the randomized GIS scene and its Fast OD recovery contract", async () => {
+  it("locks the randomized GIS scene and unit-aware engine reset contract", async () => {
     const geo = await source("src/scripts/geospatial-v4.js");
 
-    expect(geo).toContain('maxOpen = Math.max(1, Math.min(5, H.length));');
-    expect(geo).toContain('q("geo4-threshold").value = "15";');
+    expect(geo).toContain("maxOpen = Math.max(1, Math.min(5, H.length));");
+    expect(geo).toContain('setEngineThreshold(graph ? "osm" : "od", graph ? 30 : 15);');
   });
 
   it("publishes a machine-readable commit status after live verification", async () => {

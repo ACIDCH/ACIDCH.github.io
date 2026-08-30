@@ -1,7 +1,6 @@
-import {
-  buildEdgeScenario,
-  parseOverpassGraph,
-} from "../lib/geospatial/decisionEngine.js";
+import { buildEdgeScenario } from "../lib/geospatial/decisionEngine.js";
+import { getGeospatialStore } from "../lib/geospatial/geospatialStore.js";
+import { createDisruptionEvent } from "../lib/geospatial/disruptionEvents.js";
 
 const D = globalThis.document;
 
@@ -34,7 +33,8 @@ function boot() {
     : {
         title: "Real Road Network",
         empty: "OSM graph not loaded",
-        emptyDetail: "Load the OSM road graph to reveal real road hierarchy, congestion, closures and proposed links.",
+        emptyDetail:
+          "Load the OSM road graph to reveal real road hierarchy, congestion, closures and proposed links.",
         nodes: "Nodes",
         segments: "Segments",
         congested: "Congested",
@@ -88,11 +88,13 @@ function boot() {
     proposed: hud.querySelector("[data-road-proposed]"),
   };
 
+  const store = getGeospatialStore();
+  const initial = store.getState();
   const state = {
-    graph: null,
+    graph: initial.graph,
     scenario: null,
     segments: [],
-    map: null,
+    map: initial.presentation.map,
     drawing: false,
   };
 
@@ -130,50 +132,35 @@ function boot() {
     }
     return [...unique.values()];
   }
+  if (state.graph) state.segments = prepareSegments(state.graph);
+  state.map?.on("move zoom resize", scheduleDraw);
 
   function currentScenario() {
     if (!state.graph) return null;
+    const snapshot = store.getState();
     const mode = D.getElementById("geo4-road-mode")?.value || "baseline";
-    const newRoads = Number(D.getElementById("geo4-new-roads-out")?.textContent || 0);
+    const seed = Number(D.getElementById("geo4-seed")?.value || 708709);
+    const event = createDisruptionEvent({
+      eventId: snapshot.scenarioInputs.disruptionEvent || "none",
+      seed,
+      facilities: snapshot.entities.facilities,
+      demands: snapshot.entities.demands,
+    });
+    const newRoads = Number(snapshot.scenarioInputs.newRoads || 0);
     return buildEdgeScenario(state.graph, {
       mode,
       congestionSeverity: Number(D.getElementById("geo4-congestion")?.value || 0) / 100,
-      congestionShare: Number(D.getElementById("geo4-congestion-share")?.value || 0) / 100,
+      congestionShare:
+        Number(D.getElementById("geo4-congestion-share")?.value || 0) / 100,
       closureShare: Number(D.getElementById("geo4-closure")?.value || 0) / 100,
       improvement: 0.25,
       improvementShare: 0.3,
       newRoadLinks: newRoads,
       maxNewRoadKm: 0.65,
       newRoadSpeedKph: 50,
-      seed: Number(D.getElementById("geo4-seed")?.value || 708709),
+      seed,
+      ...event.networkScenario,
     });
-  }
-
-  function captureMapFromLayer(layer) {
-    if (state.map || !layer) return;
-    const originalAdd = layer.addTo;
-    if (typeof originalAdd !== "function") return;
-    layer.addTo = function roadVisualAddTo(target) {
-      const result = originalAdd.call(this, target);
-      if (!state.map && target?._map) {
-        state.map = target._map;
-        state.map.on("move zoom resize", scheduleDraw);
-        scheduleDraw();
-      }
-      return result;
-    };
-  }
-
-  if (!L.circleMarker.__acidchRoadVisualWrapped) {
-    const originalCircleMarker = L.circleMarker;
-    const wrappedCircleMarker = (...args) => {
-      const layer = originalCircleMarker.apply(L, args);
-      captureMapFromLayer(layer);
-      return layer;
-    };
-    wrappedCircleMarker.__acidchRoadVisualWrapped = true;
-    wrappedCircleMarker.__acidchRoadVisualOriginal = originalCircleMarker;
-    L.circleMarker = wrappedCircleMarker;
   }
 
   function fitCanvas() {
@@ -203,7 +190,8 @@ function boot() {
     stats.segments.textContent = state.segments.length.toLocaleString();
     stats.congested.textContent = (scenario?.factors?.size || 0).toLocaleString();
     stats.closed.textContent = (scenario?.disabled?.size || 0).toLocaleString();
-    const proposed = new Set((scenario?.shortcuts || []).map((edge) => edge.segmentKey)).size;
+    const proposed = new Set((scenario?.shortcuts || []).map((edge) => edge.segmentKey))
+      .size;
     stats.proposed.textContent = proposed.toLocaleString();
   }
 
@@ -262,7 +250,10 @@ function boot() {
     const scenario = state.scenario;
     const analysis = D.getElementById("geo4-layer")?.value || "network";
     const zoom = state.map.getZoom?.() || 12;
-    const localStride = Math.max(1, Math.ceil(state.segments.length / (zoom >= 14 ? 9000 : 5600)));
+    const localStride = Math.max(
+      1,
+      Math.ceil(state.segments.length / (zoom >= 14 ? 9000 : 5600)),
+    );
     let closureCrosses = 0;
 
     ctx.save();
@@ -270,9 +261,16 @@ function boot() {
     for (const segment of state.segments) {
       const affected = scenario.factors.has(segment.key);
       const closed = scenario.disabled.has(segment.key);
-      if (!affected && !closed && segment.importance === 0 && hash(segment.key) % localStride !== 0) continue;
+      if (
+        !affected &&
+        !closed &&
+        segment.importance === 0 &&
+        hash(segment.key) % localStride !== 0
+      )
+        continue;
 
-      const baseAlpha = analysis === "network" ? 0.2 : analysis === "risk" ? 0.075 : 0.11;
+      const baseAlpha =
+        analysis === "network" ? 0.2 : analysis === "risk" ? 0.075 : 0.11;
       const baseWidth = [0.48, 0.66, 0.88, 1.15, 1.55][segment.importance];
       if (!closed) {
         stroke(
@@ -306,7 +304,11 @@ function boot() {
           8,
           [4, 4],
         );
-        if (points && closureCrosses < 90 && (segment.importance > 0 || hash(segment.key) % 7 === 0)) {
+        if (
+          points &&
+          closureCrosses < 90 &&
+          (segment.importance > 0 || hash(segment.key) % 7 === 0)
+        ) {
           drawClosureCross(points.p1, points.p2);
           closureCrosses += 1;
         }
@@ -332,34 +334,24 @@ function boot() {
     globalThis.requestAnimationFrame(draw);
   }
 
-  const originalFetch = globalThis.fetch;
-  if (typeof originalFetch === "function" && !originalFetch.__acidchRoadVisualWrapped) {
-    const wrappedFetch = async (...args) => {
-      const response = await originalFetch.apply(globalThis, args);
-      const input = args[0];
-      const url = typeof input === "string" ? input : input?.url || "";
-      if (response.ok && /overpass.*api\/interpreter|api\/interpreter/i.test(url)) {
-        response
-          .clone()
-          .json()
-          .then((payload) => {
-            if (!Array.isArray(payload?.elements) || !payload.elements.length) return;
-            const parsed = parseOverpassGraph(payload.elements);
-            if (!parsed?.edges?.length) return;
-            state.graph = parsed;
-            state.segments = prepareSegments(parsed);
-            state.scenario = currentScenario();
-            scheduleDraw();
-            globalThis.setTimeout(scheduleDraw, 300);
-          })
-          .catch(() => {});
-      }
-      return response;
-    };
-    wrappedFetch.__acidchRoadVisualWrapped = true;
-    wrappedFetch.__acidchRoadVisualOriginal = originalFetch;
-    globalThis.fetch = wrappedFetch;
-  }
+  store.subscribe((snapshot, reason) => {
+    const nextMap = snapshot.presentation.map;
+    if (nextMap && nextMap !== state.map) {
+      state.map = nextMap;
+      state.map.on("move zoom resize", scheduleDraw);
+    }
+    if (snapshot.graph !== state.graph) {
+      state.graph = snapshot.graph;
+      state.segments = prepareSegments(snapshot.graph);
+      state.scenario = currentScenario();
+    }
+    if (
+      ["graph", "reset", "scenario-inputs"].some((value) =>
+        String(reason).includes(value),
+      )
+    )
+      scheduleDraw();
+  });
 
   const refresh = () => {
     if (D.getElementById("geo4-engine")?.value !== "osm") state.scenario = null;
@@ -368,6 +360,7 @@ function boot() {
   };
   for (const id of [
     "geo4-road-mode",
+    "geo4-event",
     "geo4-congestion",
     "geo4-congestion-share",
     "geo4-closure",
@@ -382,18 +375,6 @@ function boot() {
   D.querySelectorAll('[data-step="newRoads"]').forEach((button) =>
     button.addEventListener("click", () => globalThis.setTimeout(refresh, 0)),
   );
-  D.getElementById("geo4-reset")?.addEventListener("click", () => {
-    state.graph = null;
-    state.scenario = null;
-    state.segments = [];
-    globalThis.setTimeout(scheduleDraw, 0);
-  });
-
-  const status = D.getElementById("geo4-graph-status");
-  const observer = status && globalThis.MutationObserver
-    ? new globalThis.MutationObserver(() => globalThis.setTimeout(scheduleDraw, 50))
-    : null;
-  observer?.observe(status, { childList: true, characterData: true, subtree: true });
   const resizeObserver = globalThis.ResizeObserver
     ? new globalThis.ResizeObserver(scheduleDraw)
     : null;

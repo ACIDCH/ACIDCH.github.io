@@ -69,7 +69,7 @@ function boot() {
 
   const chip = D.createElement("div");
   chip.className = "geo4__layer-chip";
-  chip.innerHTML = '<span>ANALYSIS LAYER</span><strong></strong><small></small>';
+  chip.innerHTML = "<span>ANALYSIS LAYER</span><strong></strong><small></small>";
   shell.appendChild(chip);
   const title = chip.querySelector("strong");
   const detail = chip.querySelector("small");
@@ -82,7 +82,9 @@ function boot() {
     detail.textContent = description;
   };
   layer.addEventListener("change", update);
-  D.getElementById("geo4-reset")?.addEventListener("click", () => globalThis.setTimeout(update, 0));
+  D.getElementById("geo4-reset")?.addEventListener("click", () =>
+    globalThis.setTimeout(update, 0),
+  );
   update();
 }
 

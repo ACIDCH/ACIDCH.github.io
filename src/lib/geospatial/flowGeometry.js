@@ -14,7 +14,10 @@ export function flattenLatLngs(input) {
       value.forEach(walk);
       return;
     }
-    if (Number.isFinite(Number(value.lat)) && Number.isFinite(Number(value.lng ?? value.lon))) {
+    if (
+      Number.isFinite(Number(value.lat)) &&
+      Number.isFinite(Number(value.lng ?? value.lon))
+    ) {
       out.push({ lat: Number(value.lat), lng: Number(value.lng ?? value.lon) });
     }
   };

@@ -1,3 +1,4 @@
+import { getGeospatialStore } from "../lib/geospatial/geospatialStore.js";
 import {
   classifyServiceUrl,
   normalizeGisEndpoints,
@@ -27,7 +28,7 @@ function boot() {
         ok: "正常",
         degraded: "降级",
         policy:
-          "仅由用户操作触发；不做后台轮询。服务不可用时保留快速 OD 网络或现有结果。",
+          "仅由用户操作触发；不做后台轮询。服务不可用时保留内置 Auckland 路网与现有有效结果。",
       }
     : {
         title: "External GIS services",
@@ -36,7 +37,7 @@ function boot() {
         ok: "Healthy",
         degraded: "Degraded",
         policy:
-          "User-triggered only; no background polling. Service failures preserve the Fast OD Network or the existing result.",
+          "User-triggered only; no background polling. Failures preserve the built-in Auckland graph and the latest valid result.",
       };
 
   const style = D.createElement("style");
@@ -108,79 +109,98 @@ function boot() {
 
   const originalFetch = globalThis.fetch;
   if (
-    typeof originalFetch !== "function" ||
-    originalFetch.__acidchServiceResilienceWrapped
-  )
-    return;
+    typeof originalFetch === "function" &&
+    !originalFetch.__acidchServiceResilienceWrapped
+  ) {
+    const wrappedFetch = async (input, init = {}) => {
+      const sourceUrl = typeof input === "string" ? input : input?.url || "";
+      const endpoints = runtimeOverrides();
+      const service = classifyServiceUrl(sourceUrl, endpoints);
+      if (!service) return originalFetch.call(globalThis, input, init);
 
-  const wrappedFetch = async (input, init = {}) => {
-    const sourceUrl = typeof input === "string" ? input : input?.url || "";
-    const endpoints = runtimeOverrides();
-    const service = classifyServiceUrl(sourceUrl, endpoints);
-    if (!service) return originalFetch.call(globalThis, input, init);
-
-    const rewritten = rewriteServiceUrl(sourceUrl, endpoints);
-    const timeoutMs = timeoutForService(service);
-    const controller = new globalThis.AbortController();
-    const inheritedSignal =
-      init?.signal || (typeof input !== "string" ? input?.signal : null);
-    const inheritedAbort = () => controller.abort(inheritedSignal?.reason);
-    if (inheritedSignal?.aborted) inheritedAbort();
-    else inheritedSignal?.addEventListener?.("abort", inheritedAbort, { once: true });
-    const timer = globalThis.setTimeout(
-      () =>
-        controller.abort(
-          new globalThis.DOMException("GIS service timeout", "TimeoutError"),
-        ),
-      timeoutMs,
-    );
-    const started = globalThis.performance?.now?.() || Date.now();
-    update(service, { state: "pending", latencyMs: null, status: null });
-
-    let requestInput = rewritten;
-    if (
-      typeof input !== "string" &&
-      globalThis.Request &&
-      input instanceof globalThis.Request
-    ) {
-      requestInput = new globalThis.Request(rewritten, input);
-    }
-
-    try {
-      const response = await originalFetch.call(globalThis, requestInput, {
-        ...init,
-        signal: controller.signal,
-      });
-      const ended = globalThis.performance?.now?.() || Date.now();
-      update(service, {
-        state: response.ok ? "ok" : "degraded",
-        latencyMs: ended - started,
-        status: response.status,
-      });
-      return service === "overpass" && response.ok
-        ? shareJsonResponse(response)
-        : response;
-    } catch (error) {
-      const ended = globalThis.performance?.now?.() || Date.now();
-      update(service, {
-        state: "degraded",
-        latencyMs: ended - started,
-        status: null,
-      });
-      throw error;
-    } finally {
-      globalThis.clearTimeout(timer);
-      inheritedSignal?.removeEventListener?.("abort", inheritedAbort);
-    }
-  };
-
-  wrappedFetch.__acidchServiceResilienceWrapped = true;
-  wrappedFetch.__acidchServiceResilienceOriginal = originalFetch;
-  globalThis.fetch = wrappedFetch;
+      const rewritten = rewriteServiceUrl(sourceUrl, endpoints);
+      const controller = new globalThis.AbortController();
+      const inheritedSignal =
+        init?.signal || (typeof input !== "string" ? input?.signal : null);
+      const inheritedAbort = () => controller.abort(inheritedSignal?.reason);
+      if (inheritedSignal?.aborted) inheritedAbort();
+      else
+        inheritedSignal?.addEventListener?.("abort", inheritedAbort, {
+          once: true,
+        });
+      const timer = globalThis.setTimeout(
+        () =>
+          controller.abort(
+            new globalThis.DOMException("GIS service timeout", "TimeoutError"),
+          ),
+        timeoutForService(service),
+      );
+      const started = globalThis.performance?.now?.() || Date.now();
+      update(service, { state: "pending", latencyMs: null, status: null });
+      let requestInput = rewritten;
+      if (
+        typeof input !== "string" &&
+        globalThis.Request &&
+        input instanceof globalThis.Request
+      ) {
+        requestInput = new globalThis.Request(rewritten, input);
+      }
+      try {
+        const response = await originalFetch.call(globalThis, requestInput, {
+          ...init,
+          signal: controller.signal,
+        });
+        update(service, {
+          state: response.ok ? "ok" : "degraded",
+          latencyMs: (globalThis.performance?.now?.() || Date.now()) - started,
+          status: response.status,
+        });
+        return service === "overpass" && response.ok
+          ? shareJsonResponse(response)
+          : response;
+      } catch (error) {
+        update(service, {
+          state: "degraded",
+          latencyMs: (globalThis.performance?.now?.() || Date.now()) - started,
+          status: null,
+        });
+        throw error;
+      } finally {
+        globalThis.clearTimeout(timer);
+        inheritedSignal?.removeEventListener?.("abort", inheritedAbort);
+      }
+    };
+    wrappedFetch.__acidchServiceResilienceWrapped = true;
+    wrappedFetch.__acidchServiceResilienceOriginal = originalFetch;
+    globalThis.fetch = wrappedFetch;
+  }
   globalThis.__ACIDCH_GIS_RUNTIME__ = {
     getEndpoints: runtimeOverrides,
     getHealth: () => Object.fromEntries(states),
   };
+
+  const store = getGeospatialStore();
+  const renderHealth = (health) => {
+    for (const [service, value] of Object.entries(health)) {
+      const state =
+        value.state === "healthy"
+          ? "ok"
+          : ["loading", "retrying", "fallback"].includes(value.state)
+            ? "pending"
+            : value.state === "degraded"
+              ? "degraded"
+              : "idle";
+      update(service, {
+        state,
+        latencyMs: value.latencyMs ?? null,
+        status: null,
+      });
+    }
+  };
+  renderHealth(store.getState().serviceHealth);
+  store.subscribe((state, reason) => {
+    if (String(reason).startsWith("service:")) renderHealth(state.serviceHealth);
+  });
 }
 
 boot();
