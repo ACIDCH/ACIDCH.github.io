@@ -190,6 +190,18 @@ describe("production deployment contracts", () => {
     expect(verifier).toContain('requireText(source, "geospatial-analysis"');
   });
 
+  it("verifies the authenticated CARTO basemap contract in production", async () => {
+    const verifier = await source("scripts/verify-geospatial-production.mjs");
+    const workflow = await source(".github/workflows/deploy.yml");
+
+    expect(verifier).toContain("async function verifyCartoAuthentication()");
+    expect(verifier).toContain("rastertiles/dark_all");
+    expect(verifier).toContain('requireText(source, "?key="');
+    expect(workflow).toContain(
+      "PUBLIC_CARTO_BASEMAP_KEY: ${{ secrets.PUBLIC_CARTO_BASEMAP_KEY }}",
+    );
+  });
+
   it("publishes a machine-readable commit status after live verification", async () => {
     const workflow = await source(".github/workflows/deploy.yml");
 

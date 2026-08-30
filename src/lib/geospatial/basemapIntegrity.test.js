@@ -1,35 +1,53 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-const source = readFileSync(
-  new globalThis.URL("../../scripts/geospatial-leaflet-loader.js", import.meta.url),
-  "utf8",
-);
+const read = (path) =>
+  readFileSync(new globalThis.URL(path, import.meta.url), "utf8");
+
+const config = read("./basemapConfig.js");
+const loader = read("../../scripts/geospatial-leaflet-loader.js");
+const runtime = read("../../scripts/geospatial-v4.js");
 
 describe("geospatial basemap integrity", () => {
-  it("configures Carto Dark Matter without embedding a credential", () => {
-    expect(source).toContain(
-      "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
+  it("uses the keyed CARTO rastertiles contract from one shared config", () => {
+    expect(config).toContain(
+      "https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png",
     );
-    expect(source).toContain("import.meta.env.PUBLIC_CARTO_BASEMAP_KEY");
-    expect(source).toContain("encodeURIComponent(CARTO_KEY)");
-    expect(source).not.toMatch(/cb1_[A-Za-z0-9_]+/);
+    expect(config).toContain("import.meta.env.PUBLIC_CARTO_BASEMAP_KEY");
+    expect(config).toContain(
+      "${CARTO_RASTER_URL}?key=${encodeURIComponent(CARTO_KEY)}",
+    );
+    expect(config).not.toMatch(/cb1_[A-Za-z0-9_]+/);
   });
 
-  it("keeps the OSM fallback and required attribution", () => {
-    expect(source).toContain(
+  it("keeps a real OSM fallback and required attribution", () => {
+    expect(config).toContain(
       "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     );
-    expect(source).toContain("OpenStreetMap</a> contributors");
-    expect(source).toContain("CARTO</a>");
-    expect(source).toContain(
-      'target.dataset.leafletBasemap = CARTO_KEY ? "carto-dark-matter" : "osm-fallback"',
-    );
-    expect(source).toContain('setState("ready", "bundle")');
+    expect(config).toContain("OpenStreetMap</a> contributors");
+    expect(config).toContain("CARTO</a>");
+    expect(config).toContain('"osm-fallback"');
   });
 
-  it("does not expose an API-key-required failure state", () => {
-    expect(source).not.toMatch(/API KEY REQUIRED/i);
-    expect(source).not.toMatch(/cartocdn\.com\/dark_all\/[^\s"']+\?key=$/);
+  it("makes the GIS runtime consume the shared keyed basemap config", () => {
+    expect(runtime).toContain(
+      'import { getBasemapConfig } from "../lib/geospatial/basemapConfig.js";',
+    );
+    expect(runtime).toContain("const basemap = getBasemapConfig();");
+    expect(runtime).toContain(
+      "L.tileLayer(basemap.url, basemap.options).addTo(map);",
+    );
+    expect(runtime).not.toContain(
+      "https://{s}.basemaps.cartocdn.com/dark_all/",
+    );
+  });
+
+  it("does not monkey-patch Leaflet tileLayer or expose the old failure contract", () => {
+    expect(loader).toContain(
+      'import { getBasemapSource } from "../lib/geospatial/basemapConfig.js";',
+    );
+    expect(loader).not.toContain("Leaflet.tileLayer =");
+    expect(loader).not.toMatch(/API KEY REQUIRED/i);
+    expect(runtime).not.toMatch(/API KEY REQUIRED/i);
   });
 });

@@ -1,12 +1,11 @@
 import "./geospatial-idle-gis-guard.js";
 import * as LeafletNamespace from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { getBasemapSource } from "../lib/geospatial/basemapConfig.js";
 
 const D = globalThis.document;
 const Leaflet = LeafletNamespace.default || LeafletNamespace;
-const CARTO_TILE_PATTERN = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
-const CARTO_TILE_URL = "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png";
-const CARTO_KEY = import.meta.env.PUBLIC_CARTO_BASEMAP_KEY?.trim() || "";
+const BASEMAP_SOURCE = getBasemapSource();
 
 function root() {
   return D?.getElementById("geo-v4") || null;
@@ -17,22 +16,7 @@ function setState(state, source = "bundle") {
   if (!target) return;
   target.dataset.leafletState = state;
   target.dataset.leafletSource = source;
-  target.dataset.leafletBasemap = CARTO_KEY ? "carto-dark-matter" : "osm-fallback";
-}
-
-function configureBasemap() {
-  if (!CARTO_KEY || typeof Leaflet.tileLayer !== "function") return;
-  const originalTileLayer = Leaflet.tileLayer.bind(Leaflet);
-  Leaflet.tileLayer = (url, options = {}) => {
-    if (url !== CARTO_TILE_PATTERN) return originalTileLayer(url, options);
-    return originalTileLayer(`${CARTO_TILE_URL}?key=${encodeURIComponent(CARTO_KEY)}`, {
-      ...options,
-      maxZoom: Math.min(options.maxZoom ?? 20, 20),
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, ' +
-        '&copy; <a href="https://carto.com/attributions">CARTO</a>',
-    });
-  };
+  target.dataset.leafletBasemap = BASEMAP_SOURCE;
 }
 
 function exposeBundledLeaflet() {
@@ -48,7 +32,6 @@ function exposeBundledLeaflet() {
     throw new Error("Bundled Leaflet did not expose the expected map API");
   }
 
-  configureBasemap();
   globalThis.L = Leaflet;
   setState("ready", "bundle");
   globalThis.__ACIDCH_LEAFLET_PROMISE__ = globalThis.Promise.resolve(Leaflet);
@@ -56,7 +39,7 @@ function exposeBundledLeaflet() {
     new globalThis.CustomEvent("acidch:leaflet-ready", {
       detail: {
         source: "bundle",
-        basemap: CARTO_KEY ? "carto-dark-matter" : "osm-fallback",
+        basemap: BASEMAP_SOURCE,
       },
     }),
   );

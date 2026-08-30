@@ -17,6 +17,7 @@ import { getGisServices } from "../lib/geospatial/gisServices.js";
 import { attachMapAdapter } from "../lib/geospatial/mapAdapter.js";
 import { createDisruptionEvent } from "../lib/geospatial/disruptionEvents.js";
 import { getAnalysisWorkerClient } from "../lib/geospatial/analysisWorkerClient.js";
+import { getBasemapConfig } from "../lib/geospatial/basemapConfig.js";
 import {
   AUCKLAND_BASELINE_METADATA,
   loadAucklandBaselineGraph,
@@ -331,12 +332,8 @@ function boot() {
       zoomSnap: 0.25,
       maxZoom: 20,
     }).setView([-36.873, 174.766], 12);
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-    maxZoom: 20,
-    subdomains: "abcd",
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; CARTO',
-  }).addTo(map);
+  const basemap = getBasemapConfig();
+  L.tileLayer(basemap.url, basemap.options).addTo(map);
   attachMapAdapter(map, L);
   store.attachPresentation(map, L);
   const fl = L.layerGroup().addTo(map),
