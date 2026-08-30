@@ -52,6 +52,11 @@ def assert_osm_failure_fallback(browser: object) -> None:
     browser.require("#geo4-map .leaflet-map-pane")
     browser.wait_for_text("#geo4-graph-status", "基础网络已就绪", timeout=20)
     browser.click("#geo4-load-graph")
+    browser.wait_for_text(
+        "#geo4-graph-status",
+        "在线 OSM 路网不可用；继续使用内置 Auckland 基线路网。",
+        timeout=20,
+    )
 
     wait_value(
         browser,
