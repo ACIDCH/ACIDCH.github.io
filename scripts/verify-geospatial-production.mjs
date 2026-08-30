@@ -1,3 +1,5 @@
+import { Buffer } from "node:buffer";
+
 const [baseArgument, expectedSha] = globalThis.process.argv.slice(2);
 if (!baseArgument || !expectedSha) {
   console.error(
