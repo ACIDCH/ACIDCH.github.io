@@ -107,7 +107,7 @@ def assert_hotfix(browser: object, endpoint: str) -> None:
     geo.set_select(browser, "#geo4-road-mode", "mixed")
     browser.wait_for_text(".geo4__freshness", "参数已变更", timeout=4)
     browser.click("#geo4-routes")
-    browser.wait_for_text("#geo4-status", "请先重新运行优化", timeout=4)
+    browser.wait_for_text("#geo4-status", "参数已改变；旧结果已失效，请重新运行优化。", timeout=4)
 
     browser.click("#geo4-run")
     geo.wait_solved(browser, timeout=12)
