@@ -50,7 +50,6 @@ def assert_osm_failure_fallback(browser: object) -> None:
     browser.require("#geo-v4[data-compact-entity-ui-ready='true']")
     browser.require("#geo-v4[data-leaflet-source='bundle']")
     browser.require("#geo4-map .leaflet-map-pane")
-    geo.browser_wait = getattr(geo, "browser_wait", None)
     browser.wait_for_text("#geo4-graph-status", "基础网络已就绪", timeout=20)
     browser.click("#geo4-load-graph")
 
