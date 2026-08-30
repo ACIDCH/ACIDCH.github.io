@@ -140,7 +140,7 @@ async function verify() {
     "keyed CARTO Dark Matter raster endpoint",
   );
   requireText(source, "?key=", "CARTO basemap key query contract");
-  if (/basemaps\\.cartocdn\\.com\\/dark_all\\//.test(source)) {
+  if (source.includes("basemaps.cartocdn.com/dark_all/")) {
     throw new Error("Production GIS still contains the legacy unkeyed CARTO endpoint");
   }
   await verifyCartoAuthentication();
