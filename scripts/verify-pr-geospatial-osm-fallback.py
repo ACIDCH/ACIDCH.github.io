@@ -54,13 +54,7 @@ def assert_osm_failure_fallback(browser: object) -> None:
     wait_value(
         browser,
         "return document.querySelector('#geo4-engine')?.value || '';",
-        "od",
-        timeout=12,
-    )
-    wait_value(
-        browser,
-        "return document.querySelector('#geo-v4')?.dataset.networkRecovery || '';",
-        "fast-od",
+        "osm",
         timeout=12,
     )
     wait_value(
@@ -83,13 +77,22 @@ def assert_osm_failure_fallback(browser: object) -> None:
     status = geo.read_text(browser, "#geo4-status")
     graph_status = geo.read_text(browser, "#geo4-graph-status")
 
-    if "快速 OD" not in graph_status and "Fast OD" not in graph_status:
-        raise RuntimeError(f"Graph status did not record Fast OD recovery: {graph_status!r}")
+    if "内置 Auckland 基线路网" not in graph_status and "built-in Auckland baseline graph" not in graph_status:
+        raise RuntimeError(
+            f"Graph status did not retain the built-in Auckland baseline graph: {graph_status!r}"
+        )
+    recovery = browser.execute(
+        "return document.querySelector('#geo-v4')?.dataset.networkRecovery || '';"
+    )
+    if recovery == "fast-od":
+        raise RuntimeError(
+            "A live Overpass outage incorrectly discarded the available Auckland baseline graph."
+        )
     if "重新优化" not in status and "re-optimised" not in status:
         raise RuntimeError(f"Fallback result did not settle on a solved state: {status!r}")
     if hubs in {"", "—"} or cost in {"", "—"}:
         raise RuntimeError(
-            f"Fast OD fallback did not produce a usable optimisation result: hubs={hubs!r}, cost={cost!r}"
+            f"Baseline-graph fallback did not produce a usable optimisation result: hubs={hubs!r}, cost={cost!r}"
         )
 
 
@@ -128,7 +131,7 @@ def main() -> None:
         server.server_close()
 
     print(
-        "OSM failure recovery browser verification passed: bundled Leaflet starts locally, a deterministic Overpass outage preserves the compact scene, and Fast OD recovery produces a durable recovery state with fresh solved KPIs."
+        "OSM failure recovery browser verification passed: bundled Leaflet starts locally, a deterministic Overpass outage retains the built-in Auckland road graph, and the baseline graph produces fresh solved KPIs without an unnecessary Fast OD downgrade."
     )
 
 
