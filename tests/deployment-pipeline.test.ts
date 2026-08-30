@@ -182,6 +182,14 @@ describe("production deployment contracts", () => {
     expect(geo).toContain('setEngineThreshold(graph ? "osm" : "od", graph ? 30 : 15);');
   });
 
+  it("follows bundled module imports when verifying the production GIS Worker", async () => {
+    const verifier = await source("scripts/verify-geospatial-production.mjs");
+
+    expect(verifier).toContain("async function fetchModuleGraph(entries)");
+    expect(verifier).toContain("dependency.origin === baseUrl.origin");
+    expect(verifier).toContain('requireText(source, "geospatial-analysis"');
+  });
+
   it("publishes a machine-readable commit status after live verification", async () => {
     const workflow = await source(".github/workflows/deploy.yml");
 

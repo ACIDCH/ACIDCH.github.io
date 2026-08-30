@@ -20,6 +20,32 @@ async function fetchText(pathname) {
   return response.text();
 }
 
+async function fetchModuleGraph(entries) {
+  const pending = entries.map((entry) => new URL(entry, baseUrl));
+  const visited = new Set();
+  const sources = [];
+  while (pending.length && visited.size < 128) {
+    const url = pending.shift();
+    if (visited.has(url.href)) continue;
+    visited.add(url.href);
+    const response = await globalThis.fetch(url, {
+      signal: globalThis.AbortSignal.timeout(15000),
+    });
+    if (!response.ok) continue;
+    const source = await response.text();
+    sources.push(source);
+    for (const match of source.matchAll(
+      /(?:from\s*|import\s*\()?['"]([^'"]+\.js)['"]/g,
+    )) {
+      const dependency = new URL(match[1], url);
+      if (dependency.origin === baseUrl.origin && !visited.has(dependency.href)) {
+        pending.push(dependency);
+      }
+    }
+  }
+  return sources.join("\n");
+}
+
 function requireText(source, token, label) {
   if (!source.includes(token)) throw new Error(`Production GIS missing ${label}`);
 }
@@ -50,16 +76,7 @@ async function verify() {
       ),
     ),
   ];
-  const source = (
-    await Promise.all(
-      scripts.map(async (script) => {
-        const response = await globalThis.fetch(new URL(script, baseUrl), {
-          signal: globalThis.AbortSignal.timeout(15000),
-        });
-        return response.ok ? response.text() : "";
-      }),
-    )
-  ).join("\n");
+  const source = await fetchModuleGraph(scripts);
   requireText(source, "geospatial-analysis", "module Worker bundle reference");
   requireText(source, "criticality", "criticality runtime");
   requireText(source, "Factory to Warehouse to Demand Sankey", "Sankey runtime");
