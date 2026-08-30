@@ -67,7 +67,7 @@ def assert_hotfix(browser: object, endpoint: str) -> None:
     browser.require("#geo4-map .leaflet-map-pane")
     execute_fetch_stub(browser)
 
-    browser.wait_for_text("#geo4-graph-status", "OSM 道路网络已加载", timeout=16)
+    browser.wait_for_text("#geo4-graph-status", "基础网络已就绪", timeout=20)
     geo.wait_solved(browser, timeout=16)
 
     if browser.execute("return document.querySelector('#geo4-engine')?.value") != "osm":
@@ -203,7 +203,7 @@ def main() -> None:
         gis_server.server_close()
 
     print(
-        "Post-release geospatial browser verification passed: compact OSM-first solving, coverage isolation, stale-result guards, OSM-only transshipment, enabled Route/Fleet actions and model-scaled non-duplicated fleet trips are correct."
+        "Post-release geospatial browser verification passed: baseline-first OSM solving, coverage isolation, stale-result guards, OSM-only transshipment, enabled Route/Fleet actions and model-scaled non-duplicated fleet trips are correct."
     )
 
 
