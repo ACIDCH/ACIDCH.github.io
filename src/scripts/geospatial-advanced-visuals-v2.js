@@ -61,6 +61,7 @@ function boot() {
     density: 4,
     glow: 1,
     started: globalThis.performance?.now?.() || Date.now(),
+    animationFrame: 0,
   };
 
   const style = D.createElement("style");
@@ -132,6 +133,7 @@ function boot() {
   };
   const clear = () => {
     state.routes = [];
+    stopAnimation();
     if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
     updateStatus();
   };
@@ -158,6 +160,11 @@ function boot() {
       return { map, points, flow: route.flow, travelMin: route.travelMin };
     });
     updateStatus();
+    if (state.routes.length) scheduleAnimation();
+    else {
+      stopAnimation();
+      if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
   };
   store.subscribe((snapshot, reason) => {
     if (
@@ -201,8 +208,8 @@ function boot() {
   }
 
   function animate(now) {
-    frame(animate);
-    if (!ctx) return;
+    state.animationFrame = 0;
+    if (!shouldAnimate()) return;
     const { dpr, rect } = fitCanvas();
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, rect.width, rect.height);
@@ -297,11 +304,38 @@ function boot() {
       }
     });
     ctx.restore();
+    scheduleAnimation();
+  }
+
+  function shouldAnimate() {
+    return Boolean(
+      ctx &&
+      state.enabled &&
+      state.routes.length &&
+      D.visibilityState !== "hidden" &&
+      state.routes.some((route) => route.map),
+    );
+  }
+
+  function scheduleAnimation() {
+    if (!shouldAnimate() || state.animationFrame) return;
+    state.animationFrame = frame(animate);
+  }
+
+  function stopAnimation() {
+    if (!state.animationFrame) return;
+    globalThis.cancelAnimationFrame(state.animationFrame);
+    state.animationFrame = 0;
   }
 
   toggle.addEventListener("change", () => {
     state.enabled = toggle.checked;
     state.started = globalThis.performance?.now?.() || Date.now();
+    if (state.enabled) scheduleAnimation();
+    else {
+      stopAnimation();
+      if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
     updateStatus();
   });
   speed.addEventListener("input", () => (state.speed = Number(speed.value)));
@@ -329,8 +363,12 @@ function boot() {
     ? new globalThis.ResizeObserver(() => fitCanvas())
     : null;
   observer?.observe(mapBox);
+  D.addEventListener("visibilitychange", () => {
+    if (D.visibilityState === "hidden") stopAnimation();
+    else scheduleAnimation();
+  });
   updateStatus();
-  frame(animate);
+  scheduleAnimation();
 }
 
 boot();

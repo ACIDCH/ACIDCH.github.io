@@ -145,11 +145,12 @@ function boot() {
     map: initial.presentation.map,
     segments: [],
     sets: [],
+    coveredSegments: [],
     key: "",
     pending: false,
   };
   if (state.graph) state.segments = prepare(state.graph);
-  state.map?.on("move zoom resize", schedule);
+  state.map?.on("move zoom resize", scheduleDraw);
 
   function params() {
     const snapshot = store.getState();
@@ -229,6 +230,13 @@ function boot() {
         ? boundedDijkstra(state.graph, snap.nodeId, scenario, threshold)
         : new Set();
     });
+    state.coveredSegments = state.segments.flatMap((segment) => {
+      const coverage = state.sets.reduce(
+        (sum, set) => sum + (set.has(segment.from) && set.has(segment.to) ? 1 : 0),
+        0,
+      );
+      return coverage ? [{ ...segment, coverage }] : [];
+    });
     const union = new Set(state.sets.flatMap((set) => [...set]));
     let overlap = 0;
     for (const node of union)
@@ -274,15 +282,10 @@ function boot() {
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
     let drawn = 0;
-    for (const segment of state.segments) {
-      const coverage = state.sets.reduce(
-        (sum, set) => sum + (set.has(segment.from) && set.has(segment.to) ? 1 : 0),
-        0,
-      );
-      if (!coverage) continue;
+    for (const segment of state.coveredSegments) {
       const p1 = state.map.latLngToContainerPoint([segment.a.lat, segment.a.lon]),
         p2 = state.map.latLngToContainerPoint([segment.b.lat, segment.b.lon]);
-      const overlap = coverage >= 2;
+      const overlap = segment.coverage >= 2;
       ctx.strokeStyle = overlap ? "rgba(216,255,107,.96)" : "rgba(98,236,255,.82)";
       ctx.globalAlpha = overlap ? 0.7 : 0.34;
       ctx.lineWidth = overlap ? 2.2 : 1.15;
@@ -297,18 +300,22 @@ function boot() {
     }
     ctx.restore();
   }
-  function schedule() {
-    state.key = "";
+  function scheduleDraw() {
     if (state.pending) return;
     state.pending = true;
     globalThis.requestAnimationFrame(draw);
+  }
+
+  function invalidateCoverage() {
+    state.key = "";
+    scheduleDraw();
   }
 
   store.subscribe((snapshot, reason) => {
     const nextMap = snapshot.presentation.map;
     if (nextMap && nextMap !== state.map) {
       state.map = nextMap;
-      state.map.on("move zoom resize", schedule);
+      state.map.on("move zoom resize", scheduleDraw);
     }
     if (snapshot.graph && snapshot.graph !== state.graph) {
       state.graph = snapshot.graph;
@@ -319,12 +326,16 @@ function boot() {
         String(reason).includes(value),
       )
     )
-      schedule();
+      invalidateCoverage();
   });
 
+  for (const id of ["geo4-layer"]) {
+    const el = D.getElementById(id);
+    el?.addEventListener("input", scheduleDraw);
+    el?.addEventListener("change", scheduleDraw);
+  }
   for (const id of [
     "geo4-engine",
-    "geo4-layer",
     "geo4-threshold",
     "geo4-road-mode",
     "geo4-event",
@@ -335,16 +346,16 @@ function boot() {
     "geo4-run",
   ]) {
     const el = D.getElementById(id);
-    el?.addEventListener("input", schedule);
-    el?.addEventListener("change", schedule);
-    el?.addEventListener("click", () => globalThis.setTimeout(schedule, 40));
+    el?.addEventListener("input", invalidateCoverage);
+    el?.addEventListener("change", invalidateCoverage);
+    el?.addEventListener("click", () => globalThis.setTimeout(invalidateCoverage, 40));
   }
   D.querySelectorAll('[data-step="newRoads"]').forEach((b) =>
-    b.addEventListener("click", () => globalThis.setTimeout(schedule, 0)),
+    b.addEventListener("click", () => globalThis.setTimeout(invalidateCoverage, 0)),
   );
   if (globalThis.ResizeObserver)
-    new globalThis.ResizeObserver(schedule).observe(mapBox);
-  schedule();
+    new globalThis.ResizeObserver(scheduleDraw).observe(mapBox);
+  scheduleDraw();
 }
 
 boot();

@@ -65,6 +65,14 @@ if (
   roadNetwork.includes("L.circleMarker =")
 )
   fail("Road visual layer must not monkey-patch fetch or Leaflet markers");
+if (!roadNetwork.includes("const scenario = state.scenario || currentScenario();"))
+  fail("Road viewport redraws must reuse the current scenario calculation");
+if (
+  roadNetwork.includes(
+    "state.scenario = currentScenario();\n    const scenario = state.scenario;",
+  )
+)
+  fail("Road viewport redraws must not rebuild the edge scenario on every frame");
 
 for (const [token, label] of [
   ["geo4__coverage-canvas-v2", "network service-area canvas"],
@@ -99,6 +107,14 @@ for (const [token, label] of [
   requireText(controller, token, label);
 if (controller.includes("L.polyline =") || controller.includes("Flow:\\s*"))
   fail("Advanced route visuals must not monkey-patch Leaflet or parse tooltip copy");
+if (controller.includes("function animate(now) {\n    frame(animate);"))
+  fail("Route-flow animation must not schedule frames while it is inactive");
+for (const [token, label] of [
+  ["function shouldAnimate()", "route-flow active-state scheduler"],
+  ["function stopAnimation()", "route-flow frame cancellation"],
+  ['D.addEventListener("visibilitychange"', "hidden-page animation suspension"],
+])
+  requireText(controller, token, label);
 
 for (const [token, label] of [
   ["geo4__fleet-route", "fleet tour motion"],

@@ -132,7 +132,10 @@ function boot() {
     }
     return [...unique.values()];
   }
-  if (state.graph) state.segments = prepareSegments(state.graph);
+  if (state.graph) {
+    state.segments = prepareSegments(state.graph);
+    state.scenario = currentScenario();
+  }
   state.map?.on("move zoom resize", scheduleDraw);
 
   function currentScenario() {
@@ -185,6 +188,7 @@ function boot() {
       return;
     }
     const scenario = state.scenario || currentScenario();
+    state.scenario = scenario;
     detail.textContent = copy.title;
     stats.nodes.textContent = state.graph.nodeList.length.toLocaleString();
     stats.segments.textContent = state.segments.length.toLocaleString();
@@ -246,8 +250,9 @@ function boot() {
     const engine = D.getElementById("geo4-engine")?.value || "od";
     if (!state.map || !state.graph || engine !== "osm") return;
 
-    state.scenario = currentScenario();
-    const scenario = state.scenario;
+    const scenario = state.scenario || currentScenario();
+    state.scenario = scenario;
+    if (!scenario) return;
     const analysis = D.getElementById("geo4-layer")?.value || "network";
     const zoom = state.map.getZoom?.() || 12;
     const localStride = Math.max(
@@ -349,8 +354,10 @@ function boot() {
       ["graph", "reset", "scenario-inputs"].some((value) =>
         String(reason).includes(value),
       )
-    )
+    ) {
+      state.scenario = currentScenario();
       scheduleDraw();
+    }
   });
 
   const refresh = () => {

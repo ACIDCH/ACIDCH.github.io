@@ -74,7 +74,15 @@ if (!source.includes("edge.timeMin"))
   fail("Coverage must use the real graph timeMin schema");
 if (source.includes("edge.travelTimeMin"))
   fail("Legacy invalid travelTimeMin schema must not remain in Coverage V2");
+if (!source.includes('state.map?.on("move zoom resize", scheduleDraw)'))
+  fail(
+    "Map viewport changes must redraw cached coverage without invalidating Dijkstra",
+  );
+if (source.includes('state.map?.on("move zoom resize", invalidateCoverage)'))
+  fail("Map viewport changes must not invalidate the coverage calculation cache");
+if (!source.includes("for (const segment of state.coveredSegments)"))
+  fail("Coverage draw must reuse preclassified covered segments");
 
 console.log(
-  "[geospatial-coverage] PASS: bounded Dijkstra responds correctly to time threshold, congestion, closure and new-road shortcuts using edge.timeMin.",
+  "[geospatial-coverage] PASS: bounded Dijkstra responds correctly to time threshold, congestion, closure and new-road shortcuts using edge.timeMin; viewport redraws preserve the cached service area.",
 );
