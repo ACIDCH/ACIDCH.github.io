@@ -5,7 +5,10 @@ import {
   parseOverpassGraph,
   solveTwoEchelonNetwork,
 } from "../lib/geospatial/decisionEngine.js";
-import { reconstructGraphPath } from "../lib/geospatial/pathTools.js";
+import {
+  reconstructGraphPath,
+  routeGraphNeedsRefresh,
+} from "../lib/geospatial/pathTools.js";
 import {
   applyNetworkScenario,
   createNetworkMatrix,
@@ -68,6 +71,10 @@ function boot() {
           route: "正在加载当前最优分配路径…",
           routeOk: "最优路径已加载；OSM 模式与本次 Dijkstra 情景一致。",
           routePart: "部分路径不可用，保留分配线作为降级显示。",
+          routeRefresh:
+            "正在按当前实体范围刷新 OSM 路网并重新优化，完成后将自动加载路径…",
+          routeFallback:
+            "完整路径已加载；在线 OSM 路网不可用，部分路径使用 OSRM 降级几何。",
           a: "已保存情景 A。",
           b: "已保存情景 B。",
           ab: "A / B 对比已生成。",
@@ -112,6 +119,10 @@ function boot() {
             "Optimal paths loaded; OSM mode matches the current Dijkstra scenario.",
           routePart:
             "Some paths were unavailable; allocation links remain as fallback.",
+          routeRefresh:
+            "Refreshing the OSM graph for the current entity extent and re-optimising before paths are drawn…",
+          routeFallback:
+            "Paths loaded; the live OSM graph was unavailable, so some routes use OSRM fallback geometry.",
           a: "Scenario A saved.",
           b: "Scenario B saved.",
           ab: "A / B comparison generated.",
@@ -1451,42 +1462,64 @@ function boot() {
   }
   async function routes() {
     if (!solution) return;
-    const token = store.begin("routes");
-    const routeVisuals = [];
-    q("geo4-status").textContent = T.route;
     q("geo4-routes").disabled = true;
-    rl.clearLayers();
-    store.setRouteVisuals([], token);
-    let fails = 0;
+    let fallbackGeometry = false;
     try {
       if (!(await coords())) throw Error("coords");
+      const needsRefresh = routeGraphNeedsRefresh({
+        engine: q("geo4-engine").value,
+        graph,
+        baselineGraph,
+        graphBounds,
+        points: [...HC, ...NC],
+      });
+      if (needsRefresh) {
+        q("geo4-status").textContent = T.routeRefresh;
+        const refreshed = await loadGraph(false);
+        await solve();
+        if (!solution) return;
+        fallbackGeometry = !refreshed || graph === baselineGraph;
+      }
+
+      const token = store.begin("routes");
+      const routeVisuals = [];
+      q("geo4-status").textContent = T.route;
+      rl.clearLayers();
+      store.setRouteVisuals([], token);
+      let fails = 0;
+      let fallbacks = 0;
       for (const x of solution.assignments) {
-        if (q("geo4-engine").value === "osm" && graph && activeGraph) {
+        if (
+          q("geo4-engine").value === "osm" &&
+          graph &&
+          activeGraph &&
+          !fallbackGeometry
+        ) {
           const s = activeGraph.sourceSnaps[x.hub]?.nodeId,
             d = activeGraph.destinationSnaps[x.demand]?.nodeId,
             p =
               s && d
                 ? reconstructGraphPath(graph, s, d, activeGraph.scenario, "time")
                 : null;
-          if (!p) {
-            fails++;
+          if (p) {
+            L.polyline(
+              p.coordinates.map((v) => [v.lat, v.lon]),
+              { color: "#d8ff6b", weight: 2.7, opacity: 0.84 },
+            )
+              .bindTooltip(
+                `${H[x.hub]} → ${N[x.demand]}<br>Flow: ${x.flow.toFixed(0)} · ${p.cost.toFixed(1)} min`,
+              )
+              .addTo(rl);
+            routeVisuals.push({
+              coordinates: p.coordinates,
+              flow: x.flow,
+              travelMin: p.cost,
+              stage: "warehouseDemand",
+              geometrySource: "osm-graph",
+            });
             continue;
           }
-          L.polyline(
-            p.coordinates.map((v) => [v.lat, v.lon]),
-            { color: "#d8ff6b", weight: 2.7, opacity: 0.84 },
-          )
-            .bindTooltip(
-              `${H[x.hub]} → ${N[x.demand]}<br>Flow: ${x.flow.toFixed(0)} · ${p.cost.toFixed(1)} min`,
-            )
-            .addTo(rl);
-          routeVisuals.push({
-            coordinates: p.coordinates,
-            flow: x.flow,
-            travelMin: p.cost,
-            stage: "warehouseDemand",
-          });
-          continue;
+          fallbackGeometry = true;
         }
         const a = HC[x.hub],
           b = NC[x.demand];
@@ -1507,14 +1540,21 @@ function boot() {
             flow: x.flow,
             travelMin: route.durationMin ?? null,
             stage: "warehouseDemand",
+            geometrySource:
+              q("geo4-engine").value === "osm" ? "osrm-fallback" : "osrm",
           });
+          if (q("geo4-engine").value === "osm") fallbacks++;
         } catch {
           fails++;
         }
-        await wait(90);
+        await wait(q("geo4-engine").value === "osm" && fallbackGeometry ? 1050 : 90);
       }
       store.setRouteVisuals(routeVisuals, token);
-      q("geo4-status").textContent = fails ? T.routePart : T.routeOk;
+      q("geo4-status").textContent = fails
+        ? T.routePart
+        : fallbacks
+          ? T.routeFallback
+          : T.routeOk;
     } catch (e) {
       globalThis.console?.warn("[Geo V4] routes", e);
       q("geo4-status").textContent = T.routePart;

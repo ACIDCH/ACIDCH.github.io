@@ -45,3 +45,30 @@ export function reconstructGraphPath(
 
   return { cost, edges, coordinates, distanceKm, travelTimeMin };
 }
+
+
+export function routeGraphNeedsRefresh({
+  engine,
+  graph,
+  baselineGraph,
+  graphBounds,
+  points = [],
+}) {
+  if (engine !== "osm") return false;
+  if (!graph || graph === baselineGraph) return true;
+  if (!Array.isArray(graphBounds) || graphBounds.length !== 4) return true;
+  const [south, west, north, east] = graphBounds.map(Number);
+  if (![south, west, north, east].every(Number.isFinite)) return true;
+  return points.some((point) => {
+    const lat = Number(point?.lat);
+    const lon = Number(point?.lon);
+    return (
+      !Number.isFinite(lat) ||
+      !Number.isFinite(lon) ||
+      lat < south ||
+      lat > north ||
+      lon < west ||
+      lon > east
+    );
+  });
+}

@@ -1,62 +1,57 @@
 import { describe, expect, it } from "vitest";
-import { reconstructGraphPath } from "./pathTools.js";
+import { routeGraphNeedsRefresh } from "./pathTools.js";
 
-function graphFixture() {
-  const nodes = new Map([
-    ["a", { id: "a", lat: -36.85, lon: 174.75 }],
-    ["b", { id: "b", lat: -36.86, lon: 174.76 }],
-    ["c", { id: "c", lat: -36.87, lon: 174.77 }],
-  ]);
-  const edges = [
-    {
-      id: 0,
-      from: "a",
-      to: "b",
-      segmentKey: "a:b",
-      lengthKm: 1,
-      timeMin: 1,
-    },
-    {
-      id: 1,
-      from: "b",
-      to: "c",
-      segmentKey: "b:c",
-      lengthKm: 2,
-      timeMin: 2,
-    },
-    {
-      id: 2,
-      from: "a",
-      to: "c",
-      segmentKey: "a:c",
-      lengthKm: 10,
-      timeMin: 10,
-    },
-  ];
-  return {
-    nodes,
-    nodeList: [...nodes.values()],
-    edges,
-    adjacency: new Map([
-      ["a", [0, 2]],
-      ["b", [1]],
-    ]),
-  };
-}
+describe("routeGraphNeedsRefresh", () => {
+  const baselineGraph = { version: "baseline" };
+  const liveGraph = { version: "live" };
+  const bounds = [-37.2, 174.5, -36.5, 175.0];
+  const point = { lat: -36.85, lon: 174.76 };
 
-describe("reconstructGraphPath", () => {
-  it("returns scenario-consistent distance and travel time with the route geometry", () => {
-    const scenario = {
-      factors: new Map([["b:c", 2]]),
-      disabled: new Set(),
-      shortcuts: [],
-    };
-    const path = reconstructGraphPath(graphFixture(), "a", "c", scenario, "time");
+  it("requires a refresh for the built-in baseline graph in OSM mode", () => {
+    expect(
+      routeGraphNeedsRefresh({
+        engine: "osm",
+        graph: baselineGraph,
+        baselineGraph,
+        graphBounds: bounds,
+        points: [point],
+      }),
+    ).toBe(true);
+  });
 
-    expect(path).not.toBeNull();
-    expect(path.cost).toBe(5);
-    expect(path.distanceKm).toBe(3);
-    expect(path.travelTimeMin).toBe(5);
-    expect(path.coordinates).toHaveLength(3);
+  it("requires a refresh when a live graph does not cover every entity", () => {
+    expect(
+      routeGraphNeedsRefresh({
+        engine: "osm",
+        graph: liveGraph,
+        baselineGraph,
+        graphBounds: [-36.9, 174.7, -36.8, 174.8],
+        points: [point, { lat: -37.05, lon: 174.9 }],
+      }),
+    ).toBe(true);
+  });
+
+  it("reuses a live graph when it covers the current entity extent", () => {
+    expect(
+      routeGraphNeedsRefresh({
+        engine: "osm",
+        graph: liveGraph,
+        baselineGraph,
+        graphBounds: bounds,
+        points: [point],
+      }),
+    ).toBe(false);
+  });
+
+  it("does not require OSM graph refresh for the Fast OD engine", () => {
+    expect(
+      routeGraphNeedsRefresh({
+        engine: "od",
+        graph: null,
+        baselineGraph,
+        graphBounds: null,
+        points: [point],
+      }),
+    ).toBe(false);
   });
 });
