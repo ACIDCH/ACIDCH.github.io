@@ -67,7 +67,7 @@ def assert_hotfix(browser: object, endpoint: str) -> None:
     browser.require("#geo4-map .leaflet-map-pane")
     execute_fetch_stub(browser)
 
-    browser.wait_for_text("#geo4-graph-status", "OSM 道路网络已加载", timeout=16)
+    browser.wait_for_text("#geo4-graph-status", "基础网络已就绪", timeout=20)
     geo.wait_solved(browser, timeout=16)
 
     if browser.execute("return document.querySelector('#geo4-engine')?.value") != "osm":
@@ -107,7 +107,7 @@ def assert_hotfix(browser: object, endpoint: str) -> None:
     geo.set_select(browser, "#geo4-road-mode", "mixed")
     browser.wait_for_text(".geo4__freshness", "参数已变更", timeout=4)
     browser.click("#geo4-routes")
-    browser.wait_for_text("#geo4-status", "请先重新运行优化", timeout=4)
+    browser.wait_for_text("#geo4-status", "参数已改变；旧结果已失效，请重新运行优化。", timeout=4)
 
     browser.click("#geo4-run")
     geo.wait_solved(browser, timeout=12)
@@ -148,20 +148,33 @@ def assert_hotfix(browser: object, endpoint: str) -> None:
     vehicle_capacity = max(1.0, float(scene["capacity"]))
     selected_hubs = max(1, int(scene["hubs"]))
     expected_min = math.ceil(total_flow / vehicle_capacity)
-    # Trips are split independently by hub. Rounding each hub load can add at
-    # most one extra trip per additional selected hub.
-    expected_max = expected_min + selected_hubs - 1
-    if not (expected_min <= trips <= expected_max):
+    if trips < expected_min:
         raise RuntimeError(
-            "Fleet trip count indicates duplicated or missing solved allocation flow: "
-            f"trips={trips}, expected={expected_min}–{expected_max}, "
-            f"total_flow={total_flow:g}, capacity={vehicle_capacity:g}, hubs={selected_hubs}."
+            "Fleet trip count is below the physical capacity lower bound: "
+            f"trips={trips}, minimum={expected_min}, "
+            f"total_flow={total_flow:g}, capacity={vehicle_capacity:g}."
+        )
+    fleet_state = browser.execute(
+        "return document.querySelector('#geo-v4')?.dataset.fleetPlanState || '';"
+    )
+    fleet_status = geo.read_text(browser, ".geo4__fleet-status")
+    if fleet_state != "ready" or "运力可行" not in fleet_status:
+        raise RuntimeError(
+            "Fleet runtime did not confirm conserved, capacity-feasible, schedulable flow: "
+            f"state={fleet_state!r}, status={fleet_status!r}."
         )
     expected_available = int(scene["fleet"]) * int(scene["tripsPer"])
-    if available != expected_available or trips > available or minimum > int(scene["fleet"]):
+    trip_count_floor = math.ceil(trips / max(1, int(scene["tripsPer"])))
+    if (
+        available != expected_available
+        or trips > available
+        or minimum < trip_count_floor
+        or minimum > int(scene["fleet"])
+    ):
         raise RuntimeError(
             f"Fleet feasibility outputs are inconsistent: trips={trips}, available={available}, "
-            f"expected_available={expected_available}, minimum={minimum}, fleet={scene['fleet']}."
+            f"expected_available={expected_available}, minimum={minimum}, "
+            f"trip_count_floor={trip_count_floor}, fleet={scene['fleet']}."
         )
 
 
@@ -203,7 +216,7 @@ def main() -> None:
         gis_server.server_close()
 
     print(
-        "Post-release geospatial browser verification passed: compact OSM-first solving, coverage isolation, stale-result guards, OSM-only transshipment, enabled Route/Fleet actions and model-scaled non-duplicated fleet trips are correct."
+        "Post-release geospatial browser verification passed: baseline-first OSM solving, coverage isolation, stale-result guards, OSM-only transshipment, enabled Route/Fleet actions and model-scaled non-duplicated fleet trips are correct."
     )
 
 

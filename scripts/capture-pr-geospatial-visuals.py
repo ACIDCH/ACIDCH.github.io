@@ -131,10 +131,10 @@ def assert_single_mounts(browser: object) -> None:
 
 
 def assert_osm_first_state(browser: object) -> None:
-    browser.wait_for_text("#geo4-graph-status", "OSM 道路网络已加载", timeout=50)
+    browser.wait_for_text("#geo4-graph-status", "基础网络已就绪", timeout=20)
     wait_solved(browser)
     if read_value(browser, "#geo4-engine") != "osm":
-        raise RuntimeError("The production geospatial scene did not start in OSM mode.")
+        raise RuntimeError("The production geospatial scene did not start from the Auckland baseline graph in OSM mode.")
     entity_count = browser.execute(
         "return document.querySelectorAll('#geo4-policy-list .geo4__policy-row').length;"
     )
@@ -150,10 +150,12 @@ def assert_osm_first_state(browser: object) -> None:
     states = browser.execute(
         "return Object.fromEntries([...document.querySelectorAll('.geo4__service-chip')].map(e=>[e.dataset.service,e.dataset.state]));"
     )
-    if states.get("overpass") != "ok":
-        raise RuntimeError(f"OSM-first startup did not complete its Overpass request: {states}")
+    if states.get("overpass") != "idle":
+        raise RuntimeError(
+            f"Baseline-first startup unexpectedly contacted Overpass before an explicit refresh: {states}"
+        )
     if states.get("nominatim") != "idle" or states.get("osrm") != "idle":
-        raise RuntimeError(f"Base OSM scene unexpectedly called Nominatim or OSRM: {states}")
+        raise RuntimeError(f"Baseline-first scene unexpectedly called Nominatim or OSRM: {states}")
 
 
 def assert_entity_edit_cycle(browser: object) -> None:

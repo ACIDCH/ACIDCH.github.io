@@ -48,7 +48,7 @@ def assert_guidance_chain(browser: object, endpoint: str) -> None:
     geo.navigate_path(browser, "/zh/lab/geospatial-supply-chain/")
     browser.require("#geo-v4[data-decision-guidance-v3-ready='true']")
     browser.require(".geo4__next-action")
-    browser.wait_for_text("#geo4-graph-status", "OSM 道路网络已加载", timeout=16)
+    browser.wait_for_text("#geo4-graph-status", "基础网络已就绪", timeout=20)
     geo.wait_solved(browser)
 
     initial_guidance = wait_text_contains(

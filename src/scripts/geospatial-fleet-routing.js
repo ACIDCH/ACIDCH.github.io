@@ -1,4 +1,4 @@
-import { graphOdMatrix, nearestGraphNode } from "../lib/geospatial/decisionEngine.js";
+import { graphNetworkMatrix, nearestGraphNode } from "../lib/geospatial/decisionEngine.js";
 import { reconstructGraphPath } from "../lib/geospatial/pathTools.js";
 import {
   assignTripsToVehicles,
@@ -167,14 +167,19 @@ function boot() {
 
   function currentMatrix(points) {
     if (D.getElementById("geo4-engine")?.value !== "osm" || !state.graph) return null;
-    const result = graphOdMatrix({
+    const result = graphNetworkMatrix({
       graph: state.graph,
       sources: points,
       destinations: points,
       scenarioParams: scenarioParams(),
-      metric: "time",
+      costPerKm: 0,
+      costPerMinute: 0,
     });
-    return { matrix: result.matrix, distance: null, scenario: result.scenario };
+    return {
+      matrix: result.networkMatrix.durationMin,
+      distance: result.networkMatrix.distanceKm,
+      scenario: result.scenario,
+    };
   }
 
   async function osrmGeometry(points) {
@@ -276,6 +281,7 @@ function boot() {
       let totalTrips = 0;
       let totalKm = 0;
       let totalMinutes = 0;
+      let geometryComplete = true;
       const summaries = [];
       const scheduledTrips = [];
       let groupIndex = 0;
@@ -347,9 +353,11 @@ function boot() {
             ? graphGeometry(entry.points, matrixData.scenario)
             : await osrmGeometry(entry.points);
           if (!route.complete) {
-            const error = new Error("Fleet route geometry is incomplete");
-            error.code = "fleet-road-incomplete";
-            throw error;
+            // Route geometry is presentation-only. The fleet plan has already
+            // been validated against the road matrix, so an inability to draw
+            // one polyline must not invalidate conserved, capacity-feasible flow.
+            geometryComplete = false;
+            continue;
           }
           renderRoute(
             route,
@@ -358,7 +366,6 @@ function boot() {
             entry.count,
             groupIndex % 2 ? "#ffcc66" : "#ffb85c",
           );
-          if (!matrixData.distance) hubKm += route.km * entry.count;
         }
         totalTrips += plan.trips.length;
         totalKm += hubKm;
@@ -399,12 +406,19 @@ function boot() {
       const feasible = schedule.feasible && routeValidation.valid;
       if (!feasible) root.dataset.fleetPlanState = "capacity-shortfall";
       else root.dataset.fleetPlanState = "ready";
+      root.dataset.fleetGeometryState = geometryComplete ? "complete" : "partial";
       outputs.trips.textContent = String(totalTrips);
       outputs.available.textContent = String(available);
       outputs.minimum.textContent = minimumFleet == null ? "—" : String(minimumFleet);
       outputs.distance.textContent = totalKm > 0 ? `${totalKm.toFixed(1)} km` : "—";
       outputs.time.textContent = `${(totalMinutes / 60).toFixed(1)} h`;
-      status.textContent = `${copy.ready}. ${feasible ? copy.feasible : copy.infeasible}.`;
+      status.textContent = `${copy.ready}. ${feasible ? copy.feasible : copy.infeasible}.${
+        geometryComplete
+          ? ""
+          : zh
+            ? " 路线图层部分降级，决策结果仍有效。"
+            : " Some route geometry could not be drawn; the decision result remains valid."
+      }`;
       status.className = `geo4__fleet-status ${feasible ? "ok" : "bad"}`;
       list.innerHTML = [
         ...summaries.map(
@@ -430,6 +444,7 @@ function boot() {
           totalKm,
           totalMinutes,
           routedDemand: routeValidation.routedDemand,
+          geometryComplete,
         },
         "fleet",
       );
@@ -437,6 +452,7 @@ function boot() {
       globalThis.console?.warn("[Fleet planner]", error);
       root.dataset.fleetPlanState =
         error?.code === "fleet-road-incomplete" ? "road-infeasible" : "degraded";
+      root.dataset.fleetGeometryState = "failed";
       status.textContent = copy.unavailable;
       status.className = "geo4__fleet-status bad";
     } finally {

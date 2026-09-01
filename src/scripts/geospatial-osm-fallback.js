@@ -16,12 +16,18 @@ function boot() {
   let fallbackInFlight = false;
   let recoveryCheck = 0;
 
-  const failedText = () =>
-    /OSM.*(?:失败|failed|unavailable)|已自动切换至快速 OD|已切换至快速 OD|switched to Fast OD|switched to the Fast OD/i.test(
-      String(graphStatus.textContent || ""),
-    );
+  const statusText = () => String(graphStatus.textContent || "");
+  const baselineReadyText = () =>
+    engine.value === "osm" &&
+    /内置 Auckland 基线路网|built-in Auckland baseline graph/i.test(statusText());
   const readyText = () =>
-    /nodes\s*\/\s*[\d,]+\s*edges/i.test(String(graphStatus.textContent || ""));
+    baselineReadyText() ||
+    /nodes\s*\/\s*[\d,]+\s*edges/i.test(statusText());
+  const failedText = () =>
+    !baselineReadyText() &&
+    /OSM.*(?:失败|failed|unavailable)|已自动切换至快速 OD|已切换至快速 OD|switched to Fast OD|switched to the Fast OD/i.test(
+      statusText(),
+    );
   const resultSettled = () => {
     const text = String(resultStatus.textContent || "");
     return (
