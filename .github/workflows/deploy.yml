@@ -200,7 +200,7 @@ jobs:
           github.event_name == 'push' ||
           github.event_name == 'workflow_dispatch' ||
           (github.event_name == 'pull_request_target' && github.event.pull_request.merged == true)
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v5
         with:
           path: dist
 
