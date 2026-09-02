@@ -112,9 +112,7 @@ jobs:
 
       - name: Verify route rendering on desktop and mobile before deployment
         if: github.event_name != 'pull_request'
-        run: |
-          python3 scripts/verify-pr-geospatial-decision-guidance-v3.py
-          python3 scripts/verify-pr-geospatial-mobile.py
+        run: python3 scripts/verify-pr-geospatial-route-rendering.py
 
       - name: Install CJK font for visual proofs
         if: github.event_name == 'pull_request'
@@ -146,6 +144,7 @@ jobs:
           python3 scripts/verify-pr-geospatial-hotfix.py
           python3 scripts/verify-pr-geospatial-osm-fallback.py
           python3 scripts/verify-pr-geospatial-mobile.py
+          python3 scripts/verify-pr-geospatial-route-rendering.py
           python3 scripts/verify-pr-geospatial-decision-guidance-v3.py
           python3 scripts/verify-pr-geospatial-decision-summary-v4.py
 
