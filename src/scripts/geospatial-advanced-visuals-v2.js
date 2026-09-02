@@ -346,13 +346,7 @@ function boot() {
     ambientButton.classList.toggle("is-active");
   });
 
-  for (const id of [
-    "geo4-routes",
-    "geo4-run",
-    "geo4-reset",
-    "geo4-engine",
-    "geo4-road-mode",
-  ]) {
+  for (const id of ["geo4-run", "geo4-reset", "geo4-engine", "geo4-road-mode"]) {
     D.getElementById(id)?.addEventListener("click", clear);
     if (id === "geo4-engine" || id === "geo4-road-mode") {
       D.getElementById(id)?.addEventListener("change", clear);

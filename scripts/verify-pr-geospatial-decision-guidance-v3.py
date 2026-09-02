@@ -44,6 +44,16 @@ def fleet_state(browser: object) -> str:
 
 
 def assert_guidance_chain(browser: object, endpoint: str) -> None:
+    base.request_json(
+        "POST",
+        f"{browser.session_base}/goog/cdp/execute",
+        {
+            "cmd": "Emulation.setEmulatedMedia",
+            "params": {
+                "features": [{"name": "prefers-reduced-motion", "value": "reduce"}]
+            },
+        },
+    )
     geo.configure_gis(browser, endpoint)
     geo.navigate_path(browser, "/zh/lab/geospatial-supply-chain/")
     browser.require("#geo-v4[data-decision-guidance-v3-ready='true']")
@@ -61,6 +71,26 @@ def assert_guidance_chain(browser: object, endpoint: str) -> None:
 
     if browser.execute("return document.querySelectorAll('.geo4__optimal-route').length;") != 0:
         raise RuntimeError("Optimal road paths were unexpectedly loaded before the Route action.")
+
+    browser.click("#geo4-routes")
+    route_state = geo.wait_optimal_routes(browser)
+    if route_state.get("reducedMotion") is not True:
+        raise RuntimeError(f"Reduced-motion emulation was not active: {route_state}")
+    if route_state.get("animationEnabled") is not False:
+        raise RuntimeError(
+            f"Route animation remained enabled under reduced motion: {route_state}"
+        )
+    browser.click("#geo4-routes")
+    repeated_route_state = geo.wait_optimal_routes(browser)
+    if repeated_route_state.get("viewportAction") != "preserve":
+        raise RuntimeError(
+            f"A second optimal-route load did not preserve an already safe map viewport: {repeated_route_state}"
+        )
+
+    browser.click("#geo4-run")
+    geo.wait_solved(browser)
+    if browser.execute("return document.querySelectorAll('.geo4__optimal-route').length;") != 0:
+        raise RuntimeError("Running the main optimisation did not clear old optimal paths.")
 
     browser.click(".geo4__fleet-build")
     wait_text_contains(browser, ".geo4__fleet-status", "车队计划已生成", timeout=12)
@@ -110,6 +140,7 @@ def assert_guidance_chain(browser: object, endpoint: str) -> None:
 def main() -> None:
     if not base.DIST.exists():
         raise RuntimeError("dist/ is missing. Run the site build before browser verification.")
+    geo.OUTPUT.mkdir(exist_ok=True)
 
     handler = partial(base.QuietHandler, directory=str(base.DIST))
     site_server = base.ThreadingHTTPServer(("127.0.0.1", 0), handler)
@@ -145,7 +176,7 @@ def main() -> None:
         gis_server.server_close()
 
     print(
-        "Geospatial decision-guidance v3 browser verification passed: Fleet/TSP runs directly from the current allocation, capacity shortfall is explicit, stale decision inputs redirect the workflow back to Run, and Monte Carlo is blocked until the main result is current."
+        "Geospatial decision-guidance v3 browser verification passed: all default routes are non-degenerate and synchronised with the flow panel under reduced motion, a repeated route load preserves an already safe viewport, Fleet/TSP runs directly from the current allocation, capacity shortfall is explicit, stale decision inputs redirect the workflow back to Run, and Monte Carlo is blocked until the main result is current."
     )
 
 

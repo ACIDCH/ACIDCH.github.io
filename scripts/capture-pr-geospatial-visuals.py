@@ -110,6 +110,76 @@ def wait_solved(browser: object, timeout: float = 50) -> None:
     browser.wait_for_text("#geo4-status", "当前情景已完成重新优化", timeout=timeout)
 
 
+def wait_optimal_routes(browser: object, timeout: float = 20) -> dict[str, object]:
+    deadline = time.time() + timeout
+    last: dict[str, object] | None = None
+    while time.time() < deadline:
+        value = browser.execute(
+            r"""
+            const paths = [...document.querySelectorAll('.geo4__optimal-route')];
+            const demandCount = document.querySelectorAll('.geo4-demand-node').length;
+            const mapRect = document.querySelector('#geo4-map')?.getBoundingClientRect();
+            const inset = 16;
+            const overlays = [...document.querySelectorAll('#geo-v4 .geo4__console,#geo-v4 .geo4__results')]
+              .map((element) => element.getBoundingClientRect())
+              .filter((rect) => mapRect && rect.width > 0 && rect.height > 0 && rect.left > mapRect.left + mapRect.width / 2);
+            const flowRect = document.querySelector('#geo-v4 .geo4__flow-panel')?.getBoundingClientRect();
+            const safeRight = overlays.length
+              ? Math.min(...overlays.map((rect) => rect.left)) - inset
+              : (mapRect?.right || 0) - inset;
+            const safeBottom = mapRect && flowRect && flowRect.height > 0 && flowRect.top > mapRect.top + mapRect.height / 2
+              ? flowRect.top - inset
+              : (mapRect?.bottom || 0) - inset;
+            const invalidCount = paths.filter((path) => {
+              const d = String(path.getAttribute('d') || '').trim();
+              return !d || d === 'M0 0' || !d.includes('L');
+            }).length;
+            const unsafeCount = mapRect
+              ? paths.filter((path) => {
+                  const rect = path.getBoundingClientRect();
+                  return rect.left < mapRect.left + inset - 4 ||
+                    rect.top < mapRect.top + inset - 4 ||
+                    rect.right > safeRight + 4 ||
+                    rect.bottom > safeBottom + 4;
+                }).length
+              : paths.length;
+            return {
+              routeCount: paths.length,
+              demandCount,
+              invalidCount,
+              unsafeCount,
+              flowText: (document.querySelector('#geo4-flow-state')?.textContent || '').trim(),
+              routeStatus: (document.querySelector('#geo4-status')?.textContent || '').trim(),
+              viewportAction: document.querySelector('#geo-v4')?.dataset.routeViewportAction || '',
+              reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches,
+              animationEnabled: Boolean(document.querySelector('#geo4-flow-toggle')?.checked),
+            };
+            """
+        )
+        if isinstance(value, dict):
+            last = value
+            route_count = value.get("routeCount")
+            demand_count = value.get("demandCount")
+            flow_text = value.get("flowText")
+            route_status = value.get("routeStatus")
+            if (
+                isinstance(route_count, int)
+                and route_count > 0
+                and route_count == demand_count
+                and value.get("invalidCount") == 0
+                and value.get("unsafeCount") == 0
+                and isinstance(flow_text, str)
+                and str(route_count) in flow_text
+                and ("总流量" in flow_text or "Total flow" in flow_text)
+                and isinstance(route_status, str)
+                and ("最优路径已加载" in route_status or "Optimal paths loaded" in route_status)
+                and value.get("viewportAction") in {"fit", "preserve"}
+            ):
+                return value
+        time.sleep(0.2)
+    raise RuntimeError(f"Optimal routes did not render and synchronise correctly: {last}")
+
+
 def assert_single_mounts(browser: object) -> None:
     selectors = [
         ".geo4__service-health",

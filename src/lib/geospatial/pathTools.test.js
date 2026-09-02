@@ -1,5 +1,60 @@
 import { describe, expect, it } from "vitest";
-import { routeGraphNeedsRefresh } from "./pathTools.js";
+import { connectRouteEndpoints, routeGraphNeedsRefresh } from "./pathTools.js";
+
+describe("connectRouteEndpoints", () => {
+  const source = { lat: -36.86, lon: 174.75 };
+  const destination = { lat: -36.84, lon: 174.79 };
+
+  it("keeps a same-node graph path drawable by attaching the real endpoints", () => {
+    expect(
+      connectRouteEndpoints([{ lat: -36.85, lon: 174.77 }], source, destination),
+    ).toEqual([source, { lat: -36.85, lon: 174.77 }, destination]);
+  });
+
+  it("removes adjacent duplicate endpoints", () => {
+    expect(
+      connectRouteEndpoints(
+        [source, { lat: -36.85, lon: 174.77 }, destination],
+        source,
+        destination,
+      ),
+    ).toEqual([source, { lat: -36.85, lon: 174.77 }, destination]);
+  });
+
+  it("filters invalid path points and rejects invalid endpoints", () => {
+    expect(
+      connectRouteEndpoints(
+        [
+          { lat: Number.NaN, lon: 174.77 },
+          { lat: -36.85, lng: 174.77 },
+        ],
+        source,
+        destination,
+      ),
+    ).toEqual([source, { lat: -36.85, lon: 174.77 }, destination]);
+    expect(connectRouteEndpoints([], { lat: Number.NaN, lon: 1 }, destination)).toEqual(
+      [],
+    );
+    expect(connectRouteEndpoints([], { lat: null, lon: 1 }, destination)).toEqual([]);
+    expect(connectRouteEndpoints([], { lat: 91, lon: 1 }, destination)).toEqual([]);
+    expect(connectRouteEndpoints({}, source, destination)).toEqual([
+      source,
+      destination,
+    ]);
+  });
+
+  it("preserves a normal multi-segment graph path", () => {
+    const path = [
+      { lat: -36.855, lon: 174.76 },
+      { lat: -36.85, lon: 174.77 },
+      { lat: -36.845, lon: 174.78 },
+    ];
+    const connected = connectRouteEndpoints(path, source, destination);
+    expect(connected).toEqual([source, ...path, destination]);
+    expect(connected.at(0)).toEqual(source);
+    expect(connected.at(-1)).toEqual(destination);
+  });
+});
 
 describe("routeGraphNeedsRefresh", () => {
   const baselineGraph = { version: "baseline" };

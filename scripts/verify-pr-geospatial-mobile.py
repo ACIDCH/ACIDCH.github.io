@@ -132,6 +132,9 @@ def capture_mobile(browser: object, endpoint: str) -> None:
     geo.wait_solved(browser, timeout=16)
 
     assert_mode(browser, "map")
+    browser.click("#geo4-routes")
+    geo.wait_optimal_routes(browser, timeout=20)
+    assert_mode(browser, "map")
     browser.screenshot("geospatial-map-mobile.png")
 
     browser.click('[data-geo4-mobile-view="controls"]')
@@ -168,6 +171,7 @@ def capture_mobile(browser: object, endpoint: str) -> None:
 def main() -> None:
     if not base.DIST.exists():
         raise RuntimeError("dist/ is missing. Run the site build before mobile verification.")
+    geo.OUTPUT.mkdir(exist_ok=True)
 
     handler = partial(base.QuietHandler, directory=str(base.DIST))
     server = base.ThreadingHTTPServer(("127.0.0.1", 0), handler)
@@ -202,7 +206,7 @@ def main() -> None:
         gis_server.server_close()
 
     print(
-        "Mobile geospatial verification passed: Map / Controls / Results workspace switching, randomized 22-entity controls, OSM-first solve state, fresh KPIs, Risk/Mixed states and mobile-safe layout checks are correct."
+        "Mobile geospatial verification passed: all default optimal routes render without degenerate SVG paths and synchronise with the route-flow panel, Map / Controls / Results workspace switching, randomized 22-entity controls, OSM-first solve state, fresh KPIs, Risk/Mixed states and mobile-safe layout checks are correct."
     )
 
 

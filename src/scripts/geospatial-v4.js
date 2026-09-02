@@ -5,6 +5,7 @@ import {
   solveTwoEchelonNetwork,
 } from "../lib/geospatial/decisionEngine.js";
 import {
+  connectRouteEndpoints,
   reconstructGraphPath,
   routeGraphNeedsRefresh,
 } from "../lib/geospatial/pathTools.js";
@@ -612,6 +613,82 @@ function boot() {
         a.map((p) => [p.lat, p.lon]),
         { padding: [28, 28] },
       );
+  }
+  function fitRoutesIfNeeded(routeVisuals) {
+    const coordinates = routeVisuals
+      .flatMap((route) => route.coordinates || [])
+      .filter((point) => Number.isFinite(point?.lat) && Number.isFinite(point?.lon));
+    if (coordinates.length < 2) return false;
+
+    const container = map.getContainer();
+    const mapRect = container.getBoundingClientRect();
+    const mapSize = map.getSize();
+    const minimumPadding = 24;
+    const intersectsMap = (rect) =>
+      rect.width > 0 &&
+      rect.height > 0 &&
+      rect.right > mapRect.left &&
+      rect.left < mapRect.right &&
+      rect.bottom > mapRect.top &&
+      rect.top < mapRect.bottom;
+    let rightPadding = minimumPadding;
+    for (const overlay of root.querySelectorAll(".geo4__console,.geo4__results")) {
+      const rect = overlay.getBoundingClientRect();
+      if (intersectsMap(rect) && rect.left > mapRect.left + mapRect.width / 2) {
+        rightPadding = Math.max(
+          rightPadding,
+          mapRect.right - rect.left + minimumPadding,
+        );
+      }
+    }
+    let bottomPadding = minimumPadding;
+    const flowPanel = root.querySelector(".geo4__flow-panel");
+    const flowRect = flowPanel?.getBoundingClientRect();
+    if (
+      flowRect &&
+      intersectsMap(flowRect) &&
+      flowRect.top > mapRect.top + mapRect.height / 2
+    ) {
+      bottomPadding = Math.max(
+        bottomPadding,
+        mapRect.bottom - flowRect.top + minimumPadding,
+      );
+    }
+    rightPadding = Math.max(minimumPadding, Math.min(rightPadding, mapSize.x * 0.45));
+    bottomPadding = Math.max(minimumPadding, Math.min(bottomPadding, mapSize.y * 0.45));
+
+    const outsideSafeViewport =
+      coordinates.some((point) => {
+        const projected = map.latLngToContainerPoint([point.lat, point.lon]);
+        return (
+          projected.x < minimumPadding ||
+          projected.x > mapSize.x - rightPadding ||
+          projected.y < minimumPadding ||
+          projected.y > mapSize.y - bottomPadding
+        );
+      }) ||
+      rl.getLayers().some((layer) => {
+        const rect = layer.getElement?.()?.getBoundingClientRect();
+        if (!rect) return false;
+        return (
+          rect.left < mapRect.left + minimumPadding ||
+          rect.right > mapRect.right - rightPadding ||
+          rect.top < mapRect.top + minimumPadding ||
+          rect.bottom > mapRect.bottom - bottomPadding
+        );
+      });
+    root.dataset.routeViewportAction = outsideSafeViewport ? "fit" : "preserve";
+    if (!outsideSafeViewport) return false;
+
+    const bounds = L.latLngBounds(coordinates.map((point) => [point.lat, point.lon]));
+    if (!bounds.isValid()) return false;
+    map.fitBounds(bounds, {
+      paddingTopLeft: [minimumPadding, minimumPadding],
+      paddingBottomRight: [rightPadding, bottomPadding],
+      maxZoom: map.getZoom(),
+      animate: false,
+    });
+    return true;
   }
   async function table(src, dst) {
     return services.osrmTable(src, dst, pricing());
@@ -1610,6 +1687,9 @@ function boot() {
   async function routes() {
     if (!solution) return;
     q("geo4-routes").disabled = true;
+    root.dataset.routeViewportAction = "pending";
+    store.setRouteVisuals([]);
+    rl.clearLayers();
     let fallbackGeometry = false;
     try {
       if (!(await coords())) throw Error("coords");
@@ -1633,11 +1713,15 @@ function boot() {
       const token = store.begin("routes");
       const routeVisuals = [];
       q("geo4-status").textContent = T.route;
-      rl.clearLayers();
-      store.setRouteVisuals([], token);
       let fails = 0;
       let fallbacks = 0;
       for (const x of solution.assignments) {
+        const a = HC[x.hub],
+          b = NC[x.demand];
+        if (!a || !b) {
+          fails++;
+          continue;
+        }
         if (
           q("geo4-engine").value === "osm" &&
           graph &&
@@ -1650,9 +1734,10 @@ function boot() {
               s && d
                 ? reconstructGraphPath(graph, s, d, activeGraph.scenario, "time")
                 : null;
-          if (p) {
+          const coordinates = p ? connectRouteEndpoints(p.coordinates, a, b) : [];
+          if (p && coordinates.length >= 2) {
             L.polyline(
-              p.coordinates.map((v) => [v.lat, v.lon]),
+              coordinates.map((v) => [v.lat, v.lon]),
               { color: "#d8ff6b", weight: 2.7, opacity: 0.84 },
             )
               .bindTooltip(
@@ -1660,7 +1745,7 @@ function boot() {
               )
               .addTo(rl);
             routeVisuals.push({
-              coordinates: p.coordinates,
+              coordinates,
               flow: x.flow,
               travelMin: p.cost,
               stage: "warehouseDemand",
@@ -1670,22 +1755,18 @@ function boot() {
           }
           fallbackGeometry = true;
         }
-        const a = HC[x.hub],
-          b = NC[x.demand];
-        if (!a || !b) {
-          fails++;
-          continue;
-        }
         try {
           const route = await services.osrmRoute([a, b]);
+          const coordinates = connectRouteEndpoints(route.coordinates, a, b);
+          if (coordinates.length < 2) throw new Error("invalid route geometry");
           L.polyline(
-            route.coordinates.map((point) => [point.lat, point.lon]),
+            coordinates.map((point) => [point.lat, point.lon]),
             { color: "#d8ff6b", weight: 2.5, opacity: 0.82 },
           )
             .bindTooltip(`${H[x.hub]} → ${N[x.demand]}<br>Flow: ${x.flow.toFixed(0)}`)
             .addTo(rl);
           routeVisuals.push({
-            coordinates: route.coordinates,
+            coordinates,
             flow: x.flow,
             travelMin: route.durationMin ?? null,
             stage: "warehouseDemand",
@@ -1697,7 +1778,11 @@ function boot() {
         }
         await wait(q("geo4-engine").value === "osm" && fallbackGeometry ? 1050 : 90);
       }
-      store.setRouteVisuals(routeVisuals, token);
+      if (!store.setRouteVisuals(routeVisuals, token)) {
+        rl.clearLayers();
+        return;
+      }
+      fitRoutesIfNeeded(routeVisuals);
       q("geo4-status").textContent = fails
         ? T.routePart
         : fallbacks

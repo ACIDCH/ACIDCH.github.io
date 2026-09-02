@@ -1,5 +1,49 @@
 import { aStarGraph } from "./decisionEngine.js";
 
+const ROUTE_POINT_EPSILON = 1e-7;
+
+function normaliseRoutePoint(point) {
+  const rawLat = Array.isArray(point) ? point[0] : point?.lat;
+  const rawLon = Array.isArray(point) ? point[1] : (point?.lon ?? point?.lng);
+  if (rawLat == null || rawLon == null || rawLat === "" || rawLon === "") return null;
+  const lat = Number(rawLat);
+  const lon = Number(rawLon);
+  return Number.isFinite(lat) &&
+    Number.isFinite(lon) &&
+    Math.abs(lat) <= 90 &&
+    Math.abs(lon) <= 180
+    ? { lat, lon }
+    : null;
+}
+
+function sameRoutePoint(left, right) {
+  return (
+    Math.abs(left.lat - right.lat) <= ROUTE_POINT_EPSILON &&
+    Math.abs(left.lon - right.lon) <= ROUTE_POINT_EPSILON
+  );
+}
+
+export function connectRouteEndpoints(
+  pathCoordinates = [],
+  sourcePoint,
+  destinationPoint,
+) {
+  const source = normaliseRoutePoint(sourcePoint);
+  const destination = normaliseRoutePoint(destinationPoint);
+  if (!source || !destination) return [];
+
+  const coordinates = [];
+  const path = Array.isArray(pathCoordinates) ? pathCoordinates : [];
+  for (const point of [source, ...path, destination]) {
+    const normalised = normaliseRoutePoint(point);
+    if (!normalised) continue;
+    if (!coordinates.length || !sameRoutePoint(coordinates.at(-1), normalised)) {
+      coordinates.push(normalised);
+    }
+  }
+  return coordinates.length >= 2 ? coordinates : [];
+}
+
 export function reconstructGraphPath(
   graph,
   sourceNodeId,
@@ -45,7 +89,6 @@ export function reconstructGraphPath(
 
   return { cost, edges, coordinates, distanceKm, travelTimeMin };
 }
-
 
 export function routeGraphNeedsRefresh({
   engine,

@@ -190,6 +190,18 @@ requireText(
   "activeGraph.scenario",
   "route geometry tied to the active OSM disruption scenario",
 );
+for (const [token, label] of [
+  ["connectRouteEndpoints", "complete route endpoint composition"],
+  ["fitRoutesIfNeeded", "conditional route viewport fitting"],
+  ["paddingBottomRight", "overlay-aware route viewport padding"],
+  ["maxZoom: map.getZoom()", "route viewport no-zoom-in guard"],
+  ["store.setRouteVisuals([])", "route-start visual state publication"],
+])
+  requireText(routeController, token, label);
+if (/\[\s*["']geo4-routes["']\s*,/.test(controller))
+  fail(
+    "Route-flow state must be cleared by Store publication, not a competing Route click handler",
+  );
 
 for (const [source, token, label] of [
   [mainComponent, "geo4__criticality-edge", "criticality map styling"],
