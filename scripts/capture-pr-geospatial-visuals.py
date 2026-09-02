@@ -201,7 +201,7 @@ def assert_single_mounts(browser: object) -> None:
 
 
 def assert_osm_first_state(browser: object) -> None:
-    browser.wait_for_text("#geo4-graph-status", "OSM 道路网络已加载", timeout=50)
+    browser.wait_for_text("#geo4-graph-status", "OSM 路网已加载", timeout=50)
     wait_solved(browser)
     if read_value(browser, "#geo4-engine") != "osm":
         raise RuntimeError("The production geospatial scene did not start in OSM mode.")

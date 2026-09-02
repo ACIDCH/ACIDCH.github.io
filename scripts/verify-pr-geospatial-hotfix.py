@@ -67,7 +67,7 @@ def assert_hotfix(browser: object, endpoint: str) -> None:
     browser.require("#geo4-map .leaflet-map-pane")
     execute_fetch_stub(browser)
 
-    browser.wait_for_text("#geo4-graph-status", "OSM 道路网络已加载", timeout=16)
+    browser.wait_for_text("#geo4-graph-status", "OSM 路网已加载", timeout=16)
     geo.wait_solved(browser, timeout=16)
 
     if browser.execute("return document.querySelector('#geo4-engine')?.value") != "osm":
