@@ -18,7 +18,7 @@ function boot() {
         list: "网络实体与设施决策",
         editor: "添加网络实体",
         preference:
-          "OSM 道路网络为默认引擎。首次运行优化或点击“加载 / 刷新 OSM 路网”时按需加载真实路网；失败时自动使用快速 OD 网络。",
+          "OSM 道路网络为默认引擎。内置 Auckland 道路图可立即运行；点击“加载 / 刷新 OSM 路网”可按需获取在线路网，失败时保留当前有效结果。",
         load: "加载 / 刷新 OSM 路网",
         init: "随机轻量场景",
         mapAdd: "点击地图添加",
@@ -28,7 +28,7 @@ function boot() {
         list: "Network entities & facility decisions",
         editor: "Add network entity",
         preference:
-          "OSM Road Network is the default. The real road graph loads on the first optimisation run or when you choose Load / refresh OSM graph; Fast OD remains available as fallback.",
+          "OSM Road Network is the default. The bundled Auckland road graph runs immediately; choose Load / refresh OSM graph to request live roads while preserving the latest valid result on failure.",
         load: "Load / refresh OSM graph",
         init: "New compact scene",
         mapAdd: "Click map to add",
@@ -69,7 +69,8 @@ function boot() {
     const title = facilityBlock.querySelector(".geo4__block-title strong");
     if (title) title.textContent = copy.title;
     const subhead = policyList.previousElementSibling;
-    if (subhead?.querySelector("span")) subhead.querySelector("span").textContent = copy.list;
+    if (subhead?.querySelector("span"))
+      subhead.querySelector("span").textContent = copy.list;
 
     const merged = D.createElement("div");
     merged.className = "geo4__merged-editor";
@@ -100,7 +101,8 @@ function boot() {
   const mapAdd = D.getElementById("geo4-map-add");
   if (load) load.textContent = copy.load;
   if (init) init.textContent = copy.init;
-  if (mapAdd && !mapAdd.classList.contains("is-active")) mapAdd.textContent = copy.mapAdd;
+  if (mapAdd && !mapAdd.classList.contains("is-active"))
+    mapAdd.textContent = copy.mapAdd;
 }
 
 boot();

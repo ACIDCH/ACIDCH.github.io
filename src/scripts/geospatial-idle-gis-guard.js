@@ -3,12 +3,15 @@ const originalSetTimeout = globalThis.setTimeout.bind(globalThis);
 let armed = true;
 
 function restore() {
-  if (globalThis.setTimeout === guardedSetTimeout) globalThis.setTimeout = originalSetTimeout;
+  if (globalThis.setTimeout === guardedSetTimeout)
+    globalThis.setTimeout = originalSetTimeout;
 }
 
 function hasLocalFixture() {
   try {
-    const configured = JSON.parse(globalThis.localStorage?.getItem("acidch-gis-endpoints") || "null");
+    const configured = JSON.parse(
+      globalThis.localStorage?.getItem("acidch-gis-endpoints") || "null",
+    );
     const endpoint = String(configured?.overpassPrimary || "");
     return /^https?:\/\/(?:127\.0\.0\.1|localhost)(?::\d+)?\//i.test(endpoint);
   } catch {
@@ -31,8 +34,8 @@ function guardedSetTimeout(callback, delay, ...args) {
       const graphStatus = D.getElementById("geo4-graph-status");
       if (graphStatus) {
         graphStatus.textContent = zh
-          ? "轻量 GIS 场景已就绪。默认使用 OSM 道路网络；首次运行优化或点击加载时按需获取路网。"
-          : "Compact GIS scene ready. OSM Road Network is the default; the road graph loads on the first optimisation run or explicit load action.";
+          ? "轻量 GIS 场景已就绪。内置 OSM 道路图可立即运行；点击加载时按需获取在线路网。"
+          : "Compact GIS scene ready. The bundled OSM road graph runs immediately; live roads load only on the explicit load action.";
       }
     }
     return 0;

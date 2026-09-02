@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   createAnalysisWorkerClient,
   StaleWorkerResultError,
+  WorkerTaskError,
 } from "./analysisWorkerClient.js";
 
 class StaleWorker {
@@ -16,6 +17,25 @@ class StaleWorker {
           requestId: message.requestId,
           revisionId: message.revisionId + 1,
           result: {},
+        },
+      }),
+    );
+  }
+  terminate() {}
+}
+
+class TaskErrorWorker {
+  listeners = {};
+  addEventListener(type, listener) {
+    this.listeners[type] = listener;
+  }
+  postMessage(message) {
+    globalThis.queueMicrotask(() =>
+      this.listeners.message({
+        data: {
+          requestId: message.requestId,
+          revisionId: message.revisionId,
+          error: "live graph too large",
         },
       }),
     );
@@ -57,5 +77,27 @@ describe("analysis Worker client", () => {
     expect(result.execution).toBe("fallback");
     expect(result.warning).toMatch(/worker blocked/);
     expect(result.result.edges).toEqual([]);
+  });
+
+  it("does not rerun a rejected Worker task on the main thread", async () => {
+    const client = createAnalysisWorkerClient({ WorkerCtor: TaskErrorWorker });
+    await expect(
+      client.run("fetchParseGraph", {}, { revisionId: 1, isCurrent: () => true }),
+    ).rejects.toBeInstanceOf(WorkerTaskError);
+  });
+
+  it("never falls back to main-thread live-road fetching", async () => {
+    class BrokenWorker {
+      constructor() {
+        throw new Error("worker blocked");
+      }
+    }
+    const client = createAnalysisWorkerClient({ WorkerCtor: BrokenWorker });
+    await expect(
+      client.run("fetchParseGraph", {}, { revisionId: 1, isCurrent: () => true }),
+    ).rejects.toMatchObject({
+      name: "WorkerTaskError",
+      message: expect.stringMatching(/worker blocked/),
+    });
   });
 });

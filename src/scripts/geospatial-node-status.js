@@ -52,7 +52,21 @@ function boot() {
   mapBox.appendChild(canvas);
   const ctx = canvas.getContext("2d");
   const store = getGeospatialStore();
-  const routeState = { routes: [] };
+  const routeState = { routes: [], animationFrame: 0, rect: null, dpr: 1 };
+  const clearCanvas = () => {
+    if (!ctx || !routeState.rect) return;
+    ctx.clearRect(0, 0, routeState.rect.width, routeState.rect.height);
+  };
+  const shouldAnimate = () => Boolean(ctx && routeState.routes.length && !D.hidden);
+  const stopAnimation = () => {
+    if (!routeState.animationFrame) return;
+    globalThis.cancelAnimationFrame(routeState.animationFrame);
+    routeState.animationFrame = 0;
+  };
+  const scheduleAnimation = () => {
+    if (routeState.animationFrame || !shouldAnimate()) return;
+    routeState.animationFrame = globalThis.requestAnimationFrame(draw);
+  };
   const syncRoutes = (snapshot = store.getState()) => {
     const map = snapshot.presentation.map;
     routeState.routes = (snapshot.routeVisuals || [])
@@ -67,6 +81,11 @@ function boot() {
           flow: route.flow,
         };
       });
+    if (routeState.routes.length) scheduleAnimation();
+    else {
+      stopAnimation();
+      clearCanvas();
+    }
   };
   store.subscribe((snapshot, reason) => {
     if (
@@ -89,13 +108,20 @@ function boot() {
       canvas.style.width = `${rect.width}px`;
       canvas.style.height = `${rect.height}px`;
     }
+    routeState.rect = rect;
+    routeState.dpr = dpr;
     return { rect, dpr };
   }
 
   function draw() {
-    globalThis.requestAnimationFrame(draw);
-    if (!ctx) return;
-    const { rect, dpr } = fit();
+    routeState.animationFrame = 0;
+    if (!shouldAnimate()) {
+      clearCanvas();
+      return;
+    }
+    const { rect, dpr } = routeState.rect
+      ? { rect: routeState.rect, dpr: routeState.dpr }
+      : fit();
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, rect.width, rect.height);
     const active = routeState.routes.filter(
@@ -134,9 +160,25 @@ function boot() {
       ctx.fill();
       ctx.shadowBlur = 0;
     }
+    scheduleAnimation();
   }
 
-  draw();
+  const resizeObserver = globalThis.ResizeObserver
+    ? new globalThis.ResizeObserver(() => {
+        fit();
+        if (shouldAnimate()) scheduleAnimation();
+        else clearCanvas();
+      })
+    : null;
+  resizeObserver?.observe(mapBox);
+  D.addEventListener("visibilitychange", () => {
+    if (D.hidden) {
+      stopAnimation();
+      clearCanvas();
+    } else scheduleAnimation();
+  });
+  fit();
+  scheduleAnimation();
 }
 
 boot();

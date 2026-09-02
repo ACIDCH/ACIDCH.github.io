@@ -1,5 +1,10 @@
-import { describe, expect, it } from "vitest";
-import { analyseRoadCriticality, runTwoEchelonMonteCarlo } from "./analysisEngine.js";
+import { describe, expect, it, vi } from "vitest";
+import {
+  analyseRoadCriticality,
+  runGeospatialWorkerTask,
+  runMainOptimisation,
+  runTwoEchelonMonteCarlo,
+} from "./analysisEngine.js";
 import { createNetworkMatrix } from "./networkMatrix.js";
 
 function graphFixture() {
@@ -125,5 +130,115 @@ describe("background analysis engine", () => {
     expect(first.edges[0].segmentKey).toBe("direct");
     expect(first.edges[0].deltaTravelTimeMin).toBe(3);
     expect(first.edges[0].score).toBe(1);
+  });
+
+  it("runs the current and baseline road scenarios without changing main-model output shape", () => {
+    const payload = {
+      useGraph: true,
+      graph: graphFixture(),
+      entities: {
+        facilities: [
+          {
+            name: "Factory",
+            role: "factory",
+            policy: "auto",
+            point: { lat: 0, lon: 0 },
+          },
+          {
+            name: "Warehouse",
+            role: "warehouse",
+            policy: "auto",
+            point: { lat: 0.01, lon: 0.005 },
+          },
+        ],
+        demands: [{ name: "Demand", demand: 8, point: { lat: 0, lon: 0.01 } }],
+      },
+      pricing: { costPerKm: 1, costPerMinute: 0.5 },
+      baseDemands: [8],
+      demandMultiplier: 1,
+      facilityCapacity: 10,
+      maxOpen: 1,
+      fixedCost: 5,
+      serviceThreshold: 10,
+      serviceMetric: "durationMin",
+      redundancy: 1,
+      scenarioParams: { mode: "baseline", seed: 77 },
+      baselineScenarioParams: { mode: "baseline", seed: 77 },
+      eventId: "none",
+      seed: 77,
+      enforceFleetCapacity: true,
+      totalFleetCapacity: 10,
+    };
+    const result = runMainOptimisation(payload);
+    expect(runGeospatialWorkerTask("mainOptimisation", payload)).toEqual(result);
+    expect(result.solution.selected).toEqual([1]);
+    expect(result.solution.factoryAssignments[0]).toMatchObject({
+      factory: 0,
+      warehouse: 1,
+      flow: 8,
+    });
+    expect(result.solution.assignments[0]).toMatchObject({
+      hub: 1,
+      demand: 0,
+      flow: 8,
+      distanceKm: 1,
+      durationMin: 2,
+    });
+    expect(result.activeGraph.sourceSnaps).toHaveLength(2);
+    expect(result.networkMatrices.twoEchelonRouteContext.scenario).toBeDefined();
+    expect(result.baselineSolution).toEqual(result.solution);
+  });
+
+  it("parses live Overpass elements through the analysis Worker task", () => {
+    const graph = runGeospatialWorkerTask("parseGraph", {
+      elements: [
+        { type: "node", id: 1, lat: -36.85, lon: 174.76 },
+        { type: "node", id: 2, lat: -36.85, lon: 174.77 },
+        {
+          type: "way",
+          id: 10,
+          nodes: [1, 2],
+          tags: { highway: "primary", maxspeed: "50" },
+        },
+      ],
+    });
+    expect(graph.nodes.size).toBe(2);
+    expect(graph.edges.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("fetches and parses bounded live-road payloads inside the Worker task", async () => {
+    const elements = [
+      { type: "node", id: 1, lat: -36.85, lon: 174.76 },
+      { type: "node", id: 2, lat: -36.85, lon: 174.77 },
+      {
+        type: "way",
+        id: 10,
+        nodes: [1, 2],
+        tags: { highway: "primary", maxspeed: "50" },
+      },
+    ];
+    const fetchMock = vi.fn(async () =>
+      Promise.resolve(
+        new globalThis.Response(JSON.stringify({ elements }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    try {
+      const result = await runGeospatialWorkerTask("fetchParseGraph", {
+        query: "[out:json];way(1);out body;>;out skel qt;",
+        primary: "https://primary.example/interpreter",
+        secondary: "https://secondary.example/interpreter",
+        maxElements: 10,
+        hedgeDelayMs: 50,
+      });
+      expect(result.elementCount).toBe(3);
+      expect(result.graph.edges.length).toBeGreaterThanOrEqual(2);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });

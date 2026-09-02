@@ -1,6 +1,7 @@
 import {
   graphNetworkMatrix,
   nearestGraphNode,
+  parseOverpassGraph,
   simulateInventoryStockout,
   solveTwoEchelonNetwork,
 } from "./decisionEngine.js";
@@ -67,46 +68,54 @@ function roleIndexes(entities) {
 function scenarioMatrices(payload, scenarioParams) {
   const { factories, warehouses } = roleIndexes(payload.entities);
   if (payload.useGraph) {
-    const allToDemand = graphNetworkMatrix({
+    const allToDemandResult = graphNetworkMatrix({
       graph: payload.graph,
       sources: payload.entities.facilities.map((entity) => entity.point),
       destinations: payload.entities.demands.map((entity) => entity.point),
       scenarioParams,
       ...payload.pricing,
-    }).networkMatrix;
-    const factoryWarehouse = graphNetworkMatrix({
+    });
+    const factoryWarehouseResult = graphNetworkMatrix({
       graph: payload.graph,
       sources: factories.map((index) => payload.entities.facilities[index].point),
       destinations: warehouses.map((index) => payload.entities.facilities[index].point),
       scenarioParams,
       ...payload.pricing,
-    }).networkMatrix;
-    return { allToDemand, factoryWarehouse, factories, warehouses };
+    });
+    return {
+      allToDemand: allToDemandResult.networkMatrix,
+      factoryWarehouse: factoryWarehouseResult.networkMatrix,
+      allToDemandResult,
+      factoryWarehouseResult,
+      factories,
+      warehouses,
+    };
   }
+  const allToDemand = applyNetworkScenario(payload.baseNetworkMatrix, scenarioParams);
+  const factoryWarehouse = applyNetworkScenario(
+    payload.baseFactoryWarehouseMatrix,
+    scenarioParams,
+  );
   return {
-    allToDemand: applyNetworkScenario(payload.baseNetworkMatrix, scenarioParams),
-    factoryWarehouse: applyNetworkScenario(
-      payload.baseFactoryWarehouseMatrix,
-      scenarioParams,
-    ),
+    allToDemand,
+    factoryWarehouse,
+    allToDemandResult: null,
+    factoryWarehouseResult: {
+      networkMatrix: factoryWarehouse,
+      scenario: scenarioParams,
+    },
     factories,
     warehouses,
   };
 }
 
-export function solveAnalysisScenario(payload, runIndex = 0) {
-  const seed = Number(payload.seed || 1) + runIndex * 7919;
+function solveDetailedScenario(payload, { seed, eventId, scenarioParams }) {
   const event = createDisruptionEvent({
-    eventId: payload.eventId || "none",
+    eventId,
     seed,
     facilities: payload.entities.facilities,
     demands: payload.entities.demands,
   });
-  const scenarioParams = {
-    ...payload.scenarioParams,
-    seed,
-    ...event.networkScenario,
-  };
   const matrices = scenarioMatrices(payload, scenarioParams);
   const scaledDemands = payload.baseDemands.map(
     (value, index) =>
@@ -114,6 +123,13 @@ export function solveAnalysisScenario(payload, runIndex = 0) {
       Math.max(0, Number(payload.demandMultiplier) || 0) *
       (event.demandMultipliers[index] ?? 1),
   );
+  const totalDemand = scaledDemands.reduce((sum, value) => sum + value, 0);
+  if (
+    payload.enforceFleetCapacity &&
+    Number(payload.totalFleetCapacity) + EPS < totalDemand
+  ) {
+    return { solution: null, totalDemand, matrices };
+  }
   const capacity = Math.max(0, Number(payload.facilityCapacity) || 0);
   const warehouseDemand = matrixRows(
     matrices.allToDemand,
@@ -140,31 +156,98 @@ export function solveAnalysisScenario(payload, runIndex = 0) {
     redundancy: payload.redundancy,
   });
   if (!result) {
-    return {
-      result: null,
-      totalDemand: scaledDemands.reduce((sum, value) => sum + value, 0),
-    };
+    return { solution: null, totalDemand, matrices };
   }
   const selected = result.selectedWarehouses.map((index) => matrices.warehouses[index]);
-  const assignments = result.warehouseDemandFlows.map((flow) => ({
-    ...flow,
-    hub: matrices.warehouses[flow.warehouse],
-    distanceKm: warehouseDemand.distanceKm[flow.warehouse][flow.demand],
-    durationMin: warehouseDemand.durationMin[flow.warehouse][flow.demand],
-  }));
-  const totalDemand = scaledDemands.reduce((sum, value) => sum + value, 0);
+  const throughputByWarehouse = new Map(
+    result.throughput.map((item) => [matrices.warehouses[item.warehouse], item]),
+  );
+  const assignments = result.warehouseDemandFlows.map((flow) => {
+    const hub = matrices.warehouses[flow.warehouse];
+    return {
+      hub,
+      demand: flow.demand,
+      flow: flow.flow,
+      networkCost: warehouseDemand.generalizedCostNZD[flow.warehouse][flow.demand],
+      distanceKm: warehouseDemand.distanceKm[flow.warehouse][flow.demand],
+      durationMin: warehouseDemand.durationMin[flow.warehouse][flow.demand],
+    };
+  });
   const weighted = (field) =>
     assignments.reduce((sum, flow) => sum + flow.flow * flow[field], 0) /
     Math.max(EPS, totalDemand);
   return {
-    result: {
+    solution: {
       ...result,
       selected,
       assignments,
+      utilisation: selected.map(
+        (index) => throughputByWarehouse.get(index)?.utilisation || 0,
+      ),
       averageDistanceKm: weighted("distanceKm"),
       averageDurationMin: weighted("durationMin"),
+      averageNetworkCost:
+        payload.serviceMetric === "durationMin"
+          ? weighted("durationMin")
+          : weighted("distanceKm"),
+      factoryAssignments: result.factoryWarehouseFlows.map((flow) => ({
+        ...flow,
+        factory: matrices.factories[flow.factory],
+        warehouse: matrices.warehouses[flow.warehouse],
+      })),
+      model: "two-echelon",
+      disruptionEvent: event.id,
+      disruptionAffected: event.affected,
     },
     totalDemand,
+    matrices,
+  };
+}
+
+export function solveAnalysisScenario(payload, runIndex = 0) {
+  const seed = Number(payload.seed || 1) + runIndex * 7919;
+  const scenarioParams = {
+    ...payload.scenarioParams,
+    seed,
+    ...createDisruptionEvent({
+      eventId: payload.eventId || "none",
+      seed,
+      facilities: payload.entities.facilities,
+      demands: payload.entities.demands,
+    }).networkScenario,
+  };
+  const solved = solveDetailedScenario(payload, {
+    seed,
+    eventId: payload.eventId || "none",
+    scenarioParams,
+  });
+  return { result: solved.solution, totalDemand: solved.totalDemand };
+}
+
+export function runMainOptimisation(payload) {
+  if (!payload.useGraph || !payload.graph) {
+    throw new TypeError("Main Worker optimisation requires a road graph");
+  }
+  const seed = Number(payload.seed || 1);
+  const current = solveDetailedScenario(payload, {
+    seed,
+    eventId: payload.eventId || "none",
+    scenarioParams: payload.scenarioParams,
+  });
+  const baseline = solveDetailedScenario(payload, {
+    seed,
+    eventId: "none",
+    scenarioParams: payload.baselineScenarioParams,
+  });
+  return {
+    solution: current.solution,
+    baselineSolution: baseline.solution,
+    activeGraph: current.matrices.allToDemandResult,
+    networkMatrices: {
+      active: current.matrices.allToDemand,
+      baseline: baseline.matrices.allToDemand,
+      twoEchelonRouteContext: current.matrices.factoryWarehouseResult,
+    },
   };
 }
 
@@ -370,7 +453,67 @@ export function analyseRoadCriticality(payload) {
   };
 }
 
+async function fetchOverpassEndpoint(url, body, timeoutMs) {
+  const controller = new globalThis.AbortController();
+  const timer = globalThis.setTimeout(() => controller.abort("timeout"), timeoutMs);
+  try {
+    const response = await globalThis.fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+      body,
+      signal: controller.signal,
+    });
+    if (!response.ok) throw new Error(`Overpass HTTP ${response.status}`);
+    const data = await response.json();
+    if (!Array.isArray(data?.elements) || !data.elements.length) {
+      throw new Error("Overpass returned an unusable road graph");
+    }
+    return { data, endpoint: url };
+  } finally {
+    globalThis.clearTimeout(timer);
+  }
+}
+
+export async function fetchAndParseOverpassGraph({
+  query,
+  primary,
+  secondary,
+  maxElements = 25_000,
+  timeoutMs = 12_000,
+  hedgeDelayMs = 2_600,
+}) {
+  const body = `data=${encodeURIComponent(query)}`;
+  const primaryAttempt = fetchOverpassEndpoint(primary, body, timeoutMs);
+  let secondaryTimer = 0;
+  const secondaryAttempt = new Promise((resolve, reject) => {
+    secondaryTimer = globalThis.setTimeout(() => {
+      fetchOverpassEndpoint(secondary, body, timeoutMs).then(resolve, reject);
+    }, hedgeDelayMs);
+  });
+  let response;
+  try {
+    response = await Promise.any([primaryAttempt, secondaryAttempt]);
+  } finally {
+    globalThis.clearTimeout(secondaryTimer);
+  }
+  const { data, endpoint } = response;
+  if (data.elements.length > maxElements) {
+    throw new RangeError(
+      `Live road graph exceeded the interactive limit (${data.elements.length} elements)`,
+    );
+  }
+  return {
+    graph: parseOverpassGraph(data.elements),
+    elements: data.elements,
+    elementCount: data.elements.length,
+    endpoint,
+  };
+}
+
 export function runGeospatialWorkerTask(task, payload) {
+  if (task === "parseGraph") return parseOverpassGraph(payload.elements || []);
+  if (task === "fetchParseGraph") return fetchAndParseOverpassGraph(payload);
+  if (task === "mainOptimisation") return runMainOptimisation(payload);
   if (task === "monteCarlo") return runTwoEchelonMonteCarlo(payload);
   if (task === "criticality") return analyseRoadCriticality(payload);
   throw new RangeError(`Unknown geospatial Worker task: ${task}`);

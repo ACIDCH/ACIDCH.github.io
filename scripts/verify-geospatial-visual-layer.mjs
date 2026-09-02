@@ -144,6 +144,17 @@ for (const [token, label] of [
   ["latLngToContainerPoint", "node status map projection"],
 ])
   requireText(nodeStatus, token, label);
+if (
+  nodeStatus.includes("function draw() {\n    globalThis.requestAnimationFrame(draw);")
+)
+  fail("Node-status canvas must not schedule frames while it is inactive");
+for (const [token, label] of [
+  ["const shouldAnimate", "node-status active-route scheduler"],
+  ["const stopAnimation", "node-status frame cancellation"],
+  ['D.addEventListener("visibilitychange"', "hidden-page node animation suspension"],
+  ["routeState.routes.length", "empty-route animation suspension"],
+])
+  requireText(nodeStatus, token, label);
 
 for (const [token, label] of [
   ["geo4__layer-chip", "analysis layer chip"],

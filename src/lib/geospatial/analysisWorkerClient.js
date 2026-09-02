@@ -8,6 +8,13 @@ export class StaleWorkerResultError extends Error {
   }
 }
 
+export class WorkerTaskError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "WorkerTaskError";
+  }
+}
+
 export function createAnalysisWorkerClient({ WorkerCtor = globalThis.Worker } = {}) {
   let worker = null;
   let sequence = 0;
@@ -27,7 +34,7 @@ export function createAnalysisWorkerClient({ WorkerCtor = globalThis.Worker } = 
       if (message.revisionId !== entry.revisionId || !entry.isCurrent()) {
         entry.reject(new StaleWorkerResultError());
       } else if (message.error) {
-        entry.reject(new Error(message.error));
+        entry.reject(new WorkerTaskError(message.error));
       } else {
         entry.resolve({ result: message.result, execution: "worker" });
       }
@@ -53,9 +60,18 @@ export function createAnalysisWorkerClient({ WorkerCtor = globalThis.Worker } = 
           activeWorker.postMessage({ requestId, revisionId, task, payload });
         });
       } catch (workerError) {
-        if (workerError instanceof StaleWorkerResultError) throw workerError;
+        if (
+          workerError instanceof StaleWorkerResultError ||
+          workerError instanceof WorkerTaskError
+        )
+          throw workerError;
+        if (task === "fetchParseGraph") {
+          throw new WorkerTaskError(
+            `Background road loading unavailable: ${workerError?.message || "Web Worker unavailable"}`,
+          );
+        }
         if (!isCurrent()) throw new StaleWorkerResultError();
-        const result = runGeospatialWorkerTask(task, payload);
+        const result = await runGeospatialWorkerTask(task, payload);
         if (!isCurrent()) throw new StaleWorkerResultError();
         return {
           result,

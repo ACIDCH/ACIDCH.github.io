@@ -2,7 +2,6 @@ import {
   compareScenarioResults,
   graphNetworkMatrix,
   inventoryPolicy,
-  parseOverpassGraph,
   solveTwoEchelonNetwork,
 } from "../lib/geospatial/decisionEngine.js";
 import {
@@ -19,13 +18,19 @@ import { getGeospatialStore } from "../lib/geospatial/geospatialStore.js";
 import { getGisServices } from "../lib/geospatial/gisServices.js";
 import { attachMapAdapter } from "../lib/geospatial/mapAdapter.js";
 import { createDisruptionEvent } from "../lib/geospatial/disruptionEvents.js";
-import { getAnalysisWorkerClient } from "../lib/geospatial/analysisWorkerClient.js";
+import {
+  getAnalysisWorkerClient,
+  StaleWorkerResultError,
+  WorkerTaskError,
+} from "../lib/geospatial/analysisWorkerClient.js";
 import { getBasemapConfig } from "../lib/geospatial/basemapConfig.js";
 import {
   AUCKLAND_BASELINE_METADATA,
   loadAucklandBaselineGraph,
 } from "../data/geospatial/aucklandBaselineSnapshot.js";
 
+const GRAPH_RETRY_COOLDOWN_MS = 5 * 60 * 1000;
+const MAX_SESSION_GRAPH_ELEMENTS = 25_000;
 const D = globalThis.document,
   wait = (n) => new Promise((r) => globalThis.setTimeout(r, n));
 function boot() {
@@ -374,7 +379,8 @@ function boot() {
     baselineGraph = null,
     fastMatrix = null,
     lastMC = null,
-    mapAdd = false;
+    mapAdd = false,
+    graphLoadPromise = null;
   const slots = { A: null, B: null };
   function applyBaseScene(scene = baseScene) {
     H = [...scene.H];
@@ -1083,11 +1089,58 @@ function boot() {
     rl.clearLayers();
     const token = store.begin("main");
     try {
-      const event = eventAt();
-      const matrix = await active();
-      solution = await solveIntegrated(matrix, sc(), true, event);
-      baselineSolution = await baseline();
+      if (q("geo4-engine").value === "osm" && graph) {
+        const scenarioParams = sc();
+        const ip = inv();
+        const execution = await analysisWorker.run(
+          "mainOptimisation",
+          {
+            useGraph: true,
+            graph,
+            entities: entities(),
+            pricing: pricing(),
+            baseDemands: [...DM],
+            demandMultiplier: +q("geo4-demand-multiplier").value,
+            facilityCapacity: +q("geo4-facility-capacity").value,
+            maxOpen,
+            fixedCost:
+              +q("geo4-fixed-cost").value +
+              ip.safetyStock * +q("geo4-holding-cost").value,
+            serviceThreshold: +q("geo4-threshold").value,
+            serviceMetric: "durationMin",
+            redundancy: +q("geo4-redundancy").value,
+            scenarioParams,
+            baselineScenarioParams: { ...scenarioParams, mode: "baseline" },
+            eventId: q("geo4-event").value,
+            seed: +q("geo4-seed").value,
+            enforceFleetCapacity: q("geo4-enforce-fleet").checked,
+            totalFleetCapacity:
+              fleet * +q("geo4-vehicle-capacity").value * +q("geo4-trips").value,
+          },
+          {
+            revisionId: token.scenarioRevision,
+            isCurrent: () =>
+              store.getState().scenarioRevision === token.scenarioRevision,
+          },
+        );
+        root.dataset.mainAnalysisExecution = execution.execution;
+        solution = execution.result.solution;
+        baselineSolution = execution.result.baselineSolution;
+        activeGraph = execution.result.activeGraph;
+        store.setNetworkMatrix("active", execution.result.networkMatrices.active);
+        store.setNetworkMatrix("baseline", execution.result.networkMatrices.baseline);
+        store.setNetworkMatrix("twoEchelonRouteContext", {
+          ...execution.result.networkMatrices.twoEchelonRouteContext,
+          graph,
+        });
+      } else {
+        const event = eventAt();
+        const matrix = await active();
+        solution = await solveIntegrated(matrix, sc(), true, event);
+        baselineSolution = await baseline();
+      }
     } catch (e) {
+      if (e instanceof StaleWorkerResultError) return;
       globalThis.console?.warn("[Geo V4] solve", e);
       solution = null;
       baselineSolution = null;
@@ -1372,6 +1425,9 @@ function boot() {
   function graphCacheKey(bounds) {
     return `acidch-osm-compact-v2:${bounds.map((value) => value.toFixed(3)).join(":")}`;
   }
+  function graphRetryKey(bounds) {
+    return `acidch-osm-retry-v1:${bounds.map((value) => value.toFixed(3)).join(":")}`;
+  }
   function readGraphCache(bounds) {
     try {
       const raw = globalThis.sessionStorage?.getItem(graphCacheKey(bounds));
@@ -1384,6 +1440,7 @@ function boot() {
   }
   function writeGraphCache(bounds, data) {
     try {
+      if ((data?.elements?.length || 0) > MAX_SESSION_GRAPH_ELEMENTS) return;
       const raw = JSON.stringify(data);
       if (raw.length <= 4_200_000)
         globalThis.sessionStorage?.setItem(graphCacheKey(bounds), raw);
@@ -1391,35 +1448,39 @@ function boot() {
       // Session caching is an optional performance optimisation.
     }
   }
-  async function loadGraph(solveAfter = true) {
-    q("geo4-graph-status").textContent = T.graph;
-    q("geo4-load-graph").disabled = true;
-    const bounds = graphRequestBounds();
+  function readGraphRetryAfter(bounds) {
     try {
-      let data = readGraphCache(bounds);
-      if (data) q("geo4-graph-status").textContent = T.graphCached;
-      if (!data) {
-        const query = `[out:json][timeout:20];way["highway"~"motorway|motorway_link|trunk|trunk_link|primary|primary_link|secondary|secondary_link|tertiary|tertiary_link|unclassified|residential|living_street|service"]["access"!="no"]["access"!="private"]["motor_vehicle"!="no"](${bounds.join(",")});out body;>;out skel qt;`;
-        data = await services.overpassGraph(query);
-        if (data?.elements?.length) writeGraphCache(bounds, data);
-      }
-      if (!data?.elements?.length) throw Error("graph");
-      graph = parseOverpassGraph(data.elements);
-      if (graph.edges.length < 80) throw Error("small graph");
-      graphBounds = bounds;
-      activeGraph = null;
-      q("geo4-engine").value = "osm";
-      store.setGraph(graph, graph.version);
-      q("geo4-graph-status").textContent =
-        `${T.graphOk} ${graph.nodeList.length.toLocaleString()} nodes / ${graph.edges.length.toLocaleString()} edges.`;
-      runs();
-      labels();
-      if (+q("geo4-threshold").value < 10) q("geo4-threshold").value = "30";
-      labels();
+      return Number(globalThis.sessionStorage?.getItem(graphRetryKey(bounds)) || 0);
+    } catch {
+      return 0;
+    }
+  }
+  function deferGraphRetry(bounds) {
+    try {
+      globalThis.sessionStorage?.setItem(
+        graphRetryKey(bounds),
+        String(Date.now() + GRAPH_RETRY_COOLDOWN_MS),
+      );
+    } catch {
+      // Retry throttling is best effort only.
+    }
+  }
+  function clearGraphRetry(bounds) {
+    try {
+      globalThis.sessionStorage?.removeItem(graphRetryKey(bounds));
+    } catch {
+      // Retry throttling is best effort only.
+    }
+  }
+  async function loadGraph(solveAfter = true, { force = false } = {}) {
+    const bounds = graphRequestBounds();
+    if (graphLoadPromise) {
+      const refreshed = await graphLoadPromise;
       if (solveAfter) await solve();
-      return true;
-    } catch (e) {
-      globalThis.console?.warn("[Geo V4] graph", e);
+      return refreshed;
+    }
+    let data = readGraphCache(bounds);
+    if (!data && !force && readGraphRetryAfter(bounds) > Date.now()) {
       graph = baselineGraph;
       graphBounds = baselineGraph?.metadata?.bbox || null;
       activeGraph = null;
@@ -1429,8 +1490,94 @@ function boot() {
       labels();
       if (solveAfter) await solve();
       return false;
+    }
+    q("geo4-graph-status").textContent = T.graph;
+    q("geo4-load-graph").disabled = true;
+    graphLoadPromise = (async () => {
+      let requestedLiveGraph = false;
+      try {
+        if (data) {
+          q("geo4-graph-status").textContent = T.graphCached;
+          const parsed = await analysisWorker.run(
+            "parseGraph",
+            { elements: data.elements },
+            { revisionId: 0, isCurrent: () => true },
+          );
+          graph = parsed.result;
+          root.dataset.graphParseExecution = parsed.execution;
+        } else {
+          requestedLiveGraph = true;
+          const query = `[out:json][timeout:12];way["highway"~"motorway|motorway_link|trunk|trunk_link|primary|primary_link|secondary|secondary_link|tertiary|tertiary_link|unclassified|residential|living_street|service"]["access"!="no"]["access"!="private"]["motor_vehicle"!="no"](${bounds.join(",")});out body;>;out skel qt;`;
+          const configured =
+            globalThis.__ACIDCH_GIS_RUNTIME__?.getEndpoints?.() || services.endpoints;
+          store.setServiceHealth("overpass", {
+            state: "loading",
+            message: "",
+            latencyMs: null,
+          });
+          const loaded = await analysisWorker.run(
+            "fetchParseGraph",
+            {
+              query,
+              primary: configured.overpassPrimary,
+              secondary: configured.overpassSecondary,
+              maxElements: MAX_SESSION_GRAPH_ELEMENTS,
+            },
+            { revisionId: 0, isCurrent: () => true },
+          );
+          graph = loaded.result.graph;
+          data = { elements: loaded.result.elements };
+          writeGraphCache(bounds, data);
+          root.dataset.graphParseExecution = loaded.execution;
+          store.setServiceHealth("overpass", {
+            state: "healthy",
+            message: loaded.result.endpoint,
+            latencyMs: null,
+          });
+        }
+        if (graph.edges.length < 80) throw Error("small graph");
+        clearGraphRetry(bounds);
+        graphBounds = bounds;
+        activeGraph = null;
+        q("geo4-engine").value = "osm";
+        store.setGraph(graph, graph.version);
+        q("geo4-graph-status").textContent =
+          `${T.graphOk} ${graph.nodeList.length.toLocaleString()} nodes / ${graph.edges.length.toLocaleString()} edges.`;
+        runs();
+        labels();
+        if (+q("geo4-threshold").value < 10) q("geo4-threshold").value = "30";
+        labels();
+        return true;
+      } catch (e) {
+        if (!(e instanceof WorkerTaskError)) {
+          globalThis.console?.warn("[Geo V4] graph", e);
+        }
+        if (requestedLiveGraph) {
+          store.setServiceHealth("overpass", {
+            state: "degraded",
+            message: e?.message || "",
+            latencyMs: null,
+          });
+        }
+        deferGraphRetry(bounds);
+        graph = baselineGraph;
+        graphBounds = baselineGraph?.metadata?.bbox || null;
+        activeGraph = null;
+        q("geo4-engine").value = graph ? "osm" : "od";
+        q("geo4-graph-status").textContent = T.graphFail;
+        runs();
+        labels();
+        return false;
+      } finally {
+        q("geo4-load-graph").disabled = false;
+      }
+    })();
+    try {
+      const refreshed = await graphLoadPromise;
+      if (solveAfter) await solve();
+      return refreshed;
     } finally {
-      q("geo4-load-graph").disabled = false;
+      graphLoadPromise = null;
     }
   }
   async function init() {
@@ -1466,19 +1613,21 @@ function boot() {
     let fallbackGeometry = false;
     try {
       if (!(await coords())) throw Error("coords");
-      const needsRefresh = routeGraphNeedsRefresh({
-        engine: q("geo4-engine").value,
-        graph,
-        baselineGraph,
-        graphBounds,
-        points: [...HC, ...NC],
-      });
+      const needsRefresh =
+        graph !== baselineGraph &&
+        routeGraphNeedsRefresh({
+          engine: q("geo4-engine").value,
+          graph,
+          baselineGraph,
+          graphBounds,
+          points: [...HC, ...NC],
+        });
       if (needsRefresh) {
         q("geo4-status").textContent = T.routeRefresh;
-        const refreshed = await loadGraph(false);
+        await loadGraph(false);
         await solve();
         if (!solution) return;
-        fallbackGeometry = !refreshed || graph === baselineGraph;
+        fallbackGeometry = !graph || !activeGraph;
       }
 
       const token = store.begin("routes");
@@ -1540,8 +1689,7 @@ function boot() {
             flow: x.flow,
             travelMin: route.durationMin ?? null,
             stage: "warehouseDemand",
-            geometrySource:
-              q("geo4-engine").value === "osm" ? "osrm-fallback" : "osrm",
+            geometrySource: q("geo4-engine").value === "osm" ? "osrm-fallback" : "osrm",
           });
           if (q("geo4-engine").value === "osm") fallbacks++;
         } catch {
@@ -1769,12 +1917,10 @@ function boot() {
   });
   q("geo4-layer").addEventListener("change", draw);
   q("geo4-init").addEventListener("click", init);
-  q("geo4-load-graph").addEventListener("click", () => loadGraph(true));
-  q("geo4-run").addEventListener("click", async () => {
-    if (q("geo4-engine").value === "osm" && graph === baselineGraph)
-      await loadGraph(false);
-    await solve();
-  });
+  q("geo4-load-graph").addEventListener("click", () =>
+    loadGraph(true, { force: true }),
+  );
+  q("geo4-run").addEventListener("click", solve);
   q("geo4-simulate").addEventListener("click", simulate);
   q("geo4-routes").addEventListener("click", routes);
   q("geo4-reset").addEventListener("click", reset);

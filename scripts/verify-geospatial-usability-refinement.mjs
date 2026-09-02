@@ -72,8 +72,18 @@ requireToken(files.core, "const M = HC.map", "dynamic OD distance matrix");
 requireToken(files.core, "graphRequestBounds", "randomized graph bounding box");
 requireToken(files.core, "const bounds = graphRequestBounds()", "graph request uses compact entity extent");
 requireToken(files.core, "acidch-osm-compact-v2", "session OSM graph cache");
-requireToken(files.core, "loadGraph(false)", "first Run loads OSM graph on demand");
+requireToken(files.core, 'q("geo4-run").addEventListener("click", solve)', "immediate bundled-graph solve");
+requireToken(files.core, "loadGraph(false)", "out-of-bounds live-graph route refresh");
 requireToken(files.core, "insideGraphBounds", "reuse loaded graph for in-bounds entity edits");
+requireToken(files.core, "GRAPH_RETRY_COOLDOWN_MS", "failed OSM retry cooldown");
+requireToken(files.core, "MAX_SESSION_GRAPH_ELEMENTS", "large live-graph cache guard");
+requireToken(files.core, "readGraphRetryAfter", "session-scoped failed OSM retry guard");
+requireToken(files.core, "graphLoadPromise", "concurrent OSM graph-load deduplication");
+requireToken(files.core, "loadGraph(true, { force: true })", "explicit OSM retry bypass");
+requireToken(files.core, "fallbackGeometry = !graph || !activeGraph", "exact built-in graph route fallback");
+if (files.core.includes("fallbackGeometry = !refreshed || graph === baselineGraph")) {
+  throw new Error("[geospatial-usability] built-in graph paths must not fall through to slow serial OSRM requests");
+}
 
 requireToken(files.compactUi, 'title: "设施、覆盖与网络实体"', "merged facility/entity title");
 requireToken(files.compactUi, 'list: "网络实体与设施决策"', "unified entity decision list");
@@ -85,7 +95,7 @@ requireToken(files.compactUi, ".geo4__entity-remove", "readable physical-delete 
 requireToken(files.idleGuard, "externalGisBootDeferred", "idle external-GIS deferral state");
 requireToken(files.idleGuard, 'source.includes("loadGraph(true)")', "legacy boot-preload suppression");
 requireToken(files.idleGuard, "hasLocalFixture", "deterministic local fixture exception");
-requireToken(files.idleGuard, "首次运行优化或点击加载时按需获取路网", "user-triggered OSM copy");
+requireToken(files.idleGuard, "点击加载时按需获取在线路网", "explicit live-OSM copy");
 
 requireToken(files.initialState, 'root.dataset.resultFreshness = "stale"', "initial stale-result state");
 requireToken(files.readability, ".geo4__service-chip strong{font-size:.68rem!important", "larger service-health labels");

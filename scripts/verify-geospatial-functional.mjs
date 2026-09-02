@@ -56,7 +56,7 @@ for (const [token, label] of [
   ["solveTwoEchelonNetwork", "unified two-echelon solve"],
   ["graphNetworkMatrix", "same-scenario graph matrix"],
   ["services.osrmTable", "centralised OSRM matrix service"],
-  ["services.overpassGraph", "centralised Overpass service"],
+  ["fetchParseGraph", "background Overpass graph service"],
   ['store.begin("main")', "stale-result token"],
   ["store.setMainSolution", "structured main-result publish"],
   ["cvar95Cost", "CVaR calculation"],
@@ -64,11 +64,14 @@ for (const [token, label] of [
   ["createDisruptionEvent", "seeded correlated events"],
   ["compareScenarioResults", "A/B comparison engine"],
   ["analysisWorker.run", "revision-aware Monte Carlo Worker"],
+  ['"mainOptimisation"', "main road solve Worker dispatch"],
+  ['"parseGraph"', "live graph parse Worker dispatch"],
 ])
   requireText(controller, token, label);
 
 for (const [source, token, label] of [
   [analysisSource, "analyseRoadCriticality", "deterministic road criticality"],
+  [analysisSource, "runMainOptimisation", "main-model Worker analysis"],
   [analysisSource, "runTwoEchelonMonteCarlo", "Worker Monte Carlo task"],
   [workerClientSource, "StaleWorkerResultError", "stale Worker protection"],
   [workerSource, "revisionId", "Worker revision echo"],
