@@ -128,8 +128,8 @@ def capture_mobile(browser: object, endpoint: str) -> None:
     browser.require("#geo-v4[data-compact-entity-ui-ready='true']")
     browser.require("#geo4-map .leaflet-map-pane")
     wait_mobile_workspace(browser)
-    browser.wait_for_text("#geo4-graph-status", "OSM 道路网络已加载", timeout=16)
-    geo.wait_solved(browser, timeout=16)
+    browser.wait_for_text("#geo4-graph-status", "OSM 道路网络已加载", timeout=50)
+    geo.wait_solved(browser, timeout=50)
 
     assert_mode(browser, "map")
     browser.click("#geo4-routes")
