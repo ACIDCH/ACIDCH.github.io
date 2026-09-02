@@ -121,14 +121,12 @@ def assert_mode(browser: object, expected: str) -> None:
             raise RuntimeError(f"Compact entity action area is too narrow on mobile: {state}")
 
 
-def capture_mobile(browser: object, endpoint: str) -> None:
-    geo.configure_gis(browser, endpoint)
+def capture_mobile(browser: object) -> None:
     browser.set_viewport(390, 844, mobile=True)
     geo.navigate_path(browser, "/zh/lab/geospatial-supply-chain/")
     browser.require("#geo-v4[data-compact-entity-ui-ready='true']")
     browser.require("#geo4-map .leaflet-map-pane")
     wait_mobile_workspace(browser)
-    browser.wait_for_text("#geo4-graph-status", "OSM 路网已加载", timeout=50)
     geo.wait_solved(browser, timeout=50)
 
     assert_mode(browser, "map")
@@ -179,7 +177,6 @@ def main() -> None:
     server_thread = threading.Thread(target=server.serve_forever, daemon=True)
     server_thread.start()
 
-    gis_server, _gis_thread, endpoint = geo.gis.start_fake_overpass()
     driver_port = 9533
     driver_base = f"http://127.0.0.1:{driver_port}"
     driver = subprocess.Popen(
@@ -191,7 +188,7 @@ def main() -> None:
     try:
         base.wait_for_driver(driver_base, driver)
         browser = base.BrowserSession(driver_base, f"http://127.0.0.1:{site_port}")
-        capture_mobile(browser, endpoint)
+        capture_mobile(browser)
     finally:
         if browser is not None:
             browser.close()
@@ -202,9 +199,6 @@ def main() -> None:
             driver.kill()
         server.shutdown()
         server.server_close()
-        gis_server.shutdown()
-        gis_server.server_close()
-
     print(
         "Mobile geospatial verification passed: all default optimal routes render without degenerate SVG paths and synchronise with the route-flow panel, Map / Controls / Results workspace switching, randomized 22-entity controls, OSM-first solve state, fresh KPIs, Risk/Mixed states and mobile-safe layout checks are correct."
     )

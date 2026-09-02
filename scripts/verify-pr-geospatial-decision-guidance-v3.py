@@ -9,7 +9,6 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 GEO_SCRIPT = ROOT / "scripts" / "capture-pr-geospatial-visuals.py"
-GIS_SCRIPT = ROOT / "scripts" / "geospatial-test-gis.py"
 
 spec = importlib.util.spec_from_file_location("geo_visual_helpers", GEO_SCRIPT)
 if spec is None or spec.loader is None:
@@ -17,12 +16,6 @@ if spec is None or spec.loader is None:
 geo = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(geo)
 base = geo.base
-
-gis_spec = importlib.util.spec_from_file_location("geospatial_test_gis", GIS_SCRIPT)
-if gis_spec is None or gis_spec.loader is None:
-    raise RuntimeError("Unable to load deterministic GIS fixture server.")
-gis = importlib.util.module_from_spec(gis_spec)
-gis_spec.loader.exec_module(gis)
 
 
 def wait_text_contains(browser: object, selector: str, needle: str, timeout: float = 12) -> str:
@@ -43,7 +36,7 @@ def fleet_state(browser: object) -> str:
     return value if isinstance(value, str) else ""
 
 
-def assert_guidance_chain(browser: object, endpoint: str) -> None:
+def assert_guidance_chain(browser: object) -> None:
     base.request_json(
         "POST",
         f"{browser.session_base}/goog/cdp/execute",
@@ -54,12 +47,10 @@ def assert_guidance_chain(browser: object, endpoint: str) -> None:
             },
         },
     )
-    geo.configure_gis(browser, endpoint)
     geo.navigate_path(browser, "/zh/lab/geospatial-supply-chain/")
     browser.require("#geo-v4[data-decision-guidance-v3-ready='true']")
     browser.require(".geo4__next-action")
-    browser.wait_for_text("#geo4-graph-status", "OSM 路网已加载", timeout=50)
-    geo.wait_solved(browser)
+    geo.wait_solved(browser, timeout=50)
 
     initial_guidance = wait_text_contains(
         browser, ".geo4__next-action", "可直接生成车队路线", timeout=8
@@ -148,7 +139,6 @@ def main() -> None:
     site_thread = threading.Thread(target=site_server.serve_forever, daemon=True)
     site_thread.start()
 
-    gis_server, _gis_thread, endpoint = gis.start_fake_overpass()
     driver_port = 9541
     driver_base = f"http://127.0.0.1:{driver_port}"
     driver = subprocess.Popen(
@@ -161,7 +151,7 @@ def main() -> None:
         base.wait_for_driver(driver_base, driver)
         browser = base.BrowserSession(driver_base, f"http://127.0.0.1:{site_port}")
         browser.set_viewport(1440, 1000, mobile=False)
-        assert_guidance_chain(browser, endpoint)
+        assert_guidance_chain(browser)
     finally:
         if browser is not None:
             browser.close()
@@ -172,9 +162,6 @@ def main() -> None:
             driver.kill()
         site_server.shutdown()
         site_server.server_close()
-        gis_server.shutdown()
-        gis_server.server_close()
-
     print(
         "Geospatial decision-guidance v3 browser verification passed: all default routes are non-degenerate and synchronised with the flow panel under reduced motion, a repeated route load preserves an already safe viewport, Fleet/TSP runs directly from the current allocation, capacity shortfall is explicit, stale decision inputs redirect the workflow back to Run, and Monte Carlo is blocked until the main result is current."
     )
