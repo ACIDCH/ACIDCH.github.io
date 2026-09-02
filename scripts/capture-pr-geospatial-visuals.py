@@ -118,6 +118,7 @@ def wait_optimal_routes(browser: object, timeout: float = 20) -> dict[str, objec
             r"""
             const paths = [...document.querySelectorAll('.geo4__optimal-route')];
             const demandCount = document.querySelectorAll('.geo4-demand-node').length;
+            const assignmentCount = Number(document.querySelector('#geo-v4')?.dataset.routeAssignmentCount || 0);
             const mapRect = document.querySelector('#geo4-map')?.getBoundingClientRect();
             const inset = 16;
             const overlays = [...document.querySelectorAll('#geo-v4 .geo4__console,#geo-v4 .geo4__results')]
@@ -146,6 +147,7 @@ def wait_optimal_routes(browser: object, timeout: float = 20) -> dict[str, objec
             return {
               routeCount: paths.length,
               demandCount,
+              assignmentCount,
               invalidCount,
               unsafeCount,
               flowText: (document.querySelector('#geo4-flow-state')?.textContent || '').trim(),
@@ -159,13 +161,13 @@ def wait_optimal_routes(browser: object, timeout: float = 20) -> dict[str, objec
         if isinstance(value, dict):
             last = value
             route_count = value.get("routeCount")
-            demand_count = value.get("demandCount")
+            assignment_count = value.get("assignmentCount")
             flow_text = value.get("flowText")
             route_status = value.get("routeStatus")
             if (
                 isinstance(route_count, int)
                 and route_count > 0
-                and route_count == demand_count
+                and route_count == assignment_count
                 and value.get("invalidCount") == 0
                 and value.get("unsafeCount") == 0
                 and isinstance(flow_text, str)

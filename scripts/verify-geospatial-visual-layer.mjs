@@ -196,6 +196,7 @@ for (const [token, label] of [
   ["paddingBottomRight", "overlay-aware route viewport padding"],
   ["maxZoom: map.getZoom()", "route viewport no-zoom-in guard"],
   ["store.setRouteVisuals([])", "route-start visual state publication"],
+  ["routeAssignmentCount", "solver allocation-count route acceptance hook"],
 ])
   requireText(routeController, token, label);
 if (/\[\s*["']geo4-routes["']\s*,/.test(controller))

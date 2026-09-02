@@ -911,6 +911,7 @@ function boot() {
     }
   }
   function results() {
+    root.dataset.routeAssignmentCount = String(solution?.assignments?.length || 0);
     const ip = inv(),
       td = DM.reduce((a, b) => a + b, 0) * +q("geo4-demand-multiplier").value,
       fc = fleet * +q("geo4-vehicle-capacity").value * +q("geo4-trips").value,

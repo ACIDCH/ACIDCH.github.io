@@ -139,7 +139,7 @@ def main() -> None:
         server.server_close()
 
     print(
-        "Geospatial route-rendering browser verification passed: desktop and mobile routes match demand allocations, contain no M0 0 geometry, remain outside overlay occlusion, synchronise with route-flow totals, preserve an already safe viewport and stay static under reduced motion."
+        "Geospatial route-rendering browser verification passed: desktop and mobile routes match solver allocations, contain no M0 0 geometry, remain outside overlay occlusion, synchronise with route-flow totals, preserve an already safe viewport and stay static under reduced motion."
     )
 
 
