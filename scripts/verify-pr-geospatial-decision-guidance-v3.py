@@ -54,21 +54,27 @@ def assert_guidance_chain(browser: object, endpoint: str) -> None:
     initial_guidance = wait_text_contains(
         browser, ".geo4__next-action", "可直接生成车队路线", timeout=8
     )
-    if "加载最优路径" not in initial_guidance:
+    if "最优路径已自动显示" not in initial_guidance:
         raise RuntimeError(
-            "Decision guidance did not explain that optimal-path loading is presentation-only."
+            "Decision guidance did not confirm first-load optimal-path presentation."
         )
 
-    if browser.execute("return document.querySelectorAll('.geo4__optimal-route').length;") != 0:
-        raise RuntimeError("Optimal road paths were unexpectedly loaded before the Route action.")
+    initial_route_count = browser.execute(
+        "return document.querySelectorAll('.geo4__optimal-route').length;"
+    )
+    if not isinstance(initial_route_count, int) or initial_route_count <= 0:
+        raise RuntimeError("Optimal road paths were not displayed automatically.")
 
     browser.click(".geo4__fleet-build")
     wait_text_contains(browser, ".geo4__fleet-status", "车队计划已生成", timeout=12)
     if fleet_state(browser) != "ready":
         raise RuntimeError(f"Baseline Fleet/TSP did not settle in ready state: {fleet_state(browser)!r}")
-    if browser.execute("return document.querySelectorAll('.geo4__optimal-route').length;") != 0:
+    if (
+        browser.execute("return document.querySelectorAll('.geo4__optimal-route').length;")
+        != initial_route_count
+    ):
         raise RuntimeError(
-            "Fleet/TSP incorrectly required or created the optional main optimal-path presentation layer."
+            "Fleet/TSP unexpectedly replaced the main optimal-path presentation layer."
         )
     wait_text_contains(browser, ".geo4__next-action", "Monte Carlo", timeout=6)
 

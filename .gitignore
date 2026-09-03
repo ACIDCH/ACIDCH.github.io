@@ -26,6 +26,8 @@ test-results/
 .parcel-cache/
 .turbo/
 /tmp/
+__pycache__/
+*.py[cod]
 
 # Debug logs
 npm-debug.log*

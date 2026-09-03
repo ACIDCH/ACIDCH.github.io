@@ -195,6 +195,10 @@ for (const [token, label] of [
   ["fitRoutesIfNeeded", "conditional route viewport fitting"],
   ["paddingBottomRight", "overlay-aware route viewport padding"],
   ["maxZoom: map.getZoom()", "route viewport no-zoom-in guard"],
+  ["map.panBy", "post-fit rendered-route viewport correction"],
+  ["routeGeometrySignature", "scenario-aware route geometry fingerprint"],
+  ["waitForRoutePresentation", "first-load visual extension synchronisation"],
+  ['q("geo4-layer").value = "flow"', "flow layer reset default"],
   ["store.setRouteVisuals([])", "route-start visual state publication"],
   ["routeAssignmentCount", "solver allocation-count route acceptance hook"],
 ])

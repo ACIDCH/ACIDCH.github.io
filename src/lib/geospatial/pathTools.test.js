@@ -1,5 +1,28 @@
 import { describe, expect, it } from "vitest";
-import { connectRouteEndpoints, routeGraphNeedsRefresh } from "./pathTools.js";
+import {
+  connectRouteEndpoints,
+  reconstructGraphPath,
+  routeGraphNeedsRefresh,
+} from "./pathTools.js";
+
+function rerouteTestGraph() {
+  const nodes = new Map([
+    ["a", { id: "a", lat: -36.86, lon: 174.75 }],
+    ["b", { id: "b", lat: -36.85, lon: 174.76 }],
+    ["c", { id: "c", lat: -36.84, lon: 174.77 }],
+  ]);
+  const edges = [
+    { from: "a", to: "b", segmentKey: "ab", lengthKm: 1, timeMin: 1 },
+    { from: "b", to: "c", segmentKey: "bc", lengthKm: 1, timeMin: 1 },
+    { from: "a", to: "c", segmentKey: "ac", lengthKm: 4, timeMin: 4 },
+  ];
+  const adjacency = new Map([
+    ["a", [0, 2]],
+    ["b", [1]],
+    ["c", []],
+  ]);
+  return { nodes, nodeList: [...nodes.values()], edges, adjacency, maxSpeedKph: 60 };
+}
 
 describe("connectRouteEndpoints", () => {
   const source = { lat: -36.86, lon: 174.75 };
@@ -108,5 +131,25 @@ describe("routeGraphNeedsRefresh", () => {
         points: [point],
       }),
     ).toBe(false);
+  });
+});
+
+describe("reconstructGraphPath", () => {
+  it("rebuilds a different route when the active scenario closes a used segment", () => {
+    const graph = rerouteTestGraph();
+    const baseline = reconstructGraphPath(graph, "a", "c", {}, "time");
+    const closure = reconstructGraphPath(
+      graph,
+      "a",
+      "c",
+      { disabled: new Set(["bc"]) },
+      "time",
+    );
+
+    expect(baseline?.coordinates.map((point) => point.lat)).toEqual([
+      -36.86, -36.85, -36.84,
+    ]);
+    expect(closure?.coordinates.map((point) => point.lat)).toEqual([-36.86, -36.84]);
+    expect(closure?.cost).toBe(4);
   });
 });

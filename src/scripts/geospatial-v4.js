@@ -284,9 +284,20 @@ function boot() {
       if (!facilities.some((item) => item.name === candidate.name))
         facilities.push(candidate);
     }
-    const typedFacilities = shuffled(facilities, random).map((item, index) => ({
+    const regionalWarehouseNames = new Set(
+      facilities.slice(0, FACILITY_REGIONS.length).map((item) => item.name),
+    );
+    const factoryNames = new Set(
+      shuffled(
+        facilities.filter((item) => !regionalWarehouseNames.has(item.name)),
+        random,
+      )
+        .slice(0, 3)
+        .map((item) => item.name),
+    );
+    const typedFacilities = shuffled(facilities, random).map((item) => ({
       ...item,
-      type: index < 3 ? "factory" : "warehouse",
+      type: factoryNames.has(item.name) ? "factory" : "warehouse",
     }));
     const demands = [];
     DEMAND_REGIONS.forEach((region) => {
@@ -382,6 +393,7 @@ function boot() {
     lastMC = null,
     mapAdd = false,
     graphLoadPromise = null;
+  let initialRoutesLoaded = false;
   const slots = { A: null, B: null };
   function applyBaseScene(scene = baseScene) {
     H = [...scene.H];
@@ -413,6 +425,9 @@ function boot() {
     if (state.freshness.main !== "current" && !presentationOnly) {
       solution = null;
       activeGraph = null;
+      root.dataset.routeGeometrySignature = "";
+      root.dataset.routeScenarioMode = "";
+      root.dataset.routeViewportAction = "";
       q("geo4-routes").disabled = true;
       rl.clearLayers();
       results();
@@ -614,7 +629,7 @@ function boot() {
         { padding: [28, 28] },
       );
   }
-  function fitRoutesIfNeeded(routeVisuals) {
+  async function fitRoutesIfNeeded(routeVisuals) {
     const coordinates = routeVisuals
       .flatMap((route) => route.coordinates || [])
       .filter((point) => Number.isFinite(point?.lat) && Number.isFinite(point?.lon));
@@ -688,6 +703,52 @@ function boot() {
       maxZoom: map.getZoom(),
       animate: false,
     });
+    await new Promise((resolve) => globalThis.requestAnimationFrame(resolve));
+
+    const safeViewport = {
+      left: mapRect.left + minimumPadding,
+      right: mapRect.right - rightPadding,
+      top: mapRect.top + minimumPadding,
+      bottom: mapRect.bottom - bottomPadding,
+    };
+    const renderedExtent = () => {
+      const rects = rl
+        .getLayers()
+        .map((layer) => layer.getElement?.()?.getBoundingClientRect())
+        .filter(Boolean);
+      if (!rects.length) return null;
+      return {
+        left: Math.min(...rects.map((rect) => rect.left)),
+        right: Math.max(...rects.map((rect) => rect.right)),
+        top: Math.min(...rects.map((rect) => rect.top)),
+        bottom: Math.max(...rects.map((rect) => rect.bottom)),
+      };
+    };
+    let rendered = renderedExtent();
+    for (let attempt = 0; rendered && attempt < 4; attempt++) {
+      const routeWidth = rendered.right - rendered.left;
+      const routeHeight = rendered.bottom - rendered.top;
+      const safeWidth = safeViewport.right - safeViewport.left;
+      const safeHeight = safeViewport.bottom - safeViewport.top;
+      if (routeWidth <= safeWidth && routeHeight <= safeHeight) break;
+      const zoom = map.getZoom();
+      if (zoom <= map.getMinZoom()) break;
+      map.setZoom(zoom - 1, { animate: false });
+      await new Promise((resolve) => globalThis.requestAnimationFrame(resolve));
+      rendered = renderedExtent();
+    }
+    for (let attempt = 0; rendered && attempt < 3; attempt++) {
+      const minimumPanX = rendered.right - safeViewport.right;
+      const maximumPanX = rendered.left - safeViewport.left;
+      const minimumPanY = rendered.bottom - safeViewport.bottom;
+      const maximumPanY = rendered.top - safeViewport.top;
+      const panX = minimumPanX > 0 ? minimumPanX : maximumPanX < 0 ? maximumPanX : 0;
+      const panY = minimumPanY > 0 ? minimumPanY : maximumPanY < 0 ? maximumPanY : 0;
+      if (!panX && !panY) break;
+      map.panBy([-panX, -panY], { animate: false });
+      await new Promise((resolve) => globalThis.requestAnimationFrame(resolve));
+      rendered = renderedExtent();
+    }
     return true;
   }
   async function table(src, dst) {
@@ -1163,6 +1224,10 @@ function boot() {
     );
   }
   async function solve() {
+    root.dataset.routeGeometrySignature = "";
+    root.dataset.routeScenarioMode = "";
+    root.dataset.routeViewportAction = "";
+    store.setRouteVisuals([]);
     q("geo4-status").textContent = T.solve;
     rl.clearLayers();
     const token = store.begin("main");
@@ -1230,6 +1295,56 @@ function boot() {
     results();
     draw();
     q("geo4-routes").disabled = !solution;
+  }
+
+  async function waitForRoutePresentation() {
+    for (let attempt = 0; attempt < 12; attempt++) {
+      if (root.querySelector(".geo4__flow-panel")) break;
+      await wait(50);
+    }
+    await new Promise((resolve) => globalThis.requestAnimationFrame(resolve));
+  }
+
+  async function solveInitialScenario(maxAttempts = 5) {
+    root.dataset.initialSolveRetry = "true";
+    try {
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        root.dataset.initialSolveAttempts = String(attempt);
+        await solve();
+        if (solution || attempt === maxAttempts) return solution;
+        q("geo4-status").textContent = T.solve;
+        baseScene = chooseRandomScene(true);
+        applyBaseScene(baseScene);
+        policies();
+        customs();
+        publishEntities();
+        labels();
+        draw();
+        fit();
+      }
+      return null;
+    } finally {
+      root.dataset.initialSolveRetry = "false";
+    }
+  }
+
+  function routeGeometrySignature(routeVisuals) {
+    let hash = 2166136261;
+    const input = routeVisuals
+      .map((route) =>
+        (route.coordinates || [])
+          .map(
+            (point) =>
+              `${Number(point.lat).toFixed(5)},${Number(point.lon).toFixed(5)}`,
+          )
+          .join(";"),
+      )
+      .join("|");
+    for (let index = 0; index < input.length; index++) {
+      hash ^= input.charCodeAt(index);
+      hash = Math.imul(hash, 16777619);
+    }
+    return (hash >>> 0).toString(16).padStart(8, "0");
   }
   function robust(r) {
     lastMC = r;
@@ -1554,7 +1669,7 @@ function boot() {
     const bounds = graphRequestBounds();
     if (graphLoadPromise) {
       const refreshed = await graphLoadPromise;
-      if (solveAfter) await solve();
+      if (solveAfter) await solveAndShowRoutes();
       return refreshed;
     }
     let data = readGraphCache(bounds);
@@ -1566,7 +1681,7 @@ function boot() {
       q("geo4-graph-status").textContent = T.graphFail;
       runs();
       labels();
-      if (solveAfter) await solve();
+      if (solveAfter) await solveAndShowRoutes();
       return false;
     }
     q("geo4-graph-status").textContent = T.graph;
@@ -1652,7 +1767,7 @@ function boot() {
     })();
     try {
       const refreshed = await graphLoadPromise;
-      if (solveAfter) await solve();
+      if (solveAfter) await solveAndShowRoutes();
       return refreshed;
     } finally {
       graphLoadPromise = null;
@@ -1686,7 +1801,7 @@ function boot() {
     }
   }
   async function routes() {
-    if (!solution) return;
+    if (!solution || store.getState().freshness.main !== "current") return;
     q("geo4-routes").disabled = true;
     root.dataset.routeViewportAction = "pending";
     store.setRouteVisuals([]);
@@ -1694,6 +1809,7 @@ function boot() {
     let fallbackGeometry = false;
     try {
       if (!(await coords())) throw Error("coords");
+      if (!solution || store.getState().freshness.main !== "current") return;
       const needsRefresh =
         graph !== baselineGraph &&
         routeGraphNeedsRefresh({
@@ -1707,7 +1823,7 @@ function boot() {
         q("geo4-status").textContent = T.routeRefresh;
         await loadGraph(false);
         await solve();
-        if (!solution) return;
+        if (!solution || store.getState().freshness.main !== "current") return;
         fallbackGeometry = !graph || !activeGraph;
       }
 
@@ -1717,6 +1833,7 @@ function boot() {
       let fails = 0;
       let fallbacks = 0;
       for (const x of solution.assignments) {
+        if (store.getState().scenarioRevision !== token.scenarioRevision) return;
         const a = HC[x.hub],
           b = NC[x.demand];
         if (!a || !b) {
@@ -1739,7 +1856,12 @@ function boot() {
           if (p && coordinates.length >= 2) {
             L.polyline(
               coordinates.map((v) => [v.lat, v.lon]),
-              { color: "#d8ff6b", weight: 2.7, opacity: 0.84 },
+              {
+                color: "#d8ff6b",
+                weight: 2.7,
+                opacity: 0.84,
+                className: "geo4__optimal-route",
+              },
             )
               .bindTooltip(
                 `${H[x.hub]} → ${N[x.demand]}<br>Flow: ${x.flow.toFixed(0)} · ${p.cost.toFixed(1)} min`,
@@ -1762,7 +1884,12 @@ function boot() {
           if (coordinates.length < 2) throw new Error("invalid route geometry");
           L.polyline(
             coordinates.map((point) => [point.lat, point.lon]),
-            { color: "#d8ff6b", weight: 2.5, opacity: 0.82 },
+            {
+              color: "#d8ff6b",
+              weight: 2.5,
+              opacity: 0.82,
+              className: "geo4__optimal-route",
+            },
           )
             .bindTooltip(`${H[x.hub]} → ${N[x.demand]}<br>Flow: ${x.flow.toFixed(0)}`)
             .addTo(rl);
@@ -1783,7 +1910,10 @@ function boot() {
         rl.clearLayers();
         return;
       }
-      fitRoutesIfNeeded(routeVisuals);
+      root.dataset.routeGeometrySignature = routeGeometrySignature(routeVisuals);
+      root.dataset.routeScenarioMode = q("geo4-road-mode").value;
+      await fitRoutesIfNeeded(routeVisuals);
+      if (store.getState().scenarioRevision !== token.scenarioRevision) return;
       q("geo4-status").textContent = fails
         ? T.routePart
         : fallbacks
@@ -1793,8 +1923,15 @@ function boot() {
       globalThis.console?.warn("[Geo V4] routes", e);
       q("geo4-status").textContent = T.routePart;
     } finally {
-      q("geo4-routes").disabled = false;
+      q("geo4-routes").disabled =
+        !solution || store.getState().freshness.main !== "current";
     }
+  }
+  async function solveAndShowRoutes() {
+    await solve();
+    if (!solution) return;
+    await waitForRoutePresentation();
+    await routes();
   }
   const snap = () => {
     const snapshot = store.getState();
@@ -1915,7 +2052,7 @@ function boot() {
     q("geo4-trips").value = "5";
     q("geo4-transport-cost").value = ".72";
     if (q("geo4-time-cost")) q("geo4-time-cost").value = ".35";
-    q("geo4-layer").value = "network";
+    q("geo4-layer").value = "flow";
     q("geo4-robust").hidden = true;
     q("geo4-ab").innerHTML = "";
     q("geo4-map-add").textContent = T.off;
@@ -1929,6 +2066,10 @@ function boot() {
     publishEntities();
     await solve();
     map.setView([-36.873, 174.766], 12);
+    if (solution) {
+      await waitForRoutePresentation();
+      await routes();
+    }
   }
   [
     "geo4-congestion",
@@ -2006,7 +2147,7 @@ function boot() {
   q("geo4-load-graph").addEventListener("click", () =>
     loadGraph(true, { force: true }),
   );
-  q("geo4-run").addEventListener("click", solve);
+  q("geo4-run").addEventListener("click", solveAndShowRoutes);
   q("geo4-simulate").addEventListener("click", simulate);
   q("geo4-routes").addEventListener("click", routes);
   q("geo4-reset").addEventListener("click", reset);
@@ -2079,9 +2220,14 @@ function boot() {
       publishEntities();
       q("geo4-graph-status").textContent =
         `${T.ready} ${AUCKLAND_BASELINE_METADATA.nodeCount.toLocaleString()} nodes / ${AUCKLAND_BASELINE_METADATA.edgeCount.toLocaleString()} edges · ${AUCKLAND_BASELINE_METADATA.version}.`;
-      await solve();
+      await solveInitialScenario();
       draw();
       fit();
+      if (solution && !initialRoutesLoaded) {
+        initialRoutesLoaded = true;
+        await waitForRoutePresentation();
+        await routes();
+      }
     } catch (error) {
       globalThis.console?.warn("[Geo V4] baseline graph", error);
       q("geo4-graph-status").textContent = T.graphFail;

@@ -107,7 +107,18 @@ def wait_dataset(browser: object, key: str, expected: str, timeout: float = 8) -
 
 
 def wait_solved(browser: object, timeout: float = 50) -> None:
-    browser.wait_for_text("#geo4-status", "当前情景已完成重新优化", timeout=timeout)
+    deadline = time.time() + timeout
+    last = ""
+    while time.time() < deadline:
+        last = read_text(browser, "#geo4-status")
+        if "当前情景已完成重新优化" in last or "Scenario re-optimised" in last:
+            return
+        if "最优路径已加载" in last or "Optimal paths loaded" in last:
+            return
+        if "没有可行方案" in last or "No feasible solution" in last:
+            raise RuntimeError(f"Default geospatial scenario was infeasible: {last}")
+        time.sleep(0.2)
+    raise RuntimeError(f"Timed out waiting for the geospatial solution: {last}")
 
 
 def wait_optimal_routes(browser: object, timeout: float = 20) -> dict[str, object]:
@@ -153,6 +164,9 @@ def wait_optimal_routes(browser: object, timeout: float = 20) -> dict[str, objec
               flowText: (document.querySelector('#geo4-flow-state')?.textContent || '').trim(),
               routeStatus: (document.querySelector('#geo4-status')?.textContent || '').trim(),
               viewportAction: document.querySelector('#geo-v4')?.dataset.routeViewportAction || '',
+              geometrySignature: document.querySelector('#geo-v4')?.dataset.routeGeometrySignature || '',
+              scenarioMode: document.querySelector('#geo-v4')?.dataset.routeScenarioMode || '',
+              analysisLayer: document.querySelector('#geo4-layer')?.value || '',
               reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches,
               animationEnabled: Boolean(document.querySelector('#geo4-flow-toggle')?.checked),
             };

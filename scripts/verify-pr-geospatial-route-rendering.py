@@ -31,10 +31,19 @@ def emulate_reduced_motion(browser: object) -> None:
     )
 
 
-def assert_route_state(browser: object, *, expect_preserved: bool = False) -> dict[str, object]:
+def assert_route_state(
+    browser: object,
+    *,
+    reduced_motion: bool,
+    expect_preserved: bool = False,
+) -> dict[str, object]:
     state = geo.wait_optimal_routes(browser, timeout=25)
-    if state.get("reducedMotion") is not True or state.get("animationEnabled") is not False:
-        raise RuntimeError(f"Reduced-motion route state is incorrect: {state}")
+    if state.get("reducedMotion") is not reduced_motion:
+        raise RuntimeError(f"Route motion preference was not detected correctly: {state}")
+    if state.get("animationEnabled") is not (not reduced_motion):
+        raise RuntimeError(f"Default route-flow animation state is incorrect: {state}")
+    if state.get("analysisLayer") != "flow":
+        raise RuntimeError(f"The first-load analysis layer was not Flow: {state}")
     if expect_preserved and state.get("viewportAction") != "preserve":
         raise RuntimeError(f"An already safe route viewport was not preserved: {state}")
     return state
@@ -78,29 +87,49 @@ def wait_mobile_map(browser: object, timeout: float = 12) -> None:
     raise RuntimeError(f"Mobile route map did not become usable: {last}")
 
 
-def verify_routes(browser: object) -> None:
+def verify_routes(browser: object, *, reduced_motion: bool) -> None:
     browser.set_viewport(1440, 1000, mobile=False)
     geo.navigate_path(browser, "/zh/lab/geospatial-supply-chain/")
     browser.require("#geo4-map .leaflet-map-pane")
     geo.wait_solved(browser, timeout=50)
-    if browser.execute("return document.querySelectorAll('.geo4__optimal-route').length;") != 0:
-        raise RuntimeError("Optimal routes were present before the route action.")
+    initial = assert_route_state(browser, reduced_motion=reduced_motion)
+    if initial.get("scenarioMode") != "baseline" or not initial.get("geometrySignature"):
+        raise RuntimeError(f"Initial baseline route geometry was not identified: {initial}")
+    browser.click("#geo4-routes")
+    assert_route_state(browser, reduced_motion=reduced_motion, expect_preserved=True)
+    browser.screenshot(
+        "geospatial-route-rendering-reduced.png"
+        if reduced_motion
+        else "geospatial-route-rendering-desktop.png"
+    )
 
-    browser.click("#geo4-routes")
-    assert_route_state(browser)
-    browser.click("#geo4-routes")
-    assert_route_state(browser, expect_preserved=True)
-    browser.screenshot("geospatial-route-rendering-desktop.png")
+    if not reduced_motion:
+        baseline_signature = initial["geometrySignature"]
+        baseline_cost = geo.read_text(browser, "#geo4-kpi-cost")
+        geo.set_select(browser, "#geo4-road-mode", "mixed")
+        geo.set_input(browser, "#geo4-congestion", "35")
+        geo.set_input(browser, "#geo4-congestion-share", "35")
+        geo.set_input(browser, "#geo4-closure", "1")
+        if browser.execute("return document.querySelectorAll('.geo4__optimal-route').length;") != 0:
+            raise RuntimeError("Changing the road scenario did not clear stale routes.")
+        browser.click("#geo4-run")
+        geo.wait_solved(browser, timeout=50)
+        changed = assert_route_state(browser, reduced_motion=False)
+        if changed.get("scenarioMode") != "mixed":
+            raise RuntimeError(f"Routes did not use the current road scenario: {changed}")
+        if changed.get("geometrySignature") == baseline_signature:
+            raise RuntimeError(f"Mixed road scenario reused baseline route geometry: {changed}")
+        if geo.read_text(browser, "#geo4-kpi-cost") == baseline_cost:
+            raise RuntimeError("Mixed road scenario did not change the solved cost.")
 
-    browser.set_viewport(390, 844, mobile=True)
-    geo.navigate_path(browser, "/zh/lab/geospatial-supply-chain/")
-    browser.require("#geo4-map .leaflet-map-pane")
-    wait_mobile_map(browser)
-    geo.wait_solved(browser, timeout=50)
-    browser.click("#geo4-routes")
-    assert_route_state(browser)
-    wait_mobile_map(browser)
-    browser.screenshot("geospatial-route-rendering-mobile.png")
+        browser.set_viewport(390, 844, mobile=True)
+        geo.navigate_path(browser, "/zh/lab/geospatial-supply-chain/")
+        browser.require("#geo4-map .leaflet-map-pane")
+        wait_mobile_map(browser)
+        geo.wait_solved(browser, timeout=50)
+        assert_route_state(browser, reduced_motion=False)
+        wait_mobile_map(browser)
+        browser.screenshot("geospatial-route-rendering-mobile.png")
 
 
 def main() -> None:
@@ -122,14 +151,23 @@ def main() -> None:
         stderr=subprocess.DEVNULL,
     )
     browser = None
+    reduced_browser = None
     try:
         base.wait_for_driver(driver_base, driver)
         browser = base.BrowserSession(driver_base, f"http://127.0.0.1:{site_port}")
-        emulate_reduced_motion(browser)
-        verify_routes(browser)
+        verify_routes(browser, reduced_motion=False)
+        browser.close()
+        browser = None
+        reduced_browser = base.BrowserSession(
+            driver_base, f"http://127.0.0.1:{site_port}"
+        )
+        emulate_reduced_motion(reduced_browser)
+        verify_routes(reduced_browser, reduced_motion=True)
     finally:
         if browser is not None:
             browser.close()
+        if reduced_browser is not None:
+            reduced_browser.close()
         driver.terminate()
         try:
             driver.wait(timeout=5)
@@ -139,7 +177,7 @@ def main() -> None:
         server.server_close()
 
     print(
-        "Geospatial route-rendering browser verification passed: desktop and mobile routes match solver allocations, contain no M0 0 geometry, remain outside overlay occlusion, synchronise with route-flow totals, preserve an already safe viewport and stay static under reduced motion."
+        "Geospatial route-rendering browser verification passed: first-load desktop and mobile routes match solver allocations, default to the Flow layer and enabled motion, change with the active mixed-road scenario, contain no M0 0 geometry, remain outside overlay occlusion, synchronise with route-flow totals, preserve an already safe viewport and stay static under reduced motion."
     )
 
 
