@@ -745,7 +745,7 @@ function boot() {
       const panX = minimumPanX > 0 ? minimumPanX : maximumPanX < 0 ? maximumPanX : 0;
       const panY = minimumPanY > 0 ? minimumPanY : maximumPanY < 0 ? maximumPanY : 0;
       if (!panX && !panY) break;
-      map.panBy([-panX, -panY], { animate: false });
+      map.panBy([panX, panY], { animate: false });
       await new Promise((resolve) => globalThis.requestAnimationFrame(resolve));
       rendered = renderedExtent();
     }
