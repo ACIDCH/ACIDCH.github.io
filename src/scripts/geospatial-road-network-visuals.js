@@ -134,7 +134,6 @@ function boot() {
   }
   if (state.graph) {
     state.segments = prepareSegments(state.graph);
-    state.scenario = currentScenario();
   }
   state.map?.on("move zoom resize", scheduleDraw);
 
@@ -266,13 +265,7 @@ function boot() {
     for (const segment of state.segments) {
       const affected = scenario.factors.has(segment.key);
       const closed = scenario.disabled.has(segment.key);
-      if (
-        !affected &&
-        !closed &&
-        segment.importance === 0 &&
-        hash(segment.key) % localStride !== 0
-      )
-        continue;
+      if (!closed && hash(segment.key) % localStride !== 0) continue;
 
       const baseAlpha =
         analysis === "network" ? 0.2 : analysis === "risk" ? 0.075 : 0.11;
@@ -348,21 +341,20 @@ function boot() {
     if (snapshot.graph !== state.graph) {
       state.graph = snapshot.graph;
       state.segments = prepareSegments(snapshot.graph);
-      state.scenario = currentScenario();
+      state.scenario = null;
     }
     if (
       ["graph", "reset", "scenario-inputs"].some((value) =>
         String(reason).includes(value),
       )
     ) {
-      state.scenario = currentScenario();
+      state.scenario = null;
       scheduleDraw();
     }
   });
 
   const refresh = () => {
-    if (D.getElementById("geo4-engine")?.value !== "osm") state.scenario = null;
-    else state.scenario = currentScenario();
+    state.scenario = null;
     scheduleDraw();
   };
   for (const id of [

@@ -56,6 +56,8 @@ function boot() {
   );
   const state = {
     routes: [],
+    projectedRoutes: [],
+    projectionDirty: true,
     enabled: !reducedMotion,
     speed: 1,
     density: 4,
@@ -133,6 +135,8 @@ function boot() {
   };
   const clear = () => {
     state.routes = [];
+    state.projectedRoutes = [];
+    state.projectionDirty = true;
     stopAnimation();
     if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
     updateStatus();
@@ -159,6 +163,8 @@ function boot() {
       }
       return { map, points, flow: route.flow, travelMin: route.travelMin };
     });
+    state.projectedRoutes = [];
+    state.projectionDirty = true;
     updateStatus();
     if (state.routes.length) scheduleAnimation();
     else {
@@ -207,6 +213,23 @@ function boot() {
     ctx.globalAlpha = 1;
   }
 
+  function projectRoutes() {
+    const map = state.routes.find((route) => route.map)?.map;
+    if (!map) {
+      state.projectedRoutes = [];
+      state.projectionDirty = false;
+      return;
+    }
+    state.projectedRoutes = state.routes.map((route) => {
+      const projected = route.points.map((point) => {
+        const position = map.latLngToContainerPoint([point.lat, point.lng]);
+        return { x: position.x, y: position.y };
+      });
+      return { ...route, projected, metrics: buildPolylineMetrics(projected) };
+    });
+    state.projectionDirty = false;
+  }
+
   function animate(now) {
     state.animationFrame = 0;
     if (!shouldAnimate()) return;
@@ -214,19 +237,15 @@ function boot() {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, rect.width, rect.height);
     if (!state.enabled || !state.routes.length) return;
-    const map = state.routes.find((route) => route.map)?.map;
-    if (!map) return;
+    if (state.projectionDirty) projectRoutes();
+    if (!state.projectedRoutes.length) return;
     const elapsed = Math.max(0, (now - state.started) / 1000);
     const maxFlow = Math.max(1, ...state.routes.map((route) => route.flow));
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
 
-    state.routes.forEach((route, routeIndex) => {
-      const projected = route.points.map((point) => {
-        const p = map.latLngToContainerPoint([point.lat, point.lng]);
-        return { x: p.x, y: p.y };
-      });
-      const metrics = buildPolylineMetrics(projected);
+    state.projectedRoutes.forEach((route, routeIndex) => {
+      const { projected, metrics } = route;
       if (metrics.total < 2) return;
       const ratio = Math.max(0.08, Math.min(1, route.flow / maxFlow));
       const hot = ratio > 0.68;
@@ -328,6 +347,13 @@ function boot() {
     state.animationFrame = 0;
   }
 
+  const invalidateProjection = () => {
+    state.projectionDirty = true;
+    scheduleAnimation();
+  };
+  const activeMap = store.getState().presentation.map;
+  activeMap?.on("move zoom resize", invalidateProjection);
+
   toggle.addEventListener("change", () => {
     state.enabled = toggle.checked;
     state.started = globalThis.performance?.now?.() || Date.now();
@@ -354,7 +380,10 @@ function boot() {
   }
 
   const observer = globalThis.ResizeObserver
-    ? new globalThis.ResizeObserver(() => fitCanvas())
+    ? new globalThis.ResizeObserver(() => {
+        fitCanvas();
+        invalidateProjection();
+      })
     : null;
   observer?.observe(mapBox);
   D.addEventListener("visibilitychange", () => {

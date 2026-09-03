@@ -58,6 +58,7 @@ for (const [token, label] of [
   ["latLngToContainerPoint", "road graph map projection"],
   ["geo4-engine", "OSM engine visibility coupling"],
   ["geo4-layer", "analysis-layer road emphasis coupling"],
+  ["hash(segment.key) % localStride", "bounded road-segment rendering"],
 ])
   requireText(roadNetwork, token, label);
 if (
@@ -103,6 +104,8 @@ for (const [token, label] of [
   ["particleCountForFlow", "flow-scaled particle density"],
   ["pointAlongPolyline", "route particle interpolation"],
   ["latLngToContainerPoint", "Leaflet map projection coupling"],
+  ["projectionDirty", "cached route projection invalidation"],
+  ["projectedRoutes", "cached projected route geometry"],
 ])
   requireText(controller, token, label);
 if (controller.includes("L.polyline =") || controller.includes("Flow:\\s*"))
