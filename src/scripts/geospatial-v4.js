@@ -2,6 +2,7 @@ import {
   compareScenarioResults,
   graphNetworkMatrix,
   inventoryPolicy,
+  nearestGraphNode,
   solveTwoEchelonNetwork,
 } from "../lib/geospatial/decisionEngine.js";
 import {
@@ -32,6 +33,7 @@ import {
 
 const GRAPH_RETRY_COOLDOWN_MS = 5 * 60 * 1000;
 const MAX_SESSION_GRAPH_ELEMENTS = 25_000;
+const MAX_ROUTE_SNAP_DISTANCE_KM = 2.5;
 const D = globalThis.document,
   wait = (n) => new Promise((r) => globalThis.setTimeout(r, n));
 function boot() {
@@ -394,7 +396,14 @@ function boot() {
     mapAdd = false,
     graphLoadPromise = null;
   let initialRoutesLoaded = false;
+  const assignmentRouteCoordinates = new Map();
+  const factoryRouteCoordinates = new Map();
   const slots = { A: null, B: null };
+  const routeKey = (from, to) => `${from}:${to}`;
+  const clearRouteCoordinates = () => {
+    assignmentRouteCoordinates.clear();
+    factoryRouteCoordinates.clear();
+  };
   function applyBaseScene(scene = baseScene) {
     H = [...scene.H];
     HQ = [...scene.HQ];
@@ -429,6 +438,7 @@ function boot() {
       root.dataset.routeScenarioMode = "";
       root.dataset.routeViewportAction = "";
       q("geo4-routes").disabled = true;
+      clearRouteCoordinates();
       rl.clearLayers();
       results();
       draw();
@@ -930,12 +940,12 @@ function boot() {
       solution.factoryAssignments.forEach((flow) => {
         const from = HC[flow.factory];
         const to = HC[flow.warehouse];
-        if (!from || !to) return;
+        const coordinates = factoryRouteCoordinates.get(
+          routeKey(flow.factory, flow.warehouse),
+        );
+        if (!from || !to || !coordinates?.length) return;
         L.polyline(
-          [
-            [from.lat, from.lon],
-            [to.lat, to.lon],
-          ],
+          coordinates.map((point) => [point.lat, point.lon]),
           {
             color: "#ffcc66",
             weight: 1.5 + Math.min(4, Math.sqrt(flow.flow) / 22),
@@ -955,17 +965,16 @@ function boot() {
       solution.assignments.forEach((x) => {
         const a = HC[x.hub],
           b = NC[x.demand];
-        if (!a || !b) return;
+        const coordinates = assignmentRouteCoordinates.get(routeKey(x.hub, x.demand));
+        if (!a || !b || !coordinates?.length) return;
         L.polyline(
-          [
-            [a.lat, a.lon],
-            [b.lat, b.lon],
-          ],
+          coordinates.map((point) => [point.lat, point.lon]),
           {
             color: layer === "cost" ? "#ffcc66" : "#62ecff",
             weight: layer === "flow" ? 1.2 + (x.flow / mf) * 6 : 1.5,
             opacity: layer === "network" ? 0.42 : 0.7,
             dashArray: layer === "network" ? "4 8" : undefined,
+            className: "geo4-assignment-route",
           },
         )
           .bindTooltip(
@@ -1234,6 +1243,7 @@ function boot() {
     root.dataset.routeScenarioMode = "";
     root.dataset.routeViewportAction = "";
     store.setRouteVisuals([]);
+    clearRouteCoordinates();
     q("geo4-status").textContent = T.solve;
     rl.clearLayers();
     const token = store.begin("main");
@@ -1811,20 +1821,19 @@ function boot() {
     q("geo4-routes").disabled = true;
     root.dataset.routeViewportAction = "pending";
     store.setRouteVisuals([]);
+    clearRouteCoordinates();
     rl.clearLayers();
     let fallbackGeometry = false;
     try {
       if (!(await coords())) throw Error("coords");
       if (!solution || store.getState().freshness.main !== "current") return;
-      const needsRefresh =
-        graph !== baselineGraph &&
-        routeGraphNeedsRefresh({
-          engine: q("geo4-engine").value,
-          graph,
-          baselineGraph,
-          graphBounds,
-          points: [...HC, ...NC],
-        });
+      const needsRefresh = routeGraphNeedsRefresh({
+        engine: q("geo4-engine").value,
+        graph,
+        baselineGraph,
+        graphBounds,
+        points: [...HC, ...NC],
+      });
       if (needsRefresh) {
         q("geo4-status").textContent = T.routeRefresh;
         await loadGraph(false);
@@ -1835,6 +1844,8 @@ function boot() {
 
       const token = store.begin("routes");
       const routeVisuals = [];
+      const nextAssignmentRoutes = new Map();
+      const nextFactoryRoutes = new Map();
       q("geo4-status").textContent = T.route;
       let fails = 0;
       let fallbacks = 0;
@@ -1852,10 +1863,15 @@ function boot() {
           activeGraph &&
           !fallbackGeometry
         ) {
-          const s = activeGraph.sourceSnaps[x.hub]?.nodeId,
-            d = activeGraph.destinationSnaps[x.demand]?.nodeId,
+          const sourceSnap = activeGraph.sourceSnaps[x.hub],
+            destinationSnap = activeGraph.destinationSnaps[x.demand],
+            s = sourceSnap?.nodeId,
+            d = destinationSnap?.nodeId,
             p =
-              s && d
+              s &&
+              d &&
+              sourceSnap.distanceKm <= MAX_ROUTE_SNAP_DISTANCE_KM &&
+              destinationSnap.distanceKm <= MAX_ROUTE_SNAP_DISTANCE_KM
                 ? reconstructGraphPath(graph, s, d, activeGraph.scenario, "time")
                 : null;
           const coordinates = p ? connectRouteEndpoints(p.coordinates, a, b) : [];
@@ -1880,6 +1896,7 @@ function boot() {
               stage: "warehouseDemand",
               geometrySource: "osm-graph",
             });
+            nextAssignmentRoutes.set(routeKey(x.hub, x.demand), coordinates);
             continue;
           }
           fallbackGeometry = true;
@@ -1906,16 +1923,59 @@ function boot() {
             stage: "warehouseDemand",
             geometrySource: q("geo4-engine").value === "osm" ? "osrm-fallback" : "osrm",
           });
+          nextAssignmentRoutes.set(routeKey(x.hub, x.demand), coordinates);
           if (q("geo4-engine").value === "osm") fallbacks++;
         } catch {
           fails++;
         }
         await wait(q("geo4-engine").value === "osm" && fallbackGeometry ? 1050 : 90);
       }
+      const factoryGraph = graph || baselineGraph;
+      if (factoryGraph) {
+        for (const flow of solution.factoryAssignments || []) {
+          const from = HC[flow.factory];
+          const to = HC[flow.warehouse];
+          if (!from || !to) continue;
+          const sourceSnap =
+            activeGraph?.sourceSnaps?.[flow.factory] ||
+            nearestGraphNode(factoryGraph, from);
+          const destinationSnap =
+            activeGraph?.sourceSnaps?.[flow.warehouse] ||
+            nearestGraphNode(factoryGraph, to);
+          if (
+            !sourceSnap?.nodeId ||
+            !destinationSnap?.nodeId ||
+            sourceSnap.distanceKm > MAX_ROUTE_SNAP_DISTANCE_KM ||
+            destinationSnap.distanceKm > MAX_ROUTE_SNAP_DISTANCE_KM
+          )
+            continue;
+          const path = reconstructGraphPath(
+            factoryGraph,
+            sourceSnap.nodeId,
+            destinationSnap.nodeId,
+            activeGraph?.scenario || {},
+            "time",
+          );
+          const coordinates = path
+            ? connectRouteEndpoints(path.coordinates, from, to)
+            : [];
+          if (coordinates.length >= 2) {
+            nextFactoryRoutes.set(routeKey(flow.factory, flow.warehouse), coordinates);
+          }
+        }
+      }
       if (!store.setRouteVisuals(routeVisuals, token)) {
         rl.clearLayers();
         return;
       }
+      for (const [key, coordinates] of nextAssignmentRoutes) {
+        assignmentRouteCoordinates.set(key, coordinates);
+      }
+      for (const [key, coordinates] of nextFactoryRoutes) {
+        factoryRouteCoordinates.set(key, coordinates);
+      }
+      draw();
+      rl.eachLayer((routeLayer) => routeLayer.bringToFront?.());
       root.dataset.routeGeometrySignature = routeGeometrySignature(routeVisuals);
       root.dataset.routeScenarioMode = q("geo4-road-mode").value;
       await fitRoutesIfNeeded(routeVisuals);

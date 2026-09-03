@@ -90,15 +90,9 @@ export function reconstructGraphPath(
   return { cost, edges, coordinates, distanceKm, travelTimeMin };
 }
 
-export function routeGraphNeedsRefresh({
-  engine,
-  graph,
-  baselineGraph,
-  graphBounds,
-  points = [],
-}) {
+export function routeGraphNeedsRefresh({ engine, graph, graphBounds, points = [] }) {
   if (engine !== "osm") return false;
-  if (!graph || graph === baselineGraph) return true;
+  if (!graph) return true;
   if (!Array.isArray(graphBounds) || graphBounds.length !== 4) return true;
   const [south, west, north, east] = graphBounds.map(Number);
   if (![south, west, north, east].every(Number.isFinite)) return true;

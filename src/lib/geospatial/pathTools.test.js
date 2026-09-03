@@ -85,7 +85,7 @@ describe("routeGraphNeedsRefresh", () => {
   const bounds = [-37.2, 174.5, -36.5, 175.0];
   const point = { lat: -36.85, lon: 174.76 };
 
-  it("requires a refresh for the built-in baseline graph in OSM mode", () => {
+  it("reuses the built-in baseline when it covers every entity", () => {
     expect(
       routeGraphNeedsRefresh({
         engine: "osm",
@@ -93,6 +93,18 @@ describe("routeGraphNeedsRefresh", () => {
         baselineGraph,
         graphBounds: bounds,
         points: [point],
+      }),
+    ).toBe(false);
+  });
+
+  it("refreshes the built-in baseline for an entity outside its bounds", () => {
+    expect(
+      routeGraphNeedsRefresh({
+        engine: "osm",
+        graph: baselineGraph,
+        baselineGraph,
+        graphBounds: bounds,
+        points: [{ lat: -37.3, lon: 174.76 }],
       }),
     ).toBe(true);
   });

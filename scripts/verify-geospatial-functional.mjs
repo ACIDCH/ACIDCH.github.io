@@ -106,7 +106,7 @@ for (const token of [
   requireText(engine, `export function ${token}`, token);
 requireText(
   baselineSource,
-  "auckland-arterial-2026-08-30-v1",
+  "auckland-arterial-2026-09-04-v2",
   "versioned Auckland graph",
 );
 requireText(enPage, "GeospatialSupplyChainLabV4", "English V4 route");

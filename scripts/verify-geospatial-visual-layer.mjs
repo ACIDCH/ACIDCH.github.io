@@ -197,12 +197,21 @@ for (const [token, label] of [
   ["maxZoom: map.getZoom()", "route viewport no-zoom-in guard"],
   ["map.panBy", "post-fit rendered-route viewport correction"],
   ["routeGeometrySignature", "scenario-aware route geometry fingerprint"],
+  ["assignmentRouteCoordinates", "road-shaped allocation flow geometry"],
+  ["factoryRouteCoordinates", "road-shaped factory flow geometry"],
+  ["geo4-assignment-route", "routed allocation layer hook"],
+  ["MAX_ROUTE_SNAP_DISTANCE_KM", "distant road-snap rejection"],
   ["waitForRoutePresentation", "first-load visual extension synchronisation"],
   ['q("geo4-layer").value = "flow"', "flow layer reset default"],
   ["store.setRouteVisuals([])", "route-start visual state publication"],
   ["routeAssignmentCount", "solver allocation-count route acceptance hook"],
 ])
   requireText(routeController, token, label);
+if (
+  routeController.includes("[[from.lat, from.lon], [to.lat, to.lon]]") ||
+  routeController.includes("[[a.lat, a.lon], [b.lat, b.lon]]")
+)
+  fail("Allocation flow layers must not draw direct endpoint chords");
 if (/\[\s*["']geo4-routes["']\s*,/.test(controller))
   fail(
     "Route-flow state must be cleared by Store publication, not a competing Route click handler",

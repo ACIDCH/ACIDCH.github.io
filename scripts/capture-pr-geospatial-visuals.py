@@ -128,6 +128,7 @@ def wait_optimal_routes(browser: object, timeout: float = 20) -> dict[str, objec
         value = browser.execute(
             r"""
             const paths = [...document.querySelectorAll('.geo4__optimal-route')];
+            const allocationPaths = [...document.querySelectorAll('.geo4-assignment-route')];
             const demandCount = document.querySelectorAll('.geo4-demand-node').length;
             const assignmentCount = Number(document.querySelector('#geo-v4')?.dataset.routeAssignmentCount || 0);
             const mapRect = document.querySelector('#geo4-map')?.getBoundingClientRect();
@@ -146,6 +147,10 @@ def wait_optimal_routes(browser: object, timeout: float = 20) -> dict[str, objec
               const d = String(path.getAttribute('d') || '').trim();
               return !d || d === 'M0 0' || !d.includes('L');
             }).length;
+            const routeGeometry = paths.map((path) => String(path.getAttribute('d') || '').trim());
+            const allocationGeometry = allocationPaths.map((path) => String(path.getAttribute('d') || '').trim());
+            const allocationInvalidCount = allocationGeometry.filter((d) => !d || d === 'M0 0' || !d.includes('L')).length;
+            const allocationMismatchCount = allocationGeometry.filter((d) => !routeGeometry.includes(d)).length;
             const unsafeCount = mapRect
               ? paths.filter((path) => {
                   const rect = path.getBoundingClientRect();
@@ -157,9 +162,12 @@ def wait_optimal_routes(browser: object, timeout: float = 20) -> dict[str, objec
               : paths.length;
             return {
               routeCount: paths.length,
+              allocationRouteCount: allocationPaths.length,
               demandCount,
               assignmentCount,
               invalidCount,
+              allocationInvalidCount,
+              allocationMismatchCount,
               unsafeCount,
               flowText: (document.querySelector('#geo4-flow-state')?.textContent || '').trim(),
               routeStatus: (document.querySelector('#geo4-status')?.textContent || '').trim(),
@@ -182,7 +190,10 @@ def wait_optimal_routes(browser: object, timeout: float = 20) -> dict[str, objec
                 isinstance(route_count, int)
                 and route_count > 0
                 and route_count == assignment_count
+                and value.get("allocationRouteCount") == route_count
                 and value.get("invalidCount") == 0
+                and value.get("allocationInvalidCount") == 0
+                and value.get("allocationMismatchCount") == 0
                 and value.get("unsafeCount") == 0
                 and isinstance(flow_text, str)
                 and str(route_count) in flow_text
