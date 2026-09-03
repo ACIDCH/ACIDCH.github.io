@@ -630,6 +630,12 @@ function boot() {
       );
   }
   async function fitRoutesIfNeeded(routeVisuals) {
+    if (D.fonts?.status === "loading") {
+      await Promise.race([D.fonts.ready, wait(600)]);
+    }
+    await new Promise((resolve) =>
+      globalThis.requestAnimationFrame(() => globalThis.requestAnimationFrame(resolve)),
+    );
     const coordinates = routeVisuals
       .flatMap((route) => route.coordinates || [])
       .filter((point) => Number.isFinite(point?.lat) && Number.isFinite(point?.lon));
