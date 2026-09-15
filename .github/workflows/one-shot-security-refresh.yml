@@ -22,23 +22,19 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
+          import re
 
           path = Path("src/data/geelyEx5AnzProductDefinition.ts")
           text = path.read_text()
 
-          old_lr = '''        id: "au-kia-ev3-lr",
-          brand: "Kia",
-          model: "EV3",
-          variant: "Air LR",
-          price: 53315,
-          priceBasis: "before-orc",
-          rangeKm: 604,
-          batteryKwh: 81.4,
-          dcKw: 128,'''
-          new_lr = old_lr.replace("dcKw: 128,", "dcKw: 127,")
-          if old_lr not in text:
-              raise SystemExit("Expected EV3 LR benchmark block was not found")
-          text = text.replace(old_lr, new_lr, 1)
+          text, changed = re.subn(
+              r'(id:\s*"au-kia-ev3-lr"[\s\S]*?dcKw:\s*)128,',
+              r'\g<1>127,',
+              text,
+              count=1,
+          )
+          if changed != 1:
+              raise SystemExit(f"Expected one Australian EV3 LR charging correction, changed {changed}")
 
           old_url = 'sourceUrl: "https://www.carexpert.com.au/kia/ev3",'
           if text.count(old_url) != 2:
@@ -53,10 +49,6 @@ jobs:
 
       - name: Commit benchmark correction
         run: |
-          if git diff --quiet -- src/data/geelyEx5AnzProductDefinition.ts; then
-            echo "No benchmark correction was required."
-            exit 0
-          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add src/data/geelyEx5AnzProductDefinition.ts
