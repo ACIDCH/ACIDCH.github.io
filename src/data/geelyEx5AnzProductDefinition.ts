@@ -233,7 +233,7 @@ export const markets: Record<
         powerKw: 150,
         drive: "FWD",
         sourceLabel: "CarExpert — Kia EV3 range review/pricing",
-        sourceUrl: "https://www.carexpert.com.au/kia/ev3",
+        sourceUrl: "https://www.carexpert.com.au/car-reviews/2026-kia-ev3-review",
       },
       {
         id: "au-kia-ev3-lr",
@@ -244,12 +244,12 @@ export const markets: Record<
         priceBasis: "before-orc",
         rangeKm: 604,
         batteryKwh: 81.4,
-        dcKw: 128,
+        dcKw: 127,
         acKw: null,
         powerKw: 150,
         drive: "FWD",
         sourceLabel: "CarExpert — Kia EV3 range review/pricing",
-        sourceUrl: "https://www.carexpert.com.au/kia/ev3",
+        sourceUrl: "https://www.carexpert.com.au/car-reviews/2026-kia-ev3-review",
       },
       {
         id: "au-mg-s5-62",
