@@ -42,11 +42,11 @@ Geely EX5 已进入澳大利亚与新西兰，但两个市场的产品组合并�
 
 ## 竞品对标结果
 
-在 New Zealand，EX5 Complete 以 **NZ$49,990 + ORC / 430 km WLTP** 保持明确的入门价格锚点。Kia EV3 Light SR 为 **NZ$55,520 + ORC / 436 km**，长续航 Light LR 达到 **605 km**，但价格也上升到 **NZ$62,220 + ORC**。EX5 Inspire Extended Range 为 **NZ$56,990 + ORC / 450 km**，说明高配版本的主要竞争压力已经从“是否有足够配置”转向“长途续航与充电能力是否足够有说服力”。
+在 New Zealand，EX5 Complete 以 **NZD 49,990 + ORC / 430 km WLTP** 保持明确的入门价格锚点。Kia EV3 Light SR 为 **NZD 55,520 + ORC / 436 km**，长续航 Light LR 达到 **605 km**，但价格也上升到 **NZD 62,220 + ORC**。EX5 Inspire Extended Range 为 **NZD 56,990 + ORC / 450 km**，说明高配版本的主要竞争压力已经从“是否有足够配置”转向“长途续航与充电能力是否足够有说服力”。
 
 更重要的是版本结构：New Zealand 的 Complete 使用 **60 kWh** 电池，而 Inspire Extended Range 使用 **68 kWh**；Australia 的 2026 Complete 已经采用 **68.39 kWh** Extended Range，达到 **475 km WLTP**。这意味着“Complete Extended Range”并不是虚构配置，而是已经存在于另一个澳新市场的真实产品组合。
 
-在 Australia，EX5 Complete Extended Range 与 ATTO 3 EVO Dynamic 同为 **A$41,990 before ORC**，EX5 为 **475 km WLTP**，比 Dynamic 的 **420 km** 多 **55 km**，因此入门版本仍有很强的价格—续航组合。但在高配区间，EX5 Inspire 为 **A$45,990 / 450 km / 100 kW DC**，ATTO 3 EVO Premium 为 **A$46,990 / 510 km / 220 kW DC / 230 kW RWD**。高配竞争已经明显转向长途能力、充电与动力差异化。
+在 Australia，EX5 Complete Extended Range 与 ATTO 3 EVO Dynamic 同为 **AUD 41,990 before ORC**，EX5 为 **475 km WLTP**，比 Dynamic 的 **420 km** 多 **55 km**，因此入门版本仍有很强的价格—续航组合。但在高配区间，EX5 Inspire 为 **AUD 45,990 / 450 km / 100 kW DC**，ATTO 3 EVO Premium 为 **AUD 46,990 / 510 km / 220 kW DC / 230 kW RWD**。高配竞争已经明显转向长途能力、充电与动力差异化。
 
 ## 用户体验证据
 
@@ -62,7 +62,7 @@ Geely EX5 已进入澳大利亚与新西兰，但两个市场的产品组合并�
 
 **Must — ANZ 本地道路底盘验证。** 用典型城市接缝、起伏郊区道路和高速路面做 A/B 评价，观察一次起伏后的余振、转向中心感和乘员舒适评分。只有验证结果稳定后才进入底盘标定建议。
 
-**Should — New Zealand 测试 Complete Extended Range 中间版本。** 不建议直接用更大电池替换 NZ$49,990 的 60 kWh Complete，因为入门价格本身就是产品竞争力。更值得测试的是把 Australia 已存在的 Complete ER 组合引入 New Zealand，放在 Complete 与 Inspire 之间，验证“需要更长续航但不需要完整高配舒适功能”的用户是否足以支撑一个新增 SKU。
+**Should — New Zealand 测试 Complete Extended Range 中间版本。** 不建议直接用更大电池替换 NZD 49,990 的 60 kWh Complete，因为入门价格本身就是产品竞争力。更值得测试的是把 Australia 已存在的 Complete ER 组合引入 New Zealand，放在 Complete 与 Inspire 之间，验证“需要更长续航但不需要完整高配舒适功能”的用户是否足以支撑一个新增 SKU。
 
 **Should — Australia 强化 Inspire 的长途差异化。** 当 ATTO 3 EVO Premium 已经把 510 km / 220 kW DC 带到接近价位，Inspire 下一阶段的优先研究方向应该是续航、充电和软件体验，而不是继续堆叠不影响长途任务的舒适配置。
 
