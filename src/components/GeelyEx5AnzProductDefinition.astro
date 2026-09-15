@@ -1,0 +1,826 @@
+---
+import {
+  evidenceThemes,
+  markets,
+  productRequirements,
+  researchSources,
+  snapshotDate,
+  type MarketKey,
+} from "../data/geelyEx5AnzProductDefinition";
+
+interface Props {
+  locale?: "en" | "zh";
+}
+
+const { locale = "en" } = Astro.props;
+const t = locale === "zh" ? "zh" : "en";
+const marketOrder: MarketKey[] = ["nz", "au"];
+
+const copy = {
+  zh: {
+    eyebrow: "公开数据产品定义案例",
+    title: "Geely EX5 澳新市场产品定义与竞品对标",
+    intro:
+      "把“海外产品定义”拆成可验证的工作流：先统一公开规格与价格口径，再把专业评测和车主反馈转成用户任务，最后形成 Must / Should / Explore 的区域产品需求。",
+    disclaimer:
+      "独立作品集项目，与吉利汽车无雇佣、委托或内部数据关系。结论只基于公开资料，并按 2026-09-15 的市场快照解释。",
+    snapshot: "数据快照",
+    scope: "范围",
+    scopeValue: "澳大利亚 + 新西兰 · 右舵纯电紧凑/中型 SUV",
+    output: "输出",
+    outputValue: "竞品基准 · 用户问题 · 本地化需求 · 验证计划",
+    questionsTitle: "这项分析回答三个问题",
+    questions: [
+      "EX5 当前哪些价格、续航与配置组合已经有竞争力？",
+      "新西兰与澳大利亚为什么不能用完全相同的产品线逻辑？",
+      "哪些用户反馈应直接进入需求，哪些只适合进入下一轮验证？",
+    ],
+    benchmarkTitle: "01 · 市场与竞品基准",
+    benchmarkLead:
+      "切换市场查看同一时点的公开产品组合。价格口径不一致的行会明确标记，不拿 drive-away 与 before-ORC 强行计算“性价比”。",
+    price: "公开价格",
+    range: "WLTP续航",
+    battery: "电池",
+    charging: "DC快充",
+    power: "功率 / 驱动",
+    target: "目标车型",
+    basis: {
+      "plus-orc": "+ ORC",
+      "before-orc": "before ORC",
+      "drive-away": "drive-away",
+    },
+    evidenceTitle: "02 · 把反馈变成产品问题",
+    evidenceLead:
+      "专业评测、公开规格和社区讨论的证据等级不同。社区意见只作为需求假设，不作为“用户普遍如此”的结论。",
+    strength: { high: "高", medium: "中", directional: "方向性" },
+    evidenceType: {
+      "expert-review": "专业评测",
+      community: "社区样本",
+      benchmark: "规格基准",
+      mixed: "交叉证据",
+    },
+    implication: "对产品定义的含义",
+    requirementsTitle: "03 · 区域产品定义输出",
+    requirementsLead:
+      "优先级不是拍脑袋的数字评分：Must 需要直接影响高频体验且已有较强证据；Should 是明确竞争窗口；Explore 必须先验证再决定是否进入量产或版本规划。",
+    requirement: "产品需求",
+    why: "为什么现在做",
+    validation: "下一步怎么验证",
+    insightTitle: "04 · 两个市场的决策结论",
+    nzInsightTitle: "新西兰：保住入门价格锚点，再测试中间续航版本",
+    nzInsight:
+      "Complete 以 NZ$49,990 提供 430 km WLTP，仍是清晰的入门锚点。当前产品线从 60 kWh Complete 直接跳到 68 kWh Inspire Extended Range；与其直接替换入门版，更值得测试一个“Complete Extended Range”中间版本是否能承接只想要更长续航、不需要高配舒适功能的用户。澳大利亚已有 68.39 kWh Complete ER，也让这个概念具备现实的零部件/版本基础。",
+    auInsightTitle: "澳大利亚：入门版价值强，高配竞争焦点转向长途能力",
+    auInsight:
+      "Complete ER 与 ATTO 3 EVO Dynamic 同为 A$41,990 before ORC，但 EX5 多 55 km WLTP；入门价值仍然成立。到了高配区间，ATTO 3 EVO Premium 以 A$1,000 的价差提供 510 km / 220 kW DC / 230 kW RWD，Kia EV3 LR 也把续航推到约 604 km。因此 Inspire 下一阶段更需要证明长途效率、充电与软件体验，而不是继续单纯增加舒适配置。",
+    guardrailTitle: "不建议直接下的结论",
+    guardrails: [
+      "不因为少量论坛评论就认定“所有用户都不满意”。",
+      "不把 AWD/RWD 当成默认必需；只有目标场景和支付意愿支持时才进入规划。",
+      "不把不同价格口径混成一个“价值指数”。",
+      "不把公开评测描述成公司内部用户研究。",
+    ],
+    methodTitle: "方法、边界与可复现数据",
+    method:
+      "规格数据优先使用品牌官网/官方规格表；澳大利亚当前 EX5 与 ATTO 3 EVO 的价格规格使用可追溯的汽车媒体车型数据补充。体验证据由专业评测与公开社区样本组成，社区样本只用于形成待验证假设。所有比较均保留来源与价格口径。",
+    downloadBenchmark: "下载基准数据 CSV",
+    downloadEvidence: "下载证据与需求 CSV",
+    sources: "来源",
+    sourceType: { official: "官方", secondary: "二手资料", community: "社区样本" },
+  },
+  en: {
+    eyebrow: "Public-data product-definition case",
+    title: "Geely EX5 ANZ Product Definition & Competitor Benchmark",
+    intro:
+      "A transparent product-definition workflow: normalise public specs and price bases, translate expert and owner evidence into user tasks, then turn the evidence into market-specific Must / Should / Explore requirements.",
+    disclaimer:
+      "Independent portfolio case study. It is not commissioned by, employed by or based on internal data from Geely. Findings use public information and are interpreted as a 15 Sep 2026 market snapshot.",
+    snapshot: "Snapshot",
+    scope: "Scope",
+    scopeValue: "Australia + New Zealand · RHD battery-electric compact/mid-size SUVs",
+    output: "Output",
+    outputValue: "Benchmark · user problems · localisation requirements · validation plan",
+    questionsTitle: "Three questions this case answers",
+    questions: [
+      "Which EX5 price, range and equipment combinations are already competitive?",
+      "Why should the New Zealand and Australian line-ups not be treated as identical?",
+      "Which public user signals are strong enough for a requirement, and which still need validation?",
+    ],
+    benchmarkTitle: "01 · Market and competitor benchmark",
+    benchmarkLead:
+      "Switch markets to compare public line-ups at the same snapshot date. Rows with a different price basis are labelled rather than forced into a misleading value score.",
+    price: "Public price",
+    range: "WLTP range",
+    battery: "Battery",
+    charging: "DC charge",
+    power: "Power / drive",
+    target: "Target",
+    basis: {
+      "plus-orc": "+ ORC",
+      "before-orc": "before ORC",
+      "drive-away": "drive-away",
+    },
+    evidenceTitle: "02 · Turn feedback into product problems",
+    evidenceLead:
+      "Expert reviews, public specifications and community discussions carry different evidence weight. Community comments are treated as hypotheses, not representative market findings.",
+    strength: { high: "High", medium: "Medium", directional: "Directional" },
+    evidenceType: {
+      "expert-review": "Expert review",
+      community: "Community sample",
+      benchmark: "Spec benchmark",
+      mixed: "Cross-evidence",
+    },
+    implication: "Product-definition implication",
+    requirementsTitle: "03 · Regional product-definition output",
+    requirementsLead:
+      "Priorities avoid invented numeric scores: Must affects frequent use with stronger evidence; Should addresses a visible competitive window; Explore needs validation before it becomes a production or model-year requirement.",
+    requirement: "Requirement",
+    why: "Why now",
+    validation: "How to validate",
+    insightTitle: "04 · What changes by market",
+    nzInsightTitle: "New Zealand: protect the entry price anchor, then test a range step-up",
+    nzInsight:
+      "The NZ$49,990 Complete remains a clear entry anchor at 430 km WLTP. The current line-up jumps from the 60 kWh Complete to the 68 kWh Inspire Extended Range. Rather than replacing the entry car, test whether a Complete Extended Range can serve buyers who mainly want more range without the Inspire comfort package. Australia's existing 68.39 kWh Complete ER shows that the hardware combination is already real.",
+    auInsightTitle: "Australia: entry value is strong; upper-trim competition shifts to road-trip capability",
+    auInsight:
+      "The Complete ER matches the ATTO 3 EVO Dynamic at A$41,990 before ORC while adding 55 km WLTP. At the upper end, the ATTO 3 EVO Premium asks A$1,000 more than the Inspire but offers 510 km, 220 kW DC and 230 kW RWD, while Kia EV3 LR reaches about 604 km. The next Inspire story therefore needs stronger road-trip efficiency, charging and software experience rather than simply more comfort equipment.",
+    guardrailTitle: "Conclusions this case does not make",
+    guardrails: [
+      "A handful of forum comments do not prove that all owners share the same problem.",
+      "RWD/AWD is not assumed to be mandatory without use-case and willingness-to-pay evidence.",
+      "Different price bases are not merged into a single value index.",
+      "Public review evidence is not presented as internal customer research.",
+    ],
+    methodTitle: "Method, limits and reproducible data",
+    method:
+      "Specification inputs prioritise official brand pages and specification sheets. Current Australian EX5 and ATTO 3 EVO pricing/specification data is supplemented by traceable automotive media. Experience evidence combines professional review and public owner discussions; owner comments only create hypotheses for follow-up research. Sources and price bases are retained row by row.",
+    downloadBenchmark: "Download benchmark CSV",
+    downloadEvidence: "Download evidence & requirements CSV",
+    sources: "Sources",
+    sourceType: { official: "Official", secondary: "Secondary", community: "Community sample" },
+  },
+}[t];
+
+const formatPrice = (market: MarketKey, price: number) =>
+  new Intl.NumberFormat(locale === "zh" ? "zh-CN" : "en-NZ", {
+    style: "currency",
+    currency: markets[market].currency,
+    maximumFractionDigits: 0,
+  }).format(price);
+---
+
+<section class="anz-case" data-anz-case>
+  <header class="anz-hero">
+    <div class="anz-hero__copy">
+      <p class="anz-eyebrow">{copy.eyebrow}</p>
+      <h1>{copy.title}</h1>
+      <p class="anz-lead">{copy.intro}</p>
+      <p class="anz-disclaimer">{copy.disclaimer}</p>
+    </div>
+    <dl class="anz-meta">
+      <div>
+        <dt>{copy.snapshot}</dt>
+        <dd>{snapshotDate}</dd>
+      </div>
+      <div>
+        <dt>{copy.scope}</dt>
+        <dd>{copy.scopeValue}</dd>
+      </div>
+      <div>
+        <dt>{copy.output}</dt>
+        <dd>{copy.outputValue}</dd>
+      </div>
+    </dl>
+  </header>
+
+  <section class="anz-section anz-questions" aria-labelledby="anz-questions-title">
+    <div class="anz-section__head">
+      <p class="anz-section__index">00</p>
+      <h2 id="anz-questions-title">{copy.questionsTitle}</h2>
+    </div>
+    <ol>
+      {copy.questions.map((question) => <li>{question}</li>)}
+    </ol>
+  </section>
+
+  <section class="anz-section" aria-labelledby="anz-benchmark-title">
+    <div class="anz-section__head">
+      <p class="anz-section__index">01</p>
+      <div>
+        <h2 id="anz-benchmark-title">{copy.benchmarkTitle}</h2>
+        <p>{copy.benchmarkLead}</p>
+      </div>
+    </div>
+
+    <div class="anz-tabs" role="tablist" aria-label={copy.benchmarkTitle}>
+      {marketOrder.map((key, index) => (
+        <button
+          type="button"
+          role="tab"
+          class="anz-tab"
+          aria-selected={index === 0 ? "true" : "false"}
+          aria-controls={`anz-panel-${key}`}
+          data-market-tab={key}
+        >
+          {markets[key].name[t]}
+        </button>
+      ))}
+    </div>
+
+    {marketOrder.map((key, index) => {
+      const market = markets[key];
+      const maxRange = Math.max(...market.vehicles.map((vehicle) => vehicle.rangeKm));
+      return (
+        <div
+          id={`anz-panel-${key}`}
+          class="anz-market"
+          role="tabpanel"
+          data-market-panel={key}
+          hidden={index !== 0}
+        >
+          <p class="anz-market__note">{market.note[t]}</p>
+          <div class="anz-table-wrap">
+            <table class="anz-table">
+              <thead>
+                <tr>
+                  <th>{locale === "zh" ? "车型" : "Vehicle"}</th>
+                  <th>{copy.price}</th>
+                  <th>{copy.range}</th>
+                  <th>{copy.battery}</th>
+                  <th>{copy.charging}</th>
+                  <th>{copy.power}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {market.vehicles.map((vehicle) => (
+                  <tr class:list={[vehicle.target && "is-target"]}>
+                    <td>
+                      <strong>{vehicle.brand} {vehicle.model}</strong>
+                      <span>{vehicle.variant}</span>
+                      {vehicle.target && <small>{copy.target}</small>}
+                    </td>
+                    <td>
+                      <strong>{formatPrice(key, vehicle.price)}</strong>
+                      <span>{copy.basis[vehicle.priceBasis]}</span>
+                    </td>
+                    <td>
+                      <strong>{vehicle.rangeKm} km</strong>
+                      <span class="anz-range-track" aria-hidden="true">
+                        <i style={`width:${Math.round((vehicle.rangeKm / maxRange) * 100)}%`} />
+                      </span>
+                    </td>
+                    <td>{vehicle.batteryKwh ? `${vehicle.batteryKwh} kWh` : "—"}</td>
+                    <td>{vehicle.dcKw ? `${vehicle.dcKw} kW` : "—"}</td>
+                    <td>
+                      <strong>{vehicle.powerKw ? `${vehicle.powerKw} kW` : "—"}</strong>
+                      <span>{vehicle.drive}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    })}
+  </section>
+
+  <section class="anz-section" aria-labelledby="anz-evidence-title">
+    <div class="anz-section__head">
+      <p class="anz-section__index">02</p>
+      <div>
+        <h2 id="anz-evidence-title">{copy.evidenceTitle}</h2>
+        <p>{copy.evidenceLead}</p>
+      </div>
+    </div>
+    <div class="anz-evidence-grid">
+      {evidenceThemes.map((theme) => (
+        <article class="anz-evidence-card">
+          <div class="anz-card-tags">
+            <span>{copy.strength[theme.strength]}</span>
+            <span>{copy.evidenceType[theme.evidenceType]}</span>
+          </div>
+          <h3>{theme.title[t]}</h3>
+          <p>{theme.finding[t]}</p>
+          <div class="anz-implication">
+            <strong>{copy.implication}</strong>
+            <p>{theme.implication[t]}</p>
+          </div>
+          <small>{theme.sourceLabels.join(" · ")}</small>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section class="anz-section" aria-labelledby="anz-requirements-title">
+    <div class="anz-section__head">
+      <p class="anz-section__index">03</p>
+      <div>
+        <h2 id="anz-requirements-title">{copy.requirementsTitle}</h2>
+        <p>{copy.requirementsLead}</p>
+      </div>
+    </div>
+    <div class="anz-requirements">
+      {productRequirements.map((item) => (
+        <article class={`anz-requirement anz-requirement--${item.priority.toLowerCase()}`}>
+          <div class="anz-requirement__meta">
+            <span>{item.priority}</span>
+            <span>{item.market}</span>
+          </div>
+          <h3>{item.requirement[t]}</h3>
+          <dl>
+            <div>
+              <dt>{copy.why}</dt>
+              <dd>{item.why[t]}</dd>
+            </div>
+            <div>
+              <dt>{copy.validation}</dt>
+              <dd>{item.validation[t]}</dd>
+            </div>
+          </dl>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section class="anz-section" aria-labelledby="anz-insights-title">
+    <div class="anz-section__head">
+      <p class="anz-section__index">04</p>
+      <h2 id="anz-insights-title">{copy.insightTitle}</h2>
+    </div>
+    <div class="anz-insight-grid">
+      <article>
+        <span>NZ</span>
+        <h3>{copy.nzInsightTitle}</h3>
+        <p>{copy.nzInsight}</p>
+      </article>
+      <article>
+        <span>AU</span>
+        <h3>{copy.auInsightTitle}</h3>
+        <p>{copy.auInsight}</p>
+      </article>
+    </div>
+    <aside class="anz-guardrails">
+      <h3>{copy.guardrailTitle}</h3>
+      <ul>{copy.guardrails.map((item) => <li>{item}</li>)}</ul>
+    </aside>
+  </section>
+
+  <section class="anz-section anz-method" aria-labelledby="anz-method-title">
+    <div class="anz-section__head">
+      <p class="anz-section__index">05</p>
+      <div>
+        <h2 id="anz-method-title">{copy.methodTitle}</h2>
+        <p>{copy.method}</p>
+      </div>
+    </div>
+    <div class="anz-downloads">
+      <a href="/data/geely-ex5-anz-product-definition/benchmark.csv" download>{copy.downloadBenchmark}</a>
+      <a href="/data/geely-ex5-anz-product-definition/evidence-requirements.csv" download>{copy.downloadEvidence}</a>
+    </div>
+    <h3 class="anz-sources-title">{copy.sources}</h3>
+    <ol class="anz-sources">
+      {researchSources.map((source) => (
+        <li>
+          <span>{copy.sourceType[source.type as keyof typeof copy.sourceType]}</span>
+          <a href={source.url} target="_blank" rel="noreferrer">{source.label}</a>
+        </li>
+      ))}
+    </ol>
+  </section>
+</section>
+
+<script is:inline>
+  (() => {
+    const root = document.querySelector("[data-anz-case]");
+    if (!root) return;
+    const tabs = Array.from(root.querySelectorAll("[data-market-tab]"));
+    const panels = Array.from(root.querySelectorAll("[data-market-panel]"));
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        const market = tab.getAttribute("data-market-tab");
+        tabs.forEach((item) => item.setAttribute("aria-selected", String(item === tab)));
+        panels.forEach((panel) => {
+          panel.hidden = panel.getAttribute("data-market-panel") !== market;
+        });
+      });
+    });
+  })();
+</script>
+
+<style>
+  .anz-case {
+    --anz-border: color-mix(in srgb, var(--colour-border) 86%, transparent);
+    --anz-soft: color-mix(in srgb, var(--colour-primary) 5%, var(--colour-surface));
+    --anz-accent-soft: color-mix(in srgb, var(--colour-accent) 8%, var(--colour-surface));
+    width: min(1180px, calc(100% - 2rem));
+    margin: 1rem auto 5rem;
+    color: var(--colour-text);
+  }
+
+  .anz-hero,
+  .anz-section {
+    border: 1px solid var(--anz-border);
+    border-radius: 1.2rem;
+    background: color-mix(in srgb, var(--colour-surface) 96%, transparent);
+    box-shadow: 0 0.35rem 1.4rem rgb(10 24 35 / 5%);
+  }
+
+  .anz-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.55fr) minmax(17rem, 0.75fr);
+    gap: 2.2rem;
+    padding: clamp(1.4rem, 3vw, 2.6rem);
+    background:
+      radial-gradient(circle at 88% 8%, color-mix(in srgb, var(--colour-primary) 13%, transparent), transparent 34%),
+      var(--colour-surface);
+  }
+
+  .anz-eyebrow,
+  .anz-section__index {
+    margin: 0 0 0.55rem;
+    color: var(--colour-primary-strong);
+    font-weight: 750;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .anz-hero h1 {
+    max-width: 15ch;
+    margin: 0;
+    font-size: clamp(2rem, 5vw, 4rem);
+    line-height: 1.02;
+    letter-spacing: -0.045em;
+  }
+
+  .anz-lead {
+    max-width: 54rem;
+    margin: 1.15rem 0 0;
+    font-size: clamp(1.02rem, 1.5vw, 1.18rem);
+    line-height: 1.75;
+  }
+
+  .anz-disclaimer {
+    max-width: 56rem;
+    margin: 1rem 0 0;
+    padding-left: 0.85rem;
+    border-left: 3px solid var(--colour-accent);
+    color: var(--colour-text-muted);
+    font-size: 0.92rem;
+    line-height: 1.6;
+  }
+
+  .anz-meta {
+    display: grid;
+    align-content: start;
+    gap: 0.8rem;
+    margin: 0;
+  }
+
+  .anz-meta div {
+    padding: 1rem;
+    border: 1px solid var(--anz-border);
+    border-radius: 0.85rem;
+    background: color-mix(in srgb, var(--colour-surface) 90%, transparent);
+  }
+
+  .anz-meta dt,
+  .anz-requirement dt {
+    color: var(--colour-text-muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .anz-meta dd {
+    margin: 0.3rem 0 0;
+    font-weight: 650;
+    line-height: 1.45;
+  }
+
+  .anz-section {
+    margin-top: 1rem;
+    padding: clamp(1.2rem, 2.7vw, 2.2rem);
+  }
+
+  .anz-section__head {
+    display: grid;
+    grid-template-columns: 2.4rem minmax(0, 1fr);
+    gap: 0.9rem;
+    align-items: start;
+  }
+
+  .anz-section__head h2 {
+    margin: 0;
+    font-size: clamp(1.35rem, 2.7vw, 2rem);
+    letter-spacing: -0.02em;
+  }
+
+  .anz-section__head > div > p {
+    max-width: 62rem;
+    margin: 0.55rem 0 0;
+    color: var(--colour-text-muted);
+    line-height: 1.7;
+  }
+
+  .anz-questions ol {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.8rem;
+    margin: 1.4rem 0 0 3.3rem;
+    padding: 0;
+    list-style: none;
+    counter-reset: question;
+  }
+
+  .anz-questions li {
+    counter-increment: question;
+    min-height: 8rem;
+    padding: 1rem;
+    border: 1px solid var(--anz-border);
+    border-radius: 0.9rem;
+    background: var(--anz-soft);
+    line-height: 1.65;
+  }
+
+  .anz-questions li::before {
+    content: "0" counter(question);
+    display: block;
+    margin-bottom: 0.7rem;
+    color: var(--colour-primary-strong);
+    font-weight: 800;
+  }
+
+  .anz-tabs {
+    display: inline-flex;
+    gap: 0.35rem;
+    margin: 1.4rem 0 0 3.3rem;
+    padding: 0.28rem;
+    border: 1px solid var(--anz-border);
+    border-radius: 999px;
+    background: var(--colour-surface-subtle);
+  }
+
+  .anz-tab {
+    border: 0;
+    border-radius: 999px;
+    padding: 0.62rem 1rem;
+    background: transparent;
+    color: var(--colour-text-muted);
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .anz-tab[aria-selected="true"] {
+    background: var(--colour-surface);
+    color: var(--colour-primary-strong);
+    box-shadow: 0 0.15rem 0.55rem rgb(10 24 35 / 8%);
+  }
+
+  .anz-market {
+    margin: 1rem 0 0 3.3rem;
+  }
+
+  .anz-market__note {
+    margin: 0 0 0.8rem;
+    color: var(--colour-text-muted);
+    font-size: 0.9rem;
+  }
+
+  .anz-table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--anz-border);
+    border-radius: 0.9rem;
+  }
+
+  .anz-table {
+    width: 100%;
+    min-width: 760px;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+
+  .anz-table th,
+  .anz-table td {
+    padding: 0.85rem 0.78rem;
+    border-bottom: 1px solid var(--anz-border);
+    text-align: left;
+    vertical-align: middle;
+  }
+
+  .anz-table th {
+    background: var(--colour-surface-subtle);
+    color: var(--colour-text-muted);
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .anz-table tbody tr:last-child td { border-bottom: 0; }
+  .anz-table tr.is-target { background: var(--anz-accent-soft); }
+
+  .anz-table td strong,
+  .anz-table td span,
+  .anz-table td small { display: block; }
+
+  .anz-table td span {
+    margin-top: 0.16rem;
+    color: var(--colour-text-muted);
+    font-size: 0.78rem;
+  }
+
+  .anz-table td small {
+    width: fit-content;
+    margin-top: 0.35rem;
+    padding: 0.15rem 0.42rem;
+    border-radius: 999px;
+    background: var(--colour-primary);
+    color: white;
+    font-weight: 700;
+  }
+
+  .anz-range-track {
+    width: 6.7rem;
+    height: 0.34rem;
+    margin-top: 0.42rem !important;
+    overflow: hidden;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--colour-border) 70%, transparent);
+  }
+
+  .anz-range-track i {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--colour-primary);
+  }
+
+  .anz-evidence-grid,
+  .anz-insight-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.9rem;
+    margin: 1.4rem 0 0 3.3rem;
+  }
+
+  .anz-evidence-card,
+  .anz-insight-grid article,
+  .anz-requirement {
+    border: 1px solid var(--anz-border);
+    border-radius: 0.95rem;
+    background: var(--colour-surface);
+  }
+
+  .anz-evidence-card { padding: 1.05rem; }
+  .anz-card-tags,
+  .anz-requirement__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .anz-card-tags span,
+  .anz-requirement__meta span,
+  .anz-insight-grid article > span,
+  .anz-sources li > span {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    border-radius: 999px;
+    padding: 0.2rem 0.5rem;
+    background: var(--colour-surface-subtle);
+    color: var(--colour-text-muted);
+    font-size: 0.72rem;
+    font-weight: 750;
+  }
+
+  .anz-evidence-card h3,
+  .anz-requirement h3,
+  .anz-insight-grid h3 {
+    margin: 0.8rem 0 0;
+    font-size: 1.05rem;
+  }
+
+  .anz-evidence-card > p,
+  .anz-insight-grid p {
+    margin: 0.6rem 0 0;
+    color: var(--colour-text-muted);
+    line-height: 1.65;
+  }
+
+  .anz-implication {
+    margin-top: 0.85rem;
+    padding: 0.78rem;
+    border-radius: 0.75rem;
+    background: var(--anz-soft);
+  }
+
+  .anz-implication strong { font-size: 0.78rem; }
+  .anz-implication p { margin: 0.35rem 0 0; line-height: 1.55; }
+  .anz-evidence-card > small { display: block; margin-top: 0.75rem; color: var(--colour-text-muted); }
+
+  .anz-requirements {
+    display: grid;
+    gap: 0.75rem;
+    margin: 1.4rem 0 0 3.3rem;
+  }
+
+  .anz-requirement {
+    display: grid;
+    grid-template-columns: minmax(13rem, 0.72fr) minmax(0, 1.45fr);
+    gap: 1rem 1.3rem;
+    padding: 1rem;
+    border-left-width: 4px;
+  }
+
+  .anz-requirement--must { border-left-color: var(--colour-primary); }
+  .anz-requirement--should { border-left-color: var(--colour-accent); }
+  .anz-requirement--explore { border-left-color: var(--colour-border-strong, var(--colour-border)); }
+  .anz-requirement h3 { grid-column: 1; }
+  .anz-requirement dl { grid-column: 2; grid-row: 1 / span 2; display: grid; gap: 0.75rem; margin: 0; }
+  .anz-requirement dd { margin: 0.25rem 0 0; color: var(--colour-text-muted); line-height: 1.6; }
+
+  .anz-insight-grid article { padding: 1.15rem; }
+  .anz-guardrails {
+    margin: 0.9rem 0 0 3.3rem;
+    padding: 1rem 1.1rem;
+    border: 1px dashed var(--colour-border);
+    border-radius: 0.9rem;
+    background: var(--colour-surface-subtle);
+  }
+
+  .anz-guardrails h3 { margin: 0; font-size: 1rem; }
+  .anz-guardrails ul { margin: 0.65rem 0 0; padding-left: 1.2rem; }
+  .anz-guardrails li { margin: 0.35rem 0; line-height: 1.55; }
+
+  .anz-downloads {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin: 1.2rem 0 0 3.3rem;
+  }
+
+  .anz-downloads a {
+    display: inline-flex;
+    padding: 0.65rem 0.85rem;
+    border: 1px solid var(--colour-primary);
+    border-radius: 0.7rem;
+    color: var(--colour-primary-strong);
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .anz-downloads a:hover { background: var(--anz-soft); }
+  .anz-sources-title { margin: 1.5rem 0 0.5rem 3.3rem; font-size: 1rem; }
+
+  .anz-sources {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.45rem 0.9rem;
+    margin: 0 0 0 3.3rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .anz-sources li {
+    display: flex;
+    gap: 0.45rem;
+    align-items: flex-start;
+    min-width: 0;
+    line-height: 1.45;
+  }
+
+  .anz-sources a { min-width: 0; overflow-wrap: anywhere; }
+
+  @media (max-width: 820px) {
+    .anz-case { width: min(100% - 1rem, 1180px); }
+    .anz-hero { grid-template-columns: 1fr; }
+    .anz-hero h1 { max-width: none; }
+    .anz-questions ol,
+    .anz-evidence-grid,
+    .anz-insight-grid,
+    .anz-sources { grid-template-columns: 1fr; }
+    .anz-questions ol,
+    .anz-tabs,
+    .anz-market,
+    .anz-evidence-grid,
+    .anz-requirements,
+    .anz-insight-grid,
+    .anz-guardrails,
+    .anz-downloads,
+    .anz-sources-title,
+    .anz-sources { margin-left: 0; }
+    .anz-requirement { grid-template-columns: 1fr; }
+    .anz-requirement dl { grid-column: 1; grid-row: auto; }
+  }
+
+  @media (max-width: 520px) {
+    .anz-section__head { grid-template-columns: 1fr; }
+    .anz-section__index { margin-bottom: 0; }
+    .anz-questions li { min-height: auto; }
+    .anz-tabs { width: 100%; }
+    .anz-tab { flex: 1; }
+  }
+</style>
