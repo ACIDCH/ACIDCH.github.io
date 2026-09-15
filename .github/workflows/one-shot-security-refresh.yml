@@ -1,0 +1,46 @@
+name: One-shot dependency security refresh
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/one-shot-security-refresh.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          ref: main
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Apply non-breaking security updates
+        run: npm audit fix
+
+      - name: Verify high-severity audit gate
+        run: npm audit --audit-level=high
+
+      - name: Commit refreshed dependency lock
+        run: |
+          if git diff --quiet -- package.json package-lock.json; then
+            echo "No dependency changes were required."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json
+          git commit -m "Refresh dependencies for security advisories"
+          git push origin HEAD:main
