@@ -1,4 +1,4 @@
-name: One-shot dependency security refresh
+name: One-shot EX5 benchmark metadata correction
 
 on:
   push:
@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 jobs:
-  refresh:
+  correct:
     runs-on: ubuntu-24.04
     steps:
       - name: Check out repository
@@ -18,29 +18,47 @@ jobs:
         with:
           ref: main
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version-file: .nvmrc
-          cache: npm
-
-      - name: Install locked dependencies
-        run: npm ci
-
-      - name: Apply non-breaking security updates
-        run: npm audit fix
-
-      - name: Verify high-severity audit gate
-        run: npm audit --audit-level=high
-
-      - name: Commit refreshed dependency lock
+      - name: Correct current Australian Kia EV3 benchmark metadata
         run: |
-          if git diff --quiet -- package.json package-lock.json; then
-            echo "No dependency changes were required."
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("src/data/geelyEx5AnzProductDefinition.ts")
+          text = path.read_text()
+
+          old_lr = '''        id: "au-kia-ev3-lr",
+          brand: "Kia",
+          model: "EV3",
+          variant: "Air LR",
+          price: 53315,
+          priceBasis: "before-orc",
+          rangeKm: 604,
+          batteryKwh: 81.4,
+          dcKw: 128,'''
+          new_lr = old_lr.replace("dcKw: 128,", "dcKw: 127,")
+          if old_lr not in text:
+              raise SystemExit("Expected EV3 LR benchmark block was not found")
+          text = text.replace(old_lr, new_lr, 1)
+
+          old_url = 'sourceUrl: "https://www.carexpert.com.au/kia/ev3",'
+          if text.count(old_url) != 2:
+              raise SystemExit(f"Expected two Kia Australia source URLs, found {text.count(old_url)}")
+          text = text.replace(
+              old_url,
+              'sourceUrl: "https://www.carexpert.com.au/car-reviews/2026-kia-ev3-review",',
+          )
+
+          path.write_text(text)
+          PY
+
+      - name: Commit benchmark correction
+        run: |
+          if git diff --quiet -- src/data/geelyEx5AnzProductDefinition.ts; then
+            echo "No benchmark correction was required."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add package.json package-lock.json
-          git commit -m "Refresh dependencies for security advisories"
+          git add src/data/geelyEx5AnzProductDefinition.ts
+          git commit -m "Correct EX5 competitor benchmark metadata"
           git push origin HEAD:main
