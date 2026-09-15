@@ -1,0 +1,21 @@
+---
+import ContextBack from "../../components/ContextBack.astro";
+import GeelyEx5AnzProductDefinition from "../../components/GeelyEx5AnzProductDefinition.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+  title="Geely EX5 ANZ Product Definition & Competitor Benchmark"
+  description="A September 2026 public-data case study benchmarking Geely EX5 in Australia and New Zealand across price, range, charging, competitors, user experience and market-specific product requirements."
+  locale="en"
+  alternatePath="/zh/lab/geely-ex5-anz-product-definition/"
+>
+  <div style="width:min(1180px,calc(100% - 2rem));margin:.65rem auto 0;position:relative;z-index:10;">
+    <ContextBack
+      locale="en"
+      fallbackPath="/projects/geely-ex5-anz-product-definition/"
+      label={{ en: "Back to project", zh: "返回项目" }}
+    />
+  </div>
+  <GeelyEx5AnzProductDefinition locale="en" />
+</BaseLayout>
