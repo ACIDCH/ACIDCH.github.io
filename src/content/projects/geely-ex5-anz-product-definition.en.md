@@ -42,11 +42,11 @@ User-experience evidence is separated into three layers: public specification an
 
 ## Competitor benchmark findings
 
-In New Zealand, EX5 Complete at **NZ$49,990 + ORC / 430 km WLTP** remains a clear entry price anchor. Kia EV3 Light SR sits at **NZ$55,520 + ORC / 436 km**, while Light LR reaches **605 km** at **NZ$62,220 + ORC**. EX5 Inspire Extended Range is **NZ$56,990 + ORC / 450 km**, showing that upper-trim pressure is shifting from “does it have enough equipment?” toward “is the road-trip range and charging capability compelling enough?”.
+In New Zealand, EX5 Complete at **NZD 49,990 + ORC / 430 km WLTP** remains a clear entry price anchor. Kia EV3 Light SR sits at **NZD 55,520 + ORC / 436 km**, while Light LR reaches **605 km** at **NZD 62,220 + ORC**. EX5 Inspire Extended Range is **NZD 56,990 + ORC / 450 km**, showing that upper-trim pressure is shifting from “does it have enough equipment?” toward “is the road-trip range and charging capability compelling enough?”.
 
 The line-up structure is more important than one headline number. New Zealand Complete uses a **60 kWh** battery while Inspire Extended Range uses **68 kWh**; Australia's 2026 Complete already uses a **68.39 kWh** Extended Range battery and reaches **475 km WLTP**. “Complete Extended Range” is therefore not an invented trim idea: the combination already exists in the other ANZ market.
 
-In Australia, EX5 Complete Extended Range and ATTO 3 EVO Dynamic are both **A$41,990 before ORC**. EX5 offers **475 km WLTP**, **55 km** more than Dynamic's **420 km**, so the entry product still has a strong price-range combination. At the upper end, EX5 Inspire is **A$45,990 / 450 km / 100 kW DC**, while ATTO 3 EVO Premium is **A$46,990 / 510 km / 220 kW DC / 230 kW RWD**. Upper-trim competition is visibly shifting toward road-trip capability, charging and powertrain differentiation.
+In Australia, EX5 Complete Extended Range and ATTO 3 EVO Dynamic are both **AUD 41,990 before ORC**. EX5 offers **475 km WLTP**, **55 km** more than Dynamic's **420 km**, so the entry product still has a strong price-range combination. At the upper end, EX5 Inspire is **AUD 45,990 / 450 km / 100 kW DC**, while ATTO 3 EVO Premium is **AUD 46,990 / 510 km / 220 kW DC / 230 kW RWD**. Upper-trim competition is visibly shifting toward road-trip capability, charging and powertrain differentiation.
 
 ## User-experience evidence
 
@@ -62,7 +62,7 @@ The final requirements avoid invented composite scores such as 87 or 92. They us
 
 **Must — ANZ local-road chassis validation.** Use representative urban joints, undulating suburban roads and highway surfaces for A/B evaluation, observing secondary oscillation after a road input, on-centre steering feel and occupant comfort. Only a consistent result should turn into a calibration recommendation.
 
-**Should — New Zealand: test a Complete Extended Range step-up.** Do not automatically replace the NZ$49,990 60 kWh Complete with a larger battery because the entry price is itself a competitive asset. A more useful test is to bring the Complete ER combination already used in Australia into New Zealand between Complete and Inspire, then validate whether “more range without the full comfort package” supports an additional SKU.
+**Should — New Zealand: test a Complete Extended Range step-up.** Do not automatically replace the NZD 49,990 60 kWh Complete with a larger battery because the entry price is itself a competitive asset. A more useful test is to bring the Complete ER combination already used in Australia into New Zealand between Complete and Inspire, then validate whether “more range without the full comfort package” supports an additional SKU.
 
 **Should — Australia: strengthen Inspire's road-trip differentiation.** With ATTO 3 EVO Premium bringing 510 km / 220 kW DC into a nearby price point, the next Inspire research priority should be range, charging and software experience rather than simply adding more comfort equipment that does not improve the long-distance task.
 
