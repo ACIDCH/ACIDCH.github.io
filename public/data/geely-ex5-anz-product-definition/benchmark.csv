@@ -1,0 +1,13 @@
+snapshot_date,market,currency,brand,model,variant,target,price,price_basis,wltp_range_km,battery_kwh,dc_kw,ac_kw,power_kw,drive,source_label,source_url
+2026-09-15,NZ,NZD,Geely,EX5,Complete,true,49990,plus-orc,430,60,100,11,160,FWD,"Geely NZ specification sheet (Apr 2026)",https://assets.nordeast.nz/media/belhci3s/geely-ex5-specification-sheet-april-2026.pdf
+2026-09-15,NZ,NZD,Geely,EX5,Inspire Extended Range,true,56990,plus-orc,450,68,100,11,160,FWD,"Geely NZ specification sheet (Apr 2026)",https://assets.nordeast.nz/media/belhci3s/geely-ex5-specification-sheet-april-2026.pdf
+2026-09-15,NZ,NZD,BYD,ATTO 3,60.48 kWh,false,49990,plus-orc,420,60.48,,,150,FWD,"BYD Auto NZ current ATTO 3 page",https://www.bydauto.co.nz/vehicles/atto-3
+2026-09-15,NZ,NZD,Kia,EV3,Light SR,false,55520,plus-orc,436,58.3,100,10.5,150,FWD,"Kia NZ EV3 specifications",https://kia.co.nz/vehicles/ev3/range-and-specifications/
+2026-09-15,NZ,NZD,Kia,EV3,Light LR,false,62220,plus-orc,605,81.4,128,10.5,150,FWD,"Kia NZ EV3 specifications",https://kia.co.nz/vehicles/ev3/range-and-specifications/
+2026-09-15,AU,AUD,Geely,EX5,Complete Extended Range,true,41990,before-orc,475,68.39,100,11,160,FWD,"CarExpert - 2026 EX5 price & specs",https://www.carexpert.com.au/car-news/2026-geely-ex5-price-and-specs-mid-size-electric-suv-gets-bigger-battery
+2026-09-15,AU,AUD,Geely,EX5,Inspire Extended Range,true,45990,before-orc,450,68.39,100,11,160,FWD,"CarExpert - 2026 EX5 price & specs",https://www.carexpert.com.au/car-news/2026-geely-ex5-price-and-specs-mid-size-electric-suv-gets-bigger-battery
+2026-09-15,AU,AUD,BYD,ATTO 3 EVO,Dynamic,false,41990,before-orc,420,60.48,110,7,150,FWD,"CarExpert - 2026 ATTO 3 EVO price & specs",https://www.carexpert.com.au/car-news/2026-byd-atto-3-evo-price-and-specs
+2026-09-15,AU,AUD,BYD,ATTO 3 EVO,Premium,false,46990,before-orc,510,74.88,220,11,230,RWD,"CarExpert - 2026 ATTO 3 EVO price & specs",https://www.carexpert.com.au/car-news/2026-byd-atto-3-evo-price-and-specs
+2026-09-15,AU,AUD,Kia,EV3,Air SR,false,47600,before-orc,436,58.3,100,,150,FWD,"CarExpert - Kia EV3 pricing/specs",https://www.carexpert.com.au/car-reviews/2026-kia-ev3-review
+2026-09-15,AU,AUD,Kia,EV3,Air LR,false,53315,before-orc,604,81.4,127,,150,FWD,"CarExpert - Kia EV3 pricing/specs",https://www.carexpert.com.au/car-reviews/2026-kia-ev3-review
+2026-09-15,AU,AUD,MG,MGS5 EV,Essence 62 kWh,false,46990,drive-away,425,62,150,6.6,150,RWD,"MG Australia current offer/specification",https://mgmotor.com.au/vehicles/mgs5-ev
