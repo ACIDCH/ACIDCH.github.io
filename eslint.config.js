@@ -9,6 +9,8 @@ export default defineConfig(
       "dist/**",
       "node_modules/**",
       "coverage/**",
+      // Generated local proofs and browser profiles are not project source.
+      "tmp/**",
       "Businfo/**",
       "codex-knowledge.local/**",
       "content-staging.local/**",

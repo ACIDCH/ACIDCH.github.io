@@ -53,15 +53,15 @@ The approach of logistic regression is to first convert the probability to a sca
 
 ## From probability to odds
 
-Assume that the probability of a customer churn is 0.8, then the probability of not churn is 0.2.
+If a customer's probability of churning is 0.8, their probability of staying is 0.2.
 
-Odds is defined as:
+Odds are defined as:
 
 \[
 odds=\frac{p}{1-p}
 \]
 
-so:
+So:
 
 ```text
 p = 0.80

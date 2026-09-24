@@ -56,19 +56,19 @@ describe("SQL and relational data Learning Notes", () => {
   it("keeps SQL 01 as the complete relational-database foundation", () => {
     [
       "## 为什么需要数据库？",
-      "### 层次模型 Hierarchical Model",
-      "### 网状模型 Network Model",
-      "### 关系模型 Relational Model",
+      "### 层次模型",
+      "### 网状模型",
+      "### 关系模型",
       "## 关系数据库为什么不是一个“大表”？",
       "## 整个 SQL 系列使用同一份业务数据",
       "## 一行到底代表什么？",
       "## 数据类型不是装饰，而是字段语义的一部分",
       "## NULL 到底表示什么？",
-      "## Schema 和 Data 是两件事",
+      "## 模式和数据是两件事",
       "## SQL 是什么？",
-      "### DDL — Data Definition Language",
-      "### DML — Data Manipulation Language",
-      "### DQL — Data Query Language",
+      "### DDL — 数据定义语言",
+      "### DML — 数据操纵语言",
+      "### DQL — 数据查询语言",
       "## 标准 SQL 和数据库方言不要混淆",
       "## 常见关系数据库有哪些？",
     ].forEach((term) => expect(notes.overview).toContain(term));
@@ -153,14 +153,14 @@ describe("SQL and relational data Learning Notes", () => {
   it("keeps SQL 07 Projection focused on result shape and aliases", () => {
     [
       "## 从筛选行进入选择列",
-      "## Projection 改变的是结果集的列",
+      "## 列选择改变的是结果集的列",
       "## 不返回某列不等于删除某列",
       "## 结果列的顺序由 SELECT 列表决定",
       "## 列别名改变结果集字段名",
-      "## Projection 可以和 WHERE 组合",
+      "## 列选择可以和 WHERE 组合",
       "## 表达式也可以成为结果列",
       "## SELECT 星号为什么不适合作为长期接口",
-      "## Projection 不负责排序",
+      "## 列选择不负责排序",
     ].forEach((term) => expect(notes.projection).toContain(term));
     expect(notes.projection).toContain('data-learning-slot="projection-columns-lab"');
     expect(notes.projection).toContain("customer_id AS customer_key");
@@ -177,7 +177,7 @@ describe("SQL and relational data Learning Notes", () => {
       "## DESC 把排序方向反转",
       "## 多列排序是逐层解决并列值",
       "## 只有第一排序键还不一定形成稳定总顺序",
-      "## WHERE、Projection 与 ORDER BY 怎样组合",
+      "## WHERE、列选择与 ORDER BY 怎样组合",
       "## NULL 排序不能只凭直觉推断",
       "## ORDER BY 是分页之前的关键前提",
     ].forEach((term) => expect(notes.orderBy).toContain(term));
@@ -195,11 +195,11 @@ describe("SQL and relational data Learning Notes", () => {
       "## 页码从 1 开始，OFFSET 从 0 开始",
       "## 总页数来自总记录数与 pageSize",
       "## 越界 OFFSET 通常返回空结果，而不是报错",
-      "## Pagination 必须建立在稳定 ORDER BY 上",
+      "## 分页必须建立在稳定 ORDER BY 上",
       "## OFFSET 越深，数据库通常需要跳过越多记录",
       "## 数据在翻页期间发生变化，会产生另一类问题",
-      "## Keyset pagination 用“上一页最后一个键”继续向后找",
-      "## Keyset pagination 不是永远更好",
+      "## 键集分页用“上一页最后一个键”继续向后找",
+      "## 键集分页不是永远更好",
       "## 分页中的 COUNT 也要和查询口径一致",
     ].forEach((term) => expect(notes.pagination).toContain(term));
     expect(notes.pagination).toContain('data-learning-slot="pagination-lab"');

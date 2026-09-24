@@ -3,7 +3,7 @@ translationKey: sql-relational-data
 locale: zh
 slug: sql-relational-data
 title: SQL 与关系数据
-summary: SQL 先从理解数据怎么组织开始。这篇用客户、订单和产品数据说明表、行、列、粒度、NULL 和 Schema，再把关系数据库里最基本的结构串起来。
+summary: SQL 先从理解数据怎么组织开始。这篇用客户、订单和产品数据说明表、行、列、粒度、空值（NULL）和数据库模式，再把关系数据库里最基本的结构串起来。
 tags:
   - 关系模型
   - 数据表
@@ -64,19 +64,19 @@ Persistent data
 
 关系数据库今天很常见，但它并不是唯一的数据组织方式。理解几种早期模型，会更容易看出关系模型解决了什么问题。
 
-### 层次模型 Hierarchical Model
+### 层次模型
 
 层次模型像一棵树，一个节点通常沿固定的父子关系向下展开。
 
 它很适合严格的层级结构，例如组织树或目录。但如果一个对象同时需要和多个上级发生关系，树形结构就会变得别扭。
 
-### 网状模型 Network Model
+### 网状模型
 
 网状模型允许节点之间建立更多连接，比纯树形结构灵活。
 
 代价是访问数据往往需要理解具体连接路径。应用程序和数据的物理连接方式联系得比较紧，结构一改，访问逻辑也容易跟着变。
 
-### 关系模型 Relational Model
+### 关系模型
 
 关系模型把不同业务实体拆成二维表，再用键把表连接起来。
 
@@ -162,7 +162,7 @@ products.product_id   = 301 / 305
 
 这里：
 
-> **One row = one customer**
+> **一行对应一位客户**
 
 订单表：
 
@@ -175,15 +175,15 @@ products.product_id   = 301 / 305
 
 这里：
 
-> **One row = one order**
+> **一行对应一笔订单**
 
 两张表都出现 `customer_id`，但行的含义完全不同。后面做 JOIN 或聚合时，很多“重复”问题其实都来自没有先看清粒度。
 
-## Record、Row、Column 与 Field 怎样对应？
+## 记录、行、列与字段怎样对应？
 
-一行通常叫 record 或 row，代表一条具体记录。
+一行代表一条具体记录。
 
-一列叫 column，也常被称为 field，表示同一种属性。
+一列也称为字段，表示同一种属性。
 
 例如客户表中的：
 
@@ -247,11 +247,11 @@ customer_name TEXT NOT NULL
 
 `NOT NULL` 的判断标准应该是业务是否允许缺失，而不是机械地给所有字段都加上。
 
-## Schema 和 Data 是两件事
+## 模式和数据是两件事
 
-### Schema：结构规则
+### 模式：结构规则
 
-Schema 说明表有哪些列、数据类型是什么，以及有哪些约束。
+模式说明表有哪些列、数据类型是什么，以及有哪些约束。
 
 ```text
 customers
@@ -271,7 +271,7 @@ UNIQUE
 NOT NULL
 ```
 
-### Data：实际记录
+### 数据：实际记录
 
 Data 是当前真正存进去的值：
 
@@ -307,7 +307,7 @@ customer_id = 1001
 
 SQL 是 Structured Query Language。它不只用来读取数据，也能定义结构和修改记录。
 
-### DDL — Data Definition Language
+### DDL — 数据定义语言
 
 DDL 主要处理结构，例如：
 
@@ -317,7 +317,7 @@ ALTER TABLE
 DROP TABLE
 ```
 
-### DML — Data Manipulation Language
+### DML — 数据操纵语言
 
 DML 主要处理记录变化：
 
@@ -327,7 +327,7 @@ UPDATE
 DELETE
 ```
 
-### DQL — Data Query Language
+### DQL — 数据查询语言
 
 DQL 关注查询，最核心的语句是：
 

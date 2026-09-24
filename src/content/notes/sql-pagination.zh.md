@@ -3,7 +3,7 @@ translationKey: sql-pagination
 locale: zh
 slug: sql-pagination
 title: 分页查询
-summary: 数据多到不能一次全显示时，就要把有序结果切成页面。这里用 LIMIT、OFFSET 和稳定 ORDER BY 做一个最小分页，再解释深分页和 keyset pagination 的区别。
+summary: 数据多到不能一次全显示时，就要把有序结果切成页面。这里用 LIMIT、OFFSET 和稳定 ORDER BY 做一个最小分页，再解释深分页和键集分页的区别。
 tags:
   - Pagination
   - LIMIT
@@ -173,7 +173,7 @@ LIMIT 2 OFFSET 10;
 
 应用层需要决定遇到越界页码时怎么办：显示空页、回到最后一页，还是返回 404/参数错误。数据库只负责执行查询。
 
-## Pagination 必须建立在稳定 ORDER BY 上
+## 分页必须建立在稳定 ORDER BY 上
 
 分页最危险的错误不是 LIMIT 写错，而是排序不稳定。
 
@@ -237,7 +237,7 @@ LIMIT 20 OFFSET 100000
 
 最终只返回 20 行，但前面大量记录仍然需要被定位和跳过。
 
-如果页面主要是“下一页、下一页”向后浏览，而不是随机跳第 8000 页，keyset pagination 往往更适合。
+如果页面主要是“下一页、下一页”向后浏览，而不是随机跳第 8000 页，键集分页往往更适合。
 
 优化分页之前，最好先看真实查询计划和访问模式，而不是只凭规则把所有 OFFSET 都换掉。
 
@@ -259,9 +259,9 @@ OFFSET 2
 
 对变化频繁的数据流，单纯用 offset 表示“第几页”天然会受到这种位置移动影响。
 
-## Keyset pagination 用“上一页最后一个键”继续向后找
+## 键集分页用“上一页最后一个键”继续向后找
 
-Keyset pagination 不再说“跳过前 100000 行”，而是记住上一页最后一条记录的排序键。
+键集分页不再说“跳过前 100000 行”，而是记住上一页最后一条记录的排序键。
 
 当前排序：
 
@@ -296,7 +296,7 @@ LIMIT 2;
 
 它用游标位置代替了页码偏移。
 
-## Keyset pagination 不是永远更好
+## 键集分页不是永远更好
 
 Keyset 的优势：
 
@@ -341,7 +341,7 @@ WHERE order_value >= 400;
 
 ## 过滤条件、排序条件和 cursor 要互相匹配
 
-Keyset pagination 下，cursor 不是随便挑一个 ID 就行。
+键集分页下，cursor 不是随便挑一个 ID 就行。
 
 如果排序是：
 
@@ -382,7 +382,7 @@ cursor 是否有过期规则？
 
 页面没有稳定序列基础。
 
-### ORDER BY 有并列值，却没有唯一 tie-breaker
+### ORDER BY 有并列值，却没有唯一次级排序键
 
 分页边界可能不稳定。
 
@@ -404,14 +404,14 @@ page 1 被错误转换成 OFFSET=pageSize。
 
 ## 一套实用的分页检查顺序
 
-1. 先定义稳定 ORDER BY，并加入唯一 tie-breaker；
+1. 先定义稳定 ORDER BY，并加入唯一次级排序键；
 2. 明确 pageSize 和 pageIndex；
 3. 用 `OFFSET = pageSize × (pageIndex - 1)` 计算偏移；
 4. COUNT 使用和列表一致的筛选口径；
 5. 测试第一页、最后一页和越界页；
 6. 测试并列排序值；
 7. 数据量大时检查深 OFFSET 的执行成本；
-8. 连续滚动场景再考虑 keyset pagination；
+8. 连续滚动场景再考虑键集分页；
 9. 使用 keyset 时让 cursor 完整对应排序键。
 
 分页的核心不是 LIMIT 和 OFFSET 两个关键字，而是先建立一个确定的结果顺序，再用适合产品场景的方式沿这个顺序取数据。

@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from "astro:content";
 import ProjectTechGlyph from "./ProjectTechGlyph.astro";
+import { localizeMethodLabel } from "../i18n/method-labels";
 
 interface Props {
   entry: CollectionEntry<"projects">;
@@ -35,7 +36,9 @@ const coverBadges = badges.filter(Boolean).slice(0, 3);
         {coverBadges.length > 0 && (
           <span class="project-cover__badges">
             {coverBadges.map((badge) => (
-              <span class="project-cover__badge">{badge}</span>
+              <span class="project-cover__badge">
+                {localizeMethodLabel(badge, entry.data.locale)}
+              </span>
             ))}
           </span>
         )}

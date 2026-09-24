@@ -45,7 +45,7 @@ describe("R and Statistics Learning Note handbook", () => {
       "### 回归分析",
       "### 聚类分析",
       "#### k-means",
-      "#### Hierarchical Clustering",
+      "#### 层次聚类",
       "### 主成分分析",
     ].forEach((term) => expect(note).toContain(term));
   });

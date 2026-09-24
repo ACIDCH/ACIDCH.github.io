@@ -7,7 +7,11 @@ import {
   writeFileSync,
 } from "node:fs";
 import process from "node:process";
-import { inventoryContent, translatableContent } from "./lib/i18n-sync.mjs";
+import {
+  buildManifest,
+  inventoryContent,
+  translatableContent,
+} from "./lib/i18n-sync.mjs";
 
 const failures = [];
 const manifestPath = ".i18n/manifest.json";
@@ -22,7 +26,11 @@ execFileSync(process.execPath, ["scripts/i18n-audit.mjs", "--json"], {
   stdio: "ignore",
 });
 
-const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
+// A saved manifest is the review baseline, not evidence that today's files pass.
+const savedManifest = JSON.parse(readFileSync(manifestPath, "utf8"));
+const contentInventory = inventoryContent();
+const manifest = buildManifest(contentInventory, savedManifest);
+manifest.mode = savedManifest.mode;
 const architecture = JSON.parse(readFileSync(auditPath, "utf8"));
 const acceptance = architecture.acceptance;
 const requiredZero = [
@@ -75,7 +83,7 @@ const protectedMismatches = manifest.entries.filter((entry) =>
 );
 if (protectedMismatches.length) failures.push("protected-token mismatches remain");
 
-const englishPublicContent = inventoryContent().filter((entry) => {
+const englishPublicContent = contentInventory.filter((entry) => {
   if (entry.frontmatter.locale !== "en") return false;
   if (entry.collection === "notes") {
     return (
@@ -137,6 +145,8 @@ for (const file of sharedEnglishPages) {
 
 const report = {
   generatedAt: new Date().toISOString(),
+  scope:
+    "Structural parity and protected-token checks; not a semantic translation review or interactive-state acceptance.",
   mode: manifest.mode,
   published: {
     notes: {

@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>本地动效验收夹具</title>
+    <style>
+      body {
+        margin: 24px;
+        font: 16px/1.6 sans-serif;
+      }
+      header {
+        position: sticky;
+        top: 0;
+        background: white;
+        padding: 16px;
+        border: 1px solid;
+      }
+      button,
+      a {
+        display: inline-block;
+        padding: 12px;
+        margin: 4px;
+      }
+      .spacer {
+        height: 110vh;
+      }
+      section {
+        padding: 32px;
+        border: 1px solid;
+        scroll-margin-top: 300px;
+      }
+      output {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>本地动效验收夹具</h1>
+      <p>仅测试共享动效模块，不修改系统偏好，也不进入 Astro 页面构建。</p>
+      <button id="normal">启动正常模式测试</button>
+      <button id="reduced">启动减少动态效果测试</button>
+      <button id="cleanup">清理动画与观察器</button>
+      <a href="#sample">定位测试区块</a>
+      <output id="status" aria-live="polite">尚未启动</output>
+    </header>
+    <div class="spacer" aria-hidden="true"></div>
+    <section id="sample" data-reveal>
+      <h2>始终可见的测试内容</h2>
+      <p>首次进入视野时只运行一次；嵌套元素不重复运行。</p>
+      <div data-reveal>嵌套测试内容</div>
+    </section>
+    <div class="spacer" aria-hidden="true"></div>
+    <script type="module">
+      import { initContentMotion } from "../../src/scripts/content-motion.ts";
+      let cleanup = () => {};
+      let started = 0;
+      let finished = 0;
+      let cancelled = 0;
+      let mode = "未启动";
+      const status = document.querySelector("#status");
+      const render = () => {
+        status.textContent = `模式：${mode}；启动：${started}；完成：${finished}；取消：${cancelled}`;
+      };
+      for (const element of document.querySelectorAll("[data-reveal]")) {
+        const animate = element.animate.bind(element);
+        element.animate = (...args) => {
+          started++;
+          const animation = animate(...args);
+          animation.addEventListener("finish", () => {
+            finished++;
+            render();
+          });
+          animation.addEventListener("cancel", () => {
+            cancelled++;
+            render();
+          });
+          render();
+          return animation;
+        };
+      }
+      function run(reduced) {
+        cleanup();
+        started = finished = cancelled = 0;
+        mode = reduced ? "减少动态效果" : "正常";
+        for (const element of document.querySelectorAll("[data-reveal]")) {
+          delete element.dataset.motionPlayed;
+        }
+        cleanup = initContentMotion(document, reduced);
+        render();
+      }
+      document.querySelector("#normal").addEventListener("click", () => run(false));
+      document.querySelector("#reduced").addEventListener("click", () => run(true));
+      document.querySelector("#cleanup").addEventListener("click", () => {
+        cleanup();
+        mode = "已清理";
+        render();
+      });
+    </script>
+  </body>
+</html>

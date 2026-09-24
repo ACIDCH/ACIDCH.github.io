@@ -372,7 +372,7 @@ export const sharedUi = {
     skillGrid: { relatedTools: "相关工具" },
     social: {
       contactLinks: "联系入口",
-      email: "Email",
+      email: "电子邮件",
       resume: "简历",
     },
     theme: { toggle: "切换浅色或深色主题" },

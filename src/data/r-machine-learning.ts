@@ -29,10 +29,10 @@ export const projectImages = {
 } as const;
 
 export const metricLabels: Record<MetricKey, string> = {
-  accuracy: "Accuracy",
+  accuracy: "准确率（Accuracy）",
   auc: "AUC-ROC",
-  sensitivity: "Sensitivity",
-  specificity: "Specificity",
+  sensitivity: "灵敏度（Sensitivity）",
+  specificity: "特异度（Specificity）",
 };
 
 export const modelResults: ModelResult[] = [

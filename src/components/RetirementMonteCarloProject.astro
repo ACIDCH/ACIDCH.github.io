@@ -1,6 +1,7 @@
 ---
 import { getCollection, type CollectionEntry } from "astro:content";
 import BaseLayout from "../layouts/BaseLayout.astro";
+import { localizeMethodLabel } from "../i18n/method-labels";
 import ContextBack from "./ContextBack.astro";
 import ProjectCard from "./ProjectCard.astro";
 
@@ -59,7 +60,11 @@ const structuredData = {
           次模拟观察退休余额分布与目标达成概率。
         </p>
         <ul class="tag-list" aria-label="项目方法">
-          {entry.data.tools.map((tool) => <li class="tag">{tool}</li>)}
+          {
+            entry.data.tools.map((tool) => (
+              <li class="tag">{localizeMethodLabel(tool, entry.data.locale)}</li>
+            ))
+          }
         </ul>
       </div>
     </header>
@@ -105,7 +110,7 @@ const structuredData = {
       </p>
       <p>
         当前支出目标为每年 NZD 125,000。按 2% 通胀延伸 25 年后，退休首年的名义目标为 NZD
-        205,075.75；按 4% 提取率换算，需要约 NZD 5.13 million
+        205,075.75；按 4% 提取率换算，需要约 5.13 百万新西兰元
         的退休余额。该目标只用于模型比较，不构成理财建议。
       </p>
     </section>
@@ -443,9 +448,9 @@ const structuredData = {
         </table>
       </div>
       <p>
-        提高缴费情景把缴费率由 7.5% 提到 15%，余额由 NZD 1.6 million 增至 NZD 2.9
-        million；提高收益情景把收益率调到 7.3%，列示余额为 NZD 2.2
-        million。四个情景都低于约 NZD 5.13 million 的目标资本。
+        提高缴费情景把缴费率由 7.5% 提到 15%，余额由 1.6 百万新西兰元增至 2.9
+        百万新西兰元；提高收益情景把收益率调到 7.3%，列示余额为 2.2
+        百万新西兰元。四个情景都低于约 5.13 百万新西兰元的目标资本。
       </p>
     </section>
 

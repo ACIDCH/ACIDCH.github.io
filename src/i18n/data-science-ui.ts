@@ -25,6 +25,21 @@ export const dataScienceUi = {
       probabilityAxis: "Predicted churn probability",
     },
     advanced: {
+      labels: {
+        inference: "Inference · Beyond one estimate",
+        bayes: "Bayes model update",
+        prior: "prior",
+        likelihood: "likelihood",
+        posterior: "posterior",
+        evidence: "Linear models · Evidence",
+        prediction: "Prediction · Generalisation",
+        resampling: "High-dimensional data · Resampling",
+        assessment: "Assessment · Decision quality",
+        discrimination: "Discrimination",
+        calibration: "Calibration",
+        decision: "Decision",
+        review: "Review · Evidence chain",
+      },
       bayesian: {
         title: "What Bayesian and hierarchical models add",
         p1: "Frequentist inference emphasizes repeated-sampling properties, while Bayesian analysis places unknown parameters inside the probability model. The central relationship is posterior ∝ likelihood × prior: the likelihood contributes evidence from the observed data, the prior encodes information or constraints available before the current sample, and their combination yields the posterior.",
@@ -152,6 +167,21 @@ export const dataScienceUi = {
       probabilityAxis: "预测流失概率",
     },
     advanced: {
+      labels: {
+        inference: "统计推断 · 不止一个估计值",
+        bayes: "贝叶斯模型更新",
+        prior: "先验",
+        likelihood: "似然",
+        posterior: "后验",
+        evidence: "线性模型 · 证据",
+        prediction: "预测 · 泛化",
+        resampling: "高维数据 · 重采样",
+        assessment: "评估 · 决策质量",
+        discrimination: "判别能力",
+        calibration: "概率校准",
+        decision: "决策",
+        review: "复核 · 证据链",
+      },
       bayesian: {
         title: "Bayesian 与层次模型补上了哪些信息",
         p1: "频率学推断常从重复抽样的长期性质出发，Bayesian 分析则把未知参数本身放进概率模型。核心关系可以写成 posterior ∝ likelihood × prior：数据通过 likelihood 提供证据，prior 表达分析前对参数的约束或已有知识，两者结合形成 posterior。真正有用的地方不是换一套术语，而是让参数不确定性、预测不确定性和已有信息能够在同一模型中传播。",

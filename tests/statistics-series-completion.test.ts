@@ -99,7 +99,7 @@ describe("completed R statistics learning series", () => {
     const note = notes.get("STAT 04")!;
     [
       "margin of error",
-      "95% confidence interval",
+      "95% 置信区间",
       "Student's t distribution",
       "prop.test",
       "binom.test",
@@ -134,11 +134,11 @@ describe("completed R statistics learning series", () => {
       "Chi-square",
       "chisq.test",
       "Fisher's exact test",
-      "Risk difference",
-      "Risk ratio",
+      "风险差",
+      "风险比",
       "Odds",
-      "odds ratio",
-      "Simpson's paradox",
+      "优势比",
+      "辛普森悖论",
       "logistic regression",
       "glm(",
     ].forEach((marker) => expect(note).toContain(marker));

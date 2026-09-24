@@ -28,14 +28,14 @@ describe("SQL 08 ORDER BY Learning Note", () => {
       "## 多列排序是逐层解决并列值",
       "## 每一个排序列都有自己的方向",
       "## 只有第一排序键还不一定形成稳定总顺序",
-      "## WHERE、Projection 与 ORDER BY 怎样组合",
+      "## WHERE、列选择与 ORDER BY 怎样组合",
       "## ORDER BY 为什么放在 WHERE 后面",
       "## 可以按输出别名排序",
       "## 也能按列位置排序，但长期代码不推荐",
       "## NULL 排序不能只凭直觉推断",
-      "## 文本排序还受到 collation 影响",
+      "## 文本排序还受到排序规则影响",
       "## ORDER BY 是分页之前的关键前提",
-      "## Business Analytics 中 ORDER BY 常见在哪里",
+      "## 商业分析中 ORDER BY 常见在哪里",
       "## 下一步从有序结果中截取一页",
     ].forEach((marker) => expect(note).toContain(marker));
     expect(note).toContain('data-learning-slot="order-by-lab"');

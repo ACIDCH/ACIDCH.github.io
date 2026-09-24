@@ -7,6 +7,7 @@ import ContextBack from "../components/ContextBack.astro";
 import { getCanonicalUrl } from "../utils/urls";
 import { getGitHubRepoUrl } from "../utils/urls";
 import BaseLayout from "./BaseLayout.astro";
+import { localizeMethodLabel } from "../i18n/method-labels";
 
 interface Props {
   entry: CollectionEntry<"projects">;
@@ -79,7 +80,13 @@ const projectStructuredData = {
       <dt>{entry.data.locale === "en" ? "Status" : "状态"}</dt>
       <dd>{statusLabels[entry.data.status][entry.data.locale]}</dd>
       <dt>{entry.data.locale === "en" ? "Tools" : "工具"}</dt>
-      <dd>{entry.data.tools.join(", ") || "—"}</dd>
+      <dd>
+        {
+          entry.data.tools
+            .map((tool) => localizeMethodLabel(tool, entry.data.locale))
+            .join(entry.data.locale === "zh" ? "、" : ", ") || "—"
+        }
+      </dd>
     </dl>
     {
       (entry.data.repoSlug || entry.data.reportUrl || entry.data.dashboardUrl) && (

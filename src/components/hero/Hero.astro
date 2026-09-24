@@ -51,6 +51,7 @@ const mobileBackground = homeHero.available ? homeHero.mobile : homeHero.fallbac
     const hero = document.querySelector<HTMLElement>("[data-home-hero]");
     if (!hero) return;
     const controller = new AbortController();
+    let frame: number | undefined;
 
     const update = () => {
       if (reducedMotion.matches) {
@@ -62,12 +63,22 @@ const mobileBackground = homeHero.available ? homeHero.mobile : homeHero.fallbac
       hero.style.setProperty("--hero-scroll", progress.toFixed(3));
     };
 
-    window.addEventListener("scroll", update, {
+    const scheduleUpdate = () => {
+      if (frame !== undefined || reducedMotion.matches) return;
+      frame = requestAnimationFrame(() => {
+        frame = undefined;
+        update();
+      });
+    };
+    window.addEventListener("scroll", scheduleUpdate, {
       passive: true,
       signal: controller.signal,
     });
     reducedMotion.addEventListener("change", update, { signal: controller.signal });
-    activeHeroCleanup = () => controller.abort();
+    activeHeroCleanup = () => {
+      controller.abort();
+      if (frame !== undefined) cancelAnimationFrame(frame);
+    };
     update();
   }
 

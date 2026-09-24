@@ -10,14 +10,16 @@ const copy = dataScienceUi[locale].advanced;
 
 <section class="data-science-advanced" data-data-science-advanced>
   <section id="bayesian-hierarchical" class="data-science-advanced__section">
-    <p class="data-science-advanced__eyebrow">Inference · Beyond one estimate</p>
+    <p class="data-science-advanced__eyebrow">
+      {copy.labels.inference}
+    </p>
     <h2>{copy.bayesian.title}</h2>
     <p>{copy.bayesian.p1}</p>
 
-    <div class="data-science-advanced__equation" aria-label="Bayes model update">
-      <span>prior</span><strong>×</strong><span>likelihood</span><strong>→</strong><span
-        >posterior</span
-      >
+    <div class="data-science-advanced__equation" aria-label={copy.labels.bayes}>
+      <span>{copy.labels.prior}</span><strong>×</strong><span
+        >{copy.labels.likelihood}</span
+      ><strong>→</strong><span>{copy.labels.posterior}</span>
     </div>
 
     <p>{copy.bayesian.p2}</p>
@@ -40,7 +42,9 @@ const copy = dataScienceUi[locale].advanced;
   </section>
 
   <section id="association-treatment-effect" class="data-science-advanced__section">
-    <p class="data-science-advanced__eyebrow">Linear models · Evidence</p>
+    <p class="data-science-advanced__eyebrow">
+      {copy.labels.evidence}
+    </p>
     <h2>{copy.evidence.title}</h2>
     <p>{copy.evidence.p1}</p>
 
@@ -63,7 +67,9 @@ const copy = dataScienceUi[locale].advanced;
   </section>
 
   <section id="loss-bias-variance" class="data-science-advanced__section">
-    <p class="data-science-advanced__eyebrow">Prediction · Generalisation</p>
+    <p class="data-science-advanced__eyebrow">
+      {copy.labels.prediction}
+    </p>
     <h2>{copy.loss.title}</h2>
     <p>{copy.loss.p1}</p>
 
@@ -104,7 +110,9 @@ const copy = dataScienceUi[locale].advanced;
   </section>
 
   <section id="resampling-selection" class="data-science-advanced__section">
-    <p class="data-science-advanced__eyebrow">High-dimensional data · Resampling</p>
+    <p class="data-science-advanced__eyebrow">
+      {copy.labels.resampling}
+    </p>
     <h2>{copy.resampling.title}</h2>
     <p>{copy.resampling.p1}</p>
 
@@ -123,21 +131,27 @@ const copy = dataScienceUi[locale].advanced;
   </section>
 
   <section id="calibration-decision-cost" class="data-science-advanced__section">
-    <p class="data-science-advanced__eyebrow">Assessment · Decision quality</p>
+    <p class="data-science-advanced__eyebrow">
+      {copy.labels.assessment}
+    </p>
     <h2>{copy.calibration.title}</h2>
     <p>{copy.calibration.p1}</p>
 
     <div class="data-science-advanced__three-levels">
       <article>
-        <span>01</span><strong>Discrimination</strong><p>AUC · ROC · PR</p>
+        <span>01</span><strong>{copy.labels.discrimination}</strong><p>
+          AUC · ROC · PR
+        </p>
       </article>
       <article>
-        <span>02</span><strong>Calibration</strong><p>
+        <span>02</span><strong>{copy.labels.calibration}</strong><p>
           Brier score · calibration curve
         </p>
       </article>
       <article>
-        <span>03</span><strong>Decision</strong><p>{copy.calibration.decision}</p>
+        <span>03</span><strong>{copy.labels.decision}</strong><p>
+          {copy.calibration.decision}
+        </p>
       </article>
     </div>
 
@@ -145,7 +159,9 @@ const copy = dataScienceUi[locale].advanced;
   </section>
 
   <section id="model-evidence-checklist" class="data-science-advanced__section">
-    <p class="data-science-advanced__eyebrow">Review · Evidence chain</p>
+    <p class="data-science-advanced__eyebrow">
+      {copy.labels.review}
+    </p>
     <h2>{copy.checklist.title}</h2>
     <ol class="data-science-advanced__checklist">
       {copy.checklist.items.map((item) => <li>{item}</li>)}

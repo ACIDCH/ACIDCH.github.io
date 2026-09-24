@@ -123,7 +123,7 @@ Team B: mean = 20, sd = 12
 
 只看均值，两队一样；加入标准差以后，Team B 的服务稳定性明显更差。
 
-Business Analytics 里，平均表现和波动通常同样重要。库存、交期、成本和需求预测都不应该只报一个中心值。
+商业分析里，平均表现和波动通常同样重要。库存、交期、成本和需求预测都不应该只报一个中心值。
 
 ### 四分位数与箱线图
 
@@ -291,7 +291,7 @@ R 中可以用：
 t.test(x)$conf.int
 ```
 
-95% confidence interval 不是说“这个固定区间有 95% 概率包含已经固定的 μ”。频率学派解释强调重复抽样：按同样方法构造的区间，长期约 95% 会覆盖真实参数。
+95% 置信区间不是说“这个固定区间有 95% 概率包含已经固定的 μ”。频率学派解释强调重复抽样：按同样方法构造的区间，长期约 95% 会覆盖真实参数。
 
 ### 正态性检查
 
@@ -309,7 +309,7 @@ Shapiro-Wilk 的 p 值不应独立决定一切。样本很大时，很小的偏�
 
 相关性用来描述两个变量是否一起变化，但不能自动解释为因果。
 
-### Pearson correlation
+### 皮尔逊相关
 
 Pearson 相关系数：
 
@@ -328,7 +328,7 @@ r 接近 1 表示强正线性关系，接近 -1 表示强负线性关系，接�
 
 但 r=0 不代表变量完全无关系，一条明显的 U 形关系也可能得到接近 0 的 Pearson r。
 
-### Spearman correlation
+### 斯皮尔曼相关
 
 如果更关心单调关系、数据等级或异常值影响，可以使用 Spearman：
 
@@ -367,7 +367,7 @@ R 中：
 t.test(x, mu = 20)
 ```
 
-输出包括 t statistic、p-value 和 confidence interval。
+输出包括 t 统计量、p 值 和置信区间。
 
 p 值小表示数据与 H0 不太相容，但仍应结合均值差多少、置信区间多宽以及业务上差异是否重要。
 
@@ -379,7 +379,7 @@ p 值小表示数据与 H0 不太相容，但仍应结合均值差多少、置�
 t.test(response_time ~ team, data = service_df)
 ```
 
-R 默认使用 Welch t-test，不要求两组方差完全相等。
+R 默认使用韦尔奇 t 检验，不要求两组方差完全相等。
 
 如果业务问题确实要求经典 pooled variance t-test，需要明确设置并检查相应前提，而不是因为教材公式简单就默认方差相等。
 
@@ -412,7 +412,7 @@ wilcox.test(x, y)
 
 当比较三个或更多组时，连续做很多两两 t-test 会增加第一类错误率。
 
-### One-way ANOVA
+### 单因素方差分析
 
 例如比较三个服务渠道的平均响应时间：
 
@@ -493,7 +493,7 @@ chisq.test(tab)
 
 卡方检验关注观察频数和独立条件下期望频数的差异。
 
-如果样本很小、期望频数过低，Fisher exact test 可能更合适。
+如果样本很小、期望频数过低，费舍尔精确检验可能更合适。
 
 ## 常用高阶分析方法
 
@@ -529,7 +529,7 @@ logit_model <- glm(
 )
 ```
 
-Logistic Regression 输出的系数在 log-odds 尺度上，常通过 `exp(coef(logit_model))` 转成 odds ratio。
+Logistic Regression 输出的系数在对数优势尺度上，常通过 `exp(coef(logit_model))` 转成优势比。
 
 <div data-learning-slot="regression-line-lab"></div>
 
@@ -551,7 +551,7 @@ km$cluster
 
 k 的选择可以参考 elbow、silhouette 和业务可解释性，而不是只追求一个数学指标。
 
-#### Hierarchical Clustering
+#### 层次聚类
 
 层次聚类先计算距离，再逐步合并或拆分对象：
 
@@ -617,7 +617,7 @@ p 值回答的是：如果原假设成立，观察到当前数据或更极端结
 因此，正式分析最好同时报告：
 
 - effect size；
-- confidence interval；
+- 置信区间；
 - 样本量；
 - 数据和方法限制；
 - 实际业务含义。

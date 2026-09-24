@@ -3,7 +3,7 @@ translationKey: stat-interval-estimation
 locale: zh
 slug: stat-interval-estimation
 title: 区间估计
-summary: 从点估计与标准误出发，构造并正确解释置信区间，理解置信水平、样本量、t 分布与 Bootstrap 如何共同决定估计精度。
+summary: 从点估计与标准误出发，构造并正确解释置信区间，理解置信水平、样本量、t 分布与自助法（Bootstrap）如何共同决定估计精度。
 tags:
   - 统计学
   - 置信区间
@@ -41,7 +41,7 @@ relatedNotes:
 \text{estimate}\pm\text{margin of error}
 \]
 
-其中 margin of error 通常由标准误乘一个临界值构成。
+其中误差界限通常由标准误乘一个临界值构成。
 
 对大样本均值，常见近似写成：
 
@@ -53,7 +53,7 @@ relatedNotes:
 
 ## 95% 置信区间到底是什么意思
 
-频率学派的 95% confidence interval 描述的是**构造区间的方法**。
+频率学派的 95% 置信区间描述的是**构造区间的方法**。
 
 如果不断重复同样的抽样过程，每次都按同一种方法建立区间，那么长期来看大约 95% 的区间会覆盖真实总体参数。
 
@@ -81,9 +81,9 @@ mean(covered)
 
 在近似条件合适时，覆盖率会接近 0.95。
 
-## Margin of error 来自哪里
+## 误差界限来自哪里
 
-对简单均值问题，margin of error 的基本结构是：
+对简单均值问题，误差界限的基本结构是：
 
 \[
 ME=\text{critical value}\times SE
@@ -142,7 +142,7 @@ margin95 <- 1.96 * se
 data.frame(n, se, margin95)
 ```
 
-从 25 增加到 100，样本量扩大四倍，标准误和 margin of error 大约减半。
+从 25 增加到 100，样本量扩大四倍，标准误和误差界限大约减半。
 
 这也是样本量规划的重要直觉：如果希望区间宽度减少到原来一半，通常要准备大约四倍的信息量，而不是两倍。
 
@@ -240,7 +240,7 @@ delivery <- data.frame(
 t.test(hours ~ channel, data = delivery)
 ```
 
-输出的 confidence interval 对应两组均值差。它同时传达：
+输出的置信区间对应两组均值差。它同时传达：
 
 - 差异方向；
 - 可能的效应大小范围；
@@ -287,7 +287,7 @@ Bootstrap 的优势是灵活，但它仍然依赖原样本能代表目标总体�
 
 回归中常见两种不同区间：
 
-**Confidence interval for the mean response**：估计某个 X 条件下平均 Y 在哪里。
+**平均响应的置信区间**：估计某个 X 条件下平均 Y 在哪里。
 
 **Prediction interval**：预测一个新的单独观察可能落在哪里。
 
@@ -299,11 +299,11 @@ predict(fit, newdata = new_route, interval = "confidence")
 predict(fit, newdata = new_route, interval = "prediction")
 ```
 
-如果问题是“这条新路线的一票订单可能多久送达”，用平均响应的 confidence interval 会过度乐观。
+如果问题是“这条新路线的一票订单可能多久送达”，用平均响应的置信区间会过度乐观。
 
 ## 常见误读
 
-**“95% CI 就是参数有 95% 概率在里面。”** 这是 Bayesian credible interval 才可能采用的概率式参数解释；普通频率学 confidence interval 的定义不同。
+**“95% CI 就是参数有 95% 概率在里面。”** 这是 Bayesian credible interval 才可能采用的概率式参数解释；普通频率学置信区间的定义不同。
 
 **“区间没有跨 0，所以效果一定重要。”** 统计证据和业务重要性仍要分开判断。
 

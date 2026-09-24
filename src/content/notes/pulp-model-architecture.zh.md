@@ -48,7 +48,7 @@ Solver
 
 例如 CBC 是常见的开源 MILP solver。PuLP 可以把模型交给 CBC，也可以在合适环境中连接其他求解器。
 
-这一区分很重要。`LpVariable` 是 PuLP 的建模对象，branch-and-bound 则是求解器内部的工作。代码报错和求解状态异常也要分别判断来源。
+这一区分很重要。`LpVariable` 是 PuLP 的建模对象，分支定界则是求解器内部的工作。代码报错和求解状态异常也要分别判断来源。
 
 <div data-learning-slot="pulp-model-anatomy"></div>
 
@@ -72,7 +72,7 @@ Solver
 
 如果参数、变量和约束交叉散落在几十个 cell 里，模型一旦变大就很难判断某个数字到底从哪里来的。
 
-## Sets 先定义模型有哪些对象
+## 集合先定义模型有哪些对象
 
 运输模型可能有：
 
@@ -93,7 +93,7 @@ products = ["core", "premium"]
 
 因此，一组业务对象最好只有一个可信来源。
 
-## Parameters 用普通 Python 数据结构保存就够了
+## 参数用普通 Python 数据结构保存就够了
 
 例如需求：
 
@@ -131,7 +131,7 @@ transport_cost = {
 
 把参数和决策变量分开后，代码含义会非常清楚：普通 Python 数字是已知数据，`LpVariable` 才是求解器需要决定的量。
 
-## 建立 Model 时先说清楚是最大化还是最小化
+## 建立模型时先说清楚是最大化还是最小化
 
 最小化问题：
 
@@ -231,13 +231,13 @@ for k in plants:
     )
 ```
 
-给约束命名很有价值。出现 infeasible 或需要查看 slack 时，`capacity_north` 比系统自动生成的 `_C17` 更容易理解。
+给约束命名很有价值。出现 infeasible 或需要查看松弛量时，`capacity_north` 比系统自动生成的 `_C17` 更容易理解。
 
 约束名称也可以直接体现索引，从而帮助检查是否每个对象都生成了一条规则。
 
 ## 建模完成后先数一遍变量和约束
 
-正式求解前，可以做一个简单 sanity check：
+正式求解前，可以做一个简单合理性检查：
 
 ```python
 print("variables:", len(model.variables()))
@@ -248,9 +248,9 @@ print("constraints:", len(model.constraints))
 
 如果 3 个区域应该生成 3 条需求约束，却只出现 2 条，也不必等求解结果异常以后才发现。
 
-这种数量核对对于 indexed model 很有效，因为很多漏项问题本质上就是“应该生成 N 条，却只生成了 N-1 条”。
+这种数量核对对于按索引组织的模型很有效，因为很多漏项问题本质上就是“应该生成 N 条，却只生成了 N-1 条”。
 
-## Solve 之前可以把模型导出来检查
+## 求解之前可以把模型导出来检查
 
 PuLP 可以导出 LP 文件：
 
@@ -269,7 +269,7 @@ model.writeLP("transport_plan.lp")
 
 这一步尤其适合“代码看起来没问题，但求解结果很奇怪”的情况。
 
-## Solver status 必须先检查，再读取变量值
+## 求解状态必须先检查，再读取变量值
 
 求解：
 
@@ -298,7 +298,7 @@ if pl.LpStatus[status] != "Optimal":
     raise RuntimeError("Model did not solve to optimality")
 ```
 
-对于设置 time limit 的大型 MILP，则需要根据求解器返回信息判断是否接受当前 incumbent 和 gap，而不能简单要求所有问题都必须完全最优。
+对于设置时间上限的大型 MILP，则需要根据求解器返回信息判断是否接受当前当前最好可行解和最优性差距，而不能简单要求所有问题都必须完全最优。
 
 ## 结果读取后还要重新计算业务指标
 
@@ -383,7 +383,7 @@ validate solution
 format outputs
 ```
 
-这样如果需求数据更新，只需要替换输入；如果模型逻辑改变，主要改 build model 部分；如果报告格式变化，不必碰约束代码。
+这样如果需求数据更新，只需要替换输入；如果模型逻辑改变，主要改构建模型部分；如果报告格式变化，不必碰约束代码。
 
 这比“每次改一点就复制整段 notebook”更适合长期维护。
 
@@ -409,7 +409,7 @@ cost[r, k]
 
 成本问题写成 `LpMaximize`。
 
-### binary variable 没有和连续变量连接
+### 二进制变量没有和连续变量连接
 
 设施关闭了，流量仍能通过。
 
@@ -421,15 +421,15 @@ cost[r, k]
 
 ## 一套更稳妥的 PuLP 工作流
 
-1. 用 sets 定义业务对象；
-2. 用普通 Python 结构保存 parameters；
+1. 用集合定义业务对象；
+2. 用普通 Python 结构保存参数；
 3. 创建 `LpProblem` 并确认目标方向；
 4. 用 `LpVariable` / `LpVariable.dicts` 定义变量类型和边界；
 5. 用 `lpSum` 写目标函数；
-6. 按约束类别分组生成 constraint families；
+6. 按约束类别分组生成约束族；
 7. 检查变量数、约束数和名称；
 8. 必要时导出 LP 文件；
-9. 求解后先检查 solver status；
+9. 求解后先检查求解状态；
 10. 独立复算目标值和关键资源平衡；
 11. 最后按业务粒度整理结果。
 

@@ -3,7 +3,7 @@ translationKey: stat-categorical-data-analysis
 locale: zh
 slug: stat-categorical-data-analysis
 title: 分类数据分析
-summary: 从频数、比例和列联表开始，进入条件比例、卡方检验、odds 与 odds ratio，并把分类数据分析自然连接到逻辑回归。
+summary: 从频数、比例和列联表开始，进入条件比例、卡方检验、优势与优势比，并把分类数据分析自然连接到逻辑回归。
 tags:
   - 统计学
   - 分类数据
@@ -197,7 +197,7 @@ prop.table(tab, margin = 1)
 
 统计证据和实际效果需要一起解释。
 
-## 小样本和稀疏表要考虑 Fisher exact test
+## 小样本和稀疏表要考虑费舍尔精确检验
 
 卡方检验依赖大样本近似。如果 2×2 表里某些 expected counts 很小，近似可能不稳定。
 
@@ -232,7 +232,7 @@ Store 解决率：
 p_S=0.71
 \]
 
-**Risk difference**：
+**风险差**：
 
 \[
 RD=p_W-p_S=0.11
@@ -240,7 +240,7 @@ RD=p_W-p_S=0.11
 
 它回答的是“绝对提高多少个百分点”。
 
-**Risk ratio**：
+**风险比**：
 
 \[
 RR=\frac{p_W}{p_S}=\frac{0.82}{0.71}\approx1.15
@@ -250,31 +250,31 @@ RR=\frac{p_W}{p_S}=\frac{0.82}{0.71}\approx1.15
 
 两个指标表达的是不同尺度，不能互相替代。
 
-## Odds 和 probability 不是同一个量
+## 优势和概率不是同一个量
 
-如果事件概率为 \(p\)，odds 定义为：
+如果事件概率为 \(p\)，优势定义为：
 
 \[
 Odds=\frac{p}{1-p}
 \]
 
-Web 的 odds：
+Web 的优势：
 
 \[
 \frac{0.82}{0.18}\approx4.56
 \]
 
-Store 的 odds：
+Store 的优势：
 
 \[
 \frac{0.71}{0.29}\approx2.45
 \]
 
-probability 0.82 表示 82% 的概率；odds 4.56 表示事件发生与不发生的相对比值约为 4.56:1。
+概率 0.82 表示 82% 的概率；优势 4.56 表示事件发生与不发生的相对比值约为 4.56:1。
 
 两者数值尺度完全不同。
 
-## Odds ratio 量化两组相对 odds
+## 优势比量化两组相对优势
 
 对于 2×2 表：
 
@@ -283,7 +283,7 @@ probability 0.82 表示 82% 的概率；odds 4.56 表示事件发生与不发生
 | Group A |     a |        c |
 | Group B |     b |        d |
 
-odds ratio：
+优势比：
 
 \[
 OR=\frac{a/c}{b/d}=\frac{ad}{bc}
@@ -298,20 +298,20 @@ odds_ratio <- web_odds / store_odds
 odds_ratio
 ```
 
-OR > 1 表示 Web 的解决 odds 更高；OR = 1 对应两组 odds 相同。
+OR > 1 表示 Web 的解决优势更高；OR = 1 对应两组优势相同。
 
-但 OR 不能直接翻译成“概率提高了多少倍”。当事件很常见时，odds ratio 和 risk ratio 可能差得很明显。
+但 OR 不能直接翻译成“概率提高了多少倍”。当事件很常见时，优势比和风险比可能差得很明显。
 
-## 为什么 odds ratio 会自然连接到逻辑回归
+## 为什么优势比会自然连接到逻辑回归
 
-Logistic regression 使用 log-odds：
+Logistic regression 使用对数优势：
 
 \[
 \log\left(\frac{p}{1-p}\right)
 =\beta_0+\beta_1X
 \]
 
-如果 \(X\) 是二元组别，\(e^{\beta_1}\) 就可以解释为调整前提下的 odds ratio。
+如果 \(X\) 是二元组别，\(e^{\beta_1}\) 就可以解释为调整前提下的优势比。
 
 这意味着分类数据分析和逻辑回归不是两个割裂主题。
 
@@ -329,9 +329,9 @@ fit <- glm(
 exp(coef(fit))
 ```
 
-模型系数的指数形式与 odds ratio 联系起来，但仍然要先确认事件类编码和参考组。
+模型系数的指数形式与优势比联系起来，但仍然要先确认事件类编码和参考组。
 
-## Simpson's paradox 提醒不要忽略分层结构
+## 辛普森悖论提醒不要忽略分层结构
 
 整体比例可能掩盖关键分组。
 
@@ -416,7 +416,7 @@ table(customer$category, useNA = "ifany")
 
 **“p 值小说明关联很强。”** p 值不是效果大小。
 
-**“OR=2 就是概率翻倍。”** odds 和 probability 不在同一尺度。
+**“OR=2 就是概率翻倍。”** 优势和概率不在同一尺度。
 
 **“总体比例差异就是因果效果。”** 分组组成和混杂可能改变整体结果。
 
@@ -433,7 +433,7 @@ table(customer$category, useNA = "ifany")
 5. 用比例柱状图检查结构；
 6. 需要推断时选择卡方或精确方法；
 7. 查看 effect size，而不是只读 p-value；
-8. 二元问题可进一步报告 risk difference、risk ratio 或 odds ratio；
+8. 二元问题可进一步报告风险差、风险比或优势比；
 9. 检查分层后关系是否改变；
 10. 需要控制多个变量时，再进入 logistic regression。
 
@@ -441,6 +441,6 @@ table(customer$category, useNA = "ifany")
 
 ## 参考资料
 
-知识结构参考 Rafael A. Irizarry 的 _Introduction to Data Science_ 中 categorical data 的可视化与总结，以及新版 _Statistics and Prediction Algorithms Through Case Studies_ 在线性模型部分对 chi-square、odds ratio 与 generalized linear models 的连接。正文、业务示例和代码均重新组织。
+知识结构参考 Rafael A. Irizarry 的 _Introduction to Data Science_ 中 categorical data 的可视化与总结，以及新版 _Statistics and Prediction Algorithms Through Case Studies_ 在线性模型部分对 chi-square、优势比与 generalized linear models 的连接。正文、业务示例和代码均重新组织。
 
 参考站点：<https://rafalab.dfci.harvard.edu/dsbook-part-1/> 与 <https://rafalab.dfci.harvard.edu/dsbook-part-2/> 。原资料采用 CC BY-NC-SA 4.0 许可。

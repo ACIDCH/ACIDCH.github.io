@@ -131,7 +131,11 @@ const copy = sharedUi[locale].search;
 </dialog>
 
 <script>
-  import { findSearchResults, splitHighlight, type SearchItem } from "../utils/search";
+  import {
+    createSearchMatcher,
+    splitHighlight,
+    type SearchItem,
+  } from "../utils/search";
 
   let activeSearchCleanup: (() => void) | undefined;
   let lockedSearchScrollPosition: number | undefined;
@@ -180,7 +184,7 @@ const copy = sharedUi[locale].search;
 
     const controller = new AbortController();
     const { signal } = controller;
-    const index = JSON.parse(indexNode.textContent ?? "[]") as SearchItem[];
+    let matcher: ReturnType<typeof createSearchMatcher> | undefined;
     const initialStatus = status.textContent ?? "";
     let selected = -1;
     let links: HTMLAnchorElement[] = [];
@@ -196,13 +200,18 @@ const copy = sharedUi[locale].search;
 
     const render = () => {
       const query = input.value.trim();
-      const matches = findSearchResults(index, query);
+      if (query && !matcher) {
+        matcher = createSearchMatcher(
+          JSON.parse(indexNode.textContent ?? "[]") as SearchItem[],
+        );
+      }
+      const matches = query ? matcher!(query) : [];
       results.replaceChildren();
       selected = -1;
       links = [];
       status.textContent = query
         ? `${matches.length} ${results.dataset.resultLabel ?? ""}`
-        : status.textContent;
+        : initialStatus;
 
       if (query && matches.length === 0) {
         const empty = document.createElement("p");

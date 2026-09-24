@@ -3,6 +3,7 @@
 </div>
 
 <script>
+  import { initContentMotion } from "../scripts/content-motion";
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
   let activeMotionCleanup: (() => void) | undefined;
@@ -11,49 +12,28 @@
     activeMotionCleanup?.();
     const controller = new AbortController();
     const observers: IntersectionObserver[] = [];
-    const frameIds: number[] = [];
+    const frameIds = new Set<number>();
+    const schedule = (callback: FrameRequestCallback) => {
+      const id = requestAnimationFrame((time) => {
+        frameIds.delete(id);
+        callback(time);
+      });
+      frameIds.add(id);
+      return id;
+    };
     const { signal } = controller;
-    const revealElements = Array.from(
-      document.querySelectorAll<HTMLElement>("[data-reveal]"),
-    );
-
+    const cleanupContentMotion = initContentMotion(document, reduceMotion.matches);
     document.documentElement.dataset.motionReady = "true";
-
-    if (reduceMotion.matches || !("IntersectionObserver" in window)) {
-      revealElements.forEach((element) => {
-        element.dataset.revealReady = "true";
-        element.dataset.revealed = "true";
-      });
-    } else {
-      const revealObserver = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (!entry.isIntersecting) return;
-            (entry.target as HTMLElement).dataset.revealed = "true";
-            revealObserver.unobserve(entry.target);
-          });
-        },
-        { rootMargin: "0px 0px -6% 0px", threshold: 0.06 },
-      );
-      observers.push(revealObserver);
-      revealElements.forEach((element) => {
-        element.dataset.revealReady = "true";
-      });
-
-      const firstFrame = requestAnimationFrame(() => {
-        const secondFrame = requestAnimationFrame(() => {
-          revealElements.forEach((element) => revealObserver.observe(element));
-        });
-        frameIds.push(secondFrame);
-      });
-      frameIds.push(firstFrame);
-    }
 
     document
       .querySelectorAll<HTMLElement>("[data-counter-target]")
       .forEach((counter) => {
         const target = Number(counter.dataset.counterTarget ?? 0);
-        if (reduceMotion.matches || target <= 0) {
+        if (
+          reduceMotion.matches ||
+          target <= 0 ||
+          !("IntersectionObserver" in window)
+        ) {
           counter.textContent = String(target);
           return;
         }
@@ -68,31 +48,48 @@
             const progress = Math.min(1, (now - startedAt) / duration);
             const eased = 1 - (1 - progress) ** 3;
             counter.textContent = String(Math.round(target * eased));
-            if (progress < 1) frameIds.push(requestAnimationFrame(tick));
+            if (progress < 1) schedule(tick);
           }
 
-          frameIds.push(requestAnimationFrame(tick));
+          schedule(tick);
         });
         observers.push(counterObserver);
         counterObserver.observe(counter);
       });
 
     document.querySelectorAll<HTMLElement>("[data-tilt]").forEach((card) => {
+      card.style.removeProperty("--tilt-x");
+      card.style.removeProperty("--tilt-y");
       if (reduceMotion.matches || !finePointer.matches) return;
+      let pendingFrame: number | undefined;
+      let pointerX = 0;
+      let pointerY = 0;
       card.addEventListener(
         "pointermove",
         (event) => {
-          const bounds = card.getBoundingClientRect();
-          const x = (event.clientX - bounds.left) / bounds.width - 0.5;
-          const y = (event.clientY - bounds.top) / bounds.height - 0.5;
-          card.style.setProperty("--tilt-x", `${(-y * 2.4).toFixed(2)}deg`);
-          card.style.setProperty("--tilt-y", `${(x * 2.4).toFixed(2)}deg`);
+          pointerX = event.clientX;
+          pointerY = event.clientY;
+          if (pendingFrame !== undefined) return;
+          pendingFrame = schedule(() => {
+            pendingFrame = undefined;
+            const bounds = card.getBoundingClientRect();
+            if (!bounds.width || !bounds.height) return;
+            const x = (pointerX - bounds.left) / bounds.width - 0.5;
+            const y = (pointerY - bounds.top) / bounds.height - 0.5;
+            card.style.setProperty("--tilt-x", `${(-y * 2.4).toFixed(2)}deg`);
+            card.style.setProperty("--tilt-y", `${(x * 2.4).toFixed(2)}deg`);
+          });
         },
         { signal },
       );
       card.addEventListener(
         "pointerleave",
         () => {
+          if (pendingFrame !== undefined) {
+            cancelAnimationFrame(pendingFrame);
+            frameIds.delete(pendingFrame);
+            pendingFrame = undefined;
+          }
           card.style.removeProperty("--tilt-x");
           card.style.removeProperty("--tilt-y");
         },
@@ -101,18 +98,21 @@
     });
 
     activeMotionCleanup = () => {
+      cleanupContentMotion();
       controller.abort();
       observers.forEach((observer) => observer.disconnect());
       frameIds.forEach((frameId) => cancelAnimationFrame(frameId));
     };
   }
 
+  let progressTimer: number | undefined;
   function setProgress(state: "loading" | "complete") {
+    window.clearTimeout(progressTimer);
     const progress = document.querySelector<HTMLElement>("[data-page-progress]");
     if (!progress) return;
     progress.dataset.state = state;
     if (state === "complete") {
-      window.setTimeout(() => {
+      progressTimer = window.setTimeout(() => {
         progress.removeAttribute("data-state");
       }, 260);
     }

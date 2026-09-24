@@ -145,7 +145,7 @@ email
 customer_id BIGINT AUTO_INCREMENT PRIMARY KEY
 ```
 
-PostgreSQL 更常见 identity column：
+PostgreSQL 更常见 identity 列：
 
 ```sql
 customer_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY

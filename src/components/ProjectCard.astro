@@ -4,6 +4,7 @@ import type { Locale } from "../config/site";
 import { sharedUi } from "../i18n/shared-ui";
 import { getLocalizedPath } from "../utils/paths";
 import ProjectCover from "./ProjectCover.astro";
+import { localizeMethodLabel } from "../i18n/method-labels";
 
 interface Props {
   entry: CollectionEntry<"projects">;
@@ -42,7 +43,11 @@ const coverBadges = entry.data.tools
   </h2>
   <p class="project-card__summary">{entry.data.summary}</p>
   <ul class="tag-list project-card__tools" aria-label={copy.tools}>
-    {entry.data.tools.map((tool) => <li class="tag">{tool}</li>)}
+    {
+      entry.data.tools.map((tool) => (
+        <li class="tag">{localizeMethodLabel(tool, locale)}</li>
+      ))
+    }
   </ul>
   <a
     class="project-card__link"

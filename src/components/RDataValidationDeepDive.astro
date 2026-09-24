@@ -19,7 +19,7 @@ const deepDive = deepDives.find((item) => item.slug === "data-validation")!;
   <section id="schema" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>01</span><div>
-        <p>SCHEMA</p><h2>25 个字段先按分析角色重排，而不是直接全部送进模型</h2>
+        <p>字段结构</p><h2>25 个字段先按分析角色重排，而不是直接全部送进模型</h2>
       </div>
     </div>
     <div class="r-deep-prose">
@@ -41,7 +41,7 @@ const deepDive = deepDives.find((item) => item.slug === "data-validation")!;
   <section id="cleaning" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>02</span><div>
-        <p>CLEANING</p><h2>清洗的重点是固定单位、水平和事件方向</h2>
+        <p>数据清洗</p><h2>清洗的重点是固定单位、水平和事件方向</h2>
       </div>
     </div>
     <div class="r-deep-prose">
@@ -76,7 +76,7 @@ const deepDive = deepDives.find((item) => item.slug === "data-validation")!;
       open
     />
     <div class="r-deep-callout">
-      <span>NO MISSING</span><p>
+      <span>无缺失值</span><p>
         清洗后的建模变量没有缺失值。中位数填补在现有训练中是 no-op，但它使相同 workflow
         面对新的数值缺失时仍有明确处理；这与用填补掩盖已有缺失问题不同。
       </p>
@@ -86,7 +86,7 @@ const deepDive = deepDives.find((item) => item.slug === "data-validation")!;
   <section id="population" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>03</span><div>
-        <p>POPULATION</p><h2>Fleet 排除改变的是模型适用范围，而不是一项普通特征</h2>
+        <p>建模总体</p><h2>Fleet 排除改变的是模型适用范围，而不是一项普通特征</h2>
       </div>
     </div>
     <div class="r-deep-prose">
@@ -110,9 +110,7 @@ const deepDive = deepDives.find((item) => item.slug === "data-validation")!;
   <section id="features" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>04</span><div>
-        <p>FEATURE SELECTION</p><h2>
-          七变量并不是“表现最强的七列”，而是四类信息的可解释组合
-        </h2>
+        <p>变量筛选</p><h2>七变量并不是“表现最强的七列”，而是四类信息的可解释组合</h2>
       </div>
     </div>
     <div class="r-deep-prose">
@@ -179,7 +177,7 @@ const deepDive = deepDives.find((item) => item.slug === "data-validation")!;
   <section id="correlation" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>05</span><div>
-        <p>CORRELATION</p><h2>0.88 是删除 signup 周数的直接证据</h2>
+        <p>相关性</p><h2>0.88 是删除 signup 周数的直接证据</h2>
       </div>
     </div>
     <div class="r-deep-prose">
@@ -199,7 +197,7 @@ const deepDive = deepDives.find((item) => item.slug === "data-validation")!;
 
   <section id="split" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
-      <span>06</span><div><p>SPLIT</p><h2>80/20 分层切分先把最终答案隔离</h2></div>
+      <span>06</span><div><p>数据切分</p><h2>80/20 分层切分先把最终答案隔离</h2></div>
     </div>
     <div class="r-deep-prose">
       <p>
@@ -218,7 +216,9 @@ const deepDive = deepDives.find((item) => item.slug === "data-validation")!;
 
   <section id="cv-sample" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
-      <span>07</span><div><p>CV SAMPLE</p><h2>30,000 条样本只用于候选模型比较</h2></div>
+      <span>07</span><div>
+        <p>交叉验证样本</p><h2>30,000 条样本只用于候选模型比较</h2>
+      </div>
     </div>
     <div class="r-deep-prose">
       <p>
@@ -257,7 +257,7 @@ const deepDive = deepDives.find((item) => item.slug === "data-validation")!;
   <section id="leakage" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>08</span><div>
-        <p>LEAKAGE</p><h2>所有会学习数据的步骤都必须留在 analysis fold</h2>
+        <p>数据泄漏</p><h2>所有会学习数据的步骤都必须留在 analysis fold</h2>
       </div>
     </div>
     <div class="r-deep-prose">
@@ -285,7 +285,7 @@ const deepDive = deepDives.find((item) => item.slug === "data-validation")!;
   <section id="recipes" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>09</span><div>
-        <p>TWO RECIPES</p><h2>Dummy 编码只服务于需要数值矩阵的引擎</h2>
+        <p>两套预处理流程</p><h2>Dummy 编码只服务于需要数值矩阵的引擎</h2>
       </div>
     </div>
     <div class="r-deep-prose">
@@ -321,7 +321,7 @@ const deepDive = deepDives.find((item) => item.slug === "data-validation")!;
   <section id="architecture" class="r-deep-section" data-reveal>
     <div class="r-deep-section__heading">
       <span>10</span><div>
-        <p>ARCHITECTURE</p><h2>数据架构最终形成一条可重复的验证链</h2>
+        <p>流程结构</p><h2>数据架构最终形成一条可重复的验证链</h2>
       </div>
     </div>
     <AnalysisPipeline />

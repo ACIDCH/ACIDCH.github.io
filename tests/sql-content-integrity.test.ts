@@ -135,14 +135,14 @@ describe("SQL Learning Notes integrity contract", () => {
     const overview = read("src/content/notes/sql-relational-data.zh.md");
     [
       "## 为什么需要数据库？",
-      "### 层次模型 Hierarchical Model",
-      "### 网状模型 Network Model",
-      "### 关系模型 Relational Model",
+      "### 层次模型",
+      "### 网状模型",
+      "### 关系模型",
       "DECIMAL(p,s)",
       "## SQL 是什么？",
-      "### DDL — Data Definition Language",
-      "### DML — Data Manipulation Language",
-      "### DQL — Data Query Language",
+      "### DDL — 数据定义语言",
+      "### DML — 数据操纵语言",
+      "### DQL — 数据查询语言",
       "## 标准 SQL 和数据库方言不要混淆",
       "## 常见关系数据库有哪些？",
       'data-learning-slot="relational-model-explorer"',
@@ -172,7 +172,7 @@ describe("SQL Learning Notes integrity contract", () => {
     expect(orderBy).toContain("PostgreSQL");
     expect(orderBy).toContain("NULLS FIRST");
     expect(orderBy).toContain("NULLS LAST");
-    expect(orderBy).toContain("collation");
+    expect(orderBy).toContain("排序规则");
   });
 
   it("keeps SELECT semantics explicit and appropriate for the local sql.js environment", () => {
@@ -181,7 +181,7 @@ describe("SQL Learning Notes integrity contract", () => {
     expect(select).toContain("SELECT 2 + 3 AS result;");
     expect(select).toContain("SELECT 1 AS execution_ok;");
     expect(select).toContain("没有 `ORDER BY` 时");
-    expect(select).toContain("result set");
+    expect(select).toContain("结果集");
     expect(select).toContain("查询并没有创建一张永久新表");
   });
 

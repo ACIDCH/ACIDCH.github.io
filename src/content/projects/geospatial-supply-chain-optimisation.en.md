@@ -40,7 +40,7 @@ The two-echelon module asks whether Factory → Warehouse → Demand flow can sa
 
 ## Two complementary network engines
 
-Every network matrix carries road distance in km, duration in minutes and a generalised cost in NZD. Cost per km and cost per minute are explicit assumptions, so the optimisation objective keeps the same physical meaning across the Fast OD and OSM engines. The summary never compares Fast OD kilometres from OSM minutes as though they were the same measure. Entity changes rebuild the complete affected matrix rather than mixing calculation methods. Network / Flow / Coverage / Utilisation / Cost / Inventory / Risk views consume the same structured result; changing a view does not change the decision.
+Every network matrix carries road distance in km, duration in minutes and a generalised cost in NZD. Cost per km and cost per minute are explicit assumptions, so the optimisation objective keeps the same physical meaning across the Fast OD and OSM engines. The summary never compares Fast OD kilometres with OSM minutes as though they were the same measure. Entity changes rebuild the complete affected matrix rather than mixing calculation methods. Network / Flow / Coverage / Utilisation / Cost / Inventory / Risk views consume the same structured result; changing a view does not change the decision.
 
 ## Road uncertainty and service coverage
 

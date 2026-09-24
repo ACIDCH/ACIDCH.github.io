@@ -47,7 +47,7 @@ describe("SQL09 Pagination contract", () => {
     );
     expect(component).toContain("ORDER BY order_value DESC, order_id ASC");
     expect(component).toContain("data-pagination-run");
-    expect(note).toContain("Keyset pagination");
+    expect(note).toContain("键集分页");
     expect(note).not.toContain("50008");
     expect(component).not.toContain("50008");
   });

@@ -1,0 +1,60 @@
+/* Hallmark · interaction-only enhancement; existing layout and tokens preserved. */
+/* Content is never hidden while waiting for JavaScript or an observer. */
+@media (max-width: 20rem) {
+  html,
+  body {
+    min-width: 0;
+  }
+}
+html[data-js="true"] [data-reveal],
+html[data-motion-ready="true"] [data-reveal][data-reveal-ready="true"],
+html[data-motion-ready="true"]
+  [data-reveal][data-reveal-ready="true"][data-revealed="true"],
+html[data-motion-ready="true"] [data-reveal][data-revealed="true"] {
+  opacity: 1;
+  transform: none;
+  transition: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .home-hero__content {
+    animation: content-intro var(--duration-normal) var(--ease-standard);
+  }
+  .dashboard-stage [role="tabpanel"]:not([hidden]) {
+    animation: content-panel-in 180ms var(--ease-standard);
+  }
+  .project-card__arrow {
+    transition: transform var(--duration-fast) var(--ease-standard);
+  }
+  .project-card__link:is(:hover, :focus-visible) .project-card__arrow {
+    transform: translateX(3px);
+  }
+  .button:not(:disabled):not([aria-disabled="true"]):active {
+    transform: translateY(1px);
+  }
+}
+
+@keyframes content-intro {
+  from {
+    opacity: 0.85;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes content-panel-in {
+  from {
+    opacity: 0.75;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .project-card__arrow {
+    transition: none;
+    transform: none;
+  }
+}

@@ -31,6 +31,27 @@ export function findSearchResults(
     .slice(0, limit);
 }
 
+/** Prepare immutable page content once, rather than normalising it per keystroke. */
+export function createSearchMatcher(items: SearchItem[]) {
+  const prepared = items.map((item) => ({
+    item,
+    text: normaliseSearchText(item.searchText),
+    title: normaliseSearchText(item.title),
+  }));
+  return (query: string, limit = 18): SearchItem[] => {
+    const needle = normaliseSearchText(query);
+    if (!needle) return [];
+    return prepared
+      .filter((entry) => entry.text.includes(needle))
+      .sort(
+        (left, right) =>
+          Number(right.title.includes(needle)) - Number(left.title.includes(needle)),
+      )
+      .slice(0, limit)
+      .map((entry) => entry.item);
+  };
+}
+
 export function splitHighlight(
   value: string,
   query: string,

@@ -3,7 +3,7 @@ translationKey: sql-order-by
 locale: zh
 slug: sql-order-by
 title: ORDER BY 排序
-summary: 查询能返回正确的记录，不代表顺序也可靠。这里从升序、降序和多列排序开始，说明为什么稳定排序需要 tie-breaker，以及它和分页有什么关系。
+summary: 查询能返回正确的记录，不代表顺序也可靠。这里从升序、降序和多列排序开始，说明为什么稳定排序需要打破并列的次级排序键，以及它和分页有什么关系。
 tags:
   - ORDER BY
   - 排序
@@ -93,7 +93,7 @@ ORDER BY customer_id ASC
 
 `ASC` 表示 ascending，也就是升序。
 
-虽然可以省略，但在团队代码和多列排序里显式写出来更清楚。数字通常从小到大，日期从早到晚，文本则还会受到 collation 影响。
+虽然可以省略，但在团队代码和多列排序里显式写出来更清楚。数字通常从小到大，日期从早到晚，文本则还会受到排序规则影响。
 
 ## DESC 把排序方向反转
 
@@ -170,7 +170,7 @@ ORDER BY order_value DESC
 
 如果以后两张订单金额相同，它们之间没有确定顺序。
 
-更稳妥的写法是加入唯一 tie-breaker：
+更稳妥的写法是加入唯一次级排序键：
 
 ```sql
 ORDER BY order_value DESC, order_id ASC;
@@ -189,7 +189,7 @@ ORDER BY order_value DESC, order_id ASC;
 
 这种 deterministic ordering 对分页、排行榜和可重复测试都很重要。
 
-## WHERE、Projection 与 ORDER BY 怎样组合
+## WHERE、列选择与 ORDER BY 怎样组合
 
 只看金额至少 400 的订单，只返回 ID 和金额，再从高到低排列：
 
@@ -305,7 +305,7 @@ NULLS LAST
 
 其他数据库可能有不同做法。如果 NULL 位置影响业务结果，应查看具体数据库并显式处理。
 
-## 文本排序还受到 collation 影响
+## 文本排序还受到排序规则影响
 
 文本排序不仅涉及字母顺序，还可能受到：
 
@@ -313,7 +313,7 @@ NULLS LAST
 - 重音符号；
 - 语言环境；
 - Unicode 规则；
-- 数据库 collation。
+- 数据库排序规则。
 
 因此：
 
@@ -323,7 +323,7 @@ ORDER BY customer_name ASC
 
 并不等于所有数据库都按完全相同的“肉眼字母表”排序。
 
-当前示例以英文名称为主，主要用于理解 ORDER BY 结构；正式多语言系统还需要明确字符集和 collation。
+当前示例以英文名称为主，主要用于理解 ORDER BY 结构；正式多语言系统还需要明确字符集和排序规则。
 
 ## ORDER BY 是分页之前的关键前提
 
@@ -339,7 +339,7 @@ ORDER BY order_value DESC, order_id ASC
 
 所以分页不是“先 LIMIT，再看数据库给什么顺序”。页面窗口必须建立在稳定序列上。
 
-## Business Analytics 中 ORDER BY 常见在哪里
+## 商业分析中 ORDER BY 常见在哪里
 
 排序在分析工作中远不只是展示功能。
 
@@ -388,13 +388,13 @@ ORDER BY 可能需要数据库执行额外排序。数据量很大时，排序�
 
 ### 只排第一键，却要求结果完全可重复
 
-有并列值时需要 tie-breaker。
+有并列值时需要次级排序键。
 
 ### 把列顺序当成行排序
 
 SELECT 列表控制列，ORDER BY 控制行。
 
-### 忽略 NULL 和文本 collation
+### 忽略 NULL 和文本排序规则
 
 不同数据库默认行为可能不同。
 
@@ -407,13 +407,13 @@ SELECT 列表控制列，ORDER BY 控制行。
 1. 先确认业务真正想按什么排；
 2. 明确每个字段是 ASC 还是 DESC；
 3. 第一排序键可能并列时增加第二键；
-4. 最终最好用唯一键形成完整 tie-breaker；
+4. 最终最好用唯一键形成完整次级排序键；
 5. NULL 位置重要时显式处理；
-6. 文本排序需要时确认 collation；
+6. 文本排序需要时确认排序规则；
 7. 做分页前先保证 ORDER BY 稳定。
 
 ## 下一步从有序结果中截取一页
 
 ORDER BY 看起来只是把行重新排一下，但只要结果需要被重复查看、导出、排名或分页，它就变成查询契约的一部分。
 
-下一篇会直接建立在稳定排序上：先明确页面大小，再用 LIMIT 和 OFFSET 切出一段结果；数据量变大以后，再比较 keyset pagination。
+下一篇会直接建立在稳定排序上：先明确页面大小，再用 LIMIT 和 OFFSET 切出一段结果；数据量变大以后，再比较键集分页。

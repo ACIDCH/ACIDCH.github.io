@@ -1,12 +1,17 @@
 import sitemap from "@astrojs/sitemap";
+import { satteri } from "@astrojs/markdown-satteri";
 import { defineConfig } from "astro/config";
 import { siteConfig } from "./src/config/site.ts";
+import { preserveTranslatedHeadingIds } from "./src/content-support/heading-ids.mjs";
 
 export default defineConfig({
   site: siteConfig.siteUrl,
   base: siteConfig.basePath,
   output: "static",
   trailingSlash: "always",
+  markdown: {
+    processor: satteri({ hastPlugins: [preserveTranslatedHeadingIds] }),
+  },
   integrations: [
     sitemap({
       filter: (page) => {

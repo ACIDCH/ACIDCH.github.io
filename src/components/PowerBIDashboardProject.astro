@@ -92,7 +92,7 @@ RETURN
 
     <header class="power-bi-hero" data-reveal>
       <div>
-        <p class="status">市场分析 Dashboard</p>
+        <p class="status">市场分析仪表板</p>
         <h1>{entry.data.title}</h1>
         <p class="power-bi-hero__lede">
           结合房价、工资与通胀指标，比较八个欧洲市场的增长、可负担性与开发优先级。
@@ -111,7 +111,7 @@ RETURN
     <nav class="project-toc" aria-label="项目页章节">
       <a href="#overview">速览</a>
       <a href="#model">数据模型</a>
-      <a href="#dashboard">Dashboard</a>
+      <a href="#dashboard">仪表板</a>
       <a href="#dax">DAX</a>
       <a href="#results">结果</a>
     </nav>
@@ -126,7 +126,7 @@ RETURN
         <div><span>评分方法</span><strong>5 项等权排名</strong></div>
       </div>
       <p>
-        Dashboard
+        仪表板
         回答一个实际选址问题：房价增长较快的市场，是否同时具备工资支撑，且没有过高的通胀与可负担性压力。分析覆盖丹麦、法国、德国、爱尔兰、荷兰、波兰、葡萄牙和西班牙。
       </p>
     </section>
@@ -207,14 +207,14 @@ RETURN
     <section id="dashboard" class="project-section project-section--wide" data-reveal>
       <div class="dashboard-heading">
         <div>
-          <p class="status">Dashboard 展示</p>
+          <p class="status">仪表板展示</p>
           <h2>四个页面逐步收窄市场判断</h2>
         </div>
         <p>选择页签查看报表结构与源模型中的关键结果。</p>
       </div>
 
       <div class="dashboard-shell" data-dashboard-gallery>
-        <div class="dashboard-tabs" role="tablist" aria-label="Dashboard 页面">
+        <div class="dashboard-tabs" role="tablist" aria-label="仪表板页面">
           <button
             type="button"
             role="tab"
@@ -261,7 +261,7 @@ RETURN
             data-dashboard-panel="summary"
           >
             <div class="dashboard-page-title">
-              <span>Summary</span><strong>欧洲市场开发位置比较</strong>
+              <span>概览</span><strong>欧洲市场开发位置比较</strong>
             </div>
             <div class="dashboard-metric-grid">
               <article>
@@ -294,7 +294,7 @@ RETURN
             hidden
           >
             <div class="dashboard-page-title">
-              <span>Market Growth</span><strong>长期增长与近期动量</strong>
+              <span>市场增长</span><strong>长期增长与近期动量</strong>
             </div>
             <div class="dashboard-bar-chart" aria-label="房价长期增长比较">
               <div>
@@ -319,7 +319,7 @@ RETURN
             hidden
           >
             <div class="dashboard-page-title">
-              <span>Buyer Affordability</span><strong>工资支撑与成本压力</strong>
+              <span>买方可负担性</span><strong>工资支撑与成本压力</strong>
             </div>
             <div class="dashboard-risk-grid">
               <article>
@@ -348,7 +348,7 @@ RETURN
             hidden
           >
             <div class="dashboard-page-title">
-              <span>Final Priority</span><strong>五项等权市场排名</strong>
+              <span>最终优先级</span><strong>五项等权市场排名</strong>
             </div>
             <div class="score-wheel" aria-label="开发综合得分的五个维度">
               <span>长期增长</span><span>近期动量</span><span>工资支撑</span><span
@@ -383,28 +383,26 @@ RETURN
       <ol class="report-guide">
         <li>
           <span>01</span><div>
-            <strong>Summary</strong><p>汇总长期增长、近期动量和市场选择问题。</p>
+            <strong>概览</strong><p>汇总长期增长、近期动量和市场选择问题。</p>
           </div>
         </li>
         <li>
           <span>02</span><div>
-            <strong>Market Growth</strong><p>
+            <strong>市场增长</strong><p>
               查看 2015 年以来的房价变化、年度趋势和近三年增速。
             </p>
           </div>
         </li>
         <li>
           <span>03</span><div>
-            <strong>Buyer Affordability</strong><p>
+            <strong>买方可负担性</strong><p>
               按国家比较房价、工资和通胀指数，并计算可负担性差距。
             </p>
           </div>
         </li>
         <li>
           <span>04</span><div>
-            <strong>Final Priority</strong><p>
-              汇总五项排名，比较综合得分和市场风险结构。
-            </p>
+            <strong>最终优先级</strong><p>汇总五项排名，比较综合得分和市场风险结构。</p>
           </div>
         </li>
       </ol>

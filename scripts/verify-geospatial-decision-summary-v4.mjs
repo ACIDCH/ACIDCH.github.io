@@ -69,17 +69,25 @@ requireToken(
 );
 
 for (const [source, tokens] of [
-  [files.zh, ["## 这个沙盘回答什么问题", "km 与 OSM 的 min", "完整 CVRP"]],
+  [
+    files.zh,
+    [
+      "## 这个沙盘回答什么问题",
+      "公里与 OSM 的分钟",
+      "完整容量约束车辆路径问题（CVRP）",
+    ],
+  ],
   [
     files.en,
     [
       "## Decision questions this sandbox answers",
-      "Fast OD kilometres from OSM minutes",
+      "Fast OD kilometres with OSM minutes",
       "full CVRP",
     ],
   ],
 ]) {
-  for (const token of tokens) requireToken(source, token, `public project copy ${token}`);
+  for (const token of tokens)
+    requireToken(source, token, `public project copy ${token}`);
 }
 
 console.log(
