@@ -1,0 +1,21 @@
+---
+import ContextBack from "../../../components/ContextBack.astro";
+import GeelyEx5AnzProductDefinition from "../../../components/GeelyEx5AnzProductDefinition.astro";
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+  title="Geely EX5 澳新市场产品定义与竞品对标"
+  description="基于 2026 年 9 月公开数据，对 Geely EX5 在澳大利亚与新西兰市场进行价格、续航、快充、竞品、用户体验与区域产品需求分析，并形成可验证的本地化产品定义建议。"
+  locale="zh"
+  alternatePath="/lab/geely-ex5-anz-product-definition/"
+>
+  <div style="width:min(1180px,calc(100% - 2rem));margin:.65rem auto 0;position:relative;z-index:10;">
+    <ContextBack
+      locale="zh"
+      fallbackPath="/zh/projects/geely-ex5-anz-product-definition/"
+      label={{ en: "Back to project", zh: "返回项目" }}
+    />
+  </div>
+  <GeelyEx5AnzProductDefinition locale="zh" />
+</BaseLayout>
