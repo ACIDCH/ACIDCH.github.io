@@ -6,6 +6,9 @@ const chineseLabels: Readonly<Record<string, string>> = {
   "Supervised Learning": "监督学习",
   Classification: "分类模型",
   "Monte Carlo": "蒙特卡洛模拟",
+  "Market Research": "市场研究",
+  "Competitive Benchmarking": "竞品对标",
+  "Product Definition": "产品定义",
 };
 
 export function localizeMethodLabel(value: string, locale: Locale): string {

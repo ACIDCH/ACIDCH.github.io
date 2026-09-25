@@ -1,5 +1,10 @@
 /* Hallmark · interaction-only enhancement; existing layout and tokens preserved. */
 /* Content is never hidden while waiting for JavaScript or an observer. */
+/* Keep wide tables/code inside their own scroll containers, not the page grid. */
+.page-container {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 @media (max-width: 20rem) {
   html,
   body {

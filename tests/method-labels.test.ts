@@ -7,6 +7,9 @@ describe("method display labels", () => {
     ["Supervised Learning", "监督学习"],
     ["Classification", "分类模型"],
     ["Monte Carlo", "蒙特卡洛模拟"],
+    ["Market Research", "市场研究"],
+    ["Competitive Benchmarking", "竞品对标"],
+    ["Product Definition", "产品定义"],
   ])("localizes %s without changing English", (source, translated) => {
     expect(localizeMethodLabel(source, "zh")).toBe(translated);
     expect(localizeMethodLabel(source, "en")).toBe(source);
