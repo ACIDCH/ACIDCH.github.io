@@ -139,7 +139,7 @@ const checks = [
   },
   {
     path: "zh/notes/optimisation-sensitivity-analysis/",
-    markers: ["敏感性分析", "Shadow price", "data-feasible-lab"],
+    markers: ["敏感性分析", "影子价格", "data-feasible-lab"],
   },
   {
     path: "zh/notes/binary-milp-decisions/",
@@ -155,7 +155,7 @@ const checks = [
   },
   {
     path: "zh/notes/multidimensional-optimisation/",
-    markers: ["多维优化模型", "data-scale-lab", "Mass balance"],
+    markers: ["多维优化模型", "data-scale-lab", "流量平衡"],
   },
   {
     path: "zh/notes/transportation-models/",

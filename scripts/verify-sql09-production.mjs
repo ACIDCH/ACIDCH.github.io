@@ -39,7 +39,7 @@ const checks = [
       "分页查询",
       "LIMIT 定义页面最多返回多少行",
       "OFFSET 定义先跳过多少行",
-      "Keyset pagination",
+      "键集分页",
       "data-pagination-lab",
       "data-pagination-page-size",
       "data-pagination-page-index",

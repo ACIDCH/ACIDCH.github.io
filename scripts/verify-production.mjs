@@ -262,7 +262,7 @@ const pageChecks = [
     markers: [
       "SELECT 查询",
       "SELECT *",
-      "result set",
+      "结果集",
       "SELECT 1 AS execution_ok",
       "3 行、5 列",
       "data-sql-playground",
@@ -305,7 +305,7 @@ const pageChecks = [
     path: "zh/notes/sql-projection/",
     markers: [
       "列选择与表达式",
-      "Projection 改变的是结果集的列",
+      "列选择改变的是结果集的列",
       "customer_key",
       "scenario_value",
       "data-projection-lab",
