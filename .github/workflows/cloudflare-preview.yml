@@ -1,0 +1,56 @@
+name: Optional Cloudflare Pages portfolio preview
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/prepare-cloudflare-preview.mjs'
+      - '.github/workflows/cloudflare-preview.yml'
+      - 'docs/cloudflare-preview.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Build production-equivalent static assets
+        run: npm run build
+      - name: Prepare non-indexed Cloudflare preview
+        run: node scripts/prepare-cloudflare-preview.mjs
+      - name: Verify CJK and noindex preview artifacts
+        run: |
+          test -f dist-cloudflare-preview/zh/index.html
+          grep -q 'X-Robots-Tag: noindex' dist-cloudflare-preview/_headers
+      - uses: actions/upload-artifact@v4
+        with:
+          name: portfolio-cloudflare-review
+          path: dist-cloudflare-preview
+          retention-days: 3
+
+  deploy-preview:
+    if: github.event_name == 'workflow_dispatch'
+    needs: build-preview
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: portfolio-cloudflare-review
+          path: dist-cloudflare-preview
+      - uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist-cloudflare-preview --project-name=acidch-portfolio-preview --branch=review
